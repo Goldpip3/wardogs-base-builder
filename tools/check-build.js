@@ -289,8 +289,20 @@ check(!/[>\s]\?<\/span>/.test(app), "no leftover '?' estimate badges");
      text as prose, the catalog moved to 1,800 and the prose stayed on 1,900, and the app
      told players the wrong number for months while every check above it passed. Any figure
      written out with a thousands comma is one of these two claims or a drifted copy of one,
-     so the prose has to interpolate rather than spell it out. */
-  const written = [...new Set(app.match(/\b\d,\d{3}\b/g) || [])];
+     so the prose has to interpolate rather than spell it out.
+
+     Comments are stripped first, because "prose" means what a player is shown and a comment
+     is not that. The check used to read the whole file, so documenting the share codec as
+     "13,607 characters becomes about 1,430" failed the build over a compressed byte count
+     that has nothing to do with supplies. A check that fires on correct code is one people
+     learn to work around, which costs more than the bug it was guarding.
+
+     String literals are deliberately kept: the help text is built in JS, so a drifted figure
+     can genuinely live in one, and that is the case this exists for. */
+  const prose = app
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/^\s*\/\/.*$/gm, "");
+  const written = [...new Set(prose.match(/\b\d,\d{3}\b/g) || [])];
   const fromCatalog = new Set([pallet.toLocaleString("en-US"), stock.toLocaleString("en-US")]);
   const drifted = written.filter(n => !fromCatalog.has(n));
   check(drifted.length === 0,
