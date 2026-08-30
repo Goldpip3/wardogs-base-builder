@@ -85,6 +85,39 @@
   "What the grouping angle bounds is not stated anywhere: a radius, a full width or a typical spread. Read the number as the scale of the error, not a guarantee."
  ],
 
+ "open": [
+  {
+   "what": "The SPH-2 has no elevation table",
+   "why": "No source publishes one. The envelope is known, the curve is not, and it turns over near maximum range so it cannot be interpolated from the ends.",
+   "close": "Fire at known ranges and record the dial. Twelve points across 780 to 2629 m would be enough, with extra density past 2400 m where the arc flattens. Both arcs need their own row below 1181 m."
+  },
+  {
+   "what": "No time of flight for either platform",
+   "why": "Two calculators mention it, neither publishes numbers. Without it you cannot lead a moving target or judge whether a target will still be there.",
+   "close": "Time from the round leaving the tube to impact, at three or four ranges per platform. It is a stopwatch job, not a derivation."
+  },
+  {
+   "what": "Every table is flat ground",
+   "why": "The terrain is a river valley with ridges, so a shot up onto high ground falls short and a shot down off a ridge carries past. This is the largest accuracy gap on the page, bigger than the grouping.",
+   "close": "Fire at a target with a known height difference and record how far the fall of shot moves per metre of elevation change. One coefficient per platform would cover most of it."
+  },
+  {
+   "what": "The mortar's maximum range is contested",
+   "why": "Three community sources say roughly 680 to 700 m, one says 3.1 km. This site uses the short figure.",
+   "close": "Early Access on 10 September 2026. One shot at maximum elevation settles it."
+  },
+  {
+   "what": "The mortar's mil envelope disagrees between sources",
+   "why": "The table used here runs 290 to 900 mil. Another calculator publishes 150 to 850 mil for the same weapon, so at least one of the two is reading a different scale off the gun.",
+   "close": "Note what the sight actually reads at maximum and minimum elevation."
+  },
+  {
+   "what": "Part of the mortar table may be interpolated rather than measured",
+   "why": "From 290 to 690 mil it is exactly one metre lost per mil gained across nine consecutive rows. That regularity is either the real design or two measured endpoints with the middle filled in.",
+   "close": "Spot check one middle row, say 500 m, against the game."
+  }
+ ],
+
  "sources": [
   {
    "name": "djzet/wardogs-calc",

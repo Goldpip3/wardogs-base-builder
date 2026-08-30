@@ -28,6 +28,10 @@ Grouping is the one number here that can be checked rather than trusted. Spread 
 times the angle in radians, and that reproduces all four spreads the sources publish, which
 `test/artillery.js` pins.
 
+Six things are unsettled and are listed in the file under `open`, each with what would
+close it. They render on the page, so a player sees the same list a maintainer does. That is
+the first place to look if you are picking artillery back up: see [../../OPEN.md](../../OPEN.md).
+
 ## Shape
 
 - `grid`: one coordinate unit is 100 m, Y counts north, the terrain is 163.84 units square

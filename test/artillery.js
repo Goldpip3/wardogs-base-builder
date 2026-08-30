@@ -97,5 +97,18 @@ const spread = (d, moa) => d * (moa / 60) * Math.PI / 180;
     "the contested mortar range is stated on the page rather than quietly resolved");
 }
 
+/* --- an open question that does not say how to close it is just a complaint ---
+   This list is the handoff between sessions and it is rendered on the page, so it has to
+   stay actionable rather than becoming a shrug. */
+{
+  const bad = (A.open || []).filter(o => !o.what || !o.why || !o.close || o.close.length < 25);
+  check((A.open || []).length > 0 && bad.length === 0,
+    `all ${(A.open || []).length} open questions say what would close them`,
+    bad.map(o => o.what).join(", "));
+  const page = fs.readFileSync(path.join(ROOT, "docs/artillery/index.html"), "utf8");
+  check(A.open.every(o => page.includes(o.what.replace(/'/g, "&#39;"))),
+    "and every one of them is on the page, not just in the repo");
+}
+
 console.log("\n" + pass + " passed, " + fail + " failed");
 process.exit(fail ? 1 : 0);

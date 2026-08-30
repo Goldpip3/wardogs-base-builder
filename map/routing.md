@@ -16,6 +16,7 @@ collisions that will otherwise mislead you.
 | add or change a website page | [objects/site/page-module.md](objects/site/page-module.md) |
 | touch accounts, votes, comments, saves | [objects/service/vote-worker.md](objects/service/vote-worker.md) |
 | know what a change breaks | [effects/CONTEXT.md](effects/CONTEXT.md) |
+| know what is unfinished, and pick something up | [OPEN.md](OPEN.md) |
 | know how the build runs, and what it checks | [processes/build.md](processes/build.md) |
 | know why a check exists | [objects/guards/verification.md](objects/guards/verification.md) |
 | find every noun at a glance | [objects/_index.md](objects/_index.md) |

@@ -146,6 +146,17 @@ module.exports = ctx => {
       "<ul style=\"max-width:66ch\">" + A.caveats.map(function (c) {
         return "<li>" + esc(c) + "</li>";
       }).join("") + "</ul>" +
+      '<h3 style="margin-top:24px">Still open</h3>' +
+      "<p>Six things about WARDOGS artillery are not settled. They are listed here rather" +
+      " than papered over, and each one says what would close it, because most of them need" +
+      " somebody with the game open rather than more reading.</p>" +
+      "<dl style=\"max-width:66ch\">" + A.open.map(function (o) {
+        return '<dt style="font-weight:600;margin-top:14px">' + esc(o.what) + "</dt>" +
+          '<dd style="margin:4px 0 0"><span class="fine">' + esc(o.why) + "</span><br>" +
+          '<span class="fine" style="color:var(--good)">Closed by: ' + esc(o.close) +
+          "</span></dd>";
+      }).join("") + "</dl>" +
+
       '<p class="fine" style="margin:14px 0 0">Measured by the community, not published by' +
       " BULKHEAD. Sources: " + A.sources.map(function (s) {
         return '<a href="' + esc(s.url) + '" rel="nofollow noopener">' + esc(s.name) + "</a>";

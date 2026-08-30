@@ -20,7 +20,6 @@ for (const name of [
   "guides",
   "ballistics",
   "artillery",
-  "holding",
   "armory",
   "community",
   "sitemap",

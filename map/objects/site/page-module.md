@@ -29,9 +29,11 @@ double-quoted JS string, or build DOM nodes instead of `innerHTML`.
 ## Shape
 
 - `module.exports = ctx => { const { esc, write, page } = ctx; ... write("slug/index.html", page({...})) }`
-- ten modules: home, buildables, designs, guides, ballistics, holding, armory, community,
+- ten modules: home, buildables, designs, guides, ballistics, artillery, armory, community,
   sitemap, legal
-- `holding.js` is where a page waits while its data does not exist yet
+- there is no holding pen. There was one, for pages that existed before their data did;
+  every page it held has shipped, so it was deleted rather than left empty. `git log` has
+  the pattern if a page ever needs to wait again
 
 Citations: dispatched at `tools/build-site.js:28`; URL list at `tools/site/pages/sitemap.js`.
 
