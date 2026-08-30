@@ -66,6 +66,23 @@ function strut(a, b, col, wdt = 2.4) {
 const wrap = body =>
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">\n${body}\n</svg>\n`;
 
+/* Most icons are built around the origin and land inside the canvas on their own. One
+   that does not, because it is tall and sits off to one side, gets nudged into frame
+   rather than having its proportions bent to fit it. Measured off the path data, so it
+   stays correct if the drawing changes. */
+function fitted(body, pad = 3) {
+  const pts = [...body.matchAll(/[ML]\s*(-?[\d.]+)\s+(-?[\d.]+)/g)].map(p => [+p[1], +p[2]]);
+  if (!pts.length) return body;
+  const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs);
+  const y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const w = x1 - x0, h = y1 - y0;
+  const k = Math.min(1, (64 - pad * 2) / Math.max(w, h));
+  const dx = (64 - w * k) / 2 - x0 * k;
+  const dy = (64 - h * k) / 2 - y0 * k;
+  return `<g transform="translate(${dx.toFixed(2)} ${dy.toFixed(2)}) scale(${k.toFixed(3)})">${body}</g>`;
+}
+
 /* ---------------- the set ---------------- */
 const ICONS = {};
 
@@ -326,14 +343,47 @@ ICONS["loudspeaker"] = (() => {
 })();
 
 // --- the FOB ------------------------------------------------------------
-ICONS["fob"] =
-  pad(-3.2, -3.2, 6.4, 6.4, "crete", 0.35) +
-  box(-2.6, -2.6, 0.35, 5.2, 5.2, 2.3, "olive") +
-  box(-1.5, -1.5, 2.65, 3.0, 3.0, 1.3, "olive", { top: "#a2a771" }) +
-  poly([px(-0.8, 2.6, 0.35), px(0.8, 2.6, 0.35), px(0.8, 2.6, 1.9), px(-0.8, 2.6, 1.9)], M.dark[1]) +
-  poly([px(-2.6, -0.9, 1.2), px(-2.6, 0.9, 1.2), px(-2.6, 0.9, 2.0), px(-2.6, -0.9, 2.0)], M.dark[2]) +
-  strut([1.2, 1.2, 3.95], [1.2, 1.2, 6.3], M.steel[1], 1.8) +
-  strut([0.5, 0.5, 5.9], [1.9, 1.9, 5.9], M.steel[1], 1.5);
+// The FOB is a hard transport case, not a building: olive body with yellow corner
+// trim, lid hinged open at the back, electronics in the lid, whip antenna off one
+// corner. Drawn from the vendor art rather than guessed at, which is why it stopped
+// being a green shed.
+ICONS["fob"] = (() => {
+  const W = 4.5, D = 2.8, H = 1.6, X = -W / 2, Y = -D / 2;
+  const CASE = { top: "#4d5442", left: "#3b4133", right: "#2b3026" };
+  const YEL  = { top: "#d8a92f", left: "#ac8422", right: "#816318" };
+  let s = "";
+
+  // antenna and lid live behind the body, so they go down first
+  s += strut([X + W - 0.45, Y + 0.25, 0.2], [X + W - 0.1, Y - 0.1, 4.4], M.steel[2], 1.3);
+
+  // lid: standing at the back, leaning away, with the screen facing you
+  const LH = 2.0, LY = Y - 0.48;
+  s += box(X + 0.15, LY, 0.2 + H - 0.35, W - 0.3, 0.42, LH, "dark", CASE);
+  s += poly([px(X + 0.55, LY + 0.42, 0.2 + H + 0.05),
+             px(X + W - 0.55, LY + 0.42, 0.2 + H + 0.05),
+             px(X + W - 0.55, LY + 0.42, 0.2 + H + LH - 0.45),
+             px(X + 0.55, LY + 0.42, 0.2 + H + LH - 0.45)], "#28312c");
+  s += poly([px(X + 0.8, LY + 0.42, 0.2 + H + 0.3),
+             px(X + W * 0.58, LY + 0.42, 0.2 + H + 0.3),
+             px(X + W * 0.58, LY + 0.42, 0.2 + H + LH - 0.75),
+             px(X + 0.8, LY + 0.42, 0.2 + H + LH - 0.75)], "#5d8290");
+
+  // the case itself, which has to stay the thing you see first
+  s += box(X, Y, 0.2, W, D, H, "dark", CASE);
+
+  // Yellow reads as corner protection, not as the colour of the box. Two short posts on
+  // the corners facing you is enough at any size the icon is ever drawn.
+  s += box(X - 0.09, Y + D - 0.5, 0.14, 0.5, 0.58, H - 0.28, "olive", YEL);
+  s += box(X + W - 0.41, Y + D - 0.5, 0.14, 0.5, 0.58, H - 0.28, "olive", YEL);
+
+  // latches and ribs on the face toward you
+  s += box(X + 1.2, Y + D - 0.04, 0.72, 0.55, 0.14, 0.42, "steel");
+  s += box(X + W - 1.75, Y + D - 0.04, 0.72, 0.55, 0.14, 0.42, "steel");
+  for (let i = 1; i < 5; i++)
+    s += `<path d="M${px(X + W * i / 5, Y + D, 0.32).join(" ")}L${px(X + W * i / 5, Y + D, H + 0.12).join(" ")}"
+      stroke="${INK}" stroke-width=".8" opacity=".38"/>`;
+  return fitted(s);
+})();
 
 /* ---------------- write ---------------- */
 const outDir = path.join(__dirname, "..", "assets", "icons");
