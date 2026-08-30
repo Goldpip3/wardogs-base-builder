@@ -246,5 +246,36 @@ check(r.status === 400, "and the 41st is refused with a reason");
 check((await callAs(me, "POST", "/mine", { name: "Bad", code: "nope" })).status === 400,
   "a code that will not decode is not stored");
 
+/* --- a real base has to fit ---
+   The cap was 8000 characters on the strength of a comment saying a very large base
+   encodes well under it. A share code runs about 20.5 characters per piece, so that was a
+   cap of roughly 390 pieces, and a real 607-piece base was refused and told it "will not
+   encode" when it had encoded perfectly well. Pin the sizes that matter and pin the two
+   messages apart, because sending somebody to look for a corruption that is not there is
+   the part that cost an evening. */
+{
+  const codeOf = pieces => "A".repeat(Math.round(pieces * 20.5));
+  // `me` is sitting on the 40-save cap from the block above, which would refuse these for
+  // an unrelated reason and quietly prove nothing. Fresh player.
+  const big2 = await tokenFor({ id: "78", name: "Bigbase", exp: Date.now() + 6e5 });
+  const me = big2;
+
+  const big = await callAs(me, "POST", "/mine", { name: "Real base", code: codeOf(607) });
+  check(big.status === 200, "a 607 piece base saves online", "got " + big.status);
+
+  const huge = await callAs(me, "POST", "/mine", { name: "Huge base", code: codeOf(4000) });
+  check(huge.status === 200, "so does a 4,000 piece one", "got " + huge.status);
+
+  const absurd = await callAs(me, "POST", "/mine", { name: "Absurd", code: codeOf(20000) });
+  check(absurd.status === 400, "20,000 pieces is still refused, so the cap is a cap");
+  const msg = (await jsonOf(absurd)).error || "";
+  check(/too large/i.test(msg) && /limit/i.test(msg),
+    "and it says the design is too large rather than blaming the encoding", msg);
+
+  const junk = (await jsonOf(await callAs(me, "POST", "/mine", { name: "Junk", code: "!!!!" }))).error || "";
+  check(/does not look right/i.test(junk),
+    "a malformed code gets the other message, not the size one", junk);
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

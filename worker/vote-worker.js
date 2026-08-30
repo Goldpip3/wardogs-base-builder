@@ -46,7 +46,11 @@ const isLocal = o => /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(o);
 const LIMITS = {
   name: 60,
   author: 32,
-  code: 8000,      // a very large base still encodes well under this
+  /* Measured, not guessed. A share code runs about 20.5 characters per piece whatever the
+     mix, so 8000 was a cap of roughly 390 pieces: a real 607-piece base was refused, and
+     told it "will not encode" when it had encoded perfectly well. This is about 4,800
+     pieces, past anything anyone has built, and still bounded. */
+  code: 100000,
   comment: 1500,
   submitsPerDay: 5,
   commentsPerHour: 10,
@@ -162,9 +166,22 @@ const bearerOf = request => (request.headers.get("Authorization") || "").replace
    degrade to open, not to locked. */
 const loginConfigured = env => !!(env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET);
 
-/* Share codes are base64url. Anything else is not a design and should not be stored. */
-const okCode = c => typeof c === "string" && c.length > 20 && c.length <= LIMITS.code &&
-  /^[A-Za-z0-9_-]+$/.test(c);
+/* Share codes are base64url. Anything else is not a design and should not be stored.
+   Too long and malformed are different problems and get different messages: telling
+   somebody their design "will not encode" when it is merely bigger than a limit sends them
+   looking for a corruption that is not there. */
+function codeProblem(c) {
+  if (typeof c !== "string" || c.length < 20 || !/^[A-Za-z0-9_-]+$/.test(c)) {
+    return "That share code does not look right. Copy the whole link from Share.";
+  }
+  if (c.length > LIMITS.code) {
+    return "That design is too large to save online: " + c.length.toLocaleString() +
+      " characters against a limit of " + LIMITS.code.toLocaleString() +
+      ". Export it to a file instead.";
+  }
+  return null;
+}
+const okCode = c => codeProblem(c) === null;
 
 /* Text arriving from strangers gets its control characters stripped and its length
    capped before it is ever stored, so nothing downstream has to think about it. */
@@ -332,7 +349,8 @@ export default {
       const code = String(body.code || "").trim();
 
       if (name.length < 3) return json({ error: "Give it a name." }, origin, 400);
-      if (!okCode(code)) return json({ error: "That share code does not look right. Copy the whole link from Share." }, origin, 400);
+      const codeErr = codeProblem(code);
+      if (codeErr) return json({ error: codeErr }, origin, 400);
 
       const stamp = Date.now();
       const slug = slugify(name, stamp);
@@ -380,7 +398,8 @@ export default {
         const name = clean(body.name, LIMITS.name);
         const code = String(body.code || "").trim();
         if (name.length < 1) return json({ error: "Give it a name first." }, origin, 400);
-        if (!okCode(code)) return json({ error: "That design will not encode." }, origin, 400);
+        const codeErr = codeProblem(code);
+        if (codeErr) return json({ error: codeErr }, origin, 400);
 
         // saving over a name you already used is an update, not a new slot
         const key = "mine:" + who.id + ":" + await hash(env, "slot", name);
