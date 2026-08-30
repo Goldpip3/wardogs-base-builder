@@ -70,22 +70,16 @@ nav.site a[aria-current]{color:var(--text)}
 nav.site a.cta{display:inline-flex;align-items:center;justify-content:center;gap:9px;
   border:1px solid var(--red);color:var(--text);background:transparent;
   padding:0 18px;height:40px;letter-spacing:.14em}
-nav.site a.cta::after{content:"";width:14px;height:1px;background:currentColor;position:relative;
-  transition:width .15s}
 nav.site a.cta:hover{background:var(--red);border-color:var(--red);color:#fff}
-nav.site a.cta:hover::after{width:20px}
 
 /* --- buttons --- */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:11px;height:52px;padding:0 26px;
   border:1px solid var(--text);color:var(--text);background:transparent;font-family:var(--ui);
   font-weight:600;text-transform:uppercase;letter-spacing:.14em;font-size:13px;cursor:pointer}
-.btn::after{content:"";width:16px;height:1px;background:currentColor;transition:width .15s}
 .btn:hover{background:var(--text);color:var(--bg)}
-.btn:hover::after{width:24px}
 .btn.primary{border-color:var(--red);background:var(--red);color:#fff}
 .btn.primary:hover{background:var(--red-hot);border-color:var(--red-hot);color:#fff}
 .btn.sm{height:38px;padding:0 16px;font-size:11px}
-.btn.sm::after{display:none}
 
 /* --- hero --- */
 .hero{padding:clamp(56px,9vw,120px) 0 clamp(40px,6vw,72px);border-bottom:1px solid var(--line);

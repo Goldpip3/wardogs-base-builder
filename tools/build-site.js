@@ -25,7 +25,7 @@ const esc = s => String(s).replace(/[&<>"']/g, c =>
 
 /* ---------- ads ----------
    Ads run on the content pages only. The planner is the thing people actually came for
-   and it has to keep working with no network, so it never gets ad code — the
+   and it has to keep working with no network, so it never gets ad code. The
    "no external resource loads" check in tools/check-build.js enforces that.
    With no publisher id configured nothing at all is emitted: no script tag, no slot,
    no reserved space. Fill in data/buildables.json -> ads.publisherId to switch it on. */
@@ -143,8 +143,8 @@ const GUIDES = [
       <h2>What it gives you</h2>
       <p>Three things: it is <strong>required</strong> for most buildables, it <strong>stores
       supplies</strong> (Build, Ammo, Fuel and Mechanical), and it projects a
-      <strong>square build zone</strong> — shown blue on the minimap — that you must build
-      inside. It also carries free Small and Medium hammers, wrenches and signal grenades at
+      <strong>square build zone</strong> that you must build inside, shown blue on the
+      minimap. It also carries free Small and Medium hammers, wrenches and signal grenades at
       the FOB computer, so teammates who arrive empty-handed can still help.</p>
       <p>What it does <em>not</em> do is act as a spawn point. That is a separate spawn
       vehicle.</p>
@@ -155,21 +155,21 @@ const GUIDES = [
       <ol>
         <li>Place the FOB somewhere a truck or helicopter can actually reach, with cover, and
         not on a skyline.</li>
-        <li>Close the perimeter — walls first, with exactly one vehicle gate and one door.
+        <li>Close the perimeter. Walls first, with exactly one vehicle gate and one door.
         A half-finished wall is cover for the enemy.</li>
         <li>Only then add emplacements. Mortars, AA and drill rigs are expensive and they
         advertise the position.</li>
       </ol>
       <h2>Do not seal yourself in</h2>
       <p>Gates must be on the ground and swing through, so leave the inside clear. Leave room
-      for a truck to get in and unload — a base a supply run cannot reach is a base that
+      for a truck to get in and unload. a base a supply run cannot reach is a base that
       starves.</p>`,
   },
   {
     slug: "wardogs-build-costs",
     title: "WARDOGS Build Costs and Supply Runs",
     blurb: "What every buildable costs in Build Supplies, and how many pallets and vehicle trips that really means.",
-    body: `<p>Every structure costs <strong>Build Supplies</strong>, drawn from the FOB — not
+    body: `<p>Every structure costs <strong>Build Supplies</strong>, drawn from the FOB. Not
       from your pocket. Supplies cost <strong>$10 each</strong> individually at the vendor, and
       a <strong>Build Supply Pallet is $400</strong> and takes 4×2 inventory slots.</p>
       <h2>Think in trips, not supplies</h2>
@@ -179,10 +179,10 @@ const GUIDES = [
       contested ground, and that is the real price.</p>
       <h2>Four kinds of supply</h2>
       <ul>
-        <li><strong>Build</strong> — everything you construct.</li>
-        <li><strong>Ammo</strong> — reloads the L81 Mortar, Vanguard CIWS and Talon SAM.</li>
-        <li><strong>Fuel</strong> — the Refuel Station, and activating the Drill Rig.</li>
-        <li><strong>Mechanical</strong> — the Repair Station, and Stingray drones.</li>
+        <li><strong>Build</strong>. Everything you construct.</li>
+        <li><strong>Ammo</strong>. Reloads the L81 Mortar, Vanguard CIWS and Talon SAM.</li>
+        <li><strong>Fuel</strong>. The Refuel Station, and activating the Drill Rig.</li>
+        <li><strong>Mechanical</strong>. The Repair Station, and Stingray drones.</li>
       </ul>
       <p>Delivering the wrong pallet is a wasted trip. Ask the builder what the FOB is short of
       before you load.</p>
@@ -198,7 +198,7 @@ const GUIDES = [
     body: `<p>Most perimeters fail the same way: they are built out of waist-height blocks,
       and infantry simply vault them.</p>
       <h2>The heights</h2>
-      <p>Hesco Block (Small) and Sandbag Wall are one block tall — cover to shoot over, and a
+      <p>Hesco Block (Small) and Sandbag Wall are one block tall. Cover to shoot over, and a
       step to climb. Hesco Block (Tall) and Hesco Wall (Quad) are two, which is full-body
       cover. The Bremer Wall is three, and topped with barbed wire.</p>
       <h2>The rule that matters</h2>
@@ -207,7 +207,7 @@ const GUIDES = [
       and the result cannot be climbed without taking damage.</p>
       <h2>Sandbags are the exception worth knowing</h2>
       <p>Sandbags are designed to sit on top of Hesco. Low Hesco with sandbags stacked on it is
-      the combination the community settled on for CIWS emplacements — high enough to protect
+      the combination the community settled on for CIWS emplacements. High enough to protect
       the gunner, low enough not to block the gun.</p>
       <p>The planner counts how much of your cover is still waist height, under
       <strong>Anti-climb</strong>, so you can see the weakness before somebody finds it.</p>`,
@@ -215,7 +215,7 @@ const GUIDES = [
   {
     slug: "wardogs-hammers",
     title: "WARDOGS Hammers: What Each One Builds",
-    blurb: "Small, Medium and Large — what unlocks at each tier and which one to actually carry.",
+    blurb: "Small, Medium and Large. What unlocks at each tier and which one to actually carry.",
     body: `<p>Hammers come from the Support progression track and are bought at HQ. All three
       need Build Supplies to use.</p>
       <table>
@@ -228,7 +228,7 @@ const GUIDES = [
       </table>
       <h2>Which to carry</h2>
       <p>The Large Hammer is the only one that builds emplacements, drill rigs, bunkers and
-      towers, and it builds everything else faster — but it is 3.18 kg, and weight class
+      towers, and it builds everything else faster, but it is 3.18 kg, and weight class
       decides whether you can sprint to the Hot Zone.</p>
       <p>Worth knowing: a placed FOB carries free Small and Medium hammers at its computer. If
       somebody else on your squad is running a Large Hammer, you may not need to carry one at
@@ -291,22 +291,16 @@ nav.site a[aria-current]{color:var(--text)}
 nav.site a.cta{display:inline-flex;align-items:center;justify-content:center;gap:9px;
   border:1px solid var(--red);color:var(--text);background:transparent;
   padding:0 18px;height:40px;letter-spacing:.14em}
-nav.site a.cta::after{content:"";width:14px;height:1px;background:currentColor;position:relative;
-  transition:width .15s}
 nav.site a.cta:hover{background:var(--red);border-color:var(--red);color:#fff}
-nav.site a.cta:hover::after{width:20px}
 
 /* --- buttons --- */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:11px;height:52px;padding:0 26px;
   border:1px solid var(--text);color:var(--text);background:transparent;font-family:var(--ui);
   font-weight:600;text-transform:uppercase;letter-spacing:.14em;font-size:13px;cursor:pointer}
-.btn::after{content:"";width:16px;height:1px;background:currentColor;transition:width .15s}
 .btn:hover{background:var(--text);color:var(--bg)}
-.btn:hover::after{width:24px}
 .btn.primary{border-color:var(--red);background:var(--red);color:#fff}
 .btn.primary:hover{background:var(--red-hot);border-color:var(--red-hot);color:#fff}
 .btn.sm{height:38px;padding:0 16px;font-size:11px}
-.btn.sm::after{display:none}
 
 /* --- hero --- */
 .hero{padding:clamp(56px,9vw,120px) 0 clamp(40px,6vw,72px);border-bottom:1px solid var(--line);
@@ -567,15 +561,14 @@ const ranked = withStats.slice().sort((a, b) =>
 
 // --- home ---
 write("index.html", page({
-  title: "WARDOGS Base Builder — plan your FOB before the match",
+  title: "WARDOGS Base Builder: plan your FOB before the match",
   desc: "Free WARDOGS base planner and buildable cost database. Lay out walls, gates and gun pits, see the Build Supply cost and supply runs, and browse designs built by other players.",
   canonical: "/",
   body: `${FORWARD_SHARED}
 <section class="hero"><div class="wrap">
-  <span class="eyebrow">Free · No account · Runs in your browser</span>
   <h1>Build the FOB<br>before the match</h1>
-  <p class="lede">Lay out walls, gates and gun pits on a grid and see exactly what the whole
-  thing costs in Build Supplies, pallets and vehicle trips — before you haul anything.</p>
+  <p class="lede">Lay out walls, gates and gun pits on a grid, and see exactly what the whole
+  thing costs in Build Supplies, pallets and vehicle trips before you haul anything.</p>
   <div class="actions">
     <a class="btn primary" href="/planner/">Open the planner</a>
     <a class="btn" href="/designs/">Community designs</a>
@@ -593,7 +586,7 @@ write("index.html", page({
     : `<div class="empty">
         <h3>Nobody has submitted one yet</h3>
         <p>This list is built by players, not by me. Make something in the planner, hit
-        Share, and send the link — the whole design travels inside the URL, so there is
+        Share, and send the link. The whole design travels inside the URL, so there is
         nothing to upload and no account to make.</p>
         <a class="btn primary" href="${esc(COMMUNITY.submitUrl)}">Submit the first design</a>
       </div>`}
@@ -614,7 +607,7 @@ write("index.html", page({
     <div class="card"><h3>Catches mistakes</h3><p>Anything outside the build zone, overlaps,
       gates off the ground, weapons with no sky, pieces floating with nothing under them.</p></div>
     <div class="card"><h3>Share a design as a link</h3><p>The whole layout travels in the URL.
-      Post it and it opens ready to inspect — no account, nothing to install.</p></div>
+      Post it and it opens ready to inspect. no account, nothing to install.</p></div>
   </div>
 </div></section>
 
@@ -634,12 +627,12 @@ const rows = catalog.buildables.slice().sort((a, b) =>
   (TIER_ORDER[a.tier] - TIER_ORDER[b.tier]) || a.name.localeCompare(b.name));
 write("buildables/index.html", page({
   title: `WARDOGS Buildables: All ${catalog.buildables.length} Structures and Build Supply Costs`,
-  desc: `Every WARDOGS buildable with its Build Supply cost, size, height and hammer tier — Hesco, Bremer walls, gates, bunkers, mortars, AA and the Stingray.`,
+  desc: `Every WARDOGS buildable with its Build Supply cost, size, height and hammer tier. Hesco, Bremer walls, gates, bunkers, mortars, AA and the Stingray.`,
   canonical: "/buildables/",
   body: `<section><div class="wrap">
   <h1>WARDOGS buildables and costs</h1>
   <p class="lede">Every structure you can build, what it costs in Build Supplies, and which
-  hammer you need. Sizes are in Hesco blocks — one block is about 1.2 m.</p>
+  hammer you need. Sizes are in Hesco blocks. One block is about 1.2 m.</p>
   <div class="statbar">
     <div><b>${catalog.buildables.length}</b><span>buildables</span></div>
     <div><b>$10</b><span>per supply</span></div>
@@ -700,7 +693,7 @@ write("designs/index.html", page({
 for (const d of withStats) {
   const s = d.s;
   write(`designs/${d.slug}/index.html`, page({
-    title: `${d.name} — WARDOGS base design`,
+    title: `${d.name}. WARDOGS base design`,
     desc: `${d.tagline} ${s.supplies} build supplies, ${s.pallets} pallets, ${s.hammer}.`,
     canonical: `/designs/${d.slug}/`,
     body: `<section><div class="wrap">

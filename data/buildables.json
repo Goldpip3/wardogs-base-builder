@@ -9,7 +9,7 @@
       "metaforge.app/wardogs buildables database",
       "wardogshub.gg equipment prices (Beta 1, 21 Aug 2026)"
     ],
-    "notes": "Costs are Build Supplies (1 supply = $10 at vendor). costConfirmed=false means read from low-res video frame, verify in game."
+    "notes": "Costs are Build Supplies (1 supply = $10 at vendor). CostConfirmed=false means read from low-res video frame, verify in game."
   },
   "logistics": {
     "palletCash": 400,
@@ -528,10 +528,10 @@
   ],
   "mechanics": {
     "supplies": {
-      "build": "$10/unit — all construction",
-      "ammo": "$10/unit — mortar/CIWS/SAM reloads",
-      "fuel": "$10/unit — refuel station, drill rig activation",
-      "mechanical": "$10/unit — repair station"
+      "build": "$10/unit. All construction",
+      "ammo": "$10/unit. Mortar/CIWS/SAM reloads",
+      "fuel": "$10/unit. Refuel station, drill rig activation",
+      "mechanical": "$10/unit. Repair station"
     },
     "snapping": "Toggleable (default key B). Pieces snap adjacent or stacked; toggle off for free angles.",
     "placement": "Free placement with rotation; white/valid vs red/obstructed preview.",

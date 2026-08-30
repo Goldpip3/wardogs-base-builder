@@ -70,22 +70,16 @@ nav.site a[aria-current]{color:var(--text)}
 nav.site a.cta{display:inline-flex;align-items:center;justify-content:center;gap:9px;
   border:1px solid var(--red);color:var(--text);background:transparent;
   padding:0 18px;height:40px;letter-spacing:.14em}
-nav.site a.cta::after{content:"";width:14px;height:1px;background:currentColor;position:relative;
-  transition:width .15s}
 nav.site a.cta:hover{background:var(--red);border-color:var(--red);color:#fff}
-nav.site a.cta:hover::after{width:20px}
 
 /* --- buttons --- */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:11px;height:52px;padding:0 26px;
   border:1px solid var(--text);color:var(--text);background:transparent;font-family:var(--ui);
   font-weight:600;text-transform:uppercase;letter-spacing:.14em;font-size:13px;cursor:pointer}
-.btn::after{content:"";width:16px;height:1px;background:currentColor;transition:width .15s}
 .btn:hover{background:var(--text);color:var(--bg)}
-.btn:hover::after{width:24px}
 .btn.primary{border-color:var(--red);background:var(--red);color:#fff}
 .btn.primary:hover{background:var(--red-hot);border-color:var(--red-hot);color:#fff}
 .btn.sm{height:38px;padding:0 16px;font-size:11px}
-.btn.sm::after{display:none}
 
 /* --- hero --- */
 .hero{padding:clamp(56px,9vw,120px) 0 clamp(40px,6vw,72px);border-bottom:1px solid var(--line);
@@ -194,8 +188,8 @@ ul,ol{padding-left:22px}li{margin:6px 0}
       <h2>What it gives you</h2>
       <p>Three things: it is <strong>required</strong> for most buildables, it <strong>stores
       supplies</strong> (Build, Ammo, Fuel and Mechanical), and it projects a
-      <strong>square build zone</strong> — shown blue on the minimap — that you must build
-      inside. It also carries free Small and Medium hammers, wrenches and signal grenades at
+      <strong>square build zone</strong> that you must build inside, shown blue on the
+      minimap. It also carries free Small and Medium hammers, wrenches and signal grenades at
       the FOB computer, so teammates who arrive empty-handed can still help.</p>
       <p>What it does <em>not</em> do is act as a spawn point. That is a separate spawn
       vehicle.</p>
@@ -206,14 +200,14 @@ ul,ol{padding-left:22px}li{margin:6px 0}
       <ol>
         <li>Place the FOB somewhere a truck or helicopter can actually reach, with cover, and
         not on a skyline.</li>
-        <li>Close the perimeter — walls first, with exactly one vehicle gate and one door.
+        <li>Close the perimeter. Walls first, with exactly one vehicle gate and one door.
         A half-finished wall is cover for the enemy.</li>
         <li>Only then add emplacements. Mortars, AA and drill rigs are expensive and they
         advertise the position.</li>
       </ol>
       <h2>Do not seal yourself in</h2>
       <p>Gates must be on the ground and swing through, so leave the inside clear. Leave room
-      for a truck to get in and unload — a base a supply run cannot reach is a base that
+      for a truck to get in and unload. a base a supply run cannot reach is a base that
       starves.</p>
   <p style="margin-top:28px"><a class="btn" href="/planner/">Open the planner</a></p>
 </div></section>

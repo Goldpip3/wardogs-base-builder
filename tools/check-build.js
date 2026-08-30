@@ -88,6 +88,20 @@ check(!/[>\s]\?<\/span>/.test(app), "no leftover '?' estimate badges");
   check(app.includes('"startingSupplies": ' + stock), "catalog FOB stock (" + stock + ") is inlined");
 }
 
+// -- 6b. no em dashes, anywhere --
+// A house style rule, not a bug: the owner does not want them in the writing. They creep
+// back in one sentence at a time, so the build refuses them rather than relying on memory.
+{
+  const hits = [];
+  for (const rel of ["src/app-template.html", "tools/build-site.js",
+                     "data/buildables.json", "data/community.json"]) {
+    const s = fs.readFileSync(path.join(proj, rel), "utf8");
+    const n = (s.match(/—/g) || []).length;
+    if (n) hits.push(`${rel} (${n})`);
+  }
+  check(hits.length === 0, "no em dashes in the sources", hits.join(", "));
+}
+
 // -- 7. nothing removed from the catalog is still named in the prose --
 {
   const gone = ["Refuel Station", "Repair Station"]

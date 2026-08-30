@@ -1,10 +1,10 @@
-<title>WARDOGS Base Builder — plan your FOB before the match</title>
+<title>WARDOGS Base Builder: plan your FOB before the match</title>
 <meta name="description" content="Free browser planner for WARDOGS forward operating bases. Lay out walls, gates, gun pits and drill rigs, and see the Build Supply cost, hammer tier and supply runs before you haul a pallet.">
 <meta name="theme-color" content="#12140d">
 <link rel="canonical" href="https://www.wardogsbuilder.com/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="WARDOGS Base Builder">
-<meta property="og:title" content="WARDOGS Base Builder — plan your FOB before the match">
+<meta property="og:title" content="WARDOGS Base Builder: plan your FOB before the match">
 <meta property="og:description" content="Lay out walls, gates and gun pits on a grid and see what the whole base costs in Build Supplies. Free, no account, runs in your browser.">
 <meta property="og:url" content="https://www.wardogsbuilder.com/">
 <meta property="og:image" content="https://www.wardogsbuilder.com/preview.png">
@@ -23,7 +23,7 @@
   :root {
     /* Same palette as the site, which is the game's own: near-black ground, cream text,
        red for anything that carries a number or a warning. Accent and danger are close
-       cousins here on purpose — in this game red is the brand colour, so a problem is
+       cousins here on purpose, in this game red is the brand colour, so a problem is
        marked by weight and an icon rather than by hue alone. */
     --bg: #0c0c0c;
     --panel: #111111;
@@ -39,7 +39,7 @@
     --danger: #f30000;
     --blue: #6aa8dc;
     --cell: 26px;
-    --s: 1;            /* interface scale — raised automatically on large/4K displays */
+    --s: 1;            /* interface scale. Raised automatically on large/4K displays */
     --display: Inter, "Arial Black", system-ui, sans-serif;
     --ui: Barlow, "Segoe UI", system-ui, -apple-system, sans-serif;
     --num: "Cascadia Mono", Consolas, "SF Mono", ui-monospace, monospace;
@@ -74,7 +74,7 @@
   input[type=number] { font-family: var(--num); font-variant-numeric: tabular-nums; }
   input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
 
-  /* segmented control — used for the storey picker */
+  /* segmented control. Used for the storey picker */
   .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 0; overflow: hidden; }
   .seg button {
     border: 0; border-radius: 0; padding: 5px 9px; background: transparent;
@@ -213,7 +213,7 @@
   }
   .cost-line .n { color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .cost-line .v { color: var(--text); font-family: var(--num); font-size: 11px; }
-  /* the headline number — this is the thing you actually came for */
+  /* the headline number. This is the thing you actually came for */
   .hero {
     display: flex; align-items: baseline; justify-content: space-between;
     padding: 2px 0 8px; margin-bottom: 8px; border-bottom: 1px solid var(--border-soft);
@@ -310,7 +310,7 @@
   <button id="btnUndo" title="Undo (Ctrl+Z)">↩</button>
   <button id="btnRedo" title="Redo (Ctrl+Y)">↪</button>
   <div class="sep"></div>
-  <button id="btnSnap" class="active" title="Toggle grid snap (B) — same key as in-game">⌗ Snap</button>
+  <button id="btnSnap" class="active" title="Toggle grid snap (B). Same key as in-game">⌗ Snap</button>
   <button id="btnFit" title="Zoom to fit (F)">⛶ Fit</button>
   <div class="sep"></div>
   <span class="group-label">Storey</span>
@@ -322,7 +322,7 @@
   <a id="btnSupport" target="_blank" rel="noopener noreferrer" style="display:none"></a>
   <div class="sep"></div>
   <label for="uiScale" style="color:var(--dim)">Size</label>
-  <select id="uiScale" title="Interface size — turn this up on a large or 4K monitor ( [ and ] )">
+  <select id="uiScale" title="Interface size. Turn this up on a large or 4K monitor ( [ and ] )">
     <option value="1">100%</option>
     <option value="1.25">125%</option>
     <option value="1.5">150%</option>
@@ -350,11 +350,11 @@
     <canvas id="canvas"></canvas>
     <div id="emptyState">
       <div class="es-title">Plan your FOB</div>
-      <p>Start with the <b>FOB</b> at the top of the list — it sets the square you can build inside.
+      <p>Start with the <b>FOB</b> at the top of the list. it sets the square you can build inside.
          Then pick a wall and <b>drag</b> to lay a run.</p>
       <p class="es-alt">In a hurry? <button id="esPresets">Use a preset</button></p>
     </div>
-    <div id="hint">Click a buildable, then click the map to place — or drag to lay a whole run. Wheel = zoom · Arrows, middle-drag or Space-drag = pan</div>
+    <div id="hint">Click a buildable, then click the map to place, or drag to lay a whole run. Wheel = zoom · Arrows, middle-drag or Space-drag = pan</div>
     <div id="statusbar">
       <span id="sbCoords">0, 0</span>
       <span id="sbZoom">100%</span>
@@ -367,7 +367,7 @@
   <div id="rightPanel">
     <div class="rp-section" id="selProps" style="display:none">
       <h3>Selected</h3>
-      <div class="rp-row"><span class="val" id="selName">—</span></div>
+      <div class="rp-row"><span class="val" id="selName">-</span></div>
       <div class="rp-row"><label>Rotation</label>
         <span><button id="rotL" title="Rotate CCW">⟲</button> <button id="rotR" title="Rotate CW (R)">⟳</button> <span id="selRot" class="val">0°</span></span>
       </div>
@@ -411,8 +411,7 @@
         <span class="unit">build supplies</span>
       </div>
       <div class="rp-row"><label>Vendor cash (@$10)</label><span class="val" id="costCash">$0</span></div>
-      <div class="rp-row"><label>+ FOB item</label><span class="val" id="costFob">—</span></div>
-      <div class="rp-row"><label>Hammer needed</label><span class="val" id="hammerNeeded">—</span></div>
+      <div class="rp-row"><label>+ FOB item</label><span class="val" id="costFob">-</span></div>
       <div class="rp-row" style="margin-top:7px"><label>You have in the FOB</label><input type="number" id="supplyStock" min="0" style="width:72px" title="Build supplies stocked. A fresh FOB lands with 1,750 already inside."></div>
       <div class="budget-track" id="budgetTrack" style="display:none"><div class="budget-fill" id="budgetFill"></div></div>
       <div id="budgetText" style="font-size:11.5px;margin-top:4px"></div>
@@ -432,12 +431,12 @@
 
     <div class="rp-section">
       <h3>Ongoing Supplies</h3>
-      <div id="ongoing" style="font-size:11.5px; color:var(--dim)">—</div>
+      <div id="ongoing" style="font-size:11.5px; color:var(--dim)">-</div>
     </div>
 
     <div class="rp-section">
       <h3>Anti-climb</h3>
-      <div id="antiClimb" style="font-size:11.5px; color:var(--dim); line-height:1.5">—</div>
+      <div id="antiClimb" style="font-size:11.5px; color:var(--dim); line-height:1.5">. </div>
     </div>
 
     <div class="rp-section">
@@ -449,7 +448,7 @@
       <h3>Colour key</h3>
       <div class="legend" id="legend"></div>
       <div style="margin-top:9px;font-size:11.5px;color:var(--dim);line-height:1.5">
-        <b style="color:var(--text)">Height</b> — pieces rise off the plan the taller they are;
+        <b style="color:var(--text)">Height</b>. Pieces rise off the plan the taller they are;
         a <span style="color:var(--accent)">▲</span> badge gives the exact block count,
         and <span style="color:var(--accent)">L2</span> means it's stacked on a storey above ground.
       </div>
@@ -460,8 +459,8 @@
 <div id="smallScreen">
   <div class="ss-card">
     <h2>WARDOGS <span>Base Builder</span></h2>
-    <p>Plan your FOB between matches — walls, gates, gun pits — and see what it costs
-       in Build Supplies before you haul a single pallet.</p>
+    <p>Plan your FOB between matches. Walls, gates and gun pits, costed in Build Supplies
+       before you haul a single pallet.</p>
     <p class="ss-note">It needs a mouse and a bit of room, so it's built for a desktop or laptop.
        Open this page on a computer and you're straight in.</p>
     <button id="ssDismiss">Let me look anyway</button>
@@ -490,7 +489,7 @@ const CATALOG_DEFAULT = {
       "metaforge.app/wardogs buildables database",
       "wardogshub.gg equipment prices (Beta 1, 21 Aug 2026)"
     ],
-    "notes": "Costs are Build Supplies (1 supply = $10 at vendor). costConfirmed=false means read from low-res video frame, verify in game."
+    "notes": "Costs are Build Supplies (1 supply = $10 at vendor). CostConfirmed=false means read from low-res video frame, verify in game."
   },
   "logistics": {
     "palletCash": 400,
@@ -1009,10 +1008,10 @@ const CATALOG_DEFAULT = {
   ],
   "mechanics": {
     "supplies": {
-      "build": "$10/unit — all construction",
-      "ammo": "$10/unit — mortar/CIWS/SAM reloads",
-      "fuel": "$10/unit — refuel station, drill rig activation",
-      "mechanical": "$10/unit — repair station"
+      "build": "$10/unit. All construction",
+      "ammo": "$10/unit. Mortar/CIWS/SAM reloads",
+      "fuel": "$10/unit. Refuel station, drill rig activation",
+      "mechanical": "$10/unit. Repair station"
     },
     "snapping": "Toggleable (default key B). Pieces snap adjacent or stacked; toggle off for free angles.",
     "placement": "Free placement with rotation; white/valid vs red/obstructed preview.",
@@ -1071,13 +1070,13 @@ const TIER_ORDER = { small:1, medium:2, large:3 };
 const TIER_COLOR = { small:"#5d8a4a", medium:"#b08d2a", large:"#b05c3a" };  // fallback for custom entries
 /* Pieces are coloured by what they DO, so a layout reads at a glance. */
 const ROLE_COLOR = {
-  cover:     "#c2a132",  // hesco, sandbag, bremer, bunker, shelters — the fortification family
+  cover:     "#c2a132",  // hesco, sandbag, bremer, bunker, shelters. The fortification family
   entry:     "#5fa855",  // doors & gates: how your team gets in and out
   offense:   "#9c5ec4",  // hits the enemy (mortar)
   antiair:   "#3f9fb5",  // anti-air emplacements
   denial:    "#a55536",  // wire & anti-vehicle obstacles
   support:   "#6f8593",  // logistics, comms, concealment
-  objective: "#c04f92",  // drill rig — pulls the Hot Zone
+  objective: "#c04f92",  // drill rig. Pulls the Hot Zone
   fob:       "#4d8fc4"
 };
 const ROLE_LABEL = {
@@ -1127,7 +1126,7 @@ function renderPalette() {
       `<span class="cost">${b.cost}${COST_ICON}</span>`;
     card.innerHTML = `${ic}<div class="info">
       <div class="name"><span class="role-dot" style="background:${pieceColor(b)}" title="${ROLE_LABEL[b.isFob?'fob':b.role] || 'Other'}"></span>${b.name}${b.isFob?"":`<span class="tier-badge tier-${b.tier}">${b.tier[0].toUpperCase()}</span>`}</div>
-      <div class="meta">${costTxt} · <span class="${b.sizeConfirmed===false?'unsized':''}" title="${b.sizeConfirmed===false?'Estimated size — select a placed one to correct it':'Confirmed size'}">${b.footprint.w}×${b.footprint.d}${b.height>1?`×${b.height}`:""}</span>${b.requiresFob===false&&!b.isFob?" · no FOB":""}</div>
+      <div class="meta">${costTxt} · <span class="${b.sizeConfirmed===false?'unsized':''}" title="${b.sizeConfirmed===false?'Estimated size. Select a placed one to correct it':'Confirmed size'}">${b.footprint.w}×${b.footprint.d}${b.height>1?`×${b.height}`:""}</span>${b.requiresFob===false&&!b.isFob?" · no FOB":""}</div>
     </div>`;
     card.onclick = () => startPlacing(b.id);
     holder.appendChild(card);
@@ -1233,8 +1232,8 @@ function rotatedValue(cur, deg) {
   cur = (((cur || 0) % 360) + 360) % 360;
   let next;
   if (!snap) next = cur + deg;
-  else if (cur % 90 === 0) next = cur + deg;          // already square — turn a quarter
-  else next = Math.round(cur / 90) * 90;              // crooked — square it up first
+  else if (cur % 90 === 0) next = cur + deg;          // already square. Turn a quarter
+  else next = Math.round(cur / 90) * 90;              // crooked. Square it up first
   return ((next % 360) + 360) % 360;
 }
 function rotateSelection(deg) {
@@ -1290,7 +1289,7 @@ function commitStamp(d) {
   const def = byId[placing]; if (!def) return;
   const pts = stampPositions(d);
   if (!pts.length) return;
-  // one storey for the whole run, taken from where the drag started — so a wall
+  // one storey for the whole run, taken from where the drag started, so a wall
   // laid past an existing one doesn't climb halfway along
   const runLevel = autoLevelAt(d.x0, d.y0, def, ghost.rot);
   pushUndo();
@@ -1326,12 +1325,12 @@ function emplacementPit(weapon, radius) {
 const PRESETS = [
   {
     id: "mortar-pit", name: "Mortar Pit",
-    desc: "L81 ringed one block out with waist-height hesco so the tube clears the wall — the fix for shells hitting your own parapet. Door on the south face.",
+    desc: "L81 ringed one block out with waist-height hesco so the tube clears the wall. The fix for shells hitting your own parapet. Door on the south face.",
     build: () => emplacementPit("l81-mortar", 3)
   },
   {
     id: "aa-nest", name: "AA Nest (CIWS)",
-    desc: "Low hesco with sandbags stacked on top — the community's “perfect height” combo for the CIWS. Keep the sky above it clear.",
+    desc: "Low hesco with sandbags stacked on top. The community's “perfect height” combo for the CIWS. Keep the sky above it clear.",
     build: () => {
       const ps = emplacementPit("vanguard-ciws", 3);
       for (let x = -3; x <= 3; x += 2) {
@@ -1348,7 +1347,7 @@ const PRESETS = [
   },
   {
     id: "anticlimb-wall", name: "Anti-climb Wall (8 long)",
-    desc: "Two quad hesco sections with Bremer walls capped on top — nothing can be built above a Bremer, so it's the finishing layer that stops anyone vaulting in.",
+    desc: "Two quad hesco sections with Bremer walls capped on top. Nothing can be built above a Bremer, so it's the finishing layer that stops anyone vaulting in.",
     build: () => {
       const ps = [];
       ps.push({ type: "hesco-wall", x: -2, y: 0, rot: 0, level: 0 });
@@ -1359,7 +1358,7 @@ const PRESETS = [
   },
   {
     id: "vehicle-gate", name: "Vehicle Gate",
-    desc: "Armoured gate flanked by quad wall. The gate swings through, so leave the inside clear — and it has to sit on the ground.",
+    desc: "Armoured gate flanked by quad wall. The gate swings through, so leave the inside clear, and it has to sit on the ground.",
     build: () => ([
       { type: "gate",       x:  0, y: 0, rot: 0, level: 0 },
       { type: "hesco-wall", x: -4, y: 0, rot: 0, level: 0 },
@@ -1368,7 +1367,7 @@ const PRESETS = [
   },
   {
     id: "raised-gun", name: "Raised Gun Platform",
-    desc: "A 4×4 hesco platform with a CIWS mounted on top — height for the gun, cover underneath. Build the floor first, then the weapon on Level 2.",
+    desc: "A 4×4 hesco platform with a CIWS mounted on top. Height for the gun, cover underneath. Build the floor first, then the weapon on Level 2.",
     build: () => {
       const ps = [];
       for (let x = -1.5; x <= 1.5; x += 1)
@@ -1466,7 +1465,7 @@ function drawNow() {
   const issues = getIssues();
   const issueIds = new Set(issues.map(i => i.pieceId).filter(Boolean));
 
-  // only draw what's actually on screen — a big base is mostly off-view when zoomed in
+  // only draw what's actually on screen. a big base is mostly off-view when zoomed in
   const [vx0, vy0] = toWorld(0, 0), [vx1, vy1] = toWorld(W, H);
   const margin = 6;
   const visible = [];
@@ -1548,8 +1547,8 @@ function drawRect(r, def, opt) {
   const base = pieceColor(def);
   const fade = opt.alpha === undefined ? 1 : opt.alpha;
 
-  // Height reads as an extrusion toward the bottom-right: the taller the piece — and the
-  // higher it's stacked — the further it rises off the plan. A 1-block sandbag stays flat,
+  // Height reads as an extrusion toward the bottom-right. The taller the piece and the
+  // higher it is stacked, the further it rises off the plan. A 1-block sandbag stays flat,
   // a 5-block tower visibly stands up.
   const topBlocks = (opt.level || 0) + (def.height || 1);
   if (!opt.ghost && fade === 1 && topBlocks > 1 && Math.min(w, h) > 7) {
@@ -1571,7 +1570,7 @@ function drawRect(r, def, opt) {
     ctx.restore();
   }
 
-  // body — rotated with the piece
+  // body. Rotated with the piece
   ctx.save();
   ctx.translate(sx, sy);
   ctx.rotate(r.rot);
@@ -1601,7 +1600,7 @@ function drawRect(r, def, opt) {
   }
   ctx.restore();
 
-  // icon — drawn upright, never rotated, so it stays readable at any angle
+  // icon. Drawn upright, never rotated, so it stays readable at any angle
   const iconKey = def.icon;
   if (iconKey && iconImgs[iconKey] && iconImgs[iconKey].complete && Math.min(w, h) > 14) {
     const s = Math.min(w, h) * 0.75;
@@ -1678,14 +1677,14 @@ function shade(hex, amt) {
 }
 
 /* ============ ISSUES / COSTS ============ */
-/* Some pieces are made to be dropped on top of cover — sandbags on a hesco wall are a
+/* Some pieces are made to be dropped on top of cover. Sandbags on a hesco wall are a
    standard build, so overlapping one isn't a mistake. Bremer walls still refuse a topping. */
 function canOverlay(top, base) {
   return (top.tags || []).includes("overlay") && !(base.tags || []).includes("top-layer");
 }
 /* Every rule here is "does this piece touch that piece", which is O(n^2) done naively.
    A uniform grid buckets pieces by position so each one is only tested against its
-   actual neighbours — on a big base that's the difference between a million tests a
+   actual neighbours, on a big base that's the difference between a million tests a
    frame and a few thousand. */
 const GRID_CELL = 8;
 function buildIndex(pieces) {
@@ -1729,13 +1728,18 @@ function computeIssues() {
   const index = buildIndex(pieces);
   const fobs = pieces.filter(p => p.type === "__fob__");
   const reported = new Set();              // one overlap complaint per pair
+  const needFob = [];                      // collapsed into a single issue below
 
   for (const p of pieces) {
     const m = index.meta.get(p); if (!m) continue;
     const def = m.def, lvl = m.lvl, tags = def.tags || [];
 
     if (def.requiresFob !== false && !def.isFob) {
-      if (!fobs.length) issues.push({ pieceId: p.id, text: `${def.name}: needs a FOB (none placed)` });
+      // A missing FOB is one problem with the design, not one problem per piece. it used
+      // to fill the whole list with the same line repeated. Once a FOB exists the
+      // complaint goes back to being per-piece, because then it is that piece that is
+      // standing in the wrong place and you fix it by moving that piece.
+      if (!fobs.length) needFob.push(p);
       else if (!insideFobZone(p)) issues.push({ pieceId: p.id, text: `${def.name}: outside every FOB build zone` });
     }
     if (tags.includes("ground-only") && lvl > 0)
@@ -1771,6 +1775,16 @@ function computeIssues() {
     }
     if (!supported)
       issues.push({ pieceId: p.id, text: `${def.name}: nothing underneath to stand on at ${levelName(lvl)}` });
+  }
+
+  /* One line for the whole design, at the top, where the one thing to do next is legible.
+     No pieceId: the fix is global, so there is no single piece to jump to, and painting
+     the entire base red while you lay it out before dropping the FOB helps nobody. */
+  if (needFob.length) {
+    issues.unshift({
+      pieceId: null,
+      text: `No FOB placed. ${needFob.length} piece${needFob.length === 1 ? "" : "s"} need one`,
+    });
   }
   return issues;
 }
@@ -1843,10 +1857,8 @@ function updateRightPanel() {
   }
   document.getElementById("costSupplies").textContent = supplies.toLocaleString();
   document.getElementById("costCash").textContent = "$" + (supplies * 10).toLocaleString();
-  document.getElementById("costFob").textContent = fobCount ? `${fobCount} × $${catalog.fob.vendorPrice.toLocaleString()}` : "—";
-  document.getElementById("hammerNeeded").textContent = maxTier === 0 ? "—" : ["Small","Medium","Large"][maxTier-1] + " Hammer";
-  /* Supplies travel as pallets, and a vehicle carries a whole number of them —
-     so the figure that actually matters is trips, not raw supply count. */
+  document.getElementById("costFob").textContent = fobCount ? `${fobCount} × $${catalog.fob.vendorPrice.toLocaleString()}` : "-";
+  /* Supplies travel as pallets, and a vehicle carries a whole number of them, so the figure that actually matters is trips, not raw supply count. */
   const log = catalog.logistics || {};
   const pallet = Math.max(1, +document.getElementById("palletSize").value || PALLET_DEFAULT);
   const pallets = supplies ? Math.ceil(supplies / pallet) : 0;
@@ -1874,12 +1886,12 @@ function updateRightPanel() {
     fill.style.width = Math.min(100, ratio * 100) + "%";
     if (supplies <= stock) {
       fill.style.background = ratio > 0.85 ? "var(--accent)" : "var(--accent2)";
-      btext.innerHTML = `<span style="color:var(--accent2)">Fits</span> — ${(stock - supplies).toLocaleString()}${COST_ICON} left over`;
+      btext.innerHTML = `<span style="color:var(--accent2)">Fits</span>, ${(stock - supplies).toLocaleString()}${COST_ICON} left over`;
     } else {
       fill.style.background = "var(--danger)";
       const short = supplies - stock;
       const morePallets = Math.ceil(short / pallet);
-      btext.innerHTML = `<span style="color:var(--danger)">${short.toLocaleString()}${COST_ICON} short</span> — ${morePallets} more pallet${morePallets > 1 ? "s" : ""}`;
+      btext.innerHTML = `<span style="color:var(--danger)">${short.toLocaleString()}${COST_ICON} short</span>, ${morePallets} more pallet${morePallets > 1 ? "s" : ""}`;
     }
   } else {
     track.style.display = "none";
@@ -1959,8 +1971,8 @@ function updateRightPanel() {
   } else if (selection.size > 1) {
     sp.style.display = "";
     document.getElementById("selName").textContent = selection.size + " pieces";
-    document.getElementById("selRot").textContent = "—";
-    document.getElementById("selLvl").textContent = "—";
+    document.getElementById("selRot").textContent = "-";
+    document.getElementById("selLvl").textContent = "-";
     document.getElementById("sizeRows").style.display = "none";
     document.getElementById("fobSizeRow").style.display = "none";
   } else sp.style.display = "none";
@@ -2193,12 +2205,12 @@ function updateHint() {
     const lvl = ghost ? autoLevelAt(ghost.cx, ghost.cy, def, ghost.rot) : 0;
     const under = ghost && lvl > 0 ? whatsUnder(ghost.cx, ghost.cy, def, ghost.rot) : null;
     el.innerHTML = under
-      ? `Placing <b>${esc(def.name)}</b> on top of ${esc(under.name)} — <span style="color:var(--accent)">${levelName(lvl)}</span> · drag to lay a run · R rotate · Esc to stop`
-      : `Placing <b>${esc(def.name)}</b>${viewLevel ? ` on <span style="color:var(--accent)">${levelName(viewLevel)}</span>` : ""} — click for one, or drag to lay a whole run · R rotate · Esc to stop`;
+      ? `Placing <b>${esc(def.name)}</b> on top of ${esc(under.name)}. <span style="color:var(--accent)">${levelName(lvl)}</span> · drag to lay a run · R rotate · Esc to stop`
+      : `Placing <b>${esc(def.name)}</b>${viewLevel ? ` on <span style="color:var(--accent)">${levelName(viewLevel)}</span>` : ""}. Click for one, or drag to lay a whole run · R rotate · Esc to stop`;
   } else if (viewLevel !== null) {
-    el.innerHTML = `Working on <span style="color:var(--accent)">${levelName(viewLevel)}</span> — other storeys are dimmed. Press <b>All</b> to see everything again.`;
+    el.innerHTML = `Working on <span style="color:var(--accent)">${levelName(viewLevel)}</span>. Other storeys are dimmed. Press <b>All</b> to see everything again.`;
   } else {
-    el.textContent = "Click a buildable, then click the map to place — or drag to lay a run. Drop a piece on top of another and it stacks automatically.";
+    el.textContent = "Click a buildable, then click the map to place, or drag to lay a run. Drop a piece on top of another and it stacks automatically.";
   }
 }
 
@@ -2284,7 +2296,7 @@ document.getElementById("btnTemplates").onclick = () => {
     </div>`).join("");
   openModal("Presets",
     `<p style="color:var(--dim);font-size:12px;margin-bottom:6px">
-       Drops the build into the middle of your view, already selected — drag it where you want it.
+       Drops the build into the middle of your view, already selected. Drag it where you want it.
        Everything stays fully editable afterwards.</p>${rows}`,
     [["Close", closeModal]]);
   document.getElementById("modalBody").querySelectorAll("[data-preset]").forEach(b => {
@@ -2302,7 +2314,7 @@ document.getElementById("fobSize").onchange = e => {
   const p = design.pieces.find(x => selection.has(x.id));
   if (p && p.type === "__fob__") { pushUndo(); p.zone = Math.max(4, +e.target.value || 100); afterChange(); }
 };
-/* Mirror a selection about its own centre — for laying out a symmetric perimeter */
+/* Mirror a selection about its own centre, for laying out a symmetric perimeter */
 function mirrorSelection(axis) {
   if (!selection.size) return;
   const sel = design.pieces.filter(p => selection.has(p.id));
@@ -2324,7 +2336,7 @@ function selectSameType() {
   updateRightPanel(); draw();
 }
 
-/* Copy / paste — pastes centred on the pointer so you can repeat a section anywhere */
+/* Copy / paste. Pastes centred on the pointer so you can repeat a section anywhere */
 let clipboard = null;
 let lastPointer = { x: 0, y: 0 };
 function copySelection() {
@@ -2361,7 +2373,7 @@ function flashStatus(msg) {
   savedFlashTimer = setTimeout(() => { el.style.color = "var(--dim)"; }, 1400);
 }
 
-/* Footprint editing — writes to the catalog, so it applies to every piece of that type */
+/* Footprint editing. Writes to the catalog, so it applies to every piece of that type */
 function applySizeEdit() {
   if (selection.size !== 1) return;
   const p = design.pieces.find(x => selection.has(x.id));
@@ -2399,7 +2411,7 @@ function showSaved(ok) {
   const el = document.getElementById("sbSaved");
   if (!el) return;
   if (!ok) {
-    el.textContent = "⚠ Can't save here — use Export";
+    el.textContent = "⚠ Can't save here. Use Export";
     el.style.color = "var(--danger)";
     return;
   }
@@ -2467,7 +2479,7 @@ function askConfirm(title, message, confirmLabel, onYes) {
 function newDesign(force) {
   if (!force && design.pieces.length) {
     askConfirm("Start a new design?",
-      "The design you're on is already saved under its name — you can reopen it any time from <b>🗂 Designs</b>.",
+      "The design you're on is already saved under its name. You can reopen it any time from <b>🗂 Designs</b>.",
       "Start new", () => newDesign(true));
     return;
   }
@@ -2481,13 +2493,13 @@ function newDesign(force) {
 }
 function deleteDesign(name) {
   askConfirm("Delete this design?",
-    `<b>${esc(name)}</b> will be removed permanently. This can't be undone — export it first if you want a copy.`,
+    `<b>${esc(name)}</b> will be removed permanently. This can't be undone. Export it first if you want a copy.`,
     "Delete", () => {
       const all = readDesigns();
       delete all[name];
       writeDesigns(all);
       if (currentSavedName === name) {
-        // it's the one on screen — clear the current slot too, or autosave would restore it
+        // it's the one on screen. Clear the current slot too, or autosave would restore it
         try { localStorage.removeItem(LS_CURRENT); } catch(e) {}
         currentSavedName = null;
         newDesign(true);
@@ -2519,7 +2531,7 @@ function unsavedWork() {
   } catch (e) { return true; }
 }
 document.getElementById("homeLink").onclick = e => {
-  if (!unsavedWork()) return;                 // nothing at stake — just follow the link
+  if (!unsavedWork()) return;                 // nothing at stake. Just follow the link
   e.preventDefault();
   const href = e.currentTarget.getAttribute("href");
   const name = (document.getElementById("designName").value || "").trim() || "Untitled";
@@ -2540,7 +2552,7 @@ async function tryDownload(data, filename, mime) {
       if (dl) { await dl.save({ filename, data: data instanceof Blob ? data : String(data) }); return; }
     } catch(err) {
       if (err && err.code === "declined") return;
-      if (err && err.code === "rate_limited") { flashStatus("A save prompt is already open — try again in a moment"); return; }
+      if (err && err.code === "rate_limited") { flashStatus("A save prompt is already open. Try again in a moment"); return; }
       // fall through to the local-file path
     }
   }
@@ -2550,12 +2562,12 @@ async function tryDownload(data, filename, mime) {
     a.href = URL.createObjectURL(blob);
     a.download = filename;
     a.click(); URL.revokeObjectURL(a.href);
-  } catch(e) { flashStatus("Downloads are blocked here — use Copy instead"); }
+  } catch(e) { flashStatus("Downloads are blocked here. Use Copy instead"); }
 }
 document.getElementById("btnExport").onclick = () => {
   const json = JSON.stringify(design, null, 2);
   openModal("Export Design",
-    `<p style="color:var(--dim);font-size:12px;margin-bottom:8px">Copy this JSON and send it to a teammate — they paste it via Import. (Download works when running the local file.)</p>
+    `<p style="color:var(--dim);font-size:12px;margin-bottom:8px">Copy this JSON and send it to a teammate. They paste it via Import. (Download works when running the local file.)</p>
      <textarea id="expTa" spellcheck="false">${json.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</textarea>`,
     [
       ["📋 Copy to clipboard", () => {
@@ -2577,14 +2589,14 @@ document.getElementById("btnShare").onclick = () => {
   const long = url.length > 8000;
   openModal("Share this design",
     `<p style="color:var(--dim);font-size:12px;margin-bottom:8px">
-       The whole design travels inside the link — anyone who opens it gets your exact layout,
+       The whole design travels inside the link. Anyone who opens it gets your exact layout,
        with no account and nothing to install. Post it wherever you like.</p>
      <div class="cost-line" style="margin-bottom:8px">
        <span class="n">${design.pieces.length} pieces · ${supplies.toLocaleString()} build supplies</span>
        <span class="v">${url.length.toLocaleString()} characters</span></div>
      <textarea id="shareTa" spellcheck="false" style="height:26vh">${esc(url)}</textarea>
      ${long ? `<div style="color:var(--accent);font-size:11.5px;margin-top:6px">
-        That's a long link — some chat apps may truncate it. Export the file instead for very large bases.</div>` : ""}`,
+        That's a long link. Some chat apps may truncate it. Export the file instead for very large bases.</div>` : ""}`,
     [
       ["📋 Copy link", () => {
         const ta = document.getElementById("shareTa");
@@ -2668,7 +2680,7 @@ modalBack.onclick = e => { if (e.target === modalBack) closeModal(); };
 
 /* ============ SHARE LINKS ============
    A design packs into the URL itself, so anyone can post a build to Reddit or Discord
-   and it opens ready to inspect — no account, no server, nothing to host. */
+   and it opens ready to inspect. no account, no server, nothing to host. */
 function b64urlEncode(str) {
   const bytes = new TextEncoder().encode(str);
   let bin = "";
@@ -2684,7 +2696,7 @@ function b64urlDecode(s) {
 function encodeDesign(d) {
   const types = [];
   const idx = t => { let i = types.indexOf(t); if (i < 0) { i = types.length; types.push(t); } return i; };
-  // positional arrays rather than objects — roughly a third the characters
+  // positional arrays rather than objects. Roughly a third the characters
   const pieces = d.pieces.map(p => {
     const a = [idx(p.type), Math.round(p.x * 2), Math.round(p.y * 2), p.rot || 0, p.level || 0];
     if (p.type === "__fob__") a.push(p.zone || 100);
@@ -2737,8 +2749,7 @@ function renderDesigns() {
   }
   body.innerHTML =
     `<p style="color:var(--dim);font-size:12px;margin-bottom:10px">
-       Designs save automatically under the name in the toolbar. Renaming there <b>renames</b> this design —
-       use <b>Copy</b> below if you want to branch off a variant instead.</p>` +
+       Designs save automatically under the name in the toolbar. Renaming there <b>renames</b> this design. Use <b>Copy</b> below if you want to branch off a variant instead.</p>` +
     names.map((name, i) => {
       const d = all[name];
       const open = name === currentSavedName;
@@ -2768,8 +2779,7 @@ document.getElementById("btnDesigns").onclick = () => {
 document.getElementById("btnCatalog").onclick = () => {
   openModal("Catalog Editor",
     `<p style="color:var(--dim);font-size:12px;margin-bottom:8px">
-      Costs and sizes come from Closed Beta 1 footage. Edit any value here as you verify it in-game —
-      your correction sticks to every piece of that type, in every design.
+      Costs and sizes come from Closed Beta 1 footage. Edit any value here as you verify it in-game. Your correction sticks to every piece of that type, in every design.
       Footprints are in Hesco-block units (w × d), heights in blocks.</p>
      <textarea id="catalogTa" spellcheck="false">${JSON.stringify(catalog, null, 2)
        .replace(/&/g, "&amp;").replace(/</g, "&lt;")}</textarea>
@@ -2798,29 +2808,29 @@ document.getElementById("btnHelp").onclick = () => {
   openModal("Help & Shortcuts", `
     <div class="help-grid">
       <span><kbd>Click</kbd> palette item</span><span>Enter placement mode (stays on, so you can keep placing)</span>
-      <span><kbd>Drag</kbd> on the map</span><span><b>Lay a whole run</b> — pieces sit edge to edge along the drag, with a live count and cost. Press <kbd>R</kbd> first to run a wall the other way.</span>
+      <span><kbd>Drag</kbd> on the map</span><span><b>Lay a whole run</b>. Pieces sit edge to edge along the drag, with a live count and cost. Press <kbd>R</kbd> first to run a wall the other way.</span>
       <span><kbd>R</kbd> / <kbd>Shift+R</kbd></span><span>Rotate piece or ghost (90° snapped, 15° free)</span>
-      <span><kbd>B</kbd></span><span>Toggle grid snap — same key as the in-game snapping toggle</span>
+      <span><kbd>B</kbd></span><span>Toggle grid snap. Same key as the in-game snapping toggle</span>
       <span><kbd>Esc</kbd> / right-click</span><span>Stop placing / clear selection</span>
       <span><kbd>Delete</kbd></span><span>Delete selected</span>
       <span><kbd>Ctrl+D</kbd></span><span>Duplicate selected</span>
-      <span><kbd>Ctrl+C</kbd> / <kbd>Ctrl+V</kbd></span><span>Copy a section and paste it at the pointer — good for repeating a wall run or a gun pit</span>
+      <span><kbd>Ctrl+C</kbd> / <kbd>Ctrl+V</kbd></span><span>Copy a section and paste it at the pointer. Good for repeating a wall run or a gun pit</span>
       <span><kbd>Ctrl+A</kbd></span><span>Select everything</span>
       <span><kbd>Double-click</kbd></span><span>Select every piece of that same type at once</span>
       <span><kbd>Ctrl+Z</kbd> / <kbd>Ctrl+Y</kbd></span><span>Undo / redo</span>
       <span><kbd>Shift+Click</kbd> / drag</span><span>Multi-select / marquee select</span>
-      <span><kbd>Arrows</kbd></span><span>Pan the map — works whether or not something is selected (<kbd>Ctrl</kbd> for big steps)</span>
+      <span><kbd>Arrows</kbd></span><span>Pan the map. Works whether or not something is selected (<kbd>Ctrl</kbd> for big steps)</span>
       <span><kbd>Shift</kbd>+<kbd>Arrows</kbd></span><span>Nudge the selected pieces</span>
       <span><kbd>F</kbd></span><span>Zoom to fit</span>
       <span><kbd>Page Up</kbd> / <kbd>Page Down</kbd></span><span>Change the storey you're building on</span>
-      <span><kbd>[</kbd> / <kbd>]</kbd></span><span>Interface size — turn it up on a big or 4K monitor (also the <b>Size</b> box in the toolbar)</span>
+      <span><kbd>[</kbd> / <kbd>]</kbd></span><span>Interface size. Turn it up on a big or 4K monitor (also the <b>Size</b> box in the toolbar)</span>
       <span><kbd>Space</kbd>+drag / middle-drag</span><span>Pan · <kbd>Wheel</kbd> zoom</span>
     </div>
     <h3 style="margin:14px 0 6px;color:var(--accent);font-size:13px">Game rules baked in</h3>
     <ul style="font-size:12.5px;line-height:1.6;padding-left:18px;color:var(--text)">
       <li>1 grid cell = 1 small Hesco block (≈1.2 m). Heights are in blocks too.</li>
-      <li><b>Height shows on the plan.</b> Each piece is extruded toward the bottom-right in proportion to how tall it is — a 1-block sandbag stays flat, a 5-block bunker or tower clearly stands up. The <b>▲</b> badge gives the exact block count.</li>
-      <li>Sizes marked <span class="unsized">red with a “?”</span> are estimates from beta footage. Select a placed piece and edit its <b>Footprint &amp; height</b> to correct it — the change sticks for every piece of that type, in every design.</li>
+      <li><b>Height shows on the plan.</b> Each piece is extruded toward the bottom-right in proportion to how tall it is. a 1-block sandbag stays flat, a 5-block bunker or tower clearly stands up. The <b>▲</b> badge gives the exact block count.</li>
+      <li>Sizes marked <span class="unsized">red with a “?”</span> are estimates from beta footage. Select a placed piece and edit its <b>Footprint &amp; height</b> to correct it. The change sticks for every piece of that type, in every design.</li>
       <li>Sandbags are meant to sit on top of hesco walls, so overlapping one is <b>not</b> flagged as a problem. Bremer walls still refuse anything on top, as in game.</li>
     </ul>
     <h3 style="margin:14px 0 6px;color:var(--accent);font-size:13px">Building upwards</h3>
@@ -2828,24 +2838,24 @@ document.getElementById("btnHelp").onclick = () => {
       <li>Mounting a <b>CIWS, mortar or SAM on a hesco platform</b> is a normal build. Lay the platform on <b>Ground</b>, press <kbd>Page Up</kbd> to move to <b>Level 2</b>, then place the emplacement on top.</li>
       <li>The storey you're on draws solid; <b>the ones below stay visible underneath</b>, dimmed, so you can line up with the platform you're standing on. Raised pieces cast a shadow and carry an <b>L2 / L3</b> badge.</li>
       <li>You can also select something already placed and use <b>Level</b> in the side panel to lift it.</li>
-      <li>Anything raised with <b>nothing underneath it</b> gets flagged — a weapon floating in mid-air isn't buildable.</li>
+      <li>Anything raised with <b>nothing underneath it</b> gets flagged. a weapon floating in mid-air isn't buildable.</li>
       <li>Gates must stay on the ground and Recon Towers can't be stacked, both as in game.</li>
     </ul>
     <h3 style="margin:14px 0 6px;color:var(--accent);font-size:13px">Planning aids</h3>
     <ul style="font-size:12.5px;line-height:1.6;padding-left:18px;color:var(--text)">
-      <li><b>◈ Presets</b> drops in a ready-made build — mortar pit, AA nest, SAM site, anti-climb wall, vehicle gate, raised gun platform. They land selected so you can drag them into place, and everything stays editable.</li>
-      <li><b>You have in the FOB</b> — type in your stock and the bar tells you whether the design fits, what's left over, or how many more pallets you need.</li>
+      <li><b>◈ Presets</b> drops in a ready-made build. Mortar pit, AA nest, SAM site, anti-climb wall, vehicle gate, raised gun platform. They land selected so you can drag them into place, and everything stays editable.</li>
+      <li><b>You have in the FOB</b>. Type in your stock and the bar tells you whether the design fits, what's left over, or how many more pallets you need.</li>
       <li><b>Hauling it there</b> turns the supply total into the thing that actually costs you time: pallets, what they cost at the vendor, and how many trips that is by truck (2 pallets) or helicopter (1). A Build Supply Pallet costs $400 and holds <b>1,900 supplies</b>, which is why buying loose supplies at $10 each is only worth it for topping up. A fresh FOB lands with 1,750 already inside.</li>
       <li><b>Anti-climb</b> counts how much of your cover is only waist height. Those pieces can be vaulted unless something taller is stacked on them, which is the usual way a perimeter gets breached.</li>
-      <li><b>⇄ / ⇅ Flip</b> mirrors a selection about its own centre — build one side of a symmetric base, copy it, flip it.</li>
+      <li><b>⇄ / ⇅ Flip</b> mirrors a selection about its own centre. Build one side of a symmetric base, copy it, flip it.</li>
     </ul>
     <h3 style="margin:14px 0 6px;color:var(--accent);font-size:13px">Saving your design</h3>
     <ul style="font-size:12.5px;line-height:1.6;padding-left:18px;color:var(--text)">
-      <li><b>It saves itself.</b> Every change is written to this browser straight away — the status bar flashes “✓ Saved” each time. Just closing the tab is safe.</li>
-      <li><b>Name it</b> in the box at the top left. That name <b>is</b> the design — editing it renames this design rather than making a second copy.</li>
+      <li><b>It saves itself.</b> Every change is written to this browser straight away. The status bar flashes “✓ Saved” each time. Just closing the tab is safe.</li>
+      <li><b>Name it</b> in the box at the top left. That name <b>is</b> the design. Editing it renames this design rather than making a second copy.</li>
       <li><b>🗂 Designs</b> lists everything you've saved, marks the one you have open, and gives you <b>Open</b>, <b>Copy</b> (branch a variant) and <b>Delete</b> on each. <b>✚ New</b> starts a blank one without touching the current design.</li>
-      <li><b>To keep a copy or send it to someone</b>, use <b>⭳ Export</b> — copy the text, or download the file. They load it with <b>⭱ Import</b>. That's also your backup if you ever clear your browser data.</li>
-      <li>Sandbag Wall, Barbed Wire, Hedgehog and Recon Tent build <b>without</b> a FOB — everything else must sit inside a FOB's blue build square.</li>
+      <li><b>To keep a copy or send it to someone</b>, use <b>⭳ Export</b>. Copy the text, or download the file. They load it with <b>⭱ Import</b>. That's also your backup if you ever clear your browser data.</li>
+      <li>Sandbag Wall, Barbed Wire, Hedgehog and Recon Tent build <b>without</b> a FOB. Everything else must sit inside a FOB's blue build square.</li>
       <li><b>Level badge (L2, L3…)</b> = stacked height, for multi-storey hesco builds. Gates are ground-only; Recon Towers can't stack; nothing builds on top of a Bremer Wall; mortars/AA need open sky.</li>
       <li>Costs are Build Supplies. 1 supply = $10 at the vendor, or 1,900 in a $400 pallet. A fresh FOB lands with 1,750 already inside.</li>
       <li>Mortar, CIWS and SAM eat <b>Ammo</b> supplies; the Drill Rig eats <b>Fuel</b>. They keep drawing after they are built, so a base is not finished when the last wall goes up.</li>
@@ -2863,7 +2873,7 @@ function renderSupport() {
   el.className = "support-link";
   el.href = s.url;
   el.textContent = s.label || "Support this tool";
-  el.title = "This tool is free — a tip keeps it going";
+  el.title = "This tool is free. a tip keeps it going";
 }
 function renderLegend() {
   document.getElementById("legend").innerHTML =
