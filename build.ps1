@@ -44,7 +44,11 @@ $out = $tpl.Replace('/*__CATALOG__*/', $catalog).Replace('/*__ICONS__*/', "{$ico
 $community = Get-Content "$proj\data\community.json" -Raw | ConvertFrom-Json
 $apiBase = $community.voteApi
 
-$offline = $out.Replace('/*__API__*/', '')
+# A stamp the hosted page can compare itself against, so a tab left open can notice that
+# a newer build exists instead of quietly showing yesterday's.
+$stamp = (Get-Date).ToUniversalTime().ToString("yyyyMMdd-HHmmss")
+
+$offline = $out.Replace('/*__API__*/', '').Replace('/*__BUILD__*/', '')
 [IO.File]::WriteAllText("$proj\WardogsBaseBuilder.html", $offline, $utf8)
 # Artifact variant (no HTML skeleton, the Artifact wrapper provides it)
 $art = $offline -replace '(?s)^.*?<title>', '<title>' -replace '</head>\s*<body>', '' -replace '</body>\s*</html>\s*$', ''
@@ -53,7 +57,9 @@ $art = $offline -replace '(?s)^.*?<title>', '<title>' -replace '</head>\s*<body>
 # The planner lives at docs/planner/; the surrounding site pages are generated
 # afterwards by tools/build-site.js. GitHub Pages serves the whole docs/ folder.
 New-Item -ItemType Directory -Force "$proj\docs\planner" | Out-Null
-[IO.File]::WriteAllText("$proj\docs\planner\index.html", $out.Replace('/*__API__*/', $apiBase), $utf8)
+[IO.File]::WriteAllText("$proj\docs\planner\index.html",
+  $out.Replace('/*__API__*/', $apiBase).Replace('/*__BUILD__*/', $stamp), $utf8)
+[IO.File]::WriteAllText("$proj\docs\build.txt", $stamp, $utf8)
 if (Test-Path "$proj\release\og-1200x630.png") { Copy-Item "$proj\release\og-1200x630.png" "$proj\docs\preview.png" -Force }
 # Custom domain. Leave EMPTY until the domain's DNS actually resolves — claiming a
 # domain with no records makes Pages redirect the working github.io URL into a dead

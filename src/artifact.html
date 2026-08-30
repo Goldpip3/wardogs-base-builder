@@ -350,6 +350,8 @@
       <span id="sbZoom">100%</span>
       <span id="sbScale">1 cell = 1 Hesco block ≈ 1.2 m</span>
       <span id="sbSaved"></span>
+      <span id="sbUpdate" style="display:none;cursor:pointer;color:var(--accent);font-weight:600"
+            title="A newer build is on the server. Click to load it.">↻ Update available</span>
       <span id="sbMode"></span>
     </div>
   </div>
@@ -1023,6 +1025,7 @@ const LS_CATALOG = "wardogs.catalog";
    completely offline: with this empty, none of the cloud code below is ever reachable
    and the app makes no network call of any kind. */
 const CLOUD_API = "";
+const BUILD_STAMP = "";
 const LS_TOKEN = "wardogs.token";
 
 const LS_DESIGNS = "wardogs.designs";
@@ -2741,6 +2744,34 @@ function cloudSignInUrl() {
 }
 /* The worker hands the token back in the fragment after Discord. A fragment never
    reaches a server, so it does not end up in anybody's access log. */
+/* ---------- noticing a new build ----------
+   A tab left open keeps showing whatever it loaded, which has twice now meant a fix was
+   live and looked like it had not shipped. The hosted copy checks a one-line file when
+   you come back to the tab and offers a reload if the build moved. It never reloads on
+   its own, because throwing away an unsaved layout to deliver a bug fix is a bad trade.
+
+   Only the hosted copy does this. The file you download has no build to check against and
+   must not reach the network at all. */
+(function watchForUpdate() {
+  if (!CLOUD_API || !BUILD_STAMP) return;
+  const chip = document.getElementById("sbUpdate");
+  let told = false;
+  const check = () => {
+    if (told || document.hidden) return;
+    fetch("/build.txt", { cache: "no-store" })
+      .then(r => r.ok ? r.text() : null)
+      .then(v => {
+        if (!v || v.trim() === BUILD_STAMP) return;
+        told = true;
+        chip.style.display = "";
+      })
+      .catch(() => {});
+  };
+  chip.onclick = () => location.reload();
+  document.addEventListener("visibilitychange", check);
+  setTimeout(check, 4000);
+})();
+
 (function pickUpToken() {
   if (!CLOUD_API) return;
   const m = (location.hash || "").match(/[#&]token=([\w.-]+)/);
