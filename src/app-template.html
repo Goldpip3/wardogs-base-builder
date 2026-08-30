@@ -485,9 +485,10 @@
 const CATALOG_DEFAULT = /*__CATALOG__*/;
 const ICONS = /*__ICONS__*/;
 /* Build Supplies are shown with the in-game build tool rather than a stand-in glyph. */
-const COST_ICON = ICONS["_cost.webp"]
-  ? `<img class="cost-ico" src="${ICONS["_cost.webp"]}" alt=" build supplies">` : "";
-const COST_UNIT = " BS";   // canvas labels, where an image would cost a draw call each
+/* Costs read as plain numbers. Every panel that shows one is already headed with what
+   the unit is, and a glyph repeated down the whole palette was just noise. */
+const COST_ICON = "";
+const COST_UNIT = "";
 
 /* ============ STATE ============ */
 const LS_CATALOG = "wardogs.catalog";
@@ -737,6 +738,20 @@ function stampExtents(def, rotDeg) {
     y: def.footprint.w * s + def.footprint.d * c
   };
 }
+/* True when this exact spot on this storey already holds one of these. Dragging a wall
+   back over itself should top up the gaps, not stack a second wall inside the first,
+   which is what used to happen and then got reported as an overlap you did not make. */
+function occupied(cx, cy, type, level, rot) {
+  const EPS = 0.01;
+  for (const p of design.pieces) {
+    if (p.type !== type) continue;
+    if ((p.level || 0) !== level) continue;
+    if ((p.rot || 0) % 360 !== (rot || 0) % 360) continue;
+    if (Math.abs(p.x - cx) < EPS && Math.abs(p.y - cy) < EPS) return true;
+  }
+  return false;
+}
+
 function stampPositions(d) {
   const def = byId[placing]; if (!def) return [];
   const ext = stampExtents(def, ghost.rot || 0);
@@ -760,13 +775,18 @@ function commitStamp(d) {
   // one storey for the whole run, taken from where the drag started, so a wall
   // laid past an existing one doesn't climb halfway along
   const runLevel = autoLevelAt(d.x0, d.y0, def, ghost.rot);
+  const rot = ghost.rot || 0;
+  const lvl = def.isFob ? 0 : runLevel;
+  const fresh = pts.filter(pt => !occupied(pt.cx, pt.cy, placing, lvl, rot));
+  if (!fresh.length) { flashStatus("Already built along there"); return; }
   pushUndo();
-  for (const pt of pts) {
-    const p = { id: design.nextId++, type: placing, x: pt.cx, y: pt.cy, rot: ghost.rot || 0,
-                level: def.isFob ? 0 : runLevel };
+  for (const pt of fresh) {
+    const p = { id: design.nextId++, type: placing, x: pt.cx, y: pt.cy, rot, level: lvl };
     if (def.isFob) p.zone = catalog.fob.buildRadiusUnits || 100;
     design.pieces.push(p);
   }
+  if (fresh.length < pts.length)
+    flashStatus(`Placed ${fresh.length}, skipped ${pts.length - fresh.length} already built`);
   afterChange();
 }
 
@@ -955,6 +975,9 @@ function drawNow() {
     const ghostLevel = autoLevelAt(stamping ? dragging.x0 : ghost.cx,
                                    stamping ? dragging.y0 : ghost.cy, def, ghost.rot);
     for (const pt of pts) {
+      // a spot that already holds this piece is not going to be filled again, so do not
+      // pretend it will be
+      if (stamping && occupied(pt.cx, pt.cy, placing, def.isFob ? 0 : ghostLevel, ghost.rot || 0)) continue;
       drawRect({ cx:pt.cx, cy:pt.cy, w:def.footprint.w, h:def.footprint.d, rot:(ghost.rot||0)*Math.PI/180 },
         def, { ghost:true, level: def.isFob ? 0 : ghostLevel });
     }
