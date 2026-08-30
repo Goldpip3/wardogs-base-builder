@@ -23,11 +23,12 @@ const esc = s => String(s).replace(/[&<>"']/g, c =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
 /* ---------- ads ----------
-   Ads run on the content pages only. The planner is the thing people actually came for
-   and it has to keep working with no network, so it never gets ad code. The
-   "no external resource loads" check in tools/check-build.js enforces that.
-   With no publisher id configured nothing at all is emitted: no script tag, no slot,
-   no reserved space. Fill in data/buildables.json -> ads.publisherId to switch it on. */
+   This file places the two slots on the content pages. The planner's own slot is not here:
+   the planner is built by build.ps1, not by this generator, and only its hosted copy gets
+   an ad. The file people download gets none and must get none, because it has to keep
+   working with no network at all, and three checks in tools/check-build.js enforce that.
+   With no publisher id configured nothing at all is emitted anywhere: no script tag, no
+   slot, no reserved space. Fill in data/ads.json -> publisherId to switch it on. */
 const ADS = JSON.parse(fs.readFileSync(path.join(ROOT, "data/ads.json"), "utf8"));
 const adsOn = !!(ADS.publisherId || "").trim();
 const adScript = adsOn

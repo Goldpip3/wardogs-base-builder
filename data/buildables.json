@@ -74,7 +74,7 @@
     "sizeConfirmed": true,
     "buildRadiusUnits": 100,
     "radiusConfirmed": false,
-    "icon": "fob.svg"
+    "icon": "fob.webp"
   },
   "buildables": [
     {
@@ -519,7 +519,7 @@
       "height": 4,
       "sizeConfirmed": false,
       "desc": "When active, pulls the Hotzone to its location (like an active drill tower). Requires Fuel supplies in the FOB to activate; has a cooldown.",
-      "icon": "drill-rig.svg",
+      "icon": "drill-rig.webp",
       "tags": [
         "objective",
         "uses-fuel",

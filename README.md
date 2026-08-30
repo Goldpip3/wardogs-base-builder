@@ -38,7 +38,7 @@ data/            every number the site knows, as JSON
   ballistics.json    damage, armour, hit zones, fire rates
   armory.json        vendor prices for 331 items
   community.json     submitted designs, and the worker's URL
-  ads.json           the AdSense publisher id, kept out of the planner on purpose
+  ads.json           the AdSense publisher id, kept out of the downloadable planner
 
 src/
   app-template.html  the planner. One file, no framework, no build step beyond inlining

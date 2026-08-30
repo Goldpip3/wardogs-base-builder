@@ -320,6 +320,51 @@ ul,ol{padding-left:22px}li{margin:6px 0}
   nav.site{margin-left:0;gap:18px;width:100%;flex-wrap:wrap}
   .grid{grid-template-columns:1fr}
 }
+
+/* --- the artillery map, laid out like the planner: bar, panel, canvas, status --- */
+.amap-app{display:flex;flex-direction:column;height:calc(100vh - 76px);min-height:520px;
+  border:1px solid var(--line);background:var(--panel);margin:22px 0 8px}
+.amap-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 10px;
+  border-bottom:1px solid var(--line);background:var(--panel2)}
+.amap-sep{width:1px;height:22px;background:var(--line2)}
+.amap-layers{display:flex;gap:1px;background:var(--line);border:1px solid var(--line)}
+.amap-btn,.amap-lay{background:var(--panel);color:var(--dim2);border:1px solid var(--line2);
+  cursor:pointer;font-family:var(--ui);font-size:11px;text-transform:uppercase;
+  letter-spacing:.08em;padding:7px 12px}
+.amap-lay{border:0;padding:7px 10px}
+.amap-btn:hover,.amap-lay:hover{color:var(--text);background:var(--line)}
+.amap-btn[aria-pressed="true"]{background:var(--red);border-color:var(--red);color:#fff}
+.amap-lay[aria-pressed="true"]{background:var(--line2);color:var(--text)}
+.amap-body{flex:1;display:grid;grid-template-columns:290px 1fr;min-height:0}
+.amap-side{border-right:1px solid var(--line);padding:14px;display:flex;
+  flex-direction:column;gap:12px;overflow-y:auto;overflow-x:hidden;background:var(--panel)}
+.amap-pick{display:flex;gap:8px}
+.amap-pick .amap-btn{flex:1}
+.amap-row{display:flex;gap:8px}
+.amap-side label{flex:1;font-size:11px;color:var(--dim2);text-transform:uppercase;
+  letter-spacing:.06em}
+.amap-side input{width:100%;margin-top:4px;padding:8px;background:var(--panel2);
+  color:var(--text);border:1px solid var(--line2);font-family:var(--num)}
+.amap-sol,.amap-note{border:1px solid var(--line);background:var(--panel2);padding:14px}
+/* the panel is narrow and the dial note is a sentence, so the table has to wrap inside it
+   rather than push a scrollbar under the whole sidebar */
+.amap-sol table{width:100%;table-layout:fixed}
+.amap-sol td{white-space:normal;word-break:break-word;padding:6px 0;vertical-align:top}
+.amap-sol td:first-child{width:38%;color:var(--dim)}
+.amap-sol .fine{display:block;margin-top:2px}
+.amap-stage{position:relative;min-width:0;background:#0a0a0a}
+.amap-stage canvas{display:block;cursor:crosshair;touch-action:none}
+.amap-status{display:flex;gap:22px;flex-wrap:wrap;padding:7px 12px;
+  border-top:1px solid var(--line);background:var(--panel2);font-family:var(--num);
+  font-size:11px;color:var(--dim)}
+.amap-status .good{color:var(--good)}
+.amap-status .bad{color:var(--red-hot)}
+@media(max-width:900px){
+  .amap-app{height:auto}
+  .amap-body{grid-template-columns:1fr}
+  .amap-side{border-right:0;border-bottom:1px solid var(--line)}
+  .amap-stage{height:60vh;min-height:380px}
+}
 </style>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7658713831499963" crossorigin="anonymous"></script>
 <script>

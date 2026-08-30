@@ -16,6 +16,9 @@ const path = require("path");
 const proj = path.resolve(__dirname, "..");
 const SITE = "https://www.wardogsbuilder.com";   // matches build-site.js
 const app = fs.readFileSync(path.join(proj, "docs/planner/index.html"), "utf8");
+// The other half of the pair. Several checks below are about this file specifically, and
+// leaving them pointed at the hosted copy is what made them stop meaning anything.
+const download = fs.readFileSync(path.join(proj, "WardogsBaseBuilder.html"), "utf8");
 const catalog = JSON.parse(fs.readFileSync(path.join(proj, "data/buildables.json"), "utf8"));
 
 let fail = 0;
@@ -24,17 +27,23 @@ const check = (ok, label, detail) => {
   if (!ok) fail++;
 };
 
-// -- 0. the app's script actually parses --
-// A bulk find-and-replace across the template once ate the tail of a template literal
-// and every check below still passed, because the page was structurally fine and simply
-// did not run. Parse it.
+/* -- 0. the app's script actually parses --
+   A bulk find-and-replace across the template once ate the tail of a template literal and
+   every check below still passed, because the page was structurally fine and simply did not
+   run. Parse it.
+
+   This used to take the first <script> after the styles and the last </script> and parse
+   everything between as one blob, which quietly assumed the planner had exactly one inline
+   script. The moment the hosted build gained a second one it was slicing markup into the
+   parser and reporting the app as broken. Parse each inline script on its own, the way the
+   site-page check below already does. */
 {
-  const s = app.indexOf("<script>", app.indexOf("</style>"));
-  const e = app.lastIndexOf("</script>");
-  let err = null;
-  try { new (require("vm").Script)(app.slice(s + "<script>".length, e)); }
-  catch (ex) { err = ex.message; }
-  check(!err, "planner script parses", err);
+  const bad = [];
+  for (const m of app.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)) {
+    try { new (require("vm").Script)(m[1]); }
+    catch (ex) { bad.push(ex.message); }
+  }
+  check(bad.length === 0, "planner scripts parse", bad[0]);
 }
 
 /* -- 0b. and so does every script on every generated page --
@@ -117,15 +126,46 @@ check(!mojibake, "no mojibake from a codepage mismatch",
   const bad = named.filter(n => !onDisk.has(n.icon) || !app.includes('"' + n.icon + '":"data:'));
   check(bad.length === 0, `all ${named.length} catalog icons exist and are inlined`,
     bad.map(n => n.icon + " (" + n.where + ")").join(", "));
+
+  /* The check above was necessary and not sufficient. It proved the catalog's icon names
+     were real, while the planner hardcoded `icon:"fob.svg"` in fobDef() and never read
+     catalog.fob.icon at all. So the catalog could name a file, the file could exist, the
+     file could be inlined, every check could pass, and the plan could still show a blank
+     square, because the planner was asking for a different name. That is what "the FOB is
+     still using the old image" was, twice.
+
+     Any icon filename written literally in the planner has to be one the catalog names.
+     A literal that nothing in data/ agrees with is a second home for a value, which in
+     this project always ends the same way. */
+  const known = new Set(named.map(n => n.icon));
+  // Comments talk about filenames, including the comment explaining this very check.
+  // Strip them, or the note about the bug reads as the bug.
+  const plannerCode = fs.readFileSync(path.join(proj, "src/app-template.html"), "utf8")
+    .replace(/\/\*[\s\S]*?\*\//g, " ")
+    .replace(/^[ \t]*\/\/[^\n]*$/gm, " ");
+  const literals = [...new Set(
+    [...plannerCode.matchAll(/["']([A-Za-z0-9_-]+\.(?:webp|svg|png))["']/g)].map(m => m[1]))];
+  const orphanLiterals = literals.filter(f => !known.has(f));
+  check(orphanLiterals.length === 0,
+    "the planner names no icon the catalog does not",
+    orphanLiterals.join(", ") + " (hardcoded in src/app-template.html)");
 }
 
-// -- 3b. the planner ships no advertising identity at all --
-// The catalog is inlined wholesale, so anything left in it travels inside the offline
-// file people download. Ad config lives in data/ads.json for exactly this reason.
+/* -- 3b. the planner people download ships no advertising identity at all --
+   This used to read the hosted planner, which was the same thing back when the two builds
+   differed only by an API string. They no longer do: the hosted copy carries one ad at the
+   foot of the right panel and the downloadable one carries none, so the assertion has to
+   name the file it is actually about. A publisher id inside a file people keep on a disk is
+   an advertising identity travelling with them, and the catalog is inlined wholesale, which
+   is why the ad config sits in data/ads.json and never in buildables.json. */
 {
   const ads = JSON.parse(fs.readFileSync(path.join(proj, "data/ads.json"), "utf8"));
   const leaked = (ads.publisherId || "").trim();
-  check(!leaked || !app.includes(leaked), "planner carries no publisher id");
+  check(!leaked || !download.includes(leaked),
+    "the downloadable planner carries no publisher id");
+  check(!/adsbygoogle|__AD_HEAD__|__AD_PANEL__/.test(download),
+    "the downloadable planner carries no ad markup",
+    "an unreplaced placeholder counts: it means the offline build stopped stripping them");
 }
 
 /* -- 3b-ii. a slot that is configured actually reaches a page --
@@ -207,11 +247,26 @@ check(!mojibake, "no mojibake from a codepage mismatch",
     [...new Set(bad)].slice(0, 3).join(" | "));
 }
 
-// -- 4. nothing reaches the network: offline is the whole promise --
-const remote = [...app.matchAll(/(?:src|href)="(https?:\/\/[^"]+)"/g)]
+/* -- 4. nothing reaches the network: offline is the whole promise --
+   Read the downloadable file, not the hosted one. The two were interchangeable for this
+   purpose until the hosted copy started loading an ad script. Had this stayed pointed at
+   the hosted planner it would have had to be loosened to allow that, and a check loosened
+   to pass is a check that has stopped guarding the only file the promise is about. */
+const externals = src => [...src.matchAll(/(?:src|href)="(https?:\/\/[^"]+)"/g)]
   .map(m => m[1])
   .filter(u => !/schema\.org|og:|^https?:\/\/www\.wardogsbuilder\.com/.test(u));
-check(remote.length === 0, "no external resource loads", remote.slice(0, 3).join(", "));
+
+const remote = externals(download);
+check(remote.length === 0, "the downloadable planner loads nothing external",
+  remote.slice(0, 3).join(", "));
+
+/* The hosted planner may reach exactly one outside origin, the AdSense loader. Anything
+   else arriving here is a dependency nobody decided to take on. */
+{
+  const stray = externals(app).filter(u => !/^https:\/\/pagead2\.googlesyndication\.com\//.test(u));
+  check(stray.length === 0, "the hosted planner loads nothing beyond the ad script",
+    stray.slice(0, 3).join(", "));
+}
 
 // -- 5. the estimate question marks the user asked us to drop are gone --
 check(!/[>\s]\?<\/span>/.test(app), "no leftover '?' estimate badges");

@@ -61,6 +61,34 @@ on a distinct structure. `test/artillery.js` fails the build on a `tiles` block 
 incomplete or points at a pyramid missing from `docs/`, because a tiled map that quietly
 lost its imagery looks exactly like a map that never had any.
 
+## The control zone
+
+The ring the match is fought inside, and the reason the page opens framed on it rather than
+on the whole terrain. Each map carries a `controlZone` with a centre and `radiusMetres`, and
+the towers are the objectives inside it.
+
+Neither figure was read out of the game. Both were measured off metaforge.app, which draws
+the real zones, by pixel against tower coordinates whose game X/Y are already known here.
+Three Bakurani zones measured 500, 515 and 512 m and Ozeti about 550, so **500 m** is the
+figure and `confirmed` is `false` until somebody reads it in game.
+
+Two things worth knowing before touching it:
+
+- **It is not the map centre.** It sits on the tower cluster: Bakurani (79.9, 71.8), Ozeti
+  (100.1, 63.5). Centring it on the playable middle puts it a few hundred metres off.
+- **Press material says the control zone is 2x2 km.** That does not match anything drawn on
+  either map, so it is not used. Several sites repeat the figure; all of them trace back to
+  the same Steam copy.
+
+There is more than one zone per map (Bakurani has Default, Farmland and Lumberyard; Ozeti
+adds Church and River). Only the one holding the towers is drawn, which is what a player
+means by the control zone. Ozeti ships four towers because four is all any source has;
+a fifth is expected and will drop straight in.
+
+`test/artillery.js` pins the relationship rather than the numbers: every tower has to sit
+inside its own map's zone. A zone that drifts off its towers still draws a convincing circle
+in the wrong place, which is exactly the failure that would otherwise ship unnoticed.
+
 ## Connected to
 
 - **joins:** [artillery-data](artillery-data.md), which owns the platforms whose reach is

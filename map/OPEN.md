@@ -7,10 +7,14 @@ Last swept 2026-08-30.
 
 ## Start here if you are picking artillery back up
 
-`/artillery/` is now an interactive map calculator: Bakurani and Ozeti over real terrain
-imagery from [objects/data/artillery-maps.md](objects/data/artillery-maps.md), gun and
-target placed by click or typed coordinate, range rings for the reach, and a solution that
-reports both SPH-2 arcs where both reach. The SPH-2 elevation tables were transcribed on 2026-08-30
+`/artillery/` is a full-screen tool, laid out like the planner: bar, panel, canvas, status
+bar, filling the viewport on arrival with the reference material below it. Bakurani and
+Ozeti over real terrain imagery from
+[objects/data/artillery-maps.md](objects/data/artillery-maps.md), opening framed on the
+control zone because that is the only ground the match is fought over. Gun and target go
+down by click or typed coordinate, the rings are the gun's reach, the towers carry the
+game's own antenna glyph, and the panel says whether the zone is in range from where the
+gun stands. The solution reports both SPH-2 arcs where both reach. The SPH-2 elevation tables were transcribed on 2026-08-30
 from wardogs-artillery.com, the one source publishing the complete curve, and are marked
 unfired. The URL fragment carries map, weapon and both points, so a solution is a link.
 
@@ -60,17 +64,39 @@ the tools exist so that it is a data job rather than a rebuild.
 | the planner | `buildRadiusUnits: 100` is `radiusConfirmed: false`, which is what blocks range rings on the plan | `data/buildables.json` |
 | ongoing supplies | how much Ammo, Fuel or Mechanical a single reload draws is not published anywhere, so the planner counts the emplacements that will keep drawing and states no figure. One reload of a mortar, watched, closes it | `data/buildables.json` `mechanics.supplies`, and the Ongoing Supplies panel |
 
+## Two icons are still hand drawn
+
+The FOB and the Drill Rig moved onto the game's own art on 2026-08-30. **Sandbag Wall** and
+**Stingray** are the last two still on hand-drawn SVGs from before the art was available.
+Drop a render into `assets/icons/` and point the catalog at it; `tools/check-build.js`
+now fails the build if the catalog names an icon that is not there, or if the planner names
+one the catalog does not.
+
 ## Needs a decision, not a discovery
 
 - **Ko-fi handle.** `support.url` in `data/buildables.json` is unset, so the tip button does
   not render. It needs an account name, which is not something to guess at.
-- **Whether two ad units is the right number.** AdSense is approved and live as of
-  2026-08-30: a responsive leaderboard above the footer sitewide, and one fluid in-article
-  unit on Damage, Armory and Buildables only. So most pages carry one and three carry two.
+- **The planner ad needs a slot id before it ships.** Everything else for it is built and
+  checked: `data/ads.json` has a `planner` slot, `build.ps1` injects it into the hosted
+  planner only, and the downloadable file is asserted clean three ways. The slot is empty,
+  so nothing is emitted. Create a display unit in AdSense, put its id there, rebuild.
+- **Whether three ad units is the right number.** AdSense went live 2026-08-30: a responsive
+  leaderboard above the footer sitewide, a fluid in-article unit on Damage, Armory and
+  Buildables only, and one at the foot of the planner's right panel. Most pages carry one.
   That was chosen to keep the site usable rather than to maximise revenue, and it is worth
-  revisiting once there is a month of real earnings to weigh it against. The planner carries
-  none and must keep carrying none. Adding a slot means an entry in `AD_FORMATS` in
-  `tools/site/context.js` as well as an id in `data/ads.json`, or it silently never fills.
+  revisiting once there is a month of real earnings to weigh it against.
+
+  Two things were deliberately not done, and are worth not re-deciding by accident. Nothing
+  goes against the bottom edge of the map: it is a click-and-drag surface, and an ad on its
+  edge is both worse to use and the placement Google treats as inviting accidental clicks,
+  which on a young account is an account risk rather than a design opinion. And the
+  downloadable planner carries nothing, which is not a preference but the whole promise of
+  the file.
+
+  Adding a slot is not one step. A content-page slot needs an id in `data/ads.json` *and* an
+  entry in `AD_FORMATS` in `tools/site/context.js`; the planner's is injected by `build.ps1`
+  instead and ignores that table. A slot with an id and no placement fails the build rather
+  than failing silently.
 
 ## Known and deliberately not fixed
 

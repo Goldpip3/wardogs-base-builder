@@ -186,6 +186,34 @@ const spread = (d, moa) => d * (moa / 60) * Math.PI / 180;
   check(wrongExtent.length === 0,
     `every map uses the game's own ${A.grid.extent} unit coordinate space`,
     wrongExtent.map(m => m.id + " says " + m.extentUnits).join(", "));
+
+  /* The control zone is the ring the match is fought inside, and the towers are the
+     objectives inside it. That relationship is the whole point of drawing either, so it is
+     the thing to pin: a zone that has drifted off its towers still draws a perfectly
+     convincing circle in the wrong place. Both figures were measured off another site's
+     rendering rather than read out of the game, which is why they are worth a check. */
+  const zoneBad = [];
+  for (const m of M.maps) {
+    const z = m.controlZone;
+    if (!z || !z.centre || !z.radiusMetres) { zoneBad.push(m.id + " has no control zone"); continue; }
+    const b = m.bounds;
+    if (z.centre.x < b.minX || z.centre.x > b.maxX || z.centre.y < b.minY || z.centre.y > b.maxY)
+      zoneBad.push(m.id + " zone centre is outside the playable bounds");
+    const rUnits = z.radiusMetres / A.grid.unitMetres;
+    for (const t of m.towers) {
+      const d = Math.hypot(t.x - z.centre.x, t.y - z.centre.y);
+      if (d > rUnits)
+        zoneBad.push(m.id + " " + t.label + " is " + Math.round((d - rUnits) * A.grid.unitMetres) + " m outside");
+    }
+  }
+  check(zoneBad.length === 0,
+    "every tower on both maps sits inside its own control zone", zoneBad.join(", "));
+
+  /* A radius nobody has read in game must not quietly become a fact. */
+  const unlabelled = M.maps.filter(m => m.controlZone && m.controlZone.confirmed !== false);
+  check(unlabelled.length === 0,
+    "the control zone radius is still marked unconfirmed, because it was measured not read",
+    unlabelled.map(m => m.id).join(", "));
   check(/wardogs-artillery/.test(M.source || "") || /wardogs-artillery/.test(M._note || ""),
     "the map file names where its positions came from");
 

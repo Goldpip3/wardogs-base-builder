@@ -1,10 +1,11 @@
 {
   "network": "adsense",
   "publisherId": "ca-pub-7658713831499963",
-  "note": "Put your AdSense publisher id here (the ca-pub-… string) once the account is approved. While it is empty no ad code is emitted at all, and the planner never carries ads either way - it has to keep working offline.",
+  "note": "The AdSense publisher id. While it is empty no ad code is emitted anywhere at all: no script tag, no slot, no reserved space, and docs/ads.txt is deleted.",
   "slots": {
     "leaderboard": "6283709418",
-    "inArticle": "4970627748"
+    "inArticle": "4970627748",
+    "planner": ""
   },
-  "_comment": "Advertising config. Kept out of buildables.json because that file is inlined wholesale into the offline planner, and the planner neither shows ads nor should ship a publisher id. Clearing publisherId removes all ad code and deletes docs/ads.txt."
+  "_comment": "Advertising config, kept out of buildables.json because that file is inlined wholesale into the downloadable planner and an advertising identity has no business in a file people keep on a disk. Three slots. 'leaderboard' and 'inArticle' are placed by tools/site/context.js and need a matching entry in its AD_FORMATS table. 'planner' is different: it is injected by build.ps1 into the hosted planner only, at the foot of the right panel, and the downloadable build gets an empty string in its place. Clearing publisherId removes all of it."
 }

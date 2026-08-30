@@ -85,26 +85,24 @@ module.exports = ctx => {
     title: "WARDOGS Artillery Calculator: L81 Mortar and SPH-2",
     desc: "Interactive map calculator for WARDOGS indirect fire. Place your gun and your target on Bakurani or Ozeti and get bearing, range, elevation for both arcs and spread, with range rings, the firing tables and where every number came from.",
     canonical: "/artillery/",
-    body: '<section><div class="wrap">' +
-      '<span class="eyebrow">Indirect fire, checked ' + esc(A.checkedOn) + "</span>" +
-      "<h1>Artillery</h1>" +
-      '<p class="lede">Place your gun and your target on the map, or type the coordinates' +
-      " the game shows you. Out comes the bearing to traverse to, the range, what to dial" +
-      " on each arc that reaches, and how wide the shells will land. The rings are the" +
-      " gun&#39;s reach.</p>" +
+    body: '<section style="padding-top:14px"><div class="wrap">' +
 
-      '<div class="chips" style="margin-top:26px">' +
-      A.platforms.map(function (p, i) {
-        return '<button class="chip" data-plat="' + esc(p.id) + '" aria-pressed="' +
-          (i === 0 ? "true" : "false") + '">' + esc(p.name) + "</button>";
-      }).join("") + "</div>" +
-
+      /* The tool loads, not an article about the tool. It opens framed on the control
+         zone, because that is the only ground the match is fought over. Everything
+         below is reference for whoever scrolls. */
       mapApp.html +
 
-      '<p class="fine" style="margin:10px 0 0">One coordinate unit is ' + A.grid.unitMetres +
+      '<p class="fine" style="margin:0 0 10px">One coordinate unit is ' + A.grid.unitMetres +
       " m, so 0.01 is a metre. Y counts north. Azimuth: 0&deg; north, 90&deg; east." +
       " The link in your address bar carries the whole picture, so copy it to hand a" +
       " fire mission to someone else.</p>" +
+
+      '<span class="eyebrow" style="margin-top:40px">Indirect fire, checked ' +
+      esc(A.checkedOn) + "</span>" +
+      "<h1>Artillery</h1>" +
+      '<p class="lede">Place your gun and your target on the map above, or type the' +
+      " coordinates the game shows you. Out comes the bearing to traverse to, the range," +
+      " what to dial on each arc that reaches, and how wide the shells will land.</p>" +
 
       '<h2 style="margin-top:52px">The platforms</h2>' +
       '<div class="grid" style="margin-top:18px">' +

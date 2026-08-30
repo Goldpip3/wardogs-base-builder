@@ -44,11 +44,35 @@ $out = $tpl.Replace('/*__CATALOG__*/', $catalog).Replace('/*__ICONS__*/', "{$ico
 $community = Get-Content "$proj\data\community.json" -Raw | ConvertFrom-Json
 $apiBase = $community.voteApi
 
+# The hosted copy also carries one ad, at the foot of the right panel. The downloadable one
+# carries none and must not: an offline file has nothing to ask an ad server for, and a
+# publisher id inside a file people keep is an advertising identity travelling on a disk.
+# Both placeholders become empty string for the offline build, so there is nothing to strip
+# and no trace that an ad was ever considered. check-build.js asserts exactly that.
+$ads = Get-Content "$proj\data\ads.json" -Raw | ConvertFrom-Json
+$adPub = "$($ads.publisherId)".Trim()
+$adSlot = "$($ads.slots.planner)".Trim()
+$adHead = ""
+$adPanel = ""
+if ($adPub -and $adSlot) {
+  $adHead = @"
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=$adPub" crossorigin="anonymous"></script>
+"@
+  $adPanel = @"
+    <div class="rp-section rp-ad">
+      <h3>Advertisement</h3>
+      <ins class="adsbygoogle" style="display:block" data-ad-client="$adPub"
+           data-ad-slot="$adSlot" data-ad-format="auto" data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+"@
+}
+
 # A stamp the hosted page can compare itself against, so a tab left open can notice that
 # a newer build exists instead of quietly showing yesterday's.
 $stamp = (Get-Date).ToUniversalTime().ToString("yyyyMMdd-HHmmss")
 
-$offline = $out.Replace('/*__API__*/', '').Replace('/*__BUILD__*/', '')
+$offline = $out.Replace('/*__API__*/', '').Replace('/*__BUILD__*/', '').Replace('<!--__AD_HEAD__-->', '').Replace('<!--__AD_PANEL__-->', '')
 [IO.File]::WriteAllText("$proj\WardogsBaseBuilder.html", $offline, $utf8)
 # Artifact variant (no HTML skeleton, the Artifact wrapper provides it)
 $art = $offline -replace '(?s)^.*?<title>', '<title>' -replace '</head>\s*<body>', '' -replace '</body>\s*</html>\s*$', ''
@@ -58,7 +82,7 @@ $art = $offline -replace '(?s)^.*?<title>', '<title>' -replace '</head>\s*<body>
 # afterwards by tools/build-site.js. GitHub Pages serves the whole docs/ folder.
 New-Item -ItemType Directory -Force "$proj\docs\planner" | Out-Null
 [IO.File]::WriteAllText("$proj\docs\planner\index.html",
-  $out.Replace('/*__API__*/', $apiBase).Replace('/*__BUILD__*/', $stamp), $utf8)
+  $out.Replace('/*__API__*/', $apiBase).Replace('/*__BUILD__*/', $stamp).Replace('<!--__AD_HEAD__-->', $adHead).Replace('<!--__AD_PANEL__-->', $adPanel), $utf8)
 [IO.File]::WriteAllText("$proj\docs\build.txt", $stamp, $utf8)
 if (Test-Path "$proj\release\og-1200x630.png") { Copy-Item "$proj\release\og-1200x630.png" "$proj\docs\preview.png" -Force }
 # Custom domain. Leave EMPTY until the domain's DNS actually resolves — claiming a
