@@ -436,6 +436,7 @@ ${adScript}
     <a href="/armory/">Armory</a>
     <a href="/vehicles/">Vehicles</a>
     <a href="/guides/">Guides</a>
+    <a href="/feedback/">Feedback</a>
     <a href="/planner/" class="cta">Planner</a>
   </nav>
 </div></header>
@@ -448,6 +449,7 @@ ${adSlot("leaderboard") ? `<div class="wrap">${adSlot("leaderboard")}</div>` : "
   <a href="/planner/">Planner</a><a href="/designs/">Designs</a>
   <a href="/buildables/">Buildables</a><a href="/armory/">Armory</a>
   <a href="/loadouts/">Loadouts</a><a href="/vehicles/">Vehicles</a><a href="/guides/">Guides</a>
+  <a href="/feedback/">Feedback</a>
   <a href="/privacy/">Privacy</a>
   <a href="https://github.com/Goldpip3/wardogs-base-builder">Source</a>
 </div></footer>
@@ -686,9 +688,11 @@ write("index.html", page({
   canonical: "/",
   body: `${FORWARD_SHARED}
 <section class="hero"><div class="wrap">
-  <h1>Build the FOB<br>before the match</h1>
-  <p class="lede">Lay out walls, gates and gun pits on a grid, and see exactly what the whole
-  thing costs in Build Supplies, pallets and vehicle trips before you haul anything.</p>
+  <h1>Count the pallets<br>before you haul them</h1>
+  <p class="lede">Lay the whole FOB out first, down to the last hesco block. You get the
+  Build Supply total, what that is in pallets, and how many truck runs it takes to get
+  there. ${catalog.logistics.suppliesPerPallet.toLocaleString()} supplies to a pallet, two
+  pallets to a truck.</p>
   <div class="actions">
     <a class="btn primary" href="/planner/">Open the planner</a>
     <a class="btn" href="/designs/">Community designs</a>
@@ -1006,7 +1010,11 @@ if (VOTE_API) write("moderate/index.html", page({
     <input id="tok" type="password" placeholder="the ADMIN_TOKEN secret">
     <div class="hint">Kept in this browser only. Never sent anywhere but your own worker.</div>
   </div>
-  <div><button class="btn" id="load">Load queue</button></div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap">
+    <button class="btn" id="load">Design queue</button>
+    <button class="btn" id="loadFb">Feedback</button>
+    <button class="btn sm" id="dumpFb">Download all as JSON</button>
+  </div>
   <div id="out" style="margin-top:30px"></div>
 </div></section>
 <script>
@@ -1047,7 +1055,49 @@ function load(){
     .catch(function(e){ out.innerHTML='<div class="msg">'+esc(e.message)+'</div>'; });
 }
 document.getElementById("load").addEventListener("click",load);
+
+/* Feedback is read here and nowhere else. The JSON dump is the way out: everything
+   people have sent, in one file, to do whatever you want with later. */
+function renderFeedback(items){
+  if(!items.length){
+    out.innerHTML='<div class="empty"><h3>Nothing yet</h3><p>Nobody has sent anything in.</p></div>';
+    return;
+  }
+  out.innerHTML=items.map(function(f){
+    return '<div class="card" style="border:1px solid var(--line);margin-bottom:1px">'+
+      '<div class="stats" style="margin:0 0 10px"><span>'+esc(f.kind)+'</span>'+
+      new Date(f.at).toLocaleString()+
+      (f.contact?'<span>reply to</span>'+esc(f.contact):"")+'</div>'+
+      '<p style="white-space:pre-wrap;overflow-wrap:anywhere;color:var(--text)">'+esc(f.text)+'</p>'+
+      '<div style="margin-top:14px"><button class="btn sm" data-fbkey="'+esc(f.key)+'">Delete</button></div></div>';
+  }).join("");
+}
+function loadFeedback(){
+  out.textContent="Loading...";
+  try{ localStorage.setItem("wardogs.admin",tokEl.value); }catch(e){}
+  return call("/admin/feedback").then(function(j){ renderFeedback(j.feedback||[]); })
+    .catch(function(e){ out.innerHTML='<div class="msg">'+esc(e.message)+'</div>'; });
+}
+document.getElementById("loadFb").addEventListener("click",loadFeedback);
+document.getElementById("dumpFb").addEventListener("click",function(){
+  call("/admin/feedback").then(function(j){
+    var blob=new Blob([JSON.stringify(j.feedback||[],null,2)],{type:"application/json"});
+    var a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download="wardogs-feedback.json";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }).catch(function(e){ alert(e.message); });
+});
 out.addEventListener("click",function(ev){
+  var fb=ev.target.closest("button[data-fbkey]");
+  if(fb){
+    if(!confirm("Delete this feedback?")) return;
+    fb.disabled=true;
+    call("/admin/feedback/delete",{method:"POST",body:JSON.stringify({key:fb.dataset.fbkey})})
+      .then(loadFeedback).catch(function(e){ fb.disabled=false; alert(e.message); });
+    return;
+  }
   var b=ev.target.closest("button[data-act]"); if(!b) return;
   if(b.dataset.act==="delete" && !confirm("Delete this permanently?")) return;
   b.disabled=true;
@@ -1060,7 +1110,89 @@ if(tokEl.value) load();
 </script>`,
 }));
 
-const urls = ["/", "/planner/", "/designs/", "/buildables/", "/armory/", "/loadouts/", "/vehicles/", "/guides/", "/privacy/"]
+
+/* ---------- feedback ----------
+   A suggestion box, not a forum. Nothing sent here is published, which is what keeps it
+   free of moderation: there is no audience to spam. Without a service configured the page
+   still exists and says where to go instead, rather than showing a form that silently
+   drops what people write. */
+write("feedback/index.html", page({
+  title: "Feedback",
+  desc: "Tell me what to add, what is broken, or which number is wrong. Goes straight to the person who builds this.",
+  canonical: "/feedback/",
+  body: `<section><div class="wrap" style="max-width:720px">
+  <span class="eyebrow">Say something</span>
+  <h1>Feedback</h1>
+  <p class="lede">This is one person's side project, so there is nobody to escalate to.
+  Whatever you write here I read.</p>
+
+  ${VOTE_API ? `
+  <form class="form" id="fbForm">
+    <div class="field">
+      <label for="fbKind">What is it</label>
+      <select id="fbKind" style="width:100%;background:var(--panel);color:var(--text);
+        border:1px solid var(--line2);padding:11px 13px;font-family:var(--ui);font-size:15px">
+        <option value="idea">Something to add</option>
+        <option value="bug">Something is broken</option>
+        <option value="data">A number is wrong</option>
+        <option value="other">Something else</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="fbText">Go on</label>
+      <textarea id="fbText" required maxlength="4000" style="min-height:150px"
+        placeholder="Be as blunt as you like. If it is a wrong number, say which buildable and what it should be."></textarea>
+    </div>
+    <div class="field">
+      <label for="fbContact">Reply to (optional)</label>
+      <input id="fbContact" maxlength="120" placeholder="Discord, Reddit, email, or leave it blank">
+      <div class="hint">Only so I can come back to you. Nothing is sent to it automatically,
+      and it is never shown on the site.</div>
+    </div>
+    <div><button class="btn primary" type="submit">Send</button></div>
+    <div class="msg" id="fbMsg" style="display:none"></div>
+  </form>
+  <p style="font-size:13px;color:var(--dim);margin-top:24px">
+  Nothing you write here appears on the site. It goes into a private list I read and work
+  from. See the <a href="/privacy/">privacy page</a> for what that stores.</p>` : `
+  <div class="note" style="margin-top:30px"><strong>The form is not live yet.</strong>
+  Until it is, open an issue on
+  <a href="https://github.com/Goldpip3/wardogs-base-builder/issues">GitHub</a> and it lands
+  in the same place.</div>`}
+
+  <h2 style="margin-top:56px">Most useful things to tell me</h2>
+  <ul style="max-width:60ch">
+    <li><strong>A cost or size that is wrong.</strong> Everything in the planner was read off
+    the radial menu frame by frame, so some of it will be off. Say which piece and what the
+    real number is and it gets fixed for everyone.</li>
+    <li><strong>Something the game does that the planner does not know about.</strong>
+    Stacking rules, what can sit on what, anything that will not build in game but the
+    planner allows.</li>
+    <li><strong>Anything that is annoying to use.</strong> Especially if it is annoying every
+    single time. Those are the ones worth fixing.</li>
+  </ul>
+</div></section>
+${VOTE_API ? `<script>
+(function(){
+var API=${JSON.stringify(VOTE_API)};
+var f=document.getElementById("fbForm"), out=document.getElementById("fbMsg");
+f.addEventListener("submit",function(e){
+  e.preventDefault();
+  out.style.display=""; out.className="msg"; out.textContent="Sending...";
+  fetch(API+"/feedback",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({kind:document.getElementById("fbKind").value,
+      text:document.getElementById("fbText").value,
+      contact:document.getElementById("fbContact").value,
+      page:document.referrer||""})})
+    .then(function(r){return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||"That did not send."); return j; });})
+    .then(function(){ f.reset(); out.className="msg good"; out.textContent="Got it. Thanks."; })
+    .catch(function(err){ out.className="msg"; out.textContent=err.message; });
+});
+})();
+</script>` : ""}`,
+}));
+
+const urls = ["/", "/planner/", "/designs/", "/buildables/", "/armory/", "/loadouts/", "/vehicles/", "/guides/", "/feedback/", "/privacy/"]
   .concat(withStats.map(d => `/designs/${d.slug}/`))
   .concat(GUIDES.map(g => `/guides/${g.slug}/`));
 write("sitemap.xml",
@@ -1128,6 +1260,17 @@ write("privacy/index.html", page({
   : `<p>The site currently shows no ads and loads no advertising code. If that changes,
   this page will say so before it happens, and will name exactly what the ad provider
   collects.</p>`}
+
+  <h2>Designs and feedback you send in</h2>
+  ${VOTE_API ? `<p>If you submit a design, what gets stored is the design itself, the name you
+  gave it, and the name you asked to be credited under. If you post a comment, the same.
+  Both are public once approved, which is the point of them.</p>
+  <p>The feedback form is the opposite: nothing sent through it is ever published. It stores
+  what you wrote, which of the four categories you picked, and the contact you gave if you
+  gave one. The contact is only so I can come back to you about it. It is not added to any
+  list, nothing is sent to it automatically, and it is not passed to anyone.</p>`
+  : `<p>Submissions and feedback are not open yet. When they are, this section will say
+  exactly what each one stores.</p>`}
 
   <h2>Voting on community designs</h2>
   ${VOTE_API ? `<p>Voting needs to stop one person voting a hundred times, and there are no

@@ -40,7 +40,13 @@ const LIMITS = {
   comment: 1500,
   submitsPerDay: 5,
   commentsPerHour: 10,
+  feedback: 4000,
+  feedbackPerHour: 6,
 };
+
+/* What a piece of feedback is about. Anything else is filed as "other" rather than
+   rejected, because guessing wrong should not cost somebody their message. */
+const FEEDBACK_KINDS = ["idea", "bug", "data", "other"];
 
 function cors(origin) {
   const allow = (ALLOWED.includes(origin) || isLocal(origin)) ? origin : ALLOWED[0];
@@ -249,6 +255,34 @@ export default {
       return json({ ok: true, comment: c }, origin);
     }
 
+    /* ---------------- feedback ----------------
+       Write only from the public side. Nothing sent in is ever displayed on the site, so
+       there is nothing here for a spammer to gain an audience with, and no moderation
+       queue to keep on top of. It is a suggestion box. */
+
+    // POST /feedback {kind, text, contact}
+    if (request.method === "POST" && path === "/feedback") {
+      const rk = "rate:fb:" + await hash(env, ipOf(request));
+      if (await overLimit(env, rk, LIMITS.feedbackPerHour, 3600))
+        return json({ error: "That is a few in a row. Try again a bit later." }, origin, 429);
+
+      const text = clean(body.text, LIMITS.feedback);
+      if (text.length < 4) return json({ error: "Tell me a bit more than that." }, origin, 400);
+
+      const at = Date.now();
+      const rec = {
+        at,
+        kind: FEEDBACK_KINDS.includes(body.kind) ? body.kind : "other",
+        text,
+        // optional, and only so the owner can reply. Nothing is sent to it automatically.
+        contact: clean(body.contact, 120),
+        page: clean(body.page, 200),
+      };
+      await env.VOTES.put("fb:" + at + Math.random().toString(36).slice(2, 6),
+                          JSON.stringify(rec));
+      return json({ ok: true }, origin);
+    }
+
     /* ---------------- moderation ----------------
        Everything below needs the admin token, which only the site owner has. Submissions
        stay invisible until one of these calls approves them, so the public list can never
@@ -281,6 +315,32 @@ export default {
       if (request.method === "POST" && path === "/admin/comment") {
         const { key } = body;
         if (typeof key !== "string" || !key.startsWith("c:"))
+          return json({ error: "bad key" }, origin, 400);
+        await env.VOTES.delete(key);
+        return json({ ok: true, deleted: key }, origin);
+      }
+
+      // Everything anyone has sent in, newest first, as one JSON blob. Deliberately not
+      // paginated: the point is to be able to take the lot somewhere else and read it.
+      if (request.method === "GET" && path === "/admin/feedback") {
+        const out = [];
+        let cursor;
+        do {
+          const page = await env.VOTES.list({ prefix: "fb:", cursor });
+          for (const k of page.keys) {
+            const raw = await env.VOTES.get(k.name);
+            if (raw) out.push({ key: k.name, ...JSON.parse(raw) });
+          }
+          cursor = page.cursor;
+          if (page.list_complete) break;
+        } while (cursor);
+        out.sort((a, b) => b.at - a.at);
+        return json({ feedback: out }, origin);
+      }
+
+      if (request.method === "POST" && path === "/admin/feedback/delete") {
+        const { key } = body;
+        if (typeof key !== "string" || !key.startsWith("fb:"))
           return json({ error: "bad key" }, origin, 400);
         await env.VOTES.delete(key);
         return json({ ok: true, deleted: key }, origin);
