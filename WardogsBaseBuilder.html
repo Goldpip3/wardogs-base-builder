@@ -303,6 +303,8 @@
     position: fixed; inset: 0; background: rgba(0,0,0,.6); display: none;
     align-items: center; justify-content: center; z-index: 50;
   }
+  .acct-chip { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 12px; }
+  .acct-chip b { color: var(--text); }
   #modal {
     zoom: var(--s);
     background: var(--panel); border: 1px solid var(--border); border-radius: 0;
@@ -310,8 +312,13 @@
     display: flex; flex-direction: column;
   }
   #modal header { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-  #modal header h2 { font-size: 14px; color: var(--accent); }
-  #modalBody { padding: 14px 16px; overflow-y: auto; }
+  #modal header h2 { font-size: 16px; color: var(--accent); }
+  /* The toolbar is chrome and can be small. The modal is the one place in this app that
+     asks somebody to read a sentence, and it was set at 12px inside a 12px shell, which on
+     a big monitor at 100% is unreadable. The Size control scales all of this, but the
+     default has to be legible on its own. */
+  #modalBody { padding: 16px 18px; overflow-y: auto; font-size: 14px; line-height: 1.55; }
+  #modalBody p { margin-bottom: 10px; }
   #modalBody textarea { width: 100%; height: calc(46vh / var(--s)); font-family: Consolas, monospace; font-size: 11px; white-space: pre; }
   #modal footer { padding: 10px 16px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
   .design-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 4px; border-bottom: 1px solid var(--border); }
@@ -362,6 +369,9 @@
     <option value="3">300%</option>
   </select>
   <input type="file" id="fileInput" accept=".json" style="display:none">
+  <!-- Sign-in lived only inside the Saved Designs dialog, which is the last place anyone
+       looks to find out whether they are signed in, or to get out again. -->
+  <span id="acctChip" class="acct-chip"></span>
 </div>
 
 <div id="main">
@@ -3685,6 +3695,32 @@ function renderDesigns() {
   if (CLOUD_API) loadCloudSection();
 }
 
+/* Who is signed in, shown in the toolbar and kept in step with the dialog.
+   Asked once on boot rather than only when the Saved Designs dialog opens, because the
+   answer belongs on screen before somebody goes looking for it. */
+async function refreshAccountChip() {
+  const chip = document.getElementById("acctChip");
+  if (!chip) return;
+  if (!CLOUD_API) { chip.innerHTML = ""; return; }
+  let me;
+  try { me = await cloudCall("/me"); }
+  catch (e) { chip.innerHTML = ""; return; }
+  cloudUser = me.user || false;
+  if (!me.user) {
+    chip.innerHTML = `<a class="btn-link" href="${esc(cloudSignInUrl())}"><button>Sign in</button></a>`;
+    return;
+  }
+  chip.innerHTML = `<span style="color:var(--dim)">Signed in as <b>${esc(cloudUser.name)}</b></span>` +
+    `<button id="acctOut" title="Sign out of this browser">Sign out</button>`;
+  document.getElementById("acctOut").onclick = () => {
+    try { localStorage.removeItem(LS_TOKEN); } catch (e) {}
+    cloudUser = false;
+    refreshAccountChip();
+    if (document.getElementById("cloudBox")) loadCloudSection();
+    toast("Signed out.");
+  };
+}
+
 function cloudSectionShell() {
   if (!CLOUD_API) return "";
   return `<div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
@@ -3717,6 +3753,7 @@ async function loadCloudSection() {
     `<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px">
        <span>Signed in as <b style="color:var(--text)">${esc(cloudUser.name)}</b></span>
        <button id="cloudSave">⬆ Save this design online</button>
+       <button id="cloudShare" class="active" title="Put this design in front of other players to vote on">★ Submit for voting</button>
        <button id="cloudOut">Sign out</button>
      </div>
      <div id="cloudMsg" style="margin-bottom:8px"></div>` +
@@ -3730,7 +3767,24 @@ async function loadCloudSection() {
 
   document.getElementById("cloudOut").onclick = () => {
     try { localStorage.removeItem(LS_TOKEN); } catch (e) {}
-    cloudUser = false; loadCloudSection();
+    cloudUser = false; loadCloudSection(); refreshAccountChip();
+  };
+  /* Submitting used to mean: press Share, copy a link, leave the planner, find the site,
+     paste it into a form. Five steps and a different tab to do the thing the planner
+     already has everything for. It is one button now; the design goes up pending, and the
+     owner still approves it before anyone sees it. */
+  document.getElementById("cloudShare").onclick = async () => {
+    const msg = document.getElementById("cloudMsg");
+    const name = (document.getElementById("designName").value || "").trim();
+    if (name.length < 3) {
+      msg.innerHTML = `<span style="color:var(--danger)">Give the design a name of at least three characters first, in the toolbar.</span>`;
+      return;
+    }
+    msg.textContent = "Submitting...";
+    try {
+      await cloudCall("/submit", { name, code: await encodeDesignShort(design) });
+      msg.innerHTML = `<span style="color:var(--accent2)">Submitted. It goes on the Designs page once it is approved, and people can vote on it there.</span>`;
+    } catch (e) { msg.innerHTML = `<span style="color:var(--danger)">${esc(e.message)}</span>`; }
   };
   document.getElementById("cloudSave").onclick = async () => {
     const msg = document.getElementById("cloudMsg");
@@ -3909,6 +3963,8 @@ document.getElementById("ssDismiss").onclick = () => {
 
 // a shared link wins over whatever was last open in this browser
 loadFromHash().then(ok => { if (!ok) loadCurrent(); });
+// who is signed in, on screen from the start rather than only once a dialog is opened
+refreshAccountChip();
 renderSupport();
 renderLegend();
 renderPalette();

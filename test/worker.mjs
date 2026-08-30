@@ -272,6 +272,18 @@ check((await callAs(me, "POST", "/mine", { name: "Bad", code: "nope" })).status 
   check(/too large/i.test(msg) && /limit/i.test(msg),
     "and it says the design is too large rather than blaming the encoding", msg);
 
+  /* A v2 code carries a leading ~, which is outside the base64url alphabet on purpose so it
+     can never be confused with v1. This validator was written before v2 existed and rejected
+     every one of them, so the moment the planner started sending v2 no design could be saved
+     online at all. The format lives in four places, not three. */
+  const v2 = "~" + "A".repeat(200);
+  const v2res = await callAs(me, "POST", "/mine", { name: "V2 code", code: v2 });
+  check(v2res.status === 200, "a v2 code with its leading tilde is accepted", "got " + v2res.status);
+  check((await jsonOf(await callAs(me, "GET", "/mine"))).designs.some(d => d.name === "V2 code"),
+    "and comes back out of the store intact");
+  const twoTildes = await callAs(me, "POST", "/mine", { name: "Bad tilde", code: "~~" + "A".repeat(200) });
+  check(twoTildes.status === 400, "but only one tilde, and only at the front");
+
   const junk = (await jsonOf(await callAs(me, "POST", "/mine", { name: "Junk", code: "!!!!" }))).error || "";
   check(/does not look right/i.test(junk),
     "a malformed code gets the other message, not the size one", junk);

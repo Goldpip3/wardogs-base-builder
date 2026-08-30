@@ -171,7 +171,13 @@ const loginConfigured = env => !!(env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SE
    somebody their design "will not encode" when it is merely bigger than a limit sends them
    looking for a corruption that is not there. */
 function codeProblem(c) {
-  if (typeof c !== "string" || c.length < 20 || !/^[A-Za-z0-9_-]+$/.test(c)) {
+  /* The leading ~ marks a v2 code and is deliberately outside the base64url alphabet so it
+     can never be mistaken for v1. That is also exactly why it has to be allowed here: this
+     validator was written when every code was pure base64url, the planner started sending
+     v2, and every online save began failing with "that share code does not look right"
+     about a code that was perfectly well formed. The format changed in three places and
+     this was the fourth nobody counted. */
+  if (typeof c !== "string" || c.length < 20 || !/^~?[A-Za-z0-9_-]+$/.test(c)) {
     return "That share code does not look right. Copy the whole link from Share.";
   }
   if (c.length > LIMITS.code) {
