@@ -85,4 +85,10 @@ if ($LASTEXITCODE -ne 0) { throw "Ballistics data no longer reproduces its publi
 
 node (Join-Path $proj "tools/check-build.js")
 if ($LASTEXITCODE -ne 0) { throw "Build produced a broken page - see the failures above." }
+
+# The behavioural suites take about half a second for two hundred odd checks, which is
+# cheap enough that there is no reason to run them separately and forget to.
+node (Join-Path $proj "test/run.js")
+if ($LASTEXITCODE -ne 0) { throw "Behaviour changed - see the failing suite above." }
+
 Write-Host "Built app + docs/planner/ + surrounding site"

@@ -2,7 +2,7 @@
  *
  * These exist because of two bugs that shipped silently:
  *   1. Markup was deleted but the JS that reached for it stayed. getElementById
- *      returned null, the boot threw, and the whole app came up blank — no design
+ *      returned null, the boot threw, and the whole app came up blank, with no design
  *      loaded, no zoom-to-fit, the empty-state stuck over a 62-piece base.
  *   2. build.ps1 read UTF-8 sources under Windows PowerShell 5.1, which assumes the
  *      ANSI codepage, and every arrow, dash and × in the app turned to mojibake.
@@ -20,7 +20,7 @@ const catalog = JSON.parse(fs.readFileSync(path.join(proj, "data/buildables.json
 
 let fail = 0;
 const check = (ok, label, detail) => {
-  console.log((ok ? "  ok   " : "  FAIL ") + label + (ok || !detail ? "" : " — " + detail));
+  console.log((ok ? "  ok   " : "  FAIL ") + label + (ok || !detail ? "" : ": " + detail));
   if (!ok) fail++;
 };
 
@@ -192,13 +192,31 @@ check(!/[>\s]\?<\/span>/.test(app), "no leftover '?' estimate badges");
 // A house style rule, not a bug: the owner does not want them in the writing. They creep
 // back in one sentence at a time, so the build refuses them rather than relying on memory.
 {
+  /* This used to name four files. Then the site generator was split across fifteen and the
+     check quietly stopped watching most of the prose on the site, because the list did not
+     know. Walk the source trees instead, so a new file is covered the moment it exists. */
   const hits = [];
-  for (const rel of ["src/app-template.html", "tools/build-site.js",
-                     "data/buildables.json", "data/community.json"]) {
-    const s = fs.readFileSync(path.join(proj, rel), "utf8");
-    const n = (s.match(/—/g) || []).length;
-    if (n) hits.push(`${rel} (${n})`);
-  }
+  const roots = ["src", "tools", "data", "worker", "docs"];
+  const scan = d => {
+    if (!fs.existsSync(d)) return;
+    for (const f of fs.readdirSync(d)) {
+      const p = path.join(d, f);
+      if (fs.statSync(p).isDirectory()) {
+        // docs/ is mostly generated output; only its hand-written notes are sources
+        if (path.relative(proj, p).startsWith("docs")) continue;
+        scan(p);
+      } else if (/\.(html|js|mjs|json|md)$/.test(f)) {
+        const rel = path.relative(proj, p).replace(/\\/g, "/");
+        if (rel.startsWith("docs/") && !rel.endsWith(".md")) continue;
+        const n = (fs.readFileSync(p, "utf8").match(/\u2014/g) || []).length;
+        if (n) hits.push(`${rel} (${n})`);
+      }
+    }
+  };
+  roots.forEach(r => scan(path.join(proj, r)));
+  const readme = path.join(proj, "README.md");
+  const rn = (fs.readFileSync(readme, "utf8").match(/\u2014/g) || []).length;
+  if (rn) hits.push(`README.md (${rn})`);
   check(hits.length === 0, "no em dashes in the sources", hits.join(", "));
 }
 
