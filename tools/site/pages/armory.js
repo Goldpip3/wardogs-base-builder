@@ -2,7 +2,7 @@
    Body sits at column zero deliberately. Indenting it would add whitespace inside
    these template literals, and that whitespace is page content. */
 module.exports = ctx => {
-  const { esc, ARMORY, page, write } = ctx;
+  const { esc, ARMORY, adSlot, page, write } = ctx;
 
 /* ---------- armory, loadouts and vehicles ----------
    One transcribed vendor catalogue behind all three. The armory browses it, the loadout
@@ -79,6 +79,7 @@ module.exports = ctx => {
       "<tbody>" + rows + "</tbody></table>" +
       '<p style="margin-top:34px"><a class="btn primary" href="/ballistics/">Damage calculator</a> ' +
       '<a class="btn" href="/loadouts/">Price up a loadout</a></p>' +
+      adSlot("inArticle") +
       "</div></section>" +
       '<script>(function(){' +
       'var tb=document.querySelector("#cat tbody");' +

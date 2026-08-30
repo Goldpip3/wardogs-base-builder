@@ -33,14 +33,25 @@ const adsOn = !!(ADS.publisherId || "").trim();
 const adScript = adsOn
   ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${esc(ADS.publisherId)}" crossorigin="anonymous"></script>`
   : "";
+/* The two slots are different AdSense unit types and want different markup.
+   The leaderboard is a responsive display unit; the in-article one is AdSense's
+   fluid "in-article" format, which sizes itself to the text it sits in and reads
+   as part of the page rather than as a banner. Getting the format attributes wrong
+   is silent: the unit simply never fills. */
+const AD_FORMATS = {
+  leaderboard: { minHeight: 90, style: "display:block",
+    attrs: `data-ad-format="auto" data-full-width-responsive="true"` },
+  inArticle:   { minHeight: 280, style: "display:block;text-align:center",
+    attrs: `data-ad-layout="in-article" data-ad-format="fluid"` },
+};
 function adSlot(which) {
   const slot = (ADS.slots || {})[which] || "";
-  if (!adsOn || !slot) return "";
+  const fmt = AD_FORMATS[which];
+  if (!adsOn || !slot || !fmt) return "";
   // reserve the height up front so an arriving ad can't shove the article down the page
-  const h = which === "leaderboard" ? 90 : 280;
-  return `<div class="ad-slot" style="min-height:${h}px">
-  <ins class="adsbygoogle" style="display:block" data-ad-client="${esc(ADS.publisherId)}"
-       data-ad-slot="${esc(slot)}" data-ad-format="auto" data-full-width-responsive="true"></ins>
+  return `<div class="ad-slot" style="min-height:${fmt.minHeight}px">
+  <ins class="adsbygoogle" style="${fmt.style}" data-ad-client="${esc(ADS.publisherId)}"
+       data-ad-slot="${esc(slot)}" ${fmt.attrs}></ins>
   <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
 </div>`;
 }

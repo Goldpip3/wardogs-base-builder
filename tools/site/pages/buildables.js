@@ -2,7 +2,7 @@
    Body sits at column zero deliberately. Indenting it would add whitespace inside
    these template literals, and that whitespace is page content. */
 module.exports = ctx => {
-  const { fs, path, ROOT, catalog, esc, page, write } = ctx;
+  const { fs, path, ROOT, catalog, esc, adSlot, page, write } = ctx;
 
 const TIER_ORDER = { small: 1, medium: 2, large: 3 };
 const rows = catalog.buildables.slice().sort((a, b) =>
@@ -93,6 +93,8 @@ write("buildables/index.html", page({
   frame from the in-game radial menu and checked in play testing. You can correct any of
   them yourself inside the planner and the change sticks for every piece of that type. If
   you spot one that is off, <a href="/feedback/">say so</a> and it gets fixed for everyone.</div>
+
+  ${adSlot("inArticle")}
 
   <h2>How supplies actually move</h2>
   <p>Structures draw <strong>Build Supplies</strong> from the FOB, not from your pocket. A

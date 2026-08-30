@@ -29,6 +29,12 @@ the planner carries no publisher id, which is what stops that being re-merged by
 - `community.json`: `voteApi` (worker origin), `designs[]` (slug + share code)
 - `ads.json`: `publisherId`, `slots{}`
 
+Each slot name in `slots` must also have an entry in `AD_FORMATS` in `tools/site/context.js`,
+which carries the markup that unit type needs: the leaderboard is a responsive display unit,
+the in-article one is AdSense's fluid format. `adSlot()` returns an empty string for a name
+it does not know, so a slot with an id and no format costs nothing and says nothing. A check
+asserts every id with a value reaches a built page.
+
 Citations: `build.ps1:44` reads `voteApi`; injected at `build.ps1:61` and only there.
 
 ## Connected to

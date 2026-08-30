@@ -64,8 +64,13 @@ the tools exist so that it is a data job rather than a rebuild.
 
 - **Ko-fi handle.** `support.url` in `data/buildables.json` is unset, so the tip button does
   not render. It needs an account name, which is not something to guess at.
-- **AdSense review.** Submitted; outcome pending. `data/ads.json` carries the publisher id
-  and nothing ships until it is filled in, so there is nothing to do but wait.
+- **Whether two ad units is the right number.** AdSense is approved and live as of
+  2026-08-30: a responsive leaderboard above the footer sitewide, and one fluid in-article
+  unit on Damage, Armory and Buildables only. So most pages carry one and three carry two.
+  That was chosen to keep the site usable rather than to maximise revenue, and it is worth
+  revisiting once there is a month of real earnings to weigh it against. The planner carries
+  none and must keep carrying none. Adding a slot means an entry in `AD_FORMATS` in
+  `tools/site/context.js` as well as an id in `data/ads.json`, or it silently never fills.
 
 ## Known and deliberately not fixed
 

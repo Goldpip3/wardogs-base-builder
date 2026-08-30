@@ -203,6 +203,12 @@ th.sortable[data-dir="desc"]::after{content:"↓";opacity:1;color:var(--red-hot)
   text-align:center;overflow:hidden}
 .ad-slot::before{content:"Advertisement";display:block;font-size:9px;font-weight:600;letter-spacing:.18em;
   text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+/* The inline min-height reserves the space so an arriving ad cannot shove the page down.
+   When AdSense has nothing to serve it marks the ins unfilled and gives it no height, and
+   without this the reservation stays behind as an empty bordered box captioned
+   "Advertisement" - worst on a new account, where most requests go unfilled. Collapse it.
+   Until AdSense answers there is no data-ad-status at all, so the space is still held. */
+.ad-slot:has(ins[data-ad-status="unfilled"]){display:none}
 
 footer.site{border-top:1px solid var(--line);margin-top:0;padding:40px 0;color:var(--dim);font-size:13px}
 footer.site .wrap{display:flex;gap:22px;flex-wrap:wrap;align-items:center}

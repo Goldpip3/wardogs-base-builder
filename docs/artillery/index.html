@@ -219,6 +219,12 @@ th.sortable[data-dir="desc"]::after{content:"↓";opacity:1;color:var(--red-hot)
   text-align:center;overflow:hidden}
 .ad-slot::before{content:"Advertisement";display:block;font-size:9px;font-weight:600;letter-spacing:.18em;
   text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+/* The inline min-height reserves the space so an arriving ad cannot shove the page down.
+   When AdSense has nothing to serve it marks the ins unfilled and gives it no height, and
+   without this the reservation stays behind as an empty bordered box captioned
+   "Advertisement" - worst on a new account, where most requests go unfilled. Collapse it.
+   Until AdSense answers there is no data-ad-status at all, so the space is still held. */
+.ad-slot:has(ins[data-ad-status="unfilled"]){display:none}
 
 footer.site{border-top:1px solid var(--line);margin-top:0;padding:40px 0;color:var(--dim);font-size:13px}
 footer.site .wrap{display:flex;gap:22px;flex-wrap:wrap;align-items:center}
@@ -745,7 +751,11 @@ window.addEventListener("hashchange",function(){
 readHash();applyState();
 size();fit();update();
 }());</script>
-
+<div class="wrap"><div class="ad-slot" style="min-height:90px">
+  <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-7658713831499963"
+       data-ad-slot="6283709418" data-ad-format="auto" data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+</div></div>
 <footer class="site"><div class="wrap">
   <span class="fine">A free, fan-made planner for WARDOGS, built by a player. Not affiliated with,
   endorsed by, or connected to BULKHEAD Interactive or Team17. WARDOGS and all related marks and

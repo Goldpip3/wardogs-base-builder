@@ -110,6 +110,32 @@ check(missingIcons.length === 0,
   check(!leaked || !app.includes(leaked), "planner carries no publisher id");
 }
 
+/* -- 3b-ii. a slot that is configured actually reaches a page --
+   adSlot() returns an empty string for anything it does not recognise, so a slot named in
+   ads.json that the generator has no format for, or that no page ever calls, costs nothing
+   and says nothing: the build is green and the unit simply never fills. AdSense reports
+   that as zero impressions weeks later. Every id with a value in ads.json has to show up
+   in the built site. */
+{
+  const ads = JSON.parse(fs.readFileSync(path.join(proj, "data/ads.json"), "utf8"));
+  if ((ads.publisherId || "").trim()) {
+    let html = "";
+    (function walk(d) {
+      for (const f of fs.readdirSync(d)) {
+        const q = path.join(d, f);
+        if (fs.statSync(q).isDirectory()) walk(q);
+        else if (f.endsWith(".html")) html += fs.readFileSync(q, "utf8");
+      }
+    })(path.join(proj, "docs"));
+
+    for (const [name, id] of Object.entries(ads.slots || {})) {
+      if (!String(id).trim()) continue;
+      check(html.includes(`data-ad-slot="${id}"`),
+        `the ${name} ad slot is placed on a page`, `id ${id} appears nowhere in docs/`);
+    }
+  }
+}
+
 // -- 3c. the downloadable copy really is offline --
 // The hosted planner can save against a Discord account; the file people download must
 // not be able to reach anything. Same source, and the difference is one injected string,

@@ -23,7 +23,7 @@
  * Bar length carries time to kill as well, so the ranking survives being printed in grey.
  */
 module.exports = ctx => {
-  const { fs, path, ROOT, esc, BALLISTICS, ARMORY, page, write } = ctx;
+  const { fs, path, ROOT, esc, BALLISTICS, ARMORY, adSlot, page, write } = ctx;
   const B = BALLISTICS;
   const MODEL = fs.readFileSync(path.join(ROOT, "tools/site/ballistics-model.js"), "utf8");
 
@@ -248,6 +248,7 @@ module.exports = ctx => {
       "</div>" +
       '<div class="rank" id="rank"></div>' +
       '<p class="fine" id="ranknote"></p>' +
+      adSlot("inArticle") +
       "</div></section>" +
 
       /* ---------- the reference tables ---------- */
