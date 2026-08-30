@@ -547,15 +547,78 @@ var ago=function(ms){
   for(var i=0;i<u.length;i++) if(s>=u[i][0]) return Math.floor(s/u[i][0])+u[i][1]+" ago";
   return "just now";
 };
+/* Sign-in state. The worker hands the token back in the URL fragment after Discord, and
+   it lives in localStorage from then on. A fragment never reaches a server, so the token
+   is not sitting in anybody's access log. */
+var TOKEN=null, ME=null;
+try{
+  var m=(location.hash||"").match(/[#&]token=([\w.-]+)/);
+  if(m){ TOKEN=m[1]; localStorage.setItem("wardogs.token",TOKEN);
+         history.replaceState(null,"",location.pathname+location.search); }
+  else TOKEN=localStorage.getItem("wardogs.token");
+}catch(e){}
+
+var authHeaders=function(){
+  var h={"Content-Type":"application/json"};
+  if(TOKEN) h["Authorization"]="Bearer "+TOKEN;
+  return h;
+};
 var post=function(path,body){
-  return fetch(API+path,{method:"POST",headers:{"Content-Type":"application/json"},
+  return fetch(API+path,{method:"POST",headers:authHeaders(),
     body:JSON.stringify(body)}).then(function(r){
-      return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||"That did not work."); return j; });
+      return r.json().then(function(j){ if(!r.ok){ var e=new Error(j.error||"That did not work."); e.needsLogin=j.needsLogin; throw e; } return j; });
     });
 };
+var signInUrl=function(){
+  return API+"/auth/start?return="+encodeURIComponent(location.origin+location.pathname);
+};
+var signOut=function(){
+  TOKEN=null; ME=null;
+  try{ localStorage.removeItem("wardogs.token"); }catch(e){}
+  location.reload();
+};
+/* Draws the sign-in strip above a form, or nothing at all if that form does not need an
+   account. Returns whether the form should be usable. */
+function authStrip(el,which){
+  if(!ME||!ME.loginEnabled||!ME.needs[which]){
+    if(ME&&ME.user) el.innerHTML='<div class="msg good">Signed in as <b>'+esc(ME.user.name)+
+      '</b>. <a href="#" data-signout>Sign out</a></div>';
+    return true;
+  }
+  if(ME.user){
+    el.innerHTML='<div class="msg good">Signed in as <b>'+esc(ME.user.name)+
+      '</b>. <a href="#" data-signout>Sign out</a></div>';
+    return true;
+  }
+  el.innerHTML='<div class="msg"><b>Sign in with Discord to post.</b> It keeps bots out, '+
+    'and it is how you get credited. Nothing is read except your username.<br>'+
+    '<a class="btn sm" style="margin-top:12px" href="'+signInUrl()+'">Sign in with Discord</a></div>';
+  return false;
+}
+document.addEventListener("click",function(e){
+  var a=e.target.closest("[data-signout]");
+  if(a){ e.preventDefault(); signOut(); }
+});
+var meReady=fetch(API+"/me",{headers:authHeaders()})
+  .then(function(r){return r.json();})
+  .then(function(j){ ME=j; if(j.loginEnabled&&TOKEN&&!j.user){ try{localStorage.removeItem("wardogs.token");}catch(e){} TOKEN=null; } return j; })
+  .catch(function(){ ME={loginEnabled:false,needs:{},user:null}; });
 
 /* ---- submit ---- */
 var form=document.getElementById("submitForm");
+if(form){
+  var strip=document.createElement("div");
+  form.parentNode.insertBefore(strip,form);
+  meReady.then(function(){
+    var allowed=authStrip(strip,"submit");
+    form.querySelectorAll("input,textarea,button").forEach(function(el){ el.disabled=!allowed; });
+    // a signed-in submission is credited to the account, so stop asking for a name
+    if(allowed&&ME&&ME.user){
+      var f=document.getElementById("sAuthor");
+      if(f&&f.closest(".field")) f.closest(".field").style.display="none";
+    }
+  });
+}
 if(form) form.addEventListener("submit",function(e){
   e.preventDefault();
   var out=document.getElementById("submitMsg");
@@ -647,7 +710,19 @@ function wireThreads(root){
         .then(function(r){return r.json();}).then(function(j){render(j.comments||[]);})
         .catch(function(){});
     });
-    box.querySelector("[data-role=form]").addEventListener("submit",function(e){
+    // same sign-in strip above every comment box
+    var cform=box.querySelector("[data-role=form]");
+    var cstrip=document.createElement("div");
+    cform.parentNode.insertBefore(cstrip,cform);
+    meReady.then(function(){
+      var allowed=authStrip(cstrip,"comment");
+      cform.querySelectorAll("input,textarea,button").forEach(function(el){ el.disabled=!allowed; });
+      if(allowed&&ME&&ME.user){
+        var who=box.querySelector("[data-role=who]");
+        if(who&&who.closest(".field")) who.closest(".field").style.display="none";
+      }
+    });
+    cform.addEventListener("submit",function(e){
       e.preventDefault();
       var msg=box.querySelector("[data-role=msg]");
       var txt=box.querySelector("[data-role=text]");
@@ -709,8 +784,8 @@ write("index.html", page({
     : `<div class="empty">
         <h3>Nobody has submitted one yet</h3>
         <p>This list is built by players, not by me. Make something in the planner, hit
-        Share, and send the link. The whole design travels inside the URL, so there is
-        nothing to upload and no account to make.</p>
+        Share, and paste the link on the designs page. The whole design travels inside the
+        URL, so there is nothing to upload.</p>
         <a class="btn primary" href="/designs/">Submit the first design</a>
       </div>`}
 </div></section>
@@ -800,8 +875,8 @@ write("designs/index.html", page({
       : `<div class="empty">
           <h3>Nothing here yet</h3>
           <p>This list is built by players. Make something in the planner, hit Share,
-          and paste the link below. It takes about ten seconds and there is no account
-          to make.</p>
+          and paste the link below. The whole design travels inside the URL, so there is
+          nothing to upload.</p>
         </div>`}
   </div>
 
