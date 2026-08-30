@@ -1295,10 +1295,16 @@ write("privacy/index.html", page({
   accounts, and I cannot see what you build.</p>
 
   <h2 style="margin-top:44px">What the planner stores</h2>
-  <p>Everything. In your browser, and nowhere else. Saved designs live in your browser's
-  local storage on your own machine. There is no account, no server to sign in to, and no
-  copy of your layout anywhere I can reach. Clearing your browser data deletes them, and
-  nobody - me included - can get them back.</p>
+  <p>By default, everything stays in your browser. Designs save themselves to local storage
+  on your own machine as you work. No account, nothing uploaded, and no copy anywhere I can
+  reach. Clearing your browser data deletes them and nobody, me included, can get them back.</p>
+  ${VOTE_API ? `<p><strong>Unless you choose to save one online.</strong> If you sign in and
+  press <em>Save this design online</em>, that design is stored against your Discord account
+  so it survives a cleared browser and follows you to another machine. Only designs you
+  explicitly save are kept: nothing is uploaded in the background, and autosave stays local.
+  You can delete any of them from the same panel, which removes them for good. I can see
+  them, in the sense that I run the storage, and I do not look at them or do anything with
+  them.</p>` : ""}
   <p>When you use <strong>Share</strong>, the whole design is encoded into the link itself.
   The link is not uploaded or registered anywhere; whoever you send it to decodes it in
   their own browser. If you never send it, it never leaves your machine.</p>

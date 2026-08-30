@@ -52,6 +52,8 @@ const LIMITS = {
   commentsPerHour: 10,
   feedback: 4000,
   feedbackPerHour: 6,
+  savedPerUser: 40,
+  savesPerHour: 60,
 };
 
 /* Which actions need somebody to be signed in with Discord.
@@ -338,6 +340,70 @@ export default {
                        by: who ? who.id : null };
       await env.VOTES.put("design:" + slug, JSON.stringify(record));
       return json({ ok: true, slug, status: "pending" }, origin);
+    }
+
+    /* ---------------- a signed-in player's own saved designs ----------------
+       Separate from submissions: these are private working files, not entries in the
+       public list. Saving is explicit rather than automatic, because the free KV tier
+       allows a thousand writes a day across everybody and autosaving every drag would
+       spend that before lunch. The planner keeps autosaving locally regardless; this is
+       the copy that survives a cleared browser and follows you to another machine. */
+
+    if (path === "/mine" || path === "/mine/delete") {
+      const who = await readToken(env, bearerOf(request));
+      if (!who) return json({ error: "Sign in to save online.", needsLogin: true }, origin, 401);
+
+      if (request.method === "GET") {
+        const out = [];
+        let cursor;
+        do {
+          const page = await env.VOTES.list({ prefix: "mine:" + who.id + ":", cursor });
+          for (const k of page.keys) {
+            const raw = await env.VOTES.get(k.name);
+            if (raw) out.push(JSON.parse(raw));
+          }
+          cursor = page.cursor;
+          if (page.list_complete) break;
+        } while (cursor);
+        out.sort((a, b) => b.at - a.at);
+        return json({ designs: out, limit: LIMITS.savedPerUser }, origin);
+      }
+
+      if (request.method === "POST" && path === "/mine/delete") {
+        const name = clean(body.name, LIMITS.name);
+        if (!name) return json({ error: "which one?" }, origin, 400);
+        await env.VOTES.delete("mine:" + who.id + ":" + await hash(env, "slot", name));
+        return json({ ok: true }, origin);
+      }
+
+      if (request.method === "POST") {
+        const name = clean(body.name, LIMITS.name);
+        const code = String(body.code || "").trim();
+        if (name.length < 1) return json({ error: "Give it a name first." }, origin, 400);
+        if (!okCode(code)) return json({ error: "That design will not encode." }, origin, 400);
+
+        // saving over a name you already used is an update, not a new slot
+        const key = "mine:" + who.id + ":" + await hash(env, "slot", name);
+        if (!await env.VOTES.get(key)) {
+          let count = 0, cursor;
+          do {
+            const page = await env.VOTES.list({ prefix: "mine:" + who.id + ":", cursor });
+            count += page.keys.length;
+            cursor = page.cursor;
+            if (page.list_complete) break;
+          } while (cursor);
+          if (count >= LIMITS.savedPerUser)
+            return json({ error: `You can keep ${LIMITS.savedPerUser} designs online. Delete one first.` },
+                        origin, 400);
+        }
+
+        const rk = "rate:save:" + await hash(env, "u:" + who.id);
+        if (await overLimit(env, rk, LIMITS.savesPerHour, 3600))
+          return json({ error: "That is a lot of saving. Try again in a bit." }, origin, 429);
+
+        await env.VOTES.put(key, JSON.stringify({ name, code, at: Date.now() }));
+        return json({ ok: true, name }, origin);
+      }
     }
 
     /* ---------------- votes ---------------- */

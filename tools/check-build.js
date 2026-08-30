@@ -63,6 +63,23 @@ check(missingIcons.length === 0,
   check(!leaked || !app.includes(leaked), "planner carries no publisher id");
 }
 
+// -- 3c. the downloadable copy really is offline --
+// The hosted planner can save against a Discord account; the file people download must
+// not be able to reach anything. Same source, and the difference is one injected string,
+// so it is exactly the kind of thing that breaks quietly.
+{
+  const offline = fs.readFileSync(path.join(proj, "WardogsBaseBuilder.html"), "utf8");
+  check(offline.includes('const CLOUD_API = "";'),
+    "the downloadable planner has no API configured");
+  check(!/fetch\(\s*CLOUD_API\s*\+/.test(offline) || offline.includes('const CLOUD_API = "";'),
+    "and so cannot reach the network");
+  const community = JSON.parse(fs.readFileSync(path.join(proj, "data/community.json"), "utf8"));
+  if ((community.voteApi || "").trim()) {
+    check(app.includes('const CLOUD_API = "' + community.voteApi + '";'),
+      "the hosted planner does have it, so saving online works");
+  }
+}
+
 // -- 4. nothing reaches the network: offline is the whole promise --
 const remote = [...app.matchAll(/(?:src|href)="(https?:\/\/[^"]+)"/g)]
   .map(m => m[1])

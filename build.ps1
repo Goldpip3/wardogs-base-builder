@@ -32,15 +32,28 @@ $fontCss = ($faces | ForEach-Object {
 }) -join "`n  "
 
 $out = $tpl.Replace('/*__CATALOG__*/', $catalog).Replace('/*__ICONS__*/', "{$iconsJson}").Replace('/*__FONTS__*/', $fontCss)
-[IO.File]::WriteAllText("$proj\WardogsBaseBuilder.html", $out, $utf8)
-# Artifact variant (no HTML skeleton — the Artifact wrapper provides it)
-$art = $out -replace '(?s)^.*?<title>', '<title>' -replace '</head>\s*<body>', '' -replace '</body>\s*</html>\s*$', ''
+
+# Two builds of the same app, differing only in whether saving online exists.
+#
+#   WardogsBaseBuilder.html  the file you can download and keep. No API, so the cloud
+#                            code is unreachable and it makes no network call at all.
+#   docs/planner/index.html  the hosted copy, which can save against a Discord account.
+#
+# The offline promise only means anything if the downloadable copy really is offline, so
+# the API is injected here rather than compiled in, and check-build.js verifies it.
+$community = Get-Content "$proj\data\community.json" -Raw | ConvertFrom-Json
+$apiBase = $community.voteApi
+
+$offline = $out.Replace('/*__API__*/', '')
+[IO.File]::WriteAllText("$proj\WardogsBaseBuilder.html", $offline, $utf8)
+# Artifact variant (no HTML skeleton, the Artifact wrapper provides it)
+$art = $offline -replace '(?s)^.*?<title>', '<title>' -replace '</head>\s*<body>', '' -replace '</body>\s*</html>\s*$', ''
 [IO.File]::WriteAllText("$proj\src\artifact.html", $art, $utf8)
 
 # The planner lives at docs/planner/; the surrounding site pages are generated
 # afterwards by tools/build-site.js. GitHub Pages serves the whole docs/ folder.
 New-Item -ItemType Directory -Force "$proj\docs\planner" | Out-Null
-[IO.File]::WriteAllText("$proj\docs\planner\index.html", $out, $utf8)
+[IO.File]::WriteAllText("$proj\docs\planner\index.html", $out.Replace('/*__API__*/', $apiBase), $utf8)
 if (Test-Path "$proj\release\og-1200x630.png") { Copy-Item "$proj\release\og-1200x630.png" "$proj\docs\preview.png" -Force }
 # Custom domain. Leave EMPTY until the domain's DNS actually resolves — claiming a
 # domain with no records makes Pages redirect the working github.io URL into a dead
