@@ -36,7 +36,6 @@ ${AUTH_SCRIPT}
     <a href="/artillery/">Artillery</a>
     <a href="/loadouts/">Loadouts</a>
     <a href="/vehicles/">Vehicles</a>
-    <a href="/guides/">Guides</a>
     <a href="/feedback/">Feedback</a>
     <a href="/planner/" class="cta">Planner</a>
     <span id="acct" class="acct"></span>
@@ -51,7 +50,7 @@ ${adSlot("leaderboard") ? `<div class="wrap">${adSlot("leaderboard")}</div>` : "
   <a href="/planner/">Planner</a><a href="/designs/">Designs</a>
   <a href="/buildables/">Buildables</a><a href="/armory/">Armory</a>
   <a href="/ballistics/">Ballistics</a><a href="/artillery/">Artillery</a>
-  <a href="/loadouts/">Loadouts</a><a href="/vehicles/">Vehicles</a><a href="/guides/">Guides</a>
+  <a href="/loadouts/">Loadouts</a><a href="/vehicles/">Vehicles</a>
   <a href="/feedback/">Feedback</a>
   <a href="/privacy/">Privacy</a>
 </div></footer>

@@ -44,7 +44,7 @@ Citations: `data/buildables.json`, inlined at `build.ps1:34`, landing at
 ## If you change this
 
 - **Hits:** both planner builds (the figure is inlined, so a stale browser tab keeps the old
-  one until the update chip fires); `/buildables/` and the guides, which compute from it;
+  one until the update chip fires); `/buildables/`, which computes from it;
   `tools/check-build.js`, which asserts the pallet and FOB figures appear inline;
   `test/issues.js`, which replays the rules against randomised designs.
 - **Does not hit:** `data/armory.json`. Vendor cash prices and Build Supply costs are

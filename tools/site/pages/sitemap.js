@@ -2,11 +2,10 @@
    Body sits at column zero deliberately. Indenting it would add whitespace inside
    these template literals, and that whitespace is page content. */
 module.exports = ctx => {
-  const { fs, path, DOCS, SITE, ADS, adsOn, GUIDES, page, write, written, withStats } = ctx;
+  const { fs, path, DOCS, SITE, ADS, adsOn, page, write, written, withStats } = ctx;
 
-const urls = ctx.urls = ["/", "/planner/", "/designs/", "/buildables/", "/armory/", "/ballistics/", "/artillery/", "/loadouts/", "/vehicles/", "/guides/", "/feedback/", "/privacy/"]
-  .concat(withStats.map(d => `/designs/${d.slug}/`))
-  .concat(GUIDES.map(g => `/guides/${g.slug}/`));
+const urls = ctx.urls = ["/", "/planner/", "/designs/", "/buildables/", "/armory/", "/ballistics/", "/artillery/", "/loadouts/", "/vehicles/", "/feedback/", "/privacy/"]
+  .concat(withStats.map(d => `/designs/${d.slug}/`));
 write("sitemap.xml",
   `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
   urls.map(u => `  <url><loc>${SITE}${u}</loc></url>`).join("\n") + `\n</urlset>\n`);

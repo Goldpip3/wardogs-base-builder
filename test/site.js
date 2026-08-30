@@ -73,7 +73,6 @@ for (const [file, must] of [
   ["index.html", ["Open the planner", "/designs/", "/buildables/"]],
   ["buildables/index.html", ["Stingray", "Bremer Wall", "Build Supplies"]],
   ["designs/index.html", ["Base designs", "Community"]],
-  ["guides/index.html", ["FOB Guide", "Hammers"]],
 ]) {
   const html = fs.readFileSync(DOCS + file, "utf8");
   check(must.every(s => html.includes(s)), `${file} contains its key content`);

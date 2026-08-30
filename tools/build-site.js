@@ -2,8 +2,8 @@
 //
 //   node tools/build-site.js
 //
-// One page per thing somebody actually searches for: the buildable costs, each design,
-// each guide. Everything comes from the files in data/ so the numbers can never drift out
+// One page per thing somebody actually searches for: the buildable costs, each design.
+// Everything comes from the files in data/ so the numbers can never drift out
 // of sync with the planner itself.
 //
 // This file is the running order and nothing else. Shared helpers live in
@@ -17,7 +17,6 @@ for (const name of [
   "home",
   "buildables",
   "designs",
-  "guides",
   "ballistics",
   "artillery",
   "armory",

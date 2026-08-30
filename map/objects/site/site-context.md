@@ -25,13 +25,13 @@ such as another data source, is what it is for.
 
 ## Shape
 
-- data: `catalog`, `byId`, `COMMUNITY`, `BALLISTICS`, `ARMORY`, `DESIGNS`, `GUIDES`
+- data: `catalog`, `byId`, `COMMUNITY`, `BALLISTICS`, `ARMORY`, `DESIGNS`
 - helpers: `esc`, `stats`, `encodeDesign`, `decodeShared`, `designCard`, `withStats`, `ranked`
 - emit: `write(rel, html)`, `page({...})`, `sweepDesignPages()`
 - config: `SITE`, `VOTE_API`, `adsOn`, `adScript`, `adSlot`
-- composed from `./css`, `./shell`, `./client-scripts`, `./guides-content`
+- composed from `./css`, `./shell`, `./client-scripts`
 
-Citations: built at `tools/build-site.js:14`, handed to each page at `:28`.
+Citations: built at `tools/build-site.js:14`, handed to each page at `:27`.
 
 ## Connected to
 

@@ -15,8 +15,8 @@ outside the build zone, floating, or low enough to vault. There is a 3D view for
 height, and a share link that carries the whole design in the URL.
 
 **The site** around it is generated: a buildable catalogue, community designs with votes and
-comments, ballistics, an item catalogue with vendor prices, a loadout calculator, vehicles,
-and written guides.
+comments, ballistics, artillery firing solutions, an item catalogue with vendor prices, a
+loadout calculator, and vehicles.
 
 ## If you are an agent, or new here
 
@@ -50,7 +50,6 @@ tools/
     css.js           the stylesheet
     shell.js         the head, header, nav and footer every page is poured into
     client-scripts.js  the JS that ships inside pages: sign-in, votes, comments
-    guides-content.js  the written guides, as prose
     pages/           one module per page. This is where features live
   check-build.js     structural checks, run on every build, fail the build
   build-armory.js    regenerates data/armory.json from a transcribed catalogue
@@ -83,10 +82,7 @@ downloadable one really cannot reach the network.
 
 **A new page.** Write `tools/site/pages/yourthing.js` exporting `ctx => { ... }`, add its name
 to the list in `tools/build-site.js`, and add its URL in `tools/site/pages/sitemap.js`. The
-build fails if you forget the sitemap. `tools/site/pages/holding.js` is where a page lives
-while it is still waiting on data.
-
-**A new guide.** Add an entry to `tools/site/guides-content.js`. Nothing else.
+build fails if you forget the sitemap.
 
 **A number.** Change it in `data/`, never in the markup. Anything duplicated between the two
 will drift, and has, three times.

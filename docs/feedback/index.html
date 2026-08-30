@@ -50,6 +50,7 @@ h3{font-family:var(--ui);font-weight:600;text-transform:uppercase;letter-spacing
   font-size:14px;margin:0 0 8px}
 p,li{color:var(--dim2)}
 .lede{font-size:clamp(17px,1.6vw,21px);color:var(--text);max-width:56ch;line-height:1.45}
+.lede.sub{font-size:clamp(15px,1.2vw,17px);color:var(--dim2);margin-top:16px;max-width:60ch}
 .eyebrow{font-weight:600;text-transform:uppercase;letter-spacing:.16em;font-size:12px;
   color:var(--red-hot);margin-bottom:14px;display:block}
 
@@ -103,6 +104,17 @@ section+section{border-top:1px solid var(--line)}
 .card .stats{display:flex;gap:18px;margin-top:18px;font-family:var(--num);font-size:12px;
   color:var(--text);font-variant-numeric:tabular-nums;flex-wrap:wrap}
 .card .stats span{color:var(--dim);font-family:var(--ui)}
+
+/* --- feature list: prose in columns rather than panels. A row that does not fill
+   reads as a list ending, where an unfilled panel grid reads as a hole. --- */
+.features{display:grid;grid-template-columns:1fr;column-gap:44px;margin-top:20px}
+.features > *{display:block;border-top:1px solid var(--line2);padding:20px 0 22px}
+.features h3{font-family:var(--display);font-weight:900;font-size:18px;letter-spacing:-.01em;
+  text-transform:uppercase;margin-bottom:9px}
+.features p{font-size:14px;color:var(--dim);line-height:1.55;max-width:40ch}
+.features a:hover{color:var(--red-hot)}
+@media(min-width:640px){.features{grid-template-columns:1fr 1fr}}
+@media(min-width:1000px){.features{grid-template-columns:repeat(3,1fr)}}
 
 /* --- tables --- */
 table{width:100%;border-collapse:collapse;font-size:14px;margin:20px 0}
@@ -279,7 +291,6 @@ document.addEventListener("click",function(e){
     <a href="/artillery/">Artillery</a>
     <a href="/loadouts/">Loadouts</a>
     <a href="/vehicles/">Vehicles</a>
-    <a href="/guides/">Guides</a>
     <a href="/feedback/">Feedback</a>
     <a href="/planner/" class="cta">Planner</a>
     <span id="acct" class="acct"></span>
@@ -359,7 +370,7 @@ f.addEventListener("submit",function(e){
   <a href="/planner/">Planner</a><a href="/designs/">Designs</a>
   <a href="/buildables/">Buildables</a><a href="/armory/">Armory</a>
   <a href="/ballistics/">Ballistics</a><a href="/artillery/">Artillery</a>
-  <a href="/loadouts/">Loadouts</a><a href="/vehicles/">Vehicles</a><a href="/guides/">Guides</a>
+  <a href="/loadouts/">Loadouts</a><a href="/vehicles/">Vehicles</a>
   <a href="/feedback/">Feedback</a>
   <a href="/privacy/">Privacy</a>
 </div></footer>

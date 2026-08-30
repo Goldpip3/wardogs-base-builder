@@ -138,10 +138,6 @@ function stats(d) {
   };
 }
 
-/* ---------- guides ---------- */
-
-const GUIDES = require("./guides-content");
-
 /* ---------- shared page shell ---------- */
 
 const written = new Set();
@@ -216,7 +212,7 @@ const VOTE_API = (COMMUNITY.voteApi || "").replace(/\/$/, "");
     fs, path, ROOT, DOCS, SITE, catalog, byId, esc,
     ADS, adsOn, adScript, adSlot,
     encodeDesign, P, run, ring, pit,
-    COMMUNITY, BALLISTICS, ARMORY, ARTILLERY, DESIGNS, stats, GUIDES,
+    COMMUNITY, BALLISTICS, ARMORY, ARTILLERY, DESIGNS, stats,
     CSS, write, written, sweepDesignPages,
     decodeShared, withStats, designCard, VOTE_API,
   };

@@ -40,7 +40,7 @@ ship having skipped them. See [objects/guards/verification.md](objects/guards/ve
 
 ## Not in this map
 
-The written prose of the site (guides, page copy) is content, not structure. It lives in
-`tools/site/guides-content.js` and the page modules. `README.md` is the human-facing
+The written prose of the site (page copy) is content, not structure. It lives in
+the page modules. `README.md` is the human-facing
 orientation; this map is the agent-facing one. Where they overlap, README is the summary
 and the cards carry the citations.
