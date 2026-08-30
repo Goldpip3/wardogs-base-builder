@@ -1174,6 +1174,22 @@ function drawPiece(p, hasIssue) {
   });
 }
 
+/* Seam bits are worked out in world space (1 = +x, 2 = -x, 4 = +y, 8 = -y) but every edge
+   below is drawn inside ctx.rotate(), which is local space, and for a wall turned ninety
+   degrees those are not the same axes: local +x faces world +y. Using the world bits
+   directly suppressed the wrong pair of edges, so a vertical run of 4x1 walls drew a line
+   across every join and lost the dashed climb marking down its own long sides. It read as
+   a mistake because it was one. Rotate the mask into the frame it gets used in. */
+const SEAM_DIR_BIT = [1, 4, 2, 8];                       // +x, +y, -x, -y
+function localSeams(mask, rotRad) {
+  if (!mask) return 0;
+  const k = ((Math.round(rotRad / (Math.PI / 2)) % 4) + 4) % 4;
+  if (!k) return mask;
+  let out = 0;
+  for (let d = 0; d < 4; d++) if (mask & SEAM_DIR_BIT[(d + k) % 4]) out |= SEAM_DIR_BIT[d];
+  return out;
+}
+
 function drawRect(r, def, opt) {
   const z = view.zoom;
   const [sx, sy] = toScreen(r.cx, r.cy);
@@ -1230,7 +1246,7 @@ function drawRect(r, def, opt) {
   ctx.strokeStyle = opt.issue ? "#f04a2e" : (opt.selected ? "#ff5b47" : (opt.hovered ? "#fff7ea"
     : (opt.onThisLevel === false ? shade(base, -20) : base)));
   ctx.lineWidth = (opt.selected || opt.issue ? 2.5 : 1.6) * uiScale;
-  const seams = opt.seams || 0;
+  const seams = localSeams(opt.seams || 0, r.rot);
   if (seams) {
     // Part of a run: square the joined corners, fill flush, and outline only the sides
     // that are actually exposed. Overdraw by half a line width into each neighbour so
@@ -1261,7 +1277,7 @@ function drawRect(r, def, opt) {
      mistake. Only the outer edges of a run are marked, so a long wall shows one dashed
      line down its length instead of a ladder of them. */
   if (!opt.ghost && (opt.climb === "foot" || opt.climb === "vehicle") && Math.min(w, h) > 6) {
-    const seams = opt.seams || 0;
+    const seams = localSeams(opt.seams || 0, r.rot);
     const inset = Math.max(2, Math.min(4, z * 0.09)) * uiScale;
     ctx.strokeStyle = opt.climb === "foot" ? "#f0503a" : "#e2a33a";
     ctx.lineWidth = 1.8 * uiScale;
@@ -1321,12 +1337,17 @@ function drawRect(r, def, opt) {
     const badges = [];
     if (opt.level > 0) badges.push("L" + (opt.level + 1));
     if ((def.height || 1) > 1) badges.push("▲" + def.height);
-    // Same rule as the label: a run states its height at the ends, not on every block.
     /* Small orange text on top of a piece that might itself be orange is unreadable, and
        this badge is the one place the plan states a height exactly. Draw it as a solid
        chip: filled accent when the piece is stacked, grey when it is only a tall piece
-       standing on the ground, so the two cannot be confused at a glance. */
-    if (badges.length && (!midRun || opt.hovered)) {
+       standing on the ground, so the two cannot be confused at a glance.
+
+       Once per run, not once per end. The badge hangs above a piece, so on a vertical run
+       the second one lands exactly on the join and reads as a divider through a wall that
+       is meant to be continuous. One run, one height, one chip: the piece that starts the
+       run, meaning nothing joined to its -x or -y. Hovering any block still shows it. */
+    const runStart = !(opt.kin & 2) && !(opt.kin & 8);
+    if (badges.length && (runStart || opt.hovered)) {
       const txt = badges.join(" ");
       ctx.font = `700 ${10.5 * uiScale}px sans-serif`;
       const tw = ctx.measureText(txt).width;
@@ -1935,11 +1956,39 @@ function updateRightPanel() {
     : "";
   const resupply = line("Ammo", needs.ammo) + line("Fuel", needs.fuel) +
                    line("Mechanical", needs.mechanical);
-  document.getElementById("ongoing").innerHTML = resupply
-    ? resupply + `<div style="margin-top:6px;color:var(--dim)">Each is its own stock in the FOB` +
+
+  /* Where a per-use cost is actually known it gets stated in cash, because that is the
+     number that decides whether you fire the thing. Most emplacements have no published
+     figure for what one reload draws, and those keep the honest caveat below rather than
+     a guess. Counting the two apart is the point: one gun whose shot has a price is worth
+     more to a player than five whose shots are a shrug. */
+  const priced = new Map();
+  for (const p of design.pieces) {
+    const def = byId[p.type];
+    if (def && def.perUse) priced.set(def, (priced.get(def) || 0) + 1);
+  }
+  const perUseLines = [...priced].map(([def, n]) => {
+    const u = def.perUse;
+    const each = (u.mechanicalCash || 0) + (u.launchCash || 0);
+    const parts = [];
+    if (u.mechanicalCash) parts.push(`$${u.mechanicalCash.toLocaleString()} in parts`);
+    if (u.launchCash) parts.push(`$${u.launchCash.toLocaleString()} to launch`);
+    return `<div class="cost-line"><span class="n"><b style="color:var(--text)">${esc(def.name)}</b> ` +
+      `$${each.toLocaleString()} a ${esc(u.unit || "use")}` +
+      (parts.length > 1 ? ` <span style="color:var(--dim)">(${parts.join(" + ")})</span>` : "") +
+      (n > 1 ? ` <span style="color:var(--dim)">&times;${n} built</span>` : "") +
+      `</span></div>`;
+  }).join("");
+
+  document.getElementById("ongoing").innerHTML = (resupply || perUseLines)
+    ? resupply + perUseLines +
+      `<div style="margin-top:6px;color:var(--dim)">Each supply is its own stock in the FOB` +
       (perUnit ? `, at ${perUnit[1]} a unit, the same as Build` : "") +
-      `. How much a single reload takes is not published, so this counts what will keep
-        drawing rather than guessing at shells.</div>`
+      (resupply
+        ? `. How much a single reload draws is not published for those, so this counts what
+           will keep drawing rather than guessing at shells.`
+        : `.`) +
+      `</div>`
     : "No emplacements needing resupply.";
 
   // issues
@@ -2048,8 +2097,17 @@ canvas.addEventListener("mousedown", e => {
     return;
   }
   const [wx, wy] = toWorld(e.offsetX, e.offsetY);
+  /* Middle-drag pans, whatever is selected and whatever is being placed. Getting around
+     the map is not a mode you should have to leave something to do.
+
+     preventDefault is the whole fix: without it the browser starts its own middle-click
+     autoscroll, puts the four-arrow anchor on screen and scrolls the page while this
+     handler is trying to pan the canvas. The pan was written correctly and never worked,
+     which is why it looked like having a selection was blocking it. */
   if (e.button === 1 || spaceHeld) {
+    e.preventDefault();
     dragging = { mode:"pan", sx:e.offsetX, sy:e.offsetY, vx:view.x, vy:view.y };
+    canvas.style.cursor = "grabbing";
     return;
   }
   if (e.button === 2) { if (placing) stopPlacing(); return; }
@@ -2138,6 +2196,8 @@ window.addEventListener("mouseup", e => {
     return;
   }
   if (!dragging) return;
+  // the pan cursor is set on mousedown, so it has to come back off here or it sticks
+  if (dragging.mode === "pan") canvas.style.cursor = spaceHeld ? "grab" : "";
   if (dragging.mode === "stamp") {
     const d = dragging; dragging = null;
     commitStamp(d);                       // stays in placing mode, ready for the next run

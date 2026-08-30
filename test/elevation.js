@@ -58,7 +58,8 @@ vm.createContext(sandbox);
 vm.runInContext(
   [lift("pieceRect"), lift("rectCorners"), lift("rectAABB"), lift("shade"),
    lift("pieceColor"), lift("roundRect"), lift("iconAt"), lift("toScreen"),
-   lift("drawRect")].join("\n") +
+   lift("localSeams"), lift("drawRect")].join("\n") +
+  "\nvar SEAM_DIR_BIT = [1, 4, 2, 8];" +
   "\nvar view = { x: 0, y: 0, zoom: 24 };" +
   "\n" + src.match(/const TIER_COLOR = \{[^\n]*\};/)[0] +
   "\n" + src.match(/const ROLE_COLOR = [\s\S]*?\n\};/)[0] +
@@ -175,6 +176,44 @@ check(/opt\.level > 0 \? "#ff5b47" : "#8b8b80"/.test(src),
   const small = rec.icons.pop();
   check(small && small.w <= bodySize("hesco-small", z),
     "a one-cell piece keeps its art inside its own cell");
+}
+
+/* --- seam bits have to be in the frame they are drawn in ---
+   computeSeams works in world space: 1 = +x, 2 = -x, 4 = +y, 8 = -y. Every edge in drawRect
+   is drawn inside ctx.rotate(), which is local space. For a wall turned ninety degrees those
+   are different axes, and using the world bits directly suppressed the wrong pair of edges:
+   a vertical run of 4x1 walls drew a line across every join and lost the dashed climb
+   marking down its own long sides. It looked like a mistake because it was one. */
+{
+  const L = (mask, deg) => vm.runInContext(
+    "localSeams(" + mask + ", " + (deg * Math.PI / 180) + ")", sandbox);
+
+  check(L(4, 0) === 4 && L(9, 0) === 9, "unrotated, the mask is left alone");
+
+  /* At 90 degrees local +x faces world +y. So a neighbour to world +y (bit 4) has to
+     suppress the local RIGHT edge (bit 1), which is the join in the reported screenshot. */
+  check(L(4, 90) === 1, "a neighbour to world +y suppresses the local right edge at 90 deg",
+    "got " + L(4, 90));
+  check(L(8, 90) === 2, "and a neighbour to world -y suppresses the local left edge");
+  check(L(1, 90) === 8 && L(2, 90) === 4, "the other two directions map to match");
+
+  check(L(4, 180) === 8 && L(1, 180) === 2, "at 180 every direction flips");
+  check(L(4, 270) === 2 && L(1, 270) === 4, "and 270 is the mirror of 90");
+
+  // whatever the rotation, a piece keeps exactly as many joined edges as it had
+  const bits = n => { let c = 0; while (n) { c += n & 1; n >>= 1; } return c; };
+  let sameCount = true;
+  for (const m of [0, 1, 2, 4, 8, 3, 12, 5, 15]) {
+    for (const d of [0, 90, 180, 270]) if (bits(L(m, d)) !== bits(m)) sameCount = false;
+  }
+  check(sameCount, "rotation moves which edges are joined, never how many");
+
+  /* The two pieces from the report: 4x1 walls at rot 90, stacked along y. The upper one
+     has a neighbour at world +y, so after rotation its local right edge must be the one
+     that goes quiet. Both the outline and the dashed climb line read the same mask, so
+     fixing one fixed both. */
+  check(L(4, 90) !== 4,
+    "the reported case no longer suppresses the edge it was suppressing before");
 }
 
 console.log("\n" + pass + " passed, " + fail + " failed");

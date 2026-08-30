@@ -93,7 +93,7 @@
       "height": 1,
       "sizeConfirmed": true,
       "desc": "Quick to build waist height cover. Does not require a FOB.",
-      "icon": "sandbag-wall.svg",
+      "icon": "sandbag-wall.webp",
       "tags": [
         "cover",
         "wall",
@@ -477,7 +477,14 @@
         "needs-sky",
         "uses-mechanical",
         "anti-vehicle"
-      ]
+      ],
+      "perUse": {
+        "unit": "UAV",
+        "mechanicalCash": 900,
+        "launchCash": 5000,
+        "confirmed": true,
+        "note": "Read off play. The station is built with Build Supplies like anything else; this is what each UAV costs on top."
+      }
     },
     {
       "id": "talon-9k-sam",
