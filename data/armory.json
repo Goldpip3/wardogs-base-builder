@@ -1,0 +1,2079 @@
+{
+ "_note": "Vendor prices transcribed from the public item database, not derived. A null price is an item the source has not confirmed; it stays blank rather than being guessed at. Regenerate with tools/build-armory.js.",
+ "checkedOn": "2026-08-30",
+ "gameVersion": "closed beta, pre Early Access",
+ "categories": [
+  {
+   "id": "weapons",
+   "name": "Weapons",
+   "blurb": "Rifles, snipers, pistols and launchers."
+  },
+  {
+   "id": "attachments",
+   "name": "Attachments",
+   "blurb": "Optics, muzzles, grips and magazines."
+  },
+  {
+   "id": "ammunition",
+   "name": "Ammunition",
+   "blurb": "Calibres, shells and supplies, priced per pack."
+  },
+  {
+   "id": "armour",
+   "name": "Armour",
+   "blurb": "Helmets, body armour and ghillie."
+  },
+  {
+   "id": "equipment",
+   "name": "Equipment",
+   "blurb": "Recon, repair and traversal gear."
+  },
+  {
+   "id": "throwables",
+   "name": "Throwables",
+   "blurb": "Grenades, charges and detonators."
+  },
+  {
+   "id": "medical",
+   "name": "Medical",
+   "blurb": "Bandages, kits and injectors."
+  },
+  {
+   "id": "storage",
+   "name": "Storage",
+   "blurb": "Backpacks, vests, crates and supply pallets."
+  },
+  {
+   "id": "vehicles",
+   "name": "Vehicles",
+   "blurb": "Ground and air transport."
+  },
+  {
+   "id": "mounted",
+   "name": "Mounted weapons",
+   "blurb": "Vehicle guns, cannons and emplacements."
+  }
+ ],
+ "items": [
+  {
+   "name": "9K333 Verba",
+   "cat": "weapons",
+   "price": 800,
+   "per": 1
+  },
+  {
+   "name": "A-91",
+   "cat": "weapons",
+   "price": 0,
+   "per": 1,
+   "free": true,
+   "calibre": "5.56mm"
+  },
+  {
+   "name": "AK74",
+   "cat": "weapons",
+   "price": 1600,
+   "per": 1,
+   "calibre": "5.45mm"
+  },
+  {
+   "name": "AMP-9",
+   "cat": "weapons",
+   "price": 900,
+   "per": 1,
+   "calibre": "9mm"
+  },
+  {
+   "name": "AMR 50",
+   "cat": "weapons",
+   "price": 8800,
+   "per": 1,
+   "calibre": ".50Cal"
+  },
+  {
+   "name": "BMR-308",
+   "cat": "weapons",
+   "price": 6000,
+   "per": 1,
+   "calibre": ".308 Win"
+  },
+  {
+   "name": "Bushmaster M17S",
+   "cat": "weapons",
+   "price": 0,
+   "per": 1,
+   "free": true,
+   "calibre": "5.56mm"
+  },
+  {
+   "name": "Compound Bow",
+   "cat": "weapons",
+   "price": 800,
+   "per": 1,
+   "calibre": "Broadhead Arrow"
+  },
+  {
+   "name": "Deagle",
+   "cat": "weapons",
+   "price": 900,
+   "per": 1,
+   "calibre": "50AE"
+  },
+  {
+   "name": "FAL",
+   "cat": "weapons",
+   "price": 6500,
+   "per": 1,
+   "calibre": ".308 Win"
+  },
+  {
+   "name": "Galil",
+   "cat": "weapons",
+   "price": 2200,
+   "per": 1,
+   "calibre": "5.56mm"
+  },
+  {
+   "name": "GGX 17",
+   "cat": "weapons",
+   "price": 200,
+   "per": 1
+  },
+  {
+   "name": "GGX 18",
+   "cat": "weapons",
+   "price": 800,
+   "per": 1,
+   "calibre": "9mm"
+  },
+  {
+   "name": "Judge",
+   "cat": "weapons",
+   "price": 250,
+   "per": 1,
+   "calibre": ".45 Colt"
+  },
+  {
+   "name": "KH-2002",
+   "cat": "weapons",
+   "price": 0,
+   "per": 1,
+   "free": true,
+   "calibre": "5.56mm"
+  },
+  {
+   "name": "M1911",
+   "cat": "weapons",
+   "price": 300,
+   "per": 1,
+   "calibre": ".45 ACP"
+  },
+  {
+   "name": "M249 SAW",
+   "cat": "weapons",
+   "price": 3200,
+   "per": 1,
+   "calibre": "5.56mm"
+  },
+  {
+   "name": "M4",
+   "cat": "weapons",
+   "price": 2800,
+   "per": 1,
+   "calibre": "5.56mm"
+  },
+  {
+   "name": "M500",
+   "cat": "weapons",
+   "price": 1200,
+   "per": 1,
+   "calibre": "12g"
+  },
+  {
+   "name": "MAAWS",
+   "cat": "weapons",
+   "price": 2600,
+   "per": 1
+  },
+  {
+   "name": "MGL-40",
+   "cat": "weapons",
+   "price": 6000,
+   "per": 1
+  },
+  {
+   "name": "MK22",
+   "cat": "weapons",
+   "price": 6400,
+   "per": 1,
+   "calibre": ".308 Win"
+  },
+  {
+   "name": "Mosin Nagant",
+   "cat": "weapons",
+   "price": 4500,
+   "per": 1,
+   "calibre": "7.62x54mm"
+  },
+  {
+   "name": "MP43",
+   "cat": "weapons",
+   "price": 400,
+   "per": 1,
+   "calibre": "12g"
+  },
+  {
+   "name": "MP5",
+   "cat": "weapons",
+   "price": 1500,
+   "per": 1,
+   "calibre": "9mm"
+  },
+  {
+   "name": "PKM",
+   "cat": "weapons",
+   "price": 4500,
+   "per": 1,
+   "calibre": "7.62x51mm"
+  },
+  {
+   "name": "PP-19 Vityaz",
+   "cat": "weapons",
+   "price": 1200,
+   "per": 1,
+   "calibre": "9mm"
+  },
+  {
+   "name": "RPG-7",
+   "cat": "weapons",
+   "price": 2000,
+   "per": 1
+  },
+  {
+   "name": "Scout Rifle TD",
+   "cat": "weapons",
+   "price": 1100,
+   "per": 1,
+   "calibre": "5.56mm"
+  },
+  {
+   "name": "SKS",
+   "cat": "weapons",
+   "price": 2400,
+   "per": 1,
+   "calibre": "7.62mm"
+  },
+  {
+   "name": "Super-45",
+   "cat": "weapons",
+   "price": 2600,
+   "per": 1,
+   "calibre": ".45 ACP"
+  },
+  {
+   "name": "SV98",
+   "cat": "weapons",
+   "price": 5200,
+   "per": 1,
+   "calibre": "7.62x54mm"
+  },
+  {
+   "name": "SVD",
+   "cat": "weapons",
+   "price": 4800,
+   "per": 1,
+   "calibre": "7.62x54mm"
+  },
+  {
+   "name": "T-21",
+   "cat": "weapons",
+   "price": 600,
+   "per": 1,
+   "calibre": "5.56mm"
+  },
+  {
+   "name": "Ghillie Body Suit",
+   "cat": "armour",
+   "price": 3000,
+   "per": 1
+  },
+  {
+   "name": "Ghillie Body Suit (Dead)",
+   "cat": "armour",
+   "price": 3500,
+   "per": 1
+  },
+  {
+   "name": "Ghillie Headwear",
+   "cat": "armour",
+   "price": 2500,
+   "per": 1
+  },
+  {
+   "name": "Ghillie Headwear (Dead)",
+   "cat": "armour",
+   "price": 2800,
+   "per": 1
+  },
+  {
+   "name": "Level 1 Armor",
+   "cat": "armour",
+   "price": 400,
+   "per": 1
+  },
+  {
+   "name": "Level 1 Helmet",
+   "cat": "armour",
+   "price": 200,
+   "per": 1
+  },
+  {
+   "name": "Level 2 Armor",
+   "cat": "armour",
+   "price": 1000,
+   "per": 1
+  },
+  {
+   "name": "Level 2 Helmet",
+   "cat": "armour",
+   "price": 500,
+   "per": 1
+  },
+  {
+   "name": "Level 3 Armor",
+   "cat": "armour",
+   "price": 2000,
+   "per": 1
+  },
+  {
+   "name": "Level 3 Helmet",
+   "cat": "armour",
+   "price": 1500,
+   "per": 1
+  },
+  {
+   "name": "Level 4 Armor",
+   "cat": "armour",
+   "price": 4000,
+   "per": 1
+  },
+  {
+   "name": "Level 4 Helmet",
+   "cat": "armour",
+   "price": 3000,
+   "per": 1
+  },
+  {
+   "name": ".308 Win Armor Piercing (AP)",
+   "cat": "ammunition",
+   "price": 180,
+   "per": 10
+  },
+  {
+   "name": ".308 Win Flesh Damage (HP)",
+   "cat": "ammunition",
+   "price": 70,
+   "per": 10
+  },
+  {
+   "name": ".308 Win Standard (FMJ)",
+   "cat": "ammunition",
+   "price": 40,
+   "per": 10
+  },
+  {
+   "name": ".338",
+   "cat": "ammunition",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": ".338 AP",
+   "cat": "ammunition",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": ".338 HP",
+   "cat": "ammunition",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": ".45 ACP Armor Piercing (AP)",
+   "cat": "ammunition",
+   "price": 20,
+   "per": 10
+  },
+  {
+   "name": ".45 ACP Flesh Damage (HP)",
+   "cat": "ammunition",
+   "price": 15,
+   "per": 10
+  },
+  {
+   "name": ".45 ACP Standard (FMJ)",
+   "cat": "ammunition",
+   "price": 10,
+   "per": 10
+  },
+  {
+   "name": ".45 Colt Armor Piercing (AP)",
+   "cat": "ammunition",
+   "price": 66,
+   "per": 6
+  },
+  {
+   "name": ".45 Colt Flesh Damage (HP)",
+   "cat": "ammunition",
+   "price": 50,
+   "per": 6
+  },
+  {
+   "name": ".45 Colt Standard (FMJ)",
+   "cat": "ammunition",
+   "price": 33,
+   "per": 6
+  },
+  {
+   "name": ".50Cal Standard (FMJ)",
+   "cat": "ammunition",
+   "price": 250,
+   "per": 5
+  },
+  {
+   "name": "5.45mm Armor Piercing (AP)",
+   "cat": "ammunition",
+   "price": 40,
+   "per": 10
+  },
+  {
+   "name": "5.45mm Flesh Damage (HP)",
+   "cat": "ammunition",
+   "price": 25,
+   "per": 10
+  },
+  {
+   "name": "5.45mm Standard (FMJ)",
+   "cat": "ammunition",
+   "price": 15,
+   "per": 10
+  },
+  {
+   "name": "5.56mm Armor Piercing (AP)",
+   "cat": "ammunition",
+   "price": 40,
+   "per": 10
+  },
+  {
+   "name": "5.56mm Flesh Damage (HP)",
+   "cat": "ammunition",
+   "price": 25,
+   "per": 10
+  },
+  {
+   "name": "5.56mm Standard (FMJ)",
+   "cat": "ammunition",
+   "price": 15,
+   "per": 10
+  },
+  {
+   "name": "50AE Armor Piercing (AP)",
+   "cat": "ammunition",
+   "price": 90,
+   "per": 5
+  },
+  {
+   "name": "50AE Flesh Damage (HP)",
+   "cat": "ammunition",
+   "price": 35,
+   "per": 5
+  },
+  {
+   "name": "50AE Standard (FMJ)",
+   "cat": "ammunition",
+   "price": 20,
+   "per": 5
+  },
+  {
+   "name": "7.62mm Armor Piercing (AP)",
+   "cat": "ammunition",
+   "price": 150,
+   "per": 10
+  },
+  {
+   "name": "7.62mm Flesh Damage (HP)",
+   "cat": "ammunition",
+   "price": 90,
+   "per": 10
+  },
+  {
+   "name": "7.62mm Standard (FMJ)",
+   "cat": "ammunition",
+   "price": 40,
+   "per": 10
+  },
+  {
+   "name": "7.62x54mm Armor Piercing (AP)",
+   "cat": "ammunition",
+   "price": 90,
+   "per": 5
+  },
+  {
+   "name": "7.62x54mm Flesh Damage (HP)",
+   "cat": "ammunition",
+   "price": 55,
+   "per": 5
+  },
+  {
+   "name": "7.62x54mm Standard (FMJ)",
+   "cat": "ammunition",
+   "price": 30,
+   "per": 5
+  },
+  {
+   "name": "7.62x51mm Standard (FMJ)",
+   "cat": "ammunition",
+   "price": 300,
+   "per": 100
+  },
+  {
+   "name": "7.62x51mm Armor Piercing (AP)",
+   "cat": "ammunition",
+   "price": 250,
+   "per": 100
+  },
+  {
+   "name": "9mm Armor Piercing (AP)",
+   "cat": "ammunition",
+   "price": 20,
+   "per": 10
+  },
+  {
+   "name": "9mm Flesh Damage (HP)",
+   "cat": "ammunition",
+   "price": 15,
+   "per": 10
+  },
+  {
+   "name": "9mm Standard (FMJ)",
+   "cat": "ammunition",
+   "price": 10,
+   "per": 10
+  },
+  {
+   "name": "12g 7mm Buckshot",
+   "cat": "ammunition",
+   "price": 60,
+   "per": 6
+  },
+  {
+   "name": "12g Rifled Slug",
+   "cat": "ammunition",
+   "price": 200,
+   "per": 6
+  },
+  {
+   "name": "Broadhead Arrow",
+   "cat": "ammunition",
+   "price": 75,
+   "per": 5
+  },
+  {
+   "name": "Rambo Explosive Arrow",
+   "cat": "ammunition",
+   "price": 150,
+   "per": 1
+  },
+  {
+   "name": "Ammo Supplies",
+   "cat": "ammunition",
+   "price": 10,
+   "per": 50
+  },
+  {
+   "name": "Build Supplies",
+   "cat": "ammunition",
+   "price": 10,
+   "per": 50
+  },
+  {
+   "name": "Fuel Supplies",
+   "cat": "ammunition",
+   "price": 10,
+   "per": 50
+  },
+  {
+   "name": "Mechanical Supplies",
+   "cat": "ammunition",
+   "price": 10,
+   "per": 50
+  },
+  {
+   "name": "Battery",
+   "cat": "ammunition",
+   "price": 150,
+   "per": 1
+  },
+  {
+   "name": "High Capacity Battery",
+   "cat": "ammunition",
+   "price": 300,
+   "per": 1
+  },
+  {
+   "name": "120mm HEAT-MP Shell",
+   "cat": "ammunition",
+   "price": 210,
+   "per": 1
+  },
+  {
+   "name": "122mm HE Rocket",
+   "cat": "ammunition",
+   "price": 450,
+   "per": 3
+  },
+  {
+   "name": "155mm HE Shell",
+   "cat": "ammunition",
+   "price": 120,
+   "per": 2
+  },
+  {
+   "name": "155mm Standard (SB)",
+   "cat": "ammunition",
+   "price": 600,
+   "per": 10
+  },
+  {
+   "name": "155mm Expensive (SB)",
+   "cat": "ammunition",
+   "price": 600,
+   "per": 10
+  },
+  {
+   "name": "20x102mm",
+   "cat": "ammunition",
+   "price": 600,
+   "per": 10
+  },
+  {
+   "name": "30mm HE Cannon",
+   "cat": "ammunition",
+   "price": 500,
+   "per": 200
+  },
+  {
+   "name": "35x228mm Anti-Air Cannon",
+   "cat": "ammunition",
+   "price": 200,
+   "per": 75
+  },
+  {
+   "name": "40mm",
+   "cat": "ammunition",
+   "price": 100,
+   "per": 1
+  },
+  {
+   "name": "72mm",
+   "cat": "ammunition",
+   "price": 600,
+   "per": 10
+  },
+  {
+   "name": "81mm",
+   "cat": "ammunition",
+   "price": 600,
+   "per": 10
+  },
+  {
+   "name": "84mm",
+   "cat": "ammunition",
+   "price": 200,
+   "per": 1
+  },
+  {
+   "name": "93mm",
+   "cat": "ammunition",
+   "price": 200,
+   "per": 1
+  },
+  {
+   "name": ".45 ACP Pistol Compensator",
+   "cat": "attachments",
+   "price": 1030,
+   "per": 1
+  },
+  {
+   "name": ".50 Cal Heavy Suppressor",
+   "cat": "attachments",
+   "price": 1420,
+   "per": 1
+  },
+  {
+   "name": "10x",
+   "cat": "attachments",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": "12 Gauge Suppressor",
+   "cat": "attachments",
+   "price": 1040,
+   "per": 1
+  },
+  {
+   "name": "2.5x Combat Optic",
+   "cat": "attachments",
+   "price": 690,
+   "per": 1
+  },
+  {
+   "name": "3 Prong Flash Hider",
+   "cat": "attachments",
+   "price": 1000,
+   "per": 1
+  },
+  {
+   "name": "3-Chamber Brake",
+   "cat": "attachments",
+   "price": 1080,
+   "per": 1
+  },
+  {
+   "name": "3x Tactical Prism Scope",
+   "cat": "attachments",
+   "price": 740,
+   "per": 1
+  },
+  {
+   "name": "3x-6x LPVO Short Dot",
+   "cat": "attachments",
+   "price": 860,
+   "per": 1
+  },
+  {
+   "name": "45 Degree Angled Foregrip",
+   "cat": "attachments",
+   "price": 680,
+   "per": 1
+  },
+  {
+   "name": "4x Combat Prism Scope with Reflex",
+   "cat": "attachments",
+   "price": 880,
+   "per": 1
+  },
+  {
+   "name": "4X Hybrid",
+   "cat": "attachments",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": "6-10x Scope MOA",
+   "cat": "attachments",
+   "price": 1050,
+   "per": 1
+  },
+  {
+   "name": "6-10x Scope MRAD",
+   "cat": "attachments",
+   "price": 1200,
+   "per": 1
+  },
+  {
+   "name": "6x Marksman Scope + Reflex",
+   "cat": "attachments",
+   "price": 1650,
+   "per": 1
+  },
+  {
+   "name": "6x Precision Rifle Scope",
+   "cat": "attachments",
+   "price": 680,
+   "per": 1
+  },
+  {
+   "name": "AFG Angled Foregrip",
+   "cat": "attachments",
+   "price": 820,
+   "per": 1
+  },
+  {
+   "name": "AK74 30 RND Magazine",
+   "cat": "attachments",
+   "price": 35,
+   "per": 1
+  },
+  {
+   "name": "AK74 60 RND Magazine",
+   "cat": "attachments",
+   "price": 150,
+   "per": 1
+  },
+  {
+   "name": "AK74 75 RND Drum Magazine",
+   "cat": "attachments",
+   "price": 200,
+   "per": 1
+  },
+  {
+   "name": "AK74 Barrel",
+   "cat": "attachments",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": "AK74 Grip",
+   "cat": "attachments",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": "AK74 Handguard",
+   "cat": "attachments",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": "AK74 Receiver",
+   "cat": "attachments",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": "AK74 Stock",
+   "cat": "attachments",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": "AMP-9 15 RND Magazine",
+   "cat": "attachments",
+   "price": 30,
+   "per": 1
+  },
+  {
+   "name": "AMP-9 20 RND Magazine",
+   "cat": "attachments",
+   "price": 70,
+   "per": 1
+  },
+  {
+   "name": "AMP-9 30 RND Magazine",
+   "cat": "attachments",
+   "price": 100,
+   "per": 1
+  },
+  {
+   "name": "AMP-9 50 RND Drum Magazine",
+   "cat": "attachments",
+   "price": 180,
+   "per": 1
+  },
+  {
+   "name": "AMP-9 9x19 Suppressor",
+   "cat": "attachments",
+   "price": 1130,
+   "per": 1
+  },
+  {
+   "name": "AMP-9 Tactical Flash Hider",
+   "cat": "attachments",
+   "price": 550,
+   "per": 1
+  },
+  {
+   "name": "AMR 50 10 RND Magazine",
+   "cat": "attachments",
+   "price": 30,
+   "per": 1
+  },
+  {
+   "name": "AMR 50 5 RND Magazine",
+   "cat": "attachments",
+   "price": 15,
+   "per": 1
+  },
+  {
+   "name": "Angled Tactical Foregrip",
+   "cat": "attachments",
+   "price": 650,
+   "per": 1
+  },
+  {
+   "name": "AR Multi-Caliber Suppressor",
+   "cat": "attachments",
+   "price": 400,
+   "per": 1
+  },
+  {
+   "name": "AT4 Mag",
+   "cat": "attachments",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": "AX50 .50 Cal Muzzle Brake",
+   "cat": "attachments",
+   "price": 1600,
+   "per": 1
+  },
+  {
+   "name": "Ballista Brake",
+   "cat": "attachments",
+   "price": 380,
+   "per": 1
+  },
+  {
+   "name": "Basic Muzzle",
+   "cat": "attachments",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": "Birdcage Flash Hider",
+   "cat": "attachments",
+   "price": 900,
+   "per": 1
+  },
+  {
+   "name": "BMR-308 Flash Hider",
+   "cat": "attachments",
+   "price": 1280,
+   "per": 1
+  },
+  {
+   "name": "BMR-308 Suppressor",
+   "cat": "attachments",
+   "price": 1200,
+   "per": 1
+  },
+  {
+   "name": "CGM4 Scope",
+   "cat": "attachments",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": "Compact T-2 Red Dot",
+   "cat": "attachments",
+   "price": 340,
+   "per": 1
+  },
+  {
+   "name": "Constrictor Brake",
+   "cat": "attachments",
+   "price": 760,
+   "per": 1
+  },
+  {
+   "name": "CQ-2x Prism Combat Scope",
+   "cat": "attachments",
+   "price": 640,
+   "per": 1
+  },
+  {
+   "name": "CQB 74 Brake",
+   "cat": "attachments",
+   "price": 680,
+   "per": 1
+  },
+  {
+   "name": "CQR Tactical Front Rail Grip",
+   "cat": "attachments",
+   "price": 1100,
+   "per": 1
+  },
+  {
+   "name": "Deadeye Flash Hider",
+   "cat": "attachments",
+   "price": 400,
+   "per": 1
+  },
+  {
+   "name": "Deagle 7 RND Magazine",
+   "cat": "attachments",
+   "price": 50,
+   "per": 1
+  },
+  {
+   "name": "DTK-1 Brake",
+   "cat": "attachments",
+   "price": 820,
+   "per": 1
+  },
+  {
+   "name": "Dual Port Brake",
+   "cat": "attachments",
+   "price": 720,
+   "per": 1
+  },
+  {
+   "name": "Eclipse Flash Hider",
+   "cat": "attachments",
+   "price": 700,
+   "per": 1
+  },
+  {
+   "name": "FAL 10 RND Magazine",
+   "cat": "attachments",
+   "price": 60,
+   "per": 1
+  },
+  {
+   "name": "FAL 20 RND Magazine",
+   "cat": "attachments",
+   "price": 150,
+   "per": 1
+  },
+  {
+   "name": "FAL 30 RND Magazine",
+   "cat": "attachments",
+   "price": 250,
+   "per": 1
+  },
+  {
+   "name": "FAL Flash Hider",
+   "cat": "attachments",
+   "price": 1250,
+   "per": 1
+  },
+  {
+   "name": "Flow-Through .308 Suppressor",
+   "cat": "attachments",
+   "price": 1120,
+   "per": 1
+  },
+  {
+   "name": "Four Reticle Reflex",
+   "cat": "attachments",
+   "price": 580,
+   "per": 1
+  },
+  {
+   "name": "Frontier 2.5x-10x Precision Scope",
+   "cat": "attachments",
+   "price": 1800,
+   "per": 1
+  },
+  {
+   "name": "Full Choke",
+   "cat": "attachments",
+   "price": 1400,
+   "per": 1
+  },
+  {
+   "name": "Galil 35 RND Magazine",
+   "cat": "attachments",
+   "price": 60,
+   "per": 1
+  },
+  {
+   "name": "Galil 50 RND Magazine",
+   "cat": "attachments",
+   "price": 110,
+   "per": 1
+  },
+  {
+   "name": "GGX 17 RND Magazine",
+   "cat": "attachments",
+   "price": 30,
+   "per": 1
+  },
+  {
+   "name": "GGX 33 RND Magazine",
+   "cat": "attachments",
+   "price": 70,
+   "per": 1
+  },
+  {
+   "name": "GGX 50 RND Drum Magazine",
+   "cat": "attachments",
+   "price": 110,
+   "per": 1
+  },
+  {
+   "name": "Ghost LITE Muzzle Brake",
+   "cat": "attachments",
+   "price": 970,
+   "per": 1
+  },
+  {
+   "name": "Glock 17 Extended Magazine",
+   "cat": "attachments",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": "GOL Multi-Caliber Suppressor",
+   "cat": "attachments",
+   "price": 1800,
+   "per": 1
+  },
+  {
+   "name": "Hexagon 762 Suppressor",
+   "cat": "attachments",
+   "price": 1210,
+   "per": 1
+  },
+  {
+   "name": "Hexagon Brake",
+   "cat": "attachments",
+   "price": 350,
+   "per": 1
+  },
+  {
+   "name": "Holographic Sight",
+   "cat": "attachments",
+   "price": 620,
+   "per": 1
+  },
+  {
+   "name": "Hybrid Grip Pod",
+   "cat": "attachments",
+   "price": 1500,
+   "per": 1
+  },
+  {
+   "name": "Improved Cylinder Choke",
+   "cat": "attachments",
+   "price": 540,
+   "per": 1
+  },
+  {
+   "name": "Judge Magazine",
+   "cat": "attachments",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": "Kobra Reflex",
+   "cat": "attachments",
+   "price": 520,
+   "per": 1
+  },
+  {
+   "name": "M1911 10 RND Magazine",
+   "cat": "attachments",
+   "price": 35,
+   "per": 1
+  },
+  {
+   "name": "M1911 7 RND Magazine",
+   "cat": "attachments",
+   "price": 20,
+   "per": 1
+  },
+  {
+   "name": "M249 100 RND Fabric Magazine",
+   "cat": "attachments",
+   "price": 200,
+   "per": 1
+  },
+  {
+   "name": "M249 200 RND Box",
+   "cat": "attachments",
+   "price": 250,
+   "per": 1
+  },
+  {
+   "name": "M249 Bipod",
+   "cat": "attachments",
+   "price": 1050,
+   "per": 1
+  },
+  {
+   "name": "M500 Sabre Brake",
+   "cat": "attachments",
+   "price": 740,
+   "per": 1
+  },
+  {
+   "name": "Mini Angled Foregrip",
+   "cat": "attachments",
+   "price": 720,
+   "per": 1
+  },
+  {
+   "name": "Mini Reflex Sight",
+   "cat": "attachments",
+   "price": 200,
+   "per": 1
+  },
+  {
+   "name": "MK22 10 RND Magazine",
+   "cat": "attachments",
+   "price": 60,
+   "per": 1
+  },
+  {
+   "name": "MK22 5 RND Magazine",
+   "cat": "attachments",
+   "price": 30,
+   "per": 1
+  },
+  {
+   "name": "MMGL Internal Magazine",
+   "cat": "attachments",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": "MMGL Sight",
+   "cat": "attachments",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": "Mosin Internal Magazine",
+   "cat": "attachments",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": "MP5 20 RND Magazine",
+   "cat": "attachments",
+   "price": 70,
+   "per": 1
+  },
+  {
+   "name": "MP5 30 RND Magazine",
+   "cat": "attachments",
+   "price": 100,
+   "per": 1
+  },
+  {
+   "name": "MP5 50 RND Drum Magazine",
+   "cat": "attachments",
+   "price": 230,
+   "per": 1
+  },
+  {
+   "name": "MP5 Flash Hider",
+   "cat": "attachments",
+   "price": 1150,
+   "per": 1
+  },
+  {
+   "name": "MP9 Extended Magazine",
+   "cat": "attachments",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": "OKP 7 Reflex",
+   "cat": "attachments",
+   "price": 840,
+   "per": 1
+  },
+  {
+   "name": "Orpheus Max Brake",
+   "cat": "attachments",
+   "price": 1020,
+   "per": 1
+  },
+  {
+   "name": "PBS-4 Suppressor",
+   "cat": "attachments",
+   "price": 1300,
+   "per": 1
+  },
+  {
+   "name": "PGO-7",
+   "cat": "attachments",
+   "price": 850,
+   "per": 1
+  },
+  {
+   "name": "PKM 100 RND Box",
+   "cat": "attachments",
+   "price": 100,
+   "per": 1
+  },
+  {
+   "name": "PKM Bipod",
+   "cat": "attachments",
+   "price": 1350,
+   "per": 1
+  },
+  {
+   "name": "PP-19 50 RND Vityaz Drum Magazine",
+   "cat": "attachments",
+   "price": 200,
+   "per": 1
+  },
+  {
+   "name": "PP-19 Vityaz 10 RND Magazine",
+   "cat": "attachments",
+   "price": 25,
+   "per": 1
+  },
+  {
+   "name": "PP-19 Vityaz 30 RND Magazine",
+   "cat": "attachments",
+   "price": 100,
+   "per": 1
+  },
+  {
+   "name": "PP-19 Vityaz Flash Hider",
+   "cat": "attachments",
+   "price": 800,
+   "per": 1
+  },
+  {
+   "name": "PP-19-01 Vityaz 9x19 Suppressor",
+   "cat": "attachments",
+   "price": 1450,
+   "per": 1
+  },
+  {
+   "name": "Pro Tilt Bipod",
+   "cat": "attachments",
+   "price": 1400,
+   "per": 1
+  },
+  {
+   "name": "QD-5 Suppressor",
+   "cat": "attachments",
+   "price": 1170,
+   "per": 1
+  },
+  {
+   "name": "RC-556 Suppressor",
+   "cat": "attachments",
+   "price": 1550,
+   "per": 1
+  },
+  {
+   "name": "RK6 Tactical Foregrip",
+   "cat": "attachments",
+   "price": 380,
+   "per": 1
+  },
+  {
+   "name": "Rubberized Ergonomic Foregrip",
+   "cat": "attachments",
+   "price": 540,
+   "per": 1
+  },
+  {
+   "name": "RVG Vertical Foregrip",
+   "cat": "attachments",
+   "price": 770,
+   "per": 1
+  },
+  {
+   "name": "SG Multi-Caliber Suppressor",
+   "cat": "attachments",
+   "price": 1220,
+   "per": 1
+  },
+  {
+   "name": "Shift Foregrip",
+   "cat": "attachments",
+   "price": 1150,
+   "per": 1
+  },
+  {
+   "name": "SKS Bipod",
+   "cat": "attachments",
+   "price": 800,
+   "per": 1
+  },
+  {
+   "name": "SKS Extended Mag",
+   "cat": "attachments",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": "SKS Internal Magazine",
+   "cat": "attachments",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": "Slicktap Brake",
+   "cat": "attachments",
+   "price": 940,
+   "per": 1
+  },
+  {
+   "name": "Slotted Flash Hider",
+   "cat": "attachments",
+   "price": 960,
+   "per": 1
+  },
+  {
+   "name": "Sniper Muzzle",
+   "cat": "attachments",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": "Spectr 4x",
+   "cat": "attachments",
+   "price": 800,
+   "per": 1
+  },
+  {
+   "name": "Spitfire 3X",
+   "cat": "attachments",
+   "price": 790,
+   "per": 1
+  },
+  {
+   "name": "SRVV Brake",
+   "cat": "attachments",
+   "price": 1470,
+   "per": 1
+  },
+  {
+   "name": "STANAG 20 RND Magazine",
+   "cat": "attachments",
+   "price": 10,
+   "per": 1
+  },
+  {
+   "name": "STANAG 30 RND Magazine",
+   "cat": "attachments",
+   "price": 55,
+   "per": 1
+  },
+  {
+   "name": "STANAG 60 RND Magazine",
+   "cat": "attachments",
+   "price": 180,
+   "per": 1
+  },
+  {
+   "name": "STRELIX Suppressor",
+   "cat": "attachments",
+   "price": 1000,
+   "per": 1
+  },
+  {
+   "name": "Super-45 13 RND Magazine",
+   "cat": "attachments",
+   "price": 30,
+   "per": 1
+  },
+  {
+   "name": "Super-45 30 RND Magazine",
+   "cat": "attachments",
+   "price": 80,
+   "per": 1
+  },
+  {
+   "name": "Super-45 40 RND Drum Magazine",
+   "cat": "attachments",
+   "price": 280,
+   "per": 1
+  },
+  {
+   "name": "Super-45 Flash Hider",
+   "cat": "attachments",
+   "price": 1050,
+   "per": 1
+  },
+  {
+   "name": "Suppressor T8L1 Scout",
+   "cat": "attachments",
+   "price": 1000,
+   "per": 1
+  },
+  {
+   "name": "SV98 10 RND Magazine",
+   "cat": "attachments",
+   "price": 40,
+   "per": 1
+  },
+  {
+   "name": "SV98 Bipod",
+   "cat": "attachments",
+   "price": 1250,
+   "per": 1
+  },
+  {
+   "name": "SV98 Extended Magazine",
+   "cat": "attachments",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": "SVD 10 RND Magazine",
+   "cat": "attachments",
+   "price": 40,
+   "per": 1
+  },
+  {
+   "name": "SVD 5 RND Magazine",
+   "cat": "attachments",
+   "price": 20,
+   "per": 1
+  },
+  {
+   "name": "SVD 7.62x54R Brake",
+   "cat": "attachments",
+   "price": 650,
+   "per": 1
+  },
+  {
+   "name": "SVD Bipod",
+   "cat": "attachments",
+   "price": 1120,
+   "per": 1
+  },
+  {
+   "name": "TDG Vertical Foregrip",
+   "cat": "attachments",
+   "price": 1000,
+   "per": 1
+  },
+  {
+   "name": "TGP-A Suppressor 5.45",
+   "cat": "attachments",
+   "price": 1190,
+   "per": 1
+  },
+  {
+   "name": "Three Port Brake",
+   "cat": "attachments",
+   "price": 1180,
+   "per": 1
+  },
+  {
+   "name": "TopComp Brake",
+   "cat": "attachments",
+   "price": 770,
+   "per": 1
+  },
+  {
+   "name": "Tread Brake",
+   "cat": "attachments",
+   "price": 620,
+   "per": 1
+  },
+  {
+   "name": "Tricon 1.5x Compact Prism Scope",
+   "cat": "attachments",
+   "price": 650,
+   "per": 1
+  },
+  {
+   "name": "Vektor Frenix-X Micro Reflex Sight",
+   "cat": "attachments",
+   "price": 820,
+   "per": 1
+  },
+  {
+   "name": "Zenit Handguard",
+   "cat": "attachments",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": "Basic Parachute",
+   "cat": "equipment",
+   "price": 100,
+   "per": 1
+  },
+  {
+   "name": "Binoculars",
+   "cat": "equipment",
+   "price": 75,
+   "per": 1
+  },
+  {
+   "name": "Fuel Can",
+   "cat": "equipment",
+   "price": 150,
+   "per": 1
+  },
+  {
+   "name": "Heavy Drill",
+   "cat": "equipment",
+   "price": 1300,
+   "per": 1
+  },
+  {
+   "name": "Infrared Range Finder",
+   "cat": "equipment",
+   "price": 1200,
+   "per": 1
+  },
+  {
+   "name": "Light Drill",
+   "cat": "equipment",
+   "price": 600,
+   "per": 1
+  },
+  {
+   "name": "Range Finder",
+   "cat": "equipment",
+   "price": 400,
+   "per": 1
+  },
+  {
+   "name": "Sport Parachute",
+   "cat": "equipment",
+   "price": 1000,
+   "per": 1
+  },
+  {
+   "name": "Wrench",
+   "cat": "equipment",
+   "price": 150,
+   "per": 1
+  },
+  {
+   "name": "C4 Charge",
+   "cat": "throwables",
+   "price": 250,
+   "per": 1
+  },
+  {
+   "name": "Gold Frag Grenade",
+   "cat": "throwables",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": "Improvised Explosive Device",
+   "cat": "throwables",
+   "price": 300,
+   "per": 1
+  },
+  {
+   "name": "M18 Signal Grenade: Alert",
+   "cat": "throwables",
+   "price": 50,
+   "per": 1
+  },
+  {
+   "name": "M18 Signal Grenade: Damaged Vehicle",
+   "cat": "throwables",
+   "price": 50,
+   "per": 1
+  },
+  {
+   "name": "M18 Signal Grenade: Friendly",
+   "cat": "throwables",
+   "price": 50,
+   "per": 1
+  },
+  {
+   "name": "M18 Signal Grenade: Hostile",
+   "cat": "throwables",
+   "price": 50,
+   "per": 1
+  },
+  {
+   "name": "M18 Signal Grenade: Landing Zone",
+   "cat": "throwables",
+   "price": 50,
+   "per": 1
+  },
+  {
+   "name": "M18 Signal Grenade: Supply Request",
+   "cat": "throwables",
+   "price": 50,
+   "per": 1
+  },
+  {
+   "name": "M18 Smoke Grenade: Black",
+   "cat": "throwables",
+   "price": 100,
+   "per": 1
+  },
+  {
+   "name": "M67 Frag Grenade",
+   "cat": "throwables",
+   "price": 200,
+   "per": 1
+  },
+  {
+   "name": "Remote Detonator",
+   "cat": "throwables",
+   "price": 550,
+   "per": 1
+  },
+  {
+   "name": "Adrenaline Pen",
+   "cat": "medical",
+   "price": 250,
+   "per": 1
+  },
+  {
+   "name": "Bandage",
+   "cat": "medical",
+   "price": 200,
+   "per": 1
+  },
+  {
+   "name": "Defibrillator",
+   "cat": "medical",
+   "price": 1600,
+   "per": 1
+  },
+  {
+   "name": "Emergency Resuscitator",
+   "cat": "medical",
+   "price": 0,
+   "per": 1,
+   "free": true
+  },
+  {
+   "name": "Enox",
+   "cat": "medical",
+   "price": 450,
+   "per": 1
+  },
+  {
+   "name": "Field Resuscitator",
+   "cat": "medical",
+   "price": 500,
+   "per": 1
+  },
+  {
+   "name": "Individual First Aid Kit",
+   "cat": "medical",
+   "price": 800,
+   "per": 1
+  },
+  {
+   "name": "Medical Bag",
+   "cat": "medical",
+   "price": 2000,
+   "per": 1
+  },
+  {
+   "name": "Ammo Supply Pallet",
+   "cat": "storage",
+   "price": 400,
+   "per": 1
+  },
+  {
+   "name": "Arsenal Backpack + 2 Slings",
+   "cat": "storage",
+   "price": 5000,
+   "per": 1
+  },
+  {
+   "name": "Assault Backpack",
+   "cat": "storage",
+   "price": 1200,
+   "per": 1
+  },
+  {
+   "name": "Build Supply Pallet",
+   "cat": "storage",
+   "price": 400,
+   "per": 1
+  },
+  {
+   "name": "Field Backpack",
+   "cat": "storage",
+   "price": 650,
+   "per": 1
+  },
+  {
+   "name": "Fuel Supply Pallet",
+   "cat": "storage",
+   "price": 400,
+   "per": 1
+  },
+  {
+   "name": "Gunner Backpack + Sling",
+   "cat": "storage",
+   "price": 3500,
+   "per": 1
+  },
+  {
+   "name": "Halftrack Backpack",
+   "cat": "storage",
+   "price": 15000,
+   "per": 1
+  },
+  {
+   "name": "Large Armored Crate",
+   "cat": "storage",
+   "price": 800,
+   "per": 1
+  },
+  {
+   "name": "Large Crate",
+   "cat": "storage",
+   "price": 300,
+   "per": 1
+  },
+  {
+   "name": "Large Tac Vest",
+   "cat": "storage",
+   "price": 400,
+   "per": 1
+  },
+  {
+   "name": "Mechanical Supply Pallet",
+   "cat": "storage",
+   "price": 400,
+   "per": 1
+  },
+  {
+   "name": "Medium Backpack + Sling",
+   "cat": "storage",
+   "price": 1400,
+   "per": 1
+  },
+  {
+   "name": "Medium Tac Vest",
+   "cat": "storage",
+   "price": 250,
+   "per": 1
+  },
+  {
+   "name": "Operator Backpack",
+   "cat": "storage",
+   "price": 800,
+   "per": 1
+  },
+  {
+   "name": "Pouch",
+   "cat": "storage",
+   "price": 0,
+   "per": 1,
+   "free": true
+  },
+  {
+   "name": "Ruck Backpack",
+   "cat": "storage",
+   "price": 2400,
+   "per": 1
+  },
+  {
+   "name": "Scout Backpack",
+   "cat": "storage",
+   "price": 350,
+   "per": 1
+  },
+  {
+   "name": "Small Armored Crate",
+   "cat": "storage",
+   "price": 500,
+   "per": 1
+  },
+  {
+   "name": "Small Crate",
+   "cat": "storage",
+   "price": 150,
+   "per": 1
+  },
+  {
+   "name": "Small Tac Vest",
+   "cat": "storage",
+   "price": 100,
+   "per": 1
+  },
+  {
+   "name": "AH-6M [Miniguns]",
+   "cat": "vehicles",
+   "price": 7000,
+   "per": 1
+  },
+  {
+   "name": "AH-6R [Rockets]",
+   "cat": "vehicles",
+   "price": 12500,
+   "per": 1
+  },
+  {
+   "name": "Bobcat",
+   "cat": "vehicles",
+   "price": 500,
+   "per": 1
+  },
+  {
+   "name": "Dune Buggy",
+   "cat": "vehicles",
+   "price": 1500,
+   "per": 1
+  },
+  {
+   "name": "Flakpanzer Gepard",
+   "cat": "vehicles",
+   "price": 10000,
+   "per": 1
+  },
+  {
+   "name": "Havoc",
+   "cat": "vehicles",
+   "price": 18000,
+   "per": 1
+  },
+  {
+   "name": "Humvee",
+   "cat": "vehicles",
+   "price": 3000,
+   "per": 1
+  },
+  {
+   "name": "Humvee [M249]",
+   "cat": "vehicles",
+   "price": 3750,
+   "per": 1
+  },
+  {
+   "name": "Humvee [Minigun]",
+   "cat": "vehicles",
+   "price": 4500,
+   "per": 1
+  },
+  {
+   "name": "Kodiak",
+   "cat": "vehicles",
+   "price": 2500,
+   "per": 1
+  },
+  {
+   "name": "Kodiak [M249]",
+   "cat": "vehicles",
+   "price": 3750,
+   "per": 1
+  },
+  {
+   "name": "Kodiak [Pickup]",
+   "cat": "vehicles",
+   "price": 3000,
+   "per": 1
+  },
+  {
+   "name": "L2A6",
+   "cat": "vehicles",
+   "price": 14000,
+   "per": 1
+  },
+  {
+   "name": "M113 APC SV",
+   "cat": "vehicles",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": "MH-6",
+   "cat": "vehicles",
+   "price": 6250,
+   "per": 1
+  },
+  {
+   "name": "SPH-2",
+   "cat": "vehicles",
+   "price": 8000,
+   "per": 1
+  },
+  {
+   "name": "UH-1Y",
+   "cat": "vehicles",
+   "price": 7400,
+   "per": 1
+  },
+  {
+   "name": "UH-1Y [Miniguns]",
+   "cat": "vehicles",
+   "price": 8000,
+   "per": 1
+  },
+  {
+   "name": "Ural Defender",
+   "cat": "vehicles",
+   "price": 6000,
+   "per": 1
+  },
+  {
+   "name": "Ural Defender [M249]",
+   "cat": "vehicles",
+   "price": 6750,
+   "per": 1
+  },
+  {
+   "name": "2A42 Autocannon",
+   "cat": "mounted",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": "B-13 Rocket Pods",
+   "cat": "mounted",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": "Duel 35mm Oerlikon GDF Cannons",
+   "cat": "mounted",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": "Flares",
+   "cat": "mounted",
+   "price": 750,
+   "per": 1
+  },
+  {
+   "name": "L52 Cannon",
+   "cat": "mounted",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": "L55A1 Cannon",
+   "cat": "mounted",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": "L81 Mortar",
+   "cat": "mounted",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": "M134D Minigun",
+   "cat": "mounted",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": "M249 Machine Gun",
+   "cat": "mounted",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": "MG3A1 Coaxial Gun",
+   "cat": "mounted",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": "Stingray",
+   "cat": "mounted",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": "Talon 9K-SAM",
+   "cat": "mounted",
+   "price": null,
+   "per": 1
+  },
+  {
+   "name": "Vanguard CIWS",
+   "cat": "mounted",
+   "price": null,
+   "per": 1
+  }
+ ]
+}

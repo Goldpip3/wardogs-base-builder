@@ -14,6 +14,7 @@ const fs = require("fs");
 const path = require("path");
 
 const proj = path.resolve(__dirname, "..");
+const SITE = "https://www.wardogsbuilder.com";   // matches build-site.js
 const app = fs.readFileSync(path.join(proj, "docs/planner/index.html"), "utf8");
 const catalog = JSON.parse(fs.readFileSync(path.join(proj, "data/buildables.json"), "utf8"));
 
@@ -64,6 +65,22 @@ const check = (ok, label, detail) => {
   }
   check(broken.length === 0, `inline scripts parse on all ${pages.length} pages`,
     [...new Set(broken)].slice(0, 3).join(" | "));
+
+  /* -- 0c. every page meant to be found is in the sitemap --
+     The sitemap is a hand-kept list sitting next to a generator that already knows every
+     page it wrote, so adding a page and forgetting the list is a one-line mistake nobody
+     would notice. A page carrying noindex is opted out on purpose and does not count. */
+  const sitemap = fs.readFileSync(path.join(proj, "docs", "sitemap.xml"), "utf8");
+  const unlisted = [];
+  for (const p of pages) {
+    const s = fs.readFileSync(p, "utf8");
+    if (/name="robots" content="noindex/.test(s)) continue;
+    const rel = path.relative(path.join(proj, "docs"), p).replace(/\\/g, "/");
+    if (rel !== "index.html" && !rel.endsWith("/index.html")) continue;
+    const url = "/" + rel.replace(/index\.html$/, "");
+    if (!sitemap.includes("<loc>" + SITE + url + "</loc>")) unlisted.push(url);
+  }
+  check(unlisted.length === 0, "every indexable page is in the sitemap", unlisted.join(", "));
 }
 
 // -- 1. every element the script reaches for actually exists in the markup --
