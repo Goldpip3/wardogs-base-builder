@@ -176,6 +176,16 @@ const spread = (d, moa) => d * (moa / 60) * Math.PI / 180;
   }
   check(outside.length === 0, "every tower and spawn corner sits inside its map's bounds",
     outside.join(", "));
+
+  /* Every map is the same game coordinate space. artillery.json calls the terrain 163.84
+     units square and both terrains are calibrated into that one box. Ozeti shipped at
+     327.68 once, inferred from an unrelated w/h field on another site's map file, which
+     puts the grid and any terrain imagery at half scale: the kind of wrong that still
+     draws, so nothing complains and every reading is quietly out. */
+  const wrongExtent = M.maps.filter(m => m.extentUnits !== A.grid.extent);
+  check(wrongExtent.length === 0,
+    `every map uses the game's own ${A.grid.extent} unit coordinate space`,
+    wrongExtent.map(m => m.id + " says " + m.extentUnits).join(", "));
   check(/wardogs-artillery/.test(M.source || "") || /wardogs-artillery/.test(M._note || ""),
     "the map file names where its positions came from");
 

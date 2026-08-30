@@ -31,30 +31,35 @@ stores game units, metres divided by 100, so the page never converts.
 
 ## Terrain imagery
 
-The renderer for it is written, proven and dormant. No map carries a `tiles` block, so
-every map draws as vectors; add the block and imagery appears underneath them with no
-other change. `test/artillery.js` fails the build on a block that is incomplete or points
-at a pyramid that is not in `docs/`, because a tiled map that quietly lost its imagery
-looks exactly like a map that never had any.
+Both maps ship it, under `docs/maps/tiles/<id>/`. 1,365 tiles each, zoom 0 to 5, 32 MB for
+the pair. That is 8192 px across the 16.384 km terrain, so 2 m per pixel: roads, field
+parcels, the river and building footprints all read, which is what somebody needs to place
+themselves. Deeper zooms exist upstream and are not worth the bytes; past `maxZoom` the
+renderer scales the deepest tile rather than fetching more.
 
 ```
 "tiles": { "path": "/maps/tiles/bakurani", "tileSize": 256,
-           "minZoom": 0, "maxZoom": 5, "extension": "webp" }
+           "minZoom": 0, "maxZoom": 5, "extension": "webp",
+           "bounds": { "minX": -0.03, "maxX": 163.81,
+                       "minY": -0.01, "maxY": 163.83 } }
 ```
 
-Zoom Z is a `2^Z` square of tiles spanning the whole `extentUnits`, row 0 at the north
-edge, named `zoom_<z>/<x>_<y>.<extension>` under `docs/`. The renderer picks the zoom whose
-tile lands nearest `tileSize` on screen, so it neither blurs nor fetches detail nobody can
-see, and it was verified against a synthetic pyramid for orientation and zoom escalation.
+Zoom Z is a `2^Z` square of tiles spanning `bounds`, row 0 at the north edge, named
+`zoom_<z>/<x>_<y>.<extension>`. **`bounds` is the calibration box and is not the map
+extent**: the capture landed a few metres off the round number, and assuming `0..extent`
+puts the whole layer slightly askew. The renderer picks the zoom whose tile lands nearest
+`tileSize` on screen, so it neither blurs nor fetches detail nobody can see.
 
-**Where the imagery may come from is the open part, and it is not a code question.**
-The obvious pyramid to copy is the wrong one: wardogs-artillery.com is MIT for its *code*
-only, and `docs/legal.md` there carves the map imagery out explicitly, since it is
-BULKHEAD's and not that project's to pass on. Copying it would also be 2.2 GB and a
-maintainer's bandwidth. Two routes that do work: capture the map in game and tile it, which
-makes the imagery ours; or ask that maintainer directly, which is a Discord message and
-costs nothing. Whichever lands, keep the pyramid shallow: `maxZoom` 5 is 8192 px across and
-about 30 MB, and `docs/` is committed to git.
+The imagery is the game's own, on the same fan-use footing as the icons this project
+already ships, and re-encoded to lossy webp at quality 82, roughly a quarter of the
+lossless original with no visible loss at map scale. We host our own copy at our own depth
+rather than hotlinking anyone's server.
+
+Calibration was verified rather than assumed: the tile and pixel a tower's coordinate
+lands on were computed directly and the imagery cropped there, and Towers 1 and 4 each sit
+on a distinct structure. `test/artillery.js` fails the build on a `tiles` block that is
+incomplete or points at a pyramid missing from `docs/`, because a tiled map that quietly
+lost its imagery looks exactly like a map that never had any.
 
 ## Connected to
 

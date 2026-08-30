@@ -7,10 +7,10 @@ Last swept 2026-08-30.
 
 ## Start here if you are picking artillery back up
 
-`/artillery/` is now an interactive map calculator: Bakurani and Ozeti drawn as vector maps
-from [objects/data/artillery-maps.md](objects/data/artillery-maps.md), gun and target
-placed by click or typed coordinate, range rings for the reach, and a solution that reports
-both SPH-2 arcs where both reach. The SPH-2 elevation tables were transcribed on 2026-08-30
+`/artillery/` is now an interactive map calculator: Bakurani and Ozeti over real terrain
+imagery from [objects/data/artillery-maps.md](objects/data/artillery-maps.md), gun and
+target placed by click or typed coordinate, range rings for the reach, and a solution that
+reports both SPH-2 arcs where both reach. The SPH-2 elevation tables were transcribed on 2026-08-30
 from wardogs-artillery.com, the one source publishing the complete curve, and are marked
 unfired. The URL fragment carries map, weapon and both points, so a solution is a link.
 
@@ -27,6 +27,25 @@ plan's footprint on the artillery map, so a design's own mortar gets its reach d
 real terrain. That is the join between the planner and this page, and it is one confirmed
 number away.
 
+## Ballistics is now a calculator, and it has one hole worth closing
+
+`/ballistics/` is the damage calculator and the ranking on one page: pick a weapon, a load,
+a helmet tier, a vest tier and a hit zone on a clickable figure, and every weapon in the
+game re-sorts underneath to match. The URL fragment carries the setup, so a comparison is a
+link. Read [derived-data](objects/data/derived-data.md), then `docs/ballistics-sources.md`.
+
+**The one thing to close with the game open: what flesh damage does to an unarmoured zone.**
+Every armour figure for HP is published and used. Its bare-flesh damage is published
+nowhere, so the page uses the standard figure and calls it a floor in three places. The
+vendor charges $7.00 a round for .308 HP against $4.00 for standard, so the real number is
+higher and nobody knows by how much. One magazine into an unarmoured target, counting hits,
+closes it. It is the largest wrong number on the site and it is wrong in a knowable
+direction.
+
+Six weapons and seven loads are on the vendor shelf with no damage figure and are listed on
+the page as gaps rather than dropped. `test/ballistics.js` fails if a new one appears in
+the armory and is neither ranked nor excused.
+
 ## Waiting on Early Access, 10 September 2026
 
 Everything below is a number read off a closed beta. It all wants re-checking that week, and
@@ -34,25 +53,11 @@ the tools exist so that it is a data job rather than a rebuild.
 
 | Area | What changes | Where |
 |---|---|---|
-| ballistics | range falloff and the torso zone multiplier are unsolved and documented as such | `docs/ballistics-sources.md`, [derived-data](objects/data/derived-data.md) |
+| ballistics | three holes, all listed on the page: what flesh damage does to bare flesh, range falloff, and the torso zone multiplier | `docs/ballistics-sources.md`, [derived-data](objects/data/derived-data.md) |
 | armory | 38 of 331 items have no confirmed price | `tools/build-armory.js` |
 | artillery | the contested mortar range settles with one shot | `data/artillery.json` |
 | buildables | costs and sizes marked `costConfirmed: false` / `sizeConfirmed: false` | `data/buildables.json` |
 | the planner | `buildRadiusUnits: 100` is `radiusConfirmed: false`, which is what blocks range rings on the plan | `data/buildables.json` |
-
-## The artillery map has no terrain under it, and that is a sourcing decision
-
-The map draws bounds, towers and spawn zones, which is not enough to locate yourself. The
-tile renderer that fixes it **is written, proven and dormant**: add a `tiles` block to a map
-in `data/artillery-maps.json` and imagery appears under the vectors with no other change.
-See [objects/data/artillery-maps.md](objects/data/artillery-maps.md) for the shape.
-
-What is missing is imagery this project may publish, and the nearest pyramid is the wrong
-one. wardogs-artillery.com is MIT for its code only; its own `docs/legal.md` carves out
-"WARDOGS game assets, map imagery, icons, textures" as not covered and not theirs to pass
-on. It is also 2.2 GB. Two routes work: capture the map in game and tile it, or ask that
-maintainer, who is reachable on Discord and already partners with wardogshub. Keep any
-pyramid to `maxZoom` 5, about 30 MB, because `docs/` is committed to git.
 
 ## Needs a decision, not a discovery
 

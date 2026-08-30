@@ -159,7 +159,8 @@ module.exports = ctx => {
         return '<a href="' + esc(s.url) + '" rel="nofollow noopener">' + esc(s.name) + "</a>";
       }).join(", ") + ". The mortar table is MIT licensed and used with attribution; the" +
       " SPH-2 tables and map positions are transcribed from wardogs-artillery.com with" +
-      " attribution.</p>" +
+      " attribution. Terrain imagery is from WARDOGS and remains the property of" +
+      " BULKHEAD; this is an unofficial fan project and claims no ownership of it.</p>" +
       "</div>" +
 
       (mortarDef ? '<p style="margin-top:34px">The ' + esc(mortarDef.name) +

@@ -197,9 +197,15 @@ function fit(){
    the zoom whose tile is nearest tileSize on screen keeps the imagery near 1:1, so it
    neither blurs nor downloads detail that cannot be seen. */
 var TILE={}, TILEBAD={};
+/* A pyramid is calibrated to a box in game coordinates, which is not exactly the map
+   extent: the imagery was captured against its own edges and lands a few metres off the
+   round number. Without bounds the whole layer sits skewed, so it is carried per map and
+   falls back to the extent only when absent. */
+function tileBox(){
+ return map.tiles.bounds||{minX:0,maxX:map.extent,minY:0,maxY:map.extent};}
 function tileZoomFor(){
- var t=map.tiles;
- var z=Math.round(Math.log(map.extent*cam.k/t.tileSize)/Math.LN2);
+ var t=map.tiles, tb=tileBox();
+ var z=Math.round(Math.log((tb.maxX-tb.minX)*cam.k/t.tileSize)/Math.LN2);
  return Math.max(t.minZoom,Math.min(t.maxZoom,z));}
 function getTile(z,x,y){
  var key=map.id+":"+z+":"+x+":"+y;
@@ -214,19 +220,21 @@ function getTile(z,x,y){
  return null;}
 function drawTiles(){
  if(!map.tiles)return;
- var z=tileZoomFor(), n=Math.pow(2,z), span=map.extent/n;
+ var tb=tileBox();
+ var z=tileZoomFor(), n=Math.pow(2,z);
+ var sx=(tb.maxX-tb.minX)/n, sy=(tb.maxY-tb.minY)/n;
  var w=canvas.clientWidth,h=canvas.clientHeight;
- var x0=Math.max(0,Math.floor(s2wX(0)/span));
- var x1=Math.min(n-1,Math.floor(s2wX(w)/span));
+ var x0=Math.max(0,Math.floor((s2wX(0)-tb.minX)/sx));
+ var x1=Math.min(n-1,Math.floor((s2wX(w)-tb.minX)/sx));
  /* tile rows count south from the north edge, world y counts north */
- var y0=Math.max(0,Math.floor((map.extent-s2wY(0))/span));
- var y1=Math.min(n-1,Math.floor((map.extent-s2wY(h))/span));
+ var y0=Math.max(0,Math.floor((tb.maxY-s2wY(0))/sy));
+ var y1=Math.min(n-1,Math.floor((tb.maxY-s2wY(h))/sy));
  for(var x=x0;x<=x1;x++)for(var y=y0;y<=y1;y++){
   var img=getTile(z,x,y);
   if(!img)continue;
   /* +1 closes the hairline seam that rounding leaves between neighbours */
-  g2.drawImage(img,w2sX(x*span),w2sY(map.extent-y*span),
-   span*cam.k+1,span*cam.k+1);}}
+  g2.drawImage(img,w2sX(tb.minX+x*sx),w2sY(tb.maxY-y*sy),
+   sx*cam.k+1,sy*cam.k+1);}}
 
 /* ---------- drawing ---------- */
 function ring(x,y,rUnits,color,width,dash){

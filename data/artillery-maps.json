@@ -1,6 +1,6 @@
 {
  "_note": "The two terrains, in the game's own X/Y where one unit is 100 m and Y counts north. Everything here is a measured position transcribed from wardogs-artillery.com, which calibrated its maps against in-game coordinates. Positions are the facts; the drawing is ours.",
- "_tiles": "A map may carry an optional tiles block and the page will draw terrain imagery under the vectors. Shape: { path, tileSize, minZoom, maxZoom, extension }, where path is site-absolute and zoom Z is a 2^Z square of tiles spanning extentUnits, row 0 being the north edge, named zoom_<z>/<x>_<y>.<extension>. The renderer is written and proven against a synthetic pyramid; no map carries the block yet because no imagery exists that this project is entitled to publish. See map/objects/data/artillery-maps.md for how to produce one.",
+ "_tiles": "The tiles block draws terrain imagery under the vectors. Shape: { path, tileSize, minZoom, maxZoom, extension, bounds }, where path is site-absolute and zoom Z is a 2^Z square of tiles spanning bounds, row 0 being the north edge, named zoom_<z>/<x>_<y>.<extension>. bounds is the calibration box in game coordinates and is not exactly the map extent, because the capture landed a few metres off the round number. Imagery is the game's own, re-encoded to lossy webp and cut to zoom 5, which is 2 m per pixel and 32 MB for both maps. We host our own copy rather than hotlink anyone.",
  "checkedOn": "2026-08-30",
  "source": "wardogs-artillery.com",
  "maps": [
@@ -9,6 +9,11 @@
    "name": "Bakurani",
    "extentUnits": 163.84,
    "bounds": { "minX": 23.35, "maxX": 133.6, "minY": 19.34, "maxY": 129.65 },
+   "tiles": {
+    "path": "/maps/tiles/bakurani", "tileSize": 256, "minZoom": 0, "maxZoom": 5,
+    "extension": "webp",
+    "bounds": { "minX": -0.03, "maxX": 163.81, "minY": -0.01, "maxY": 163.83 }
+   },
    "towers": [
     { "label": "Tower 1", "x": 80.52, "y": 69.85 },
     { "label": "Tower 2", "x": 77.19, "y": 70.0 },
@@ -43,8 +48,13 @@
   {
    "id": "ozeti",
    "name": "Ozeti",
-   "extentUnits": 327.68,
+   "extentUnits": 163.84,
    "bounds": { "minX": 57.58, "maxX": 143.07, "minY": 21.81, "maxY": 99.56 },
+   "tiles": {
+    "path": "/maps/tiles/ozeti", "tileSize": 256, "minZoom": 0, "maxZoom": 5,
+    "extension": "webp",
+    "bounds": { "minX": -0.03, "maxX": 163.81, "minY": -0.01, "maxY": 163.83 }
+   },
    "towers": [
     { "label": "Tower 1", "x": 95.8, "y": 62.82 },
     { "label": "Tower 2", "x": 100.37, "y": 59.23 },
