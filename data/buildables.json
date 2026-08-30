@@ -583,5 +583,14 @@
     "stacking": "Hescos and most pieces stack for multi-level builds; stack height limit exists ('exceeds stack limit'). Gates ground-only; Bremer walls cannot be built upon; recon towers cannot stack.",
     "vaulting": "Waist-height items (sandbag, small hesco) are vaultable; plan anti-vault layers (tall hesco + bremer on top).",
     "economy": "Building earns cash + Support XP. Supplies must be trucked/flown from HQ as pallets and unloaded into the FOB."
+  },
+  "ads": {
+    "network": "adsense",
+    "publisherId": "",
+    "note": "Put your AdSense publisher id here (the ca-pub-… string) once the account is approved. While it is empty no ad code is emitted at all, and the planner never carries ads either way - it has to keep working offline.",
+    "slots": {
+      "leaderboard": "",
+      "inArticle": ""
+    }
   }
 }

@@ -13,6 +13,7 @@ const DOCS = path.join(ROOT, "docs");
 const SITE = "https://www.wardogsbuilder.com";
 const catalog = JSON.parse(fs.readFileSync(path.join(ROOT, "data/buildables.json"), "utf8"));
 
+
 const byId = {};
 for (const b of catalog.buildables) byId[b.id] = b;
 byId["__fob__"] = { id: "__fob__", name: "FOB", footprint: catalog.fob.footprint,
@@ -21,6 +22,29 @@ byId["__fob__"] = { id: "__fob__", name: "FOB", footprint: catalog.fob.footprint
 
 const esc = s => String(s).replace(/[&<>"']/g, c =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+/* ---------- ads ----------
+   Ads run on the content pages only. The planner is the thing people actually came for
+   and it has to keep working with no network, so it never gets ad code — the
+   "no external resource loads" check in tools/check-build.js enforces that.
+   With no publisher id configured nothing at all is emitted: no script tag, no slot,
+   no reserved space. Fill in data/buildables.json -> ads.publisherId to switch it on. */
+const ADS = catalog.ads || {};
+const adsOn = !!(ADS.publisherId || "").trim();
+const adScript = adsOn
+  ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${esc(ADS.publisherId)}" crossorigin="anonymous"></script>`
+  : "";
+function adSlot(which) {
+  const slot = (ADS.slots || {})[which] || "";
+  if (!adsOn || !slot) return "";
+  // reserve the height up front so an arriving ad can't shove the article down the page
+  const h = which === "leaderboard" ? 90 : 280;
+  return `<div class="ad-slot" style="min-height:${h}px">
+  <ins class="adsbygoogle" style="display:block" data-ad-client="${esc(ADS.publisherId)}"
+       data-ad-slot="${esc(slot)}" data-ad-format="auto" data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+</div>`;
+}
 
 /* ---------- share codes: identical encoding to the planner ---------- */
 function encodeDesign(d) {
@@ -291,6 +315,12 @@ const GUIDES = [
 
 /* ---------- shared page shell ---------- */
 const CSS = `
+/* An ad has to look like an ad and sit outside the content, never dressed as a result. */
+.ad-slot{margin:26px 0;padding:8px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  text-align:center;overflow:hidden}
+.ad-slot::before{content:"Advertisement";display:block;font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--dim);margin-bottom:6px}
+
 :root{--bg:#12140d;--panel:#1a1d13;--panel2:#232719;--border:#353c23;--soft:#2a3019;
 --text:#dedbc6;--dim:#8d8d74;--accent:#dcaa26;--ink:#17180f;--good:#86ad55;--bad:#d4553a;
 --ui:"Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,sans-serif;
@@ -370,6 +400,7 @@ function page({ title, desc, canonical, body, ogImage = "/preview.png" }) {
 <meta name="twitter:image" content="${SITE}${ogImage}">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%2312140d'/><rect x='6' y='14' width='20' height='12' rx='2' fill='%23dcaa26'/><rect x='11' y='8' width='10' height='7' rx='2' fill='%2386ad55'/></svg>">
 <style>${CSS}</style>
+${adScript}
 </head>
 <body>
 <header class="site"><div class="wrap">
@@ -382,6 +413,7 @@ function page({ title, desc, canonical, body, ogImage = "/preview.png" }) {
   </nav>
 </div></header>
 ${body}
+${adSlot("leaderboard") ? `<div class="wrap">${adSlot("leaderboard")}</div>` : ""}
 <footer class="site"><div class="wrap">
   <span>Free fan-made planner for WARDOGS. Not affiliated with BULKHEAD or Team17.</span>
   <a href="/planner/">Planner</a><a href="/designs/">Designs</a>

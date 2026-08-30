@@ -17,6 +17,12 @@
 <meta name="twitter:image" content="https://www.wardogsbuilder.com/preview.png">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%2312140d'/><rect x='6' y='14' width='20' height='12' rx='2' fill='%23dcaa26'/><rect x='11' y='8' width='10' height='7' rx='2' fill='%2386ad55'/></svg>">
 <style>
+/* An ad has to look like an ad and sit outside the content, never dressed as a result. */
+.ad-slot{margin:26px 0;padding:8px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  text-align:center;overflow:hidden}
+.ad-slot::before{content:"Advertisement";display:block;font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--dim);margin-bottom:6px}
+
 :root{--bg:#12140d;--panel:#1a1d13;--panel2:#232719;--border:#353c23;--soft:#2a3019;
 --text:#dedbc6;--dim:#8d8d74;--accent:#dcaa26;--ink:#17180f;--good:#86ad55;--bad:#d4553a;
 --ui:"Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,sans-serif;
@@ -75,6 +81,7 @@ footer.site a{color:var(--dim)}
 ul,ol{padding-left:20px}li{margin:5px 0}
 @media(max-width:640px){h1{font-size:26px}.hero{padding:40px 0 30px}header.site .wrap{height:auto;padding-top:12px;padding-bottom:12px}}
 </style>
+
 </head>
 <body>
 <header class="site"><div class="wrap">
@@ -110,6 +117,7 @@ ul,ol{padding-left:20px}li{margin:5px 0}
       all.</p>
   <p style="margin-top:28px"><a class="btn" href="/planner/">Open the planner</a></p>
 </div></section>
+
 <footer class="site"><div class="wrap">
   <span>Free fan-made planner for WARDOGS. Not affiliated with BULKHEAD or Team17.</span>
   <a href="/planner/">Planner</a><a href="/designs/">Designs</a>
