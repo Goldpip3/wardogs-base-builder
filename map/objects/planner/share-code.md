@@ -42,17 +42,24 @@ parity checked at the end of `test/share-links.js`.
 
 - **owns:** `#d=` links, the Copy link button, every community design page
 - **joins:** [planner-app](planner-app.md), [site-context](../site/site-context.md),
-  [vote-worker](../service/vote-worker.md), which stores codes but never parses them
+  [vote-worker](../service/vote-worker.md), which never *decodes* a code but does validate
+  its alphabet, so a change to the character set is a worker change and a worker deploy
 - **looks-like-but-is-not:** the cloud save. That stores the same code against an account;
   it is transport, not a second format.
 
 ## If you change this
 
-- **Hits:** *both* encoders, always, in the same change. Then every share link ever
-  published, unless `v` is bumped and the decoder keeps reading `v: 1`. Then
-  `data/community.json`, whose stored codes were produced by the old encoder.
-- **Does not hit:** the worker. It treats a code as an opaque string and never decodes one,
-  so a format change needs no deploy.
+- **Hits:** four places, and the count is the point. Both encoders, in the same change. The
+  hash regex in the planner, which matches the code out of the URL and will silently see no
+  link at all if the character set grew. The worker's validator, which checks the alphabet
+  and rejects anything outside it, **and therefore needs `wrangler deploy`**. Then every
+  share link ever published, unless the decoder keeps reading v1, and `data/community.json`,
+  whose stored codes came from the old encoder.
+- **Does not hit:** nothing worth listing. This card used to say "does not hit the worker,
+  it treats a code as an opaque string, so a format change needs no deploy". That was true
+  until v2 added a leading `~` outside the base64url alphabet, and it was wrong in the most
+  expensive direction: it read as permission to skip the one place that then rejected every
+  save on the site. A "does not hit" is a claim, not a shrug, and this one was not checked.
 
 ## Surfaces
 
@@ -60,7 +67,7 @@ parity checked at the end of `test/share-links.js`.
 |---|---|
 | players | read and write, by pasting links |
 | `tools/site/context.js` | writes, for community pages |
-| `worker/vote-worker.js` | stores, never parses |
+| `worker/vote-worker.js` | validates the alphabet and length, stores, never decodes |
 
 ## See
 
