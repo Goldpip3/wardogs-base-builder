@@ -178,6 +178,30 @@ const spread = (d, moa) => d * (moa / 60) * Math.PI / 180;
     outside.join(", "));
   check(/wardogs-artillery/.test(M.source || "") || /wardogs-artillery/.test(M._note || ""),
     "the map file names where its positions came from");
+
+  /* Terrain imagery is optional and no map carries it yet. The renderer is proven and
+     dormant, so the failure this guards is the drop-in going wrong quietly: a tiles block
+     missing a field draws nothing at all, and a vector map that lost its imagery looks
+     exactly like a vector map that never had any. */
+  const withTiles = M.maps.filter(m => m.tiles);
+  const badTiles = [];
+  for (const m of withTiles) {
+    const t = m.tiles;
+    for (const k of ["path", "tileSize", "minZoom", "maxZoom", "extension"])
+      if (t[k] === undefined || t[k] === null || t[k] === "") badTiles.push(m.id + " has no " + k);
+    if (typeof t.path === "string" && !t.path.startsWith("/"))
+      badTiles.push(m.id + " tile path is not site absolute");
+    if (typeof t.extension === "string" && t.extension.startsWith("."))
+      badTiles.push(m.id + " tile extension carries its own dot");
+    if (Number(t.maxZoom) < Number(t.minZoom)) badTiles.push(m.id + " zoom range is inverted");
+    const dir = path.join(ROOT, "docs", String(t.path || "").replace(/^\//, ""));
+    if (!fs.existsSync(dir)) badTiles.push(m.id + " tile path is not in docs/: " + t.path);
+  }
+  check(badTiles.length === 0,
+    withTiles.length
+      ? `all ${withTiles.length} tiled map(s) declare a complete, present pyramid`
+      : "no map claims terrain imagery yet, and the renderer stays dormant",
+    badTiles.join(", "));
 }
 
 /* --- an open question that does not say how to close it is just a complaint ---

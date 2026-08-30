@@ -26,7 +26,7 @@ module.exports = ctx => {
 
   const maps = ARTILLERY_MAPS.maps.map(m => ({
     id: m.id, name: m.name, extent: m.extentUnits, bounds: m.bounds,
-    towers: m.towers, spawns: m.spawns,
+    towers: m.towers, spawns: m.spawns, tiles: m.tiles || null,
   }));
 
   const html =
@@ -187,6 +187,47 @@ function fit(){
  cam.k=Math.min(w/(b.maxX-b.minX+8),h/(b.maxY-b.minY+8));
  draw();}
 
+/* ---------- terrain tiles ----------
+   Optional, and absent ships a vector map rather than a broken one. A map gains imagery
+   by getting a tiles block in data/artillery-maps.json and a pyramid under docs/; until
+   then every draw below runs unchanged.
+
+   The scheme is the ordinary one: zoom Z is a 2^Z square of tiles spanning the map's
+   whole extent, so a tile covers extent/2^Z units and row 0 is the north edge. Choosing
+   the zoom whose tile is nearest tileSize on screen keeps the imagery near 1:1, so it
+   neither blurs nor downloads detail that cannot be seen. */
+var TILE={}, TILEBAD={};
+function tileZoomFor(){
+ var t=map.tiles;
+ var z=Math.round(Math.log(map.extent*cam.k/t.tileSize)/Math.LN2);
+ return Math.max(t.minZoom,Math.min(t.maxZoom,z));}
+function getTile(z,x,y){
+ var key=map.id+":"+z+":"+x+":"+y;
+ if(TILEBAD[key])return null;
+ var img=TILE[key];
+ if(img)return (img.complete&&img.naturalWidth)?img:null;
+ img=new Image();
+ img.onload=function(){draw();};
+ img.onerror=function(){TILEBAD[key]=true;};
+ img.src=map.tiles.path+"/zoom_"+z+"/"+x+"_"+y+"."+map.tiles.extension;
+ TILE[key]=img;
+ return null;}
+function drawTiles(){
+ if(!map.tiles)return;
+ var z=tileZoomFor(), n=Math.pow(2,z), span=map.extent/n;
+ var w=canvas.clientWidth,h=canvas.clientHeight;
+ var x0=Math.max(0,Math.floor(s2wX(0)/span));
+ var x1=Math.min(n-1,Math.floor(s2wX(w)/span));
+ /* tile rows count south from the north edge, world y counts north */
+ var y0=Math.max(0,Math.floor((map.extent-s2wY(0))/span));
+ var y1=Math.min(n-1,Math.floor((map.extent-s2wY(h))/span));
+ for(var x=x0;x<=x1;x++)for(var y=y0;y<=y1;y++){
+  var img=getTile(z,x,y);
+  if(!img)continue;
+  /* +1 closes the hairline seam that rounding leaves between neighbours */
+  g2.drawImage(img,w2sX(x*span),w2sY(map.extent-y*span),
+   span*cam.k+1,span*cam.k+1);}}
+
 /* ---------- drawing ---------- */
 function ring(x,y,rUnits,color,width,dash){
  g2.beginPath();g2.arc(w2sX(x),w2sY(y),rUnits*cam.k,0,Math.PI*2);
@@ -197,8 +238,13 @@ function draw(){
  g2.clearRect(0,0,w,h);
  g2.fillStyle="#0a0a0a";g2.fillRect(0,0,w,h);
  var b=map.bounds;
- g2.fillStyle="#121212";
- g2.fillRect(w2sX(b.minX),w2sY(b.maxY),(b.maxX-b.minX)*cam.k,(b.maxY-b.minY)*cam.k);
+ if(map.tiles)drawTiles();
+ else{
+  g2.fillStyle="#121212";
+  g2.fillRect(w2sX(b.minX),w2sY(b.maxY),(b.maxX-b.minX)*cam.k,(b.maxY-b.minY)*cam.k);}
+ /* the grid has to stay legible over imagery without hiding it */
+ var gridMajor=map.tiles?"rgba(255,247,234,.28)":"#242424";
+ var gridMinor=map.tiles?"rgba(255,247,234,.12)":"#181818";
  /* grid: a major line every 10 units is a kilometre, a minor every unit is 100 m */
  var x0=Math.floor(s2wX(0)),x1=Math.ceil(s2wX(w)),y0=Math.floor(s2wY(h)),y1=Math.ceil(s2wY(0));
  x0=Math.max(x0,0);y0=Math.max(y0,0);
@@ -207,14 +253,14 @@ function draw(){
  for(var x=x0;x<=x1;x++){
   var major=x%10===0;
   if(!major&&cam.k<14)continue;
-  g2.strokeStyle=major?"#242424":"#181818";g2.lineWidth=1;
+  g2.strokeStyle=major?gridMajor:gridMinor;g2.lineWidth=1;
   g2.beginPath();g2.moveTo(w2sX(x),0);g2.lineTo(w2sX(x),h);g2.stroke();
   if(major){g2.fillStyle="rgba(255,247,234,.35)";
    g2.fillText(x.toFixed(0),w2sX(x)+3,h-6);}}
  for(var y=y0;y<=y1;y++){
   var majorY=y%10===0;
   if(!majorY&&cam.k<14)continue;
-  g2.strokeStyle=majorY?"#242424":"#181818";g2.lineWidth=1;
+  g2.strokeStyle=majorY?gridMajor:gridMinor;g2.lineWidth=1;
   g2.beginPath();g2.moveTo(0,w2sY(y));g2.lineTo(w,w2sY(y));g2.stroke();
   if(majorY){g2.fillStyle="rgba(255,247,234,.35)";
    g2.fillText(y.toFixed(0),4,w2sY(y)-3);}}

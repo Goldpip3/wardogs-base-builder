@@ -25,9 +25,36 @@ stores game units, metres divided by 100, so the page never converts.
 ## Shape
 
 - `maps[]`: `id`, `name`, `extentUnits`, `bounds` (the playable rectangle), `towers[]`,
-  `spawns[]` as labelled polygons
+  `spawns[]` as labelled polygons, and an optional `tiles`
 - Bakurani's `bounds` and `grid.playableX/Y` in `data/artillery.json` are the same numbers
   by design; `test/artillery.js` keeps every position inside its own bounds
+
+## Terrain imagery
+
+The renderer for it is written, proven and dormant. No map carries a `tiles` block, so
+every map draws as vectors; add the block and imagery appears underneath them with no
+other change. `test/artillery.js` fails the build on a block that is incomplete or points
+at a pyramid that is not in `docs/`, because a tiled map that quietly lost its imagery
+looks exactly like a map that never had any.
+
+```
+"tiles": { "path": "/maps/tiles/bakurani", "tileSize": 256,
+           "minZoom": 0, "maxZoom": 5, "extension": "webp" }
+```
+
+Zoom Z is a `2^Z` square of tiles spanning the whole `extentUnits`, row 0 at the north
+edge, named `zoom_<z>/<x>_<y>.<extension>` under `docs/`. The renderer picks the zoom whose
+tile lands nearest `tileSize` on screen, so it neither blurs nor fetches detail nobody can
+see, and it was verified against a synthetic pyramid for orientation and zoom escalation.
+
+**Where the imagery may come from is the open part, and it is not a code question.**
+The obvious pyramid to copy is the wrong one: wardogs-artillery.com is MIT for its *code*
+only, and `docs/legal.md` there carves the map imagery out explicitly, since it is
+BULKHEAD's and not that project's to pass on. Copying it would also be 2.2 GB and a
+maintainer's bandwidth. Two routes that do work: capture the map in game and tile it, which
+makes the imagery ours; or ask that maintainer directly, which is a Discord message and
+costs nothing. Whichever lands, keep the pyramid shallow: `maxZoom` 5 is 8192 px across and
+about 30 MB, and `docs/` is committed to git.
 
 ## Connected to
 
@@ -48,6 +75,7 @@ stores game units, metres divided by 100, so the page never converts.
 | `tools/site/artillery-map.js` | reads, draws |
 | `test/artillery.js` | checks |
 | a human with wardogs-artillery.com open | writes |
+| a human with the game open, or a maintainer's permission | supplies the imagery |
 
 ## See
 

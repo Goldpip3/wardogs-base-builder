@@ -40,6 +40,20 @@ the tools exist so that it is a data job rather than a rebuild.
 | buildables | costs and sizes marked `costConfirmed: false` / `sizeConfirmed: false` | `data/buildables.json` |
 | the planner | `buildRadiusUnits: 100` is `radiusConfirmed: false`, which is what blocks range rings on the plan | `data/buildables.json` |
 
+## The artillery map has no terrain under it, and that is a sourcing decision
+
+The map draws bounds, towers and spawn zones, which is not enough to locate yourself. The
+tile renderer that fixes it **is written, proven and dormant**: add a `tiles` block to a map
+in `data/artillery-maps.json` and imagery appears under the vectors with no other change.
+See [objects/data/artillery-maps.md](objects/data/artillery-maps.md) for the shape.
+
+What is missing is imagery this project may publish, and the nearest pyramid is the wrong
+one. wardogs-artillery.com is MIT for its code only; its own `docs/legal.md` carves out
+"WARDOGS game assets, map imagery, icons, textures" as not covered and not theirs to pass
+on. It is also 2.2 GB. Two routes work: capture the map in game and tile it, or ask that
+maintainer, who is reachable on Discord and already partners with wardogshub. Keep any
+pyramid to `maxZoom` 5, about 30 MB, because `docs/` is committed to git.
+
 ## Needs a decision, not a discovery
 
 - **Ko-fi handle.** `support.url` in `data/buildables.json` is unset, so the tip button does

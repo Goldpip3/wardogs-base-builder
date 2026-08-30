@@ -1,5 +1,6 @@
 {
- "_note": "The two terrains, in the game's own X/Y where one unit is 100 m and Y counts north. Everything here is a measured position transcribed from wardogs-artillery.com, which calibrated its maps against in-game coordinates. Nothing is drawn from imagery: the planner has no business shipping another site's tiles, so the page renders these numbers as a vector map. Positions are the facts; the drawing is ours.",
+ "_note": "The two terrains, in the game's own X/Y where one unit is 100 m and Y counts north. Everything here is a measured position transcribed from wardogs-artillery.com, which calibrated its maps against in-game coordinates. Positions are the facts; the drawing is ours.",
+ "_tiles": "A map may carry an optional tiles block and the page will draw terrain imagery under the vectors. Shape: { path, tileSize, minZoom, maxZoom, extension }, where path is site-absolute and zoom Z is a 2^Z square of tiles spanning extentUnits, row 0 being the north edge, named zoom_<z>/<x>_<y>.<extension>. The renderer is written and proven against a synthetic pyramid; no map carries the block yet because no imagery exists that this project is entitled to publish. See map/objects/data/artillery-maps.md for how to produce one.",
  "checkedOn": "2026-08-30",
  "source": "wardogs-artillery.com",
  "maps": [
