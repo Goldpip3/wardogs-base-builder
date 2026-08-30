@@ -1601,6 +1601,27 @@ function drawNow() {
      draws last, so one piece's height falls behind its neighbour instead of across it.
      Same painter's order the 3D view uses, for the same reason. */
   visible.sort((a, b) => (a.level || 0) - (b.level || 0) || (a.x + a.y) - (b.x + b.y));
+
+  /* Anything off the ground drops a shadow onto the storey under it. This is the one cue
+     that is allowed outside a piece's own footprint, because that is what a shadow is, so
+     it runs as its own pass before any body is drawn. Nothing can land on top of a
+     neighbour, however tall the stack or whatever order the pieces come in. */
+  for (const p of visible) {
+    const lvl = p.level || 0;
+    if (!lvl || (viewLevel !== null && lvl !== viewLevel)) continue;
+    const def = byId[p.type]; if (!def) continue;
+    const pr = pieceRect(p);
+    const [px, py] = toScreen(pr.cx, pr.cy);
+    const off = Math.min(0.13 * view.zoom * lvl, 20 * uiScale);
+    ctx.save();
+    ctx.translate(px + off, py + off);
+    ctx.rotate(pr.rot);
+    ctx.fillStyle = "rgba(0,0,0,.34)";
+    ctx.fillRect(-pr.w * view.zoom / 2, -pr.h * view.zoom / 2,
+                 pr.w * view.zoom, pr.h * view.zoom);
+    ctx.restore();
+  }
+
   for (const p of visible) drawPiece(p, issueIds.has(p.id));
   lastDrawn = visible.length;
 
@@ -1676,46 +1697,40 @@ function drawRect(r, def, opt) {
   const base = pieceColor(def);
   const fade = opt.alpha === undefined ? 1 : opt.alpha;
 
-  // Height reads as an extrusion toward the bottom-right. The taller the piece and the
-  // higher it is stacked, the further it rises off the plan. A 1-block sandbag stays flat,
-  // a 5-block tower visibly stands up.
-  /* Height is drawn as the two sides you would actually see on a block lifted off the
-     plan: the far edges extruded down and right, with their own outline. The old version
-     was a translucent copy of the shape sitting behind it, which read as a drop shadow
-     rather than as something standing up. */
-  const topBlocks = (opt.level || 0) + (def.height || 1);
-  if (!opt.ghost && fade === 1 && topBlocks > 1 && Math.min(w, h) > 7) {
-    /* This offset used to be a flat 2px per block whatever the zoom, so a piece three
-       storeys up looked six pixels different from one on the ground however far you
-       zoomed in, and every stack read as the same height. Tie it to the cell size
-       instead: a floor so it survives zooming out, a ceiling so a five-storey tower
-       does not smear across half the plan. */
-    const off = Math.max(2.5 * uiScale, Math.min(0.4 * z * topBlocks, 44 * uiScale));
-    const bl = opt.seams ? 0.5 * uiScale : 0;
-    const L = -w/2 - (opt.seams & 2 ? bl : 0), R = w/2 + (opt.seams & 1 ? bl : 0);
-    const T = -h/2 - (opt.seams & 8 ? bl : 0), B = h/2 + (opt.seams & 4 ? bl : 0);
-    ctx.save();
-    ctx.translate(sx, sy);
-    ctx.rotate(r.rot);
-    ctx.fillStyle = shade(base, -46);
-    ctx.beginPath();                                   // the face below
-    ctx.moveTo(L, B); ctx.lineTo(R, B);
-    ctx.lineTo(R + off, B + off); ctx.lineTo(L + off, B + off);
-    ctx.closePath(); ctx.fill();
-    ctx.fillStyle = shade(base, -64);
-    ctx.beginPath();                                   // the face to the right
-    ctx.moveTo(R, T); ctx.lineTo(R, B);
-    ctx.lineTo(R + off, B + off); ctx.lineTo(R + off, T + off);
-    ctx.closePath(); ctx.fill();
-    ctx.strokeStyle = shade(base, -72);
-    ctx.lineWidth = uiScale;
-    ctx.beginPath();
-    ctx.moveTo(L, B); ctx.lineTo(L + off, B + off);
-    ctx.moveTo(R, T); ctx.lineTo(R + off, T + off);
-    ctx.moveTo(L + off, B + off); ctx.lineTo(R + off, B + off); ctx.lineTo(R + off, T + off);
-    ctx.stroke();
-    ctx.restore();
-  }
+  /* Height used to be drawn as an extrusion toward the bottom-right. It was wrong in two
+     ways that only showed up on a real base.
+
+     It drew a riser at each piece's own corners whatever its neighbours were doing, so a
+     thirty-piece wall drew thirty risers and its top edge came out serrated like gear
+     teeth. The bodies merged along a run. The height did not.
+
+     Worse, it drew outside the footprint. On a tool whose whole job is telling you which
+     cells you occupy, a wall rendered at twice its depth is not a cosmetic problem. It is
+     the plan lying about the one thing you opened it to check.
+
+     So the plan is a plan. Height is stated three ways, all of them strictly inside the
+     piece: the top face is inset from the edge in proportion to how tall the piece is, the
+     fill steps lighter with every storey, and the badge gives the number. Press V for the
+     3D view when you want to actually look at heights.
+
+     capFace draws that top face. It only insets an edge that is exposed, so a run of wall
+     comes out as one unbroken ridge down its length instead of a row of separate lids. */
+  const capFace = (L, T, R, B, seams) => {
+    const blocks = def.height || 1;
+    /* The coefficient is small on purpose. A one-cell piece can be anything from one to
+       five blocks tall, and all five have to stay apart inside 32% of a cell, so the step
+       has to fit five of itself in. Bigger steps looked better on a lone tower and made a
+       two-block and a three-block wall identical, which is the case that actually comes up. */
+    const d = Math.max(1.2 * uiScale,
+      Math.min(0.06 * z * blocks, Math.min(w, h) * 0.32, 20 * uiScale));
+    if (Math.min(R - L, B - T) < 2.5 * d) return;      // too small to read, leave it flat
+    ctx.fillStyle = shade(base, -62 + 13 * Math.min(opt.level || 0, 5) + 15);
+    ctx.fillRect(
+      L + (seams & 2 ? 0 : d),
+      T + (seams & 8 ? 0 : d),
+      (R - L) - (seams & 2 ? 0 : d) - (seams & 1 ? 0 : d),
+      (B - T) - (seams & 8 ? 0 : d) - (seams & 4 ? 0 : d));
+  };
 
   // body. Rotated with the piece
   ctx.save();
@@ -1740,6 +1755,8 @@ function drawRect(r, def, opt) {
     const L = -w/2 - (seams & 2 ? bleed : 0), R = w/2 + (seams & 1 ? bleed : 0);
     const T = -h/2 - (seams & 8 ? bleed : 0), B = h/2 + (seams & 4 ? bleed : 0);
     ctx.beginPath(); ctx.rect(L, T, R - L, B - T); ctx.fill();
+    capFace(L, T, R, B, seams);
+    ctx.fillStyle = shade(base, -62 + 13 * Math.min(opt.level || 0, 5));
     ctx.beginPath();
     if (!(seams & 1)) { ctx.moveTo(w/2, T); ctx.lineTo(w/2, B); }
     if (!(seams & 2)) { ctx.moveTo(-w/2, T); ctx.lineTo(-w/2, B); }
@@ -1748,7 +1765,9 @@ function drawRect(r, def, opt) {
     ctx.stroke();
   } else {
     roundRect(-w/2, -h/2, w, h, Math.min(4, z*0.15));
-    ctx.fill(); ctx.stroke();
+    ctx.fill();
+    capFace(-w/2, -h/2, w/2, h/2, 0);
+    ctx.stroke();
   }
 
   /* A soft spot in the perimeter is marked on the plan rather than only counted in the
@@ -1777,7 +1796,9 @@ function drawRect(r, def, opt) {
   // icon. Drawn upright, never rotated, so it stays readable at any angle
   const iconKey = def.icon;
   if (iconKey && iconImgs[iconKey] && iconImgs[iconKey].complete && Math.min(w, h) > 14) {
-    const s = Math.min(w, h) * 0.75;
+    /* Uncapped, the art on a 3x3 emplacement became a two-hundred-pixel photograph sitting
+       on a flat colour, which read as a sticker rather than as part of the plan. */
+    const s = Math.min(Math.min(w, h) * 0.75, 66 * uiScale);
     const bmp = iconAt(iconKey, s);
     ctx.save();
     ctx.translate(sx, sy);

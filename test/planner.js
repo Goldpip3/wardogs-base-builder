@@ -166,7 +166,12 @@ const drawRect = src.match(/function drawRect\([\s\S]*?\n\}/)[0];
 check(drawRect.indexOf("ctx.rotate(") < drawRect.indexOf("ctx.restore();") &&
       drawRect.indexOf("ctx.restore();") < drawRect.indexOf("ctx.drawImage("),
   "icon still drawn upright, outside the rotation");
-check(drawRect.includes("cast a shadow") || drawRect.includes("opt.level > 0"), "elevated pieces get a shadow");
+/* The shadow moved out of drawRect into its own pass, because a shadow drawn per piece
+   lands on whatever was drawn before it. This assertion used to look in drawRect and would
+   still have passed on an unrelated `opt.level > 0` in the badge code, so it is pointed at
+   the pass that actually does the work. */
+check(/drops a shadow[\s\S]*?for \(const p of visible\) drawPiece\(/.test(src),
+  "elevated pieces cast a shadow, in a pass that finishes before any body is drawn");
 
 // ---- how somebody gets over a wall ----
 // These two numbers encode a rule read off play rather than anything published, so they

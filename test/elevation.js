@@ -1,18 +1,30 @@
+/* How the plan says "this thing is tall" and "this thing is off the ground".
+ *
+ * This suite used to measure how far a piece's drawing reached past its own edges, because
+ * height was drawn as an extrusion toward the bottom-right and bigger meant more readable.
+ * That was the wrong thing to want. The extrusion drew a riser at every piece's corners
+ * regardless of its neighbours, so a long wall came out serrated, and it drew outside the
+ * footprint, so the plan misreported which cells were occupied.
+ *
+ * The invariant is now the opposite one, and it is the one worth pinning: a piece draws
+ * inside its own footprint and nowhere else. Height is said by insetting the top face,
+ * stepping the fill per storey and printing a badge. Anything off the ground drops a
+ * shadow, which is the single exception, and it gets its own pass before any body is drawn
+ * so it can never land on a neighbour.
+ */
 const ROOT = require("path").resolve(__dirname, "..");
-// Drive the real drawRect out of the shipped file against a recording canvas and measure
-// how far a piece's height actually reaches on screen. Eyeballing a screenshot cannot tell
-// you that a three-storey stack reads six pixels taller than the ground. This can.
 const fs = require("fs"), vm = require("vm");
-const html = fs.readFileSync(
-  ROOT + "/WardogsBaseBuilder.html", "utf8");
+const html = fs.readFileSync(ROOT + "/WardogsBaseBuilder.html", "utf8");
 const src = html.match(/<script>\s*"use strict";([\s\S]*)<\/script>/)[1];
 
 let pass = 0, fail = 0;
-const check = (ok, label) => { console.log((ok ? "PASS  " : "FAIL  ") + label); ok ? pass++ : fail++; };
+const check = (ok, label, detail) => {
+  console.log((ok ? "PASS  " : "FAIL  ") + label + (ok || !detail ? "" : ": " + detail));
+  ok ? pass++ : fail++;
+};
 
 const lift = n => {
-  const re = new RegExp("function " + n + "\\([\\s\\S]*?\\n\\}", "");
-  const m = src.match(re);
+  const m = src.match(new RegExp("function " + n + "\\([\\s\\S]*?\\n\\}", ""));
   if (!m) throw new Error("could not lift " + n);
   return m[0];
 };
@@ -52,53 +64,100 @@ vm.runInContext(
   "\nvar iconBitmaps = new Map(); var lastDrawn = 0;", sandbox);
 
 const catalog = JSON.parse(src.match(/const CATALOG_DEFAULT = ([\s\S]*?);\nconst ICONS/)[1]);
-const hesco = catalog.buildables.find(b => b.id === "hesco-small");
-vm.runInContext("var byId = " + JSON.stringify({ [hesco.id]: hesco }) + ";", sandbox);
+const defs = {};
+for (const id of ["hesco-small", "hesco-tall", "bremer-wall"]) {
+  defs[id] = catalog.buildables.find(b => b.id === id);
+}
+vm.runInContext("var byId = " + JSON.stringify(defs) + ";", sandbox);
 
-const paint = (level, zoom) => {
+const paint = (type, level, zoom, seams) => {
   rec.pts = []; rec.fills = []; rec.rects = [];
   vm.runInContext(
     "view.zoom = " + zoom + ";" +
-    "drawRect(pieceRect({id:1,type:'hesco-small',x:0,y:0,rot:0,level:" + level + "})," +
-    " byId['hesco-small'], { level: " + level + ", alpha: 1, seams: 0 });", sandbox);
+    "drawRect(pieceRect({id:1,type:'" + type + "',x:0,y:0,rot:0,level:" + level + "})," +
+    " byId['" + type + "'], { level: " + level + ", alpha: 1, seams: " + (seams || 0) + " });",
+    sandbox);
 };
 
-// how far below-right does the drawn piece reach, at a given storey and zoom?
-function reach(level, zoom) {
-  paint(level, zoom);
-  const ys = rec.pts.map(p => p[1]);
-  return Math.max.apply(null, ys) - Math.min.apply(null, ys);
+// the piece body, in pixels, at this zoom
+const bodySize = (type, zoom) =>
+  (catalog.buildables.find(b => b.id === type).footprint.w) * zoom;
+
+/* ---- the invariant: a piece draws inside itself ---- */
+{
+  const z = 24, half = bodySize("hesco-small", z) / 2;
+  let worst = 0;
+  for (const lvl of [0, 1, 3, 5]) {
+    paint("hesco-small", lvl, z);
+    for (const [x, y] of rec.pts) worst = Math.max(worst, Math.abs(x) - half, Math.abs(y) - half);
+    for (const r of rec.rects) {
+      // The name and the storey badge are annotations sitting above and below the piece,
+      // not part of it, and they are already limited to the ends of a run. Everything the
+      // piece itself draws is what has to stay inside.
+      if (String(r.style).startsWith("#")) continue;
+      worst = Math.max(worst, Math.abs(r.x) - half, Math.abs(r.y) - half,
+                       Math.abs(r.x + r.w) - half, Math.abs(r.y + r.h) - half);
+    }
+  }
+  // a stroke sits on the edge, so half a line width over is the whole allowance
+  check(worst <= 2, "nothing is drawn outside the footprint, at any storey",
+    "worst overhang " + worst.toFixed(1) + "px");
 }
 
-const z = 24;
-const r0 = reach(0, z), r1 = reach(1, z), r3 = reach(3, z);
-console.log("  reach at zoom " + z + ": ground " + r0.toFixed(1) + "px, L2 " +
-            r1.toFixed(1) + "px, L4 " + r3.toFixed(1) + "px");
+/* ---- the top face is inset in proportion to how tall the piece is ---- */
+const capOf = () => rec.rects.filter(r => !String(r.style).startsWith("#")).pop();
+{
+  const z = 40;
+  paint("hesco-small", 0, z);  const flat = capOf();     // 1 block
+  paint("hesco-tall", 0, z);   const mid = capOf();      // 2 blocks
+  paint("bremer-wall", 0, z);  const tall = capOf();     // 3 blocks
+  const inset = c => (bodySize("hesco-small", z) - c.w) / 2;
+  console.log("  cap inset at zoom " + z + ": 1 block " + inset(flat).toFixed(1) +
+              "px, 2 block " + inset(mid).toFixed(1) + "px, 3 block " + inset(tall).toFixed(1) + "px");
+  /* Every step apart, not just the extremes. Five block heights have to fit inside a
+     third of a one-cell piece, so this is the constraint that sets the coefficient, and a
+     regression here means two wall heights started looking the same. */
+  check(inset(mid) > inset(flat) + 1.5 && inset(tall) > inset(mid) + 1.5,
+    "a taller piece shows a deeper inset, so height reads without leaving the footprint");
+  check(inset(tall) < bodySize("hesco-small", z) * 0.4,
+    "and the inset never eats the piece");
+}
 
-// A storey has to be worth appreciably more than a couple of pixels or the plan cannot say
-// how tall anything is. That was the reported bug.
-check(r1 - r0 > 6, "one storey up reads clearly taller than ground level");
-check(r3 - r1 > 12, "three storeys up reads clearly taller again than one");
+/* ---- a run reads as one ridge, not a row of lids ---- */
+{
+  // seam bits: 1 = +x, 2 = -x. A piece mid-run is joined on both.
+  paint("bremer-wall", 0, 40, 3);
+  const mid = capOf();
+  paint("bremer-wall", 0, 40, 0);
+  const lone = capOf();
+  check(mid.w > lone.w + 2,
+    "a piece joined along a run does not inset the joined edges, so the ridge is unbroken");
+}
 
-// ...and it has to survive zooming, which the old flat 2px-per-block offset did not.
-const far = reach(3, 10), near = reach(3, 40);
-console.log("  L4 reach: " + far.toFixed(1) + "px zoomed out, " + near.toFixed(1) + "px zoomed in");
-check(near > far * 1.8, "height scales with the zoom instead of staying a fixed few pixels");
-
-// Every storey must land on its own shade, including the top ones.
+/* ---- storeys stay distinguishable by fill ---- */
 const shades = [0, 1, 2, 3, 4, 5].map(l => vm.runInContext(
   "shade(pieceColor(byId['hesco-small']), -62 + 13 * Math.min(" + l + ", 5))", sandbox));
-console.log("  storey shades: " + shades.join(" "));
-check(new Set(shades).size === 6, "all six storeys draw in a different shade (was: L4/L5/L6 identical)");
+check(new Set(shades).size === 6, "all six storeys draw in a different shade");
 
-// The badge is the only exact statement of height on the plan, so it gets a solid chip.
+/* ---- and the badge still states the number outright ---- */
 check(/ctx\.fillRect\(-tw \/ 2 - padX/.test(src), "the storey badge is drawn on a filled chip");
 check(/opt\.level > 0 \? "#ff5b47" : "#8b8b80"/.test(src),
   "stacked reads accent, merely-tall reads grey, so the two cannot be confused");
 
-// Bigger extrusions only look right if they occlude in the right order.
-check(/\(a\.level \|\| 0\) - \(b\.level \|\| 0\) \|\| \(a\.x \+ a\.y\) - \(b\.x \+ b\.y\)/.test(src),
-  "pieces draw far to near, so height falls behind a neighbour and not across it");
+/* ---- the shadow is the one thing allowed outside, and it cannot land on a body ---- */
+{
+  const draw = src.match(/function drawNow\(\)[\s\S]*?\n\}/)[0];
+  const shadowAt = draw.indexOf("drops a shadow");
+  const bodiesAt = draw.indexOf("for (const p of visible) drawPiece(");
+  check(shadowAt > 0 && bodiesAt > shadowAt,
+    "shadows are their own pass, finished before the first body is drawn");
+  check(/0\.13 \* view\.zoom \* lvl/.test(draw),
+    "the shadow reaches further the higher the piece is, and scales with the zoom");
+}
+
+/* ---- the art does not swamp a large piece ---- */
+check(/Math\.min\(Math\.min\(w, h\) \* 0\.75, 66 \* uiScale\)/.test(src),
+  "icon size is capped, so a 3x3 emplacement is not a photograph on a coloured square");
 
 console.log("\n" + pass + " passed, " + fail + " failed");
 process.exit(fail ? 1 : 0);
