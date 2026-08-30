@@ -54,7 +54,11 @@ function encodeDesign(d) {
     if (p.type === "__fob__") a.push(p.zone || 100);
     return a;
   });
-  const json = JSON.stringify({ v: 1, n: d.name, t: types, p: pieces });
+  /* `|| "Shared design"` matches the planner, which is the thing that has to read these
+     back. Without it an unnamed design encoded here and an unnamed design encoded there
+     produce different codes for the same base, which is the whole failure mode this
+     duplicated encoder invites. test/share-links.js compares the two directly. */
+  const json = JSON.stringify({ v: 1, n: d.name || "Shared design", t: types, p: pieces });
   return Buffer.from(json, "utf8").toString("base64")
     .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }

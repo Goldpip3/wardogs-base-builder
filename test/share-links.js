@@ -81,5 +81,37 @@ const withGhostType = sb.b64urlEncode(JSON.stringify(
   { v: 1, n: "x", t: ["hesco-small", "not-a-real-thing"], p: [[0, 0, 0, 0, 0], [1, 2, 2, 0, 0]] }));
 check(sb.decodeDesign(withGhostType).pieces.length === 1, "unknown buildables are dropped, not crashed on");
 
+/* --- the wire format has two implementations, and they have to agree ---
+   The planner encodes designs in the browser with btoa; the site generator encodes them in
+   Node with Buffer, so community design pages can carry a code the planner reads back.
+   Two independent implementations of one format, and until this test nothing compared
+   them. They had already drifted: an unnamed design encoded to a different string on each
+   side, latent only because every community design happens to have a name. */
+{
+  const vm2 = require("vm");
+  const genSrc = fs.readFileSync(ROOT + "/tools/site/context.js", "utf8")
+    .match(/function encodeDesign\([\s\S]*?\n\}/)[0];
+  const generator = { Buffer, JSON, Math, console };
+  vm2.createContext(generator);
+  vm2.runInContext(genSrc, generator);
+  const encGen = d => vm2.runInContext("encodeDesign(" + JSON.stringify(d) + ")", generator);
+
+  const cases = [
+    { label: "a normal base", d: { name: "Test FOB", pieces: [
+      { type: "__fob__", x: 0, y: 0, rot: 0, level: 0, zone: 100 },
+      { type: "hesco-tall", x: 1.5, y: -2, rot: 90, level: 1 },
+      { type: "l81-mortar", x: -3, y: 4, rot: 0, level: 2 } ] } },
+    { label: "a name with non-ASCII in it", d: { name: "Unicode → name",
+      pieces: [{ type: "sandbag-wall", x: -0.5, y: 0.5, rot: 270, level: 0 }] } },
+    { label: "no name and no pieces", d: { name: "", pieces: [] } },
+    { label: "a half-cell offset", d: { name: "Half", pieces: [
+      { type: "hesco-small", x: -0.5, y: 2.5, rot: 180, level: 3 }] } },
+  ];
+  for (const { label, d } of cases) {
+    check(sb.encodeDesign(d) === encGen(d),
+      `planner and site generator encode ${label} identically`);
+  }
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

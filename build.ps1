@@ -77,6 +77,10 @@ node (Join-Path $proj "tools/build-site.js")
 # checks below still pass because they are inspecting stale output.
 if ($LASTEXITCODE -ne 0) { throw "build-site.js failed - the site was not regenerated." }
 
+# The map's entry file has two generated twins, so tools that look for AGENTS.md or
+# routing.md get the same catalog. Written, never hand-edited.
+node (Join-Path $proj "tools/sync-map-twins.js")
+
 # The ballistics figures are derived rather than transcribed, so they get re-derived on
 # every build and checked against the published tables they came from. If a value drifts,
 # or somebody edits data/ballistics.json by hand, this fails before the page ships.

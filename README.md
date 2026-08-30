@@ -18,6 +18,18 @@ height, and a share link that carries the whole design in the URL.
 comments, ballistics, an item catalogue with vendor prices, a loadout calculator, vehicles,
 and written guides.
 
+## If you are an agent, or new here
+
+Start at [CLAUDE.md](CLAUDE.md), then [map/](map/CLAUDE.md). The map is an edit map built to
+the [ICM](https://github.com/RinDig/icm-architect) system-map form: what the nouns are, how
+they move, and what else moves if you touch one. It cites the code rather than restating it,
+and [map/effects/CONTEXT.md](map/effects/CONTEXT.md) is the part worth reading before any
+change, because it also records what points into this repo from outside, which nothing in
+the tree references and which therefore breaks silently.
+
+This README stays the human-facing summary. Where the two overlap, the cards carry the
+citations.
+
 ## How the repository is laid out
 
 ```
@@ -46,7 +58,9 @@ tools/
 
 test/              behavioural suites, run on every build
 worker/            the Cloudflare Worker: votes, comments, accounts, cloud saves
+map/               the edit map. Nouns, movements, change-impact. Cites code, restates none
 docs/              generated output, served by GitHub Pages. Do not hand-edit
+.claude/skills/    icm-architect, vendored, MIT. The method the map is built to
 ```
 
 ## Building

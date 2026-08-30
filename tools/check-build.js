@@ -196,7 +196,8 @@ check(!/[>\s]\?<\/span>/.test(app), "no leftover '?' estimate badges");
      check quietly stopped watching most of the prose on the site, because the list did not
      know. Walk the source trees instead, so a new file is covered the moment it exists. */
   const hits = [];
-  const roots = ["src", "tools", "data", "worker", "docs"];
+  // .claude/skills/ holds a vendored third-party skill. Its prose is not ours to restyle.
+  const roots = ["src", "tools", "data", "worker", "docs", "map"];
   const scan = d => {
     if (!fs.existsSync(d)) return;
     for (const f of fs.readdirSync(d)) {
@@ -214,10 +215,49 @@ check(!/[>\s]\?<\/span>/.test(app), "no leftover '?' estimate badges");
     }
   };
   roots.forEach(r => scan(path.join(proj, r)));
-  const readme = path.join(proj, "README.md");
-  const rn = (fs.readFileSync(readme, "utf8").match(/\u2014/g) || []).length;
-  if (rn) hits.push(`README.md (${rn})`);
+  for (const f of ["README.md", "CLAUDE.md"]) {
+    const n = (fs.readFileSync(path.join(proj, f), "utf8").match(/\u2014/g) || []).length;
+    if (n) hits.push(`${f} (${n})`);
+  }
   check(hits.length === 0, "no em dashes in the sources", hits.join(", "));
+}
+
+/* -- 6c. the edit map points at things that exist --
+   A map whose links are broken is worse than no map: it costs a read to find that out, and
+   it teaches the next reader not to trust it. Two failures matter. A relative link to a
+   file that is not there, and an entry-file twin that has been hand-edited so the three
+   catalogs disagree about where things live. */
+{
+  const mapDir = path.join(proj, "map");
+  const pages = [];
+  (function walk(d) {
+    for (const f of fs.readdirSync(d)) {
+      const p = path.join(d, f);
+      if (fs.statSync(p).isDirectory()) walk(p);
+      else if (f.endsWith(".md")) pages.push(p);
+    }
+  })(mapDir);
+
+  const broken = [];
+  for (const p of pages) {
+    const s = fs.readFileSync(p, "utf8");
+    for (const m of s.matchAll(/\]\(([^)#:]+\.md[^)#]*)\)/g)) {
+      const target = path.resolve(path.dirname(p), m[1]);
+      if (!fs.existsSync(target)) {
+        broken.push(path.relative(proj, p).replace(/\\/g, "/") + " -> " + m[1]);
+      }
+    }
+  }
+  check(broken.length === 0, `all links in the ${pages.length} map files resolve`,
+    broken.slice(0, 3).join(" | "));
+
+  const { SOURCE, TWINS, banner } = require("./sync-map-twins.js");
+  const want = banner + fs.readFileSync(SOURCE, "utf8");
+  const stale = TWINS.filter(t => {
+    const p = path.join(mapDir, t);
+    return !fs.existsSync(p) || fs.readFileSync(p, "utf8") !== want;
+  });
+  check(stale.length === 0, "map entry-file twins match their source", stale.join(", "));
 }
 
 // -- 7. nothing removed from the catalog is still named in the prose --
