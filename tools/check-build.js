@@ -36,6 +36,36 @@ const check = (ok, label, detail) => {
   check(!err, "planner script parses", err);
 }
 
+/* -- 0b. and so does every script on every generated page --
+   The planner has been parse-checked since the day a bulk edit ate a template literal and
+   shipped a structurally perfect dead page. The surrounding site had no such check, so a
+   quote that survived one layer of nesting and not the next got all the way to a browser:
+   the page rendered, the table under it stayed empty, and nothing here complained. Same
+   check, every page. */
+{
+  const pages = [];
+  (function walk(d) {
+    for (const f of fs.readdirSync(d)) {
+      const p = path.join(d, f);
+      if (fs.statSync(p).isDirectory()) walk(p);
+      else if (f.endsWith(".html")) pages.push(p);
+    }
+  })(path.join(proj, "docs"));
+
+  const broken = [];
+  for (const p of pages) {
+    const s = fs.readFileSync(p, "utf8");
+    for (const m of s.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)) {
+      const body = m[1].trim();
+      if (!body || /^\s*\{[\s\S]*\}\s*$/.test(body)) continue;   // JSON-LD, not code
+      try { new (require("vm").Script)(body); }
+      catch (ex) { broken.push(path.relative(proj, p) + ": " + ex.message); }
+    }
+  }
+  check(broken.length === 0, `inline scripts parse on all ${pages.length} pages`,
+    [...new Set(broken)].slice(0, 3).join(" | "));
+}
+
 // -- 1. every element the script reaches for actually exists in the markup --
 const ids = new Set([...app.matchAll(/\bid="([A-Za-z0-9_-]+)"/g)].map(m => m[1]));
 const looked = [...new Set([...app.matchAll(/getElementById\("([A-Za-z0-9_-]+)"\)/g)].map(m => m[1]))];
@@ -101,10 +131,15 @@ check(missingIcons.length === 0,
   const bad = [];
   for (const p of pages) {
     const s = fs.readFileSync(p, "utf8");
-    for (const m of s.matchAll(/\[\^?[^\]\n]{1,24}\]/g)) {
+    for (const m of s.matchAll(/(.?)(\[\^?[^\]\n]{1,24}\])/g)) {
+      const before = m[1], cls = m[2];
       // `[...set]` is spread syntax, not a character class
-      if (m[0].includes("...") || m[0].includes("\\")) continue;
-      if (mangled.test(m[0])) bad.push(path.relative(proj, p) + "  " + m[0]);
+      if (cls.includes("...") || cls.includes("\\")) continue;
+      // `obj[w.calibre]` is a property lookup. A character class never follows an
+      // identifier, a closing bracket or a closing paren, so anything that does is
+      // ordinary code and not a chewed-up escape.
+      if (/[A-Za-z0-9_$\])]/.test(before)) continue;
+      if (mangled.test(cls)) bad.push(path.relative(proj, p) + "  " + cls);
     }
   }
   check(bad.length === 0, "no regex escapes were eaten by a template literal",

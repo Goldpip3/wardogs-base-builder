@@ -1,0 +1,92 @@
+{
+  "_note": "Pre-launch. Every number here is either transcribed from a published table or derived from one, and each entry says which. Nothing is estimated to fill a gap. See docs/ballistics-sources.md for the derivation and the two checks it has to pass.",
+  "checkedOn": "2026-08-30",
+  "gameVersion": "closed beta, pre Early Access",
+  "health": 100,
+
+  "rounds": [
+    { "id": "FMJ",      "name": "FMJ",      "long": "Standard",       "blocks": [30, 40, 55, 65] },
+    { "id": "HP",       "name": "HP",       "long": "Flesh damage",   "blocks": [83.5, 88, 94.73, 99.24] },
+    { "id": "AP",       "name": "AP",       "long": "Armour piercing","blocks": [15, 20, 27.5, 32.5] },
+    { "id": "Buckshot", "name": "Buckshot", "long": "Buckshot",       "blocks": [44, 52, 64, 72] },
+    { "id": "Slug",     "name": "Slug",     "long": "Slug and arrow", "blocks": [30, 40, 55, 65] }
+  ],
+
+  "calibres": [
+    { "id": "12g",  "name": "12g Buckshot", "damage": 200, "pellets": 8, "perPellet": 25,
+      "velocity": [391, 480], "mass": 4.0, "bullet": 8.3, "rounds": ["Buckshot"] },
+    { "id": "50cal", "name": ".50Cal", "damage": 107,
+      "velocity": [900, 900], "mass": 51.0, "bullet": 13.0, "rounds": ["Slug"] },
+    { "id": "arrow", "name": "Broadhead Arrow", "damage": 77,
+      "velocity": [650, 650], "mass": 25.0, "bullet": 4.0, "rounds": ["Slug"] },
+    { "id": "50ae", "name": "50AE", "damage": 63,
+      "velocity": [470, 470], "mass": 19.0, "bullet": 12.7, "rounds": ["FMJ", "HP", "AP"] },
+    { "id": "308", "name": ".308 Win", "damage": 60,
+      "velocity": [840, 894], "mass": 12.0, "bullet": 7.8, "rounds": ["FMJ", "HP", "AP"] },
+    { "id": "762x54", "name": "7.62x54mm", "damage": 55,
+      "velocity": [800, 865], "mass": 11.7, "bullet": 7.9, "rounds": ["FMJ", "HP", "AP"] },
+    { "id": "45colt", "name": ".45 Colt", "damage": 45,
+      "velocity": [335, 335], "mass": 10.0, "bullet": 11.4, "rounds": ["FMJ", "HP", "AP"] },
+    { "id": "762", "name": "7.62mm", "damage": 42,
+      "velocity": [735, 735], "mass": 8.0, "bullet": 7.9, "rounds": ["FMJ", "HP", "AP"] },
+    { "id": "45acp", "name": ".45 ACP", "damage": 30,
+      "velocity": [253, 375], "mass": 15.0, "bullet": 11.5, "rounds": ["FMJ", "HP", "AP"] },
+    { "id": "556", "name": "5.56mm", "damage": 28,
+      "velocity": [715, 975], "mass": 4.1, "bullet": 5.7, "rounds": ["FMJ", "HP", "AP"] },
+    { "id": "545", "name": "5.45mm", "damage": 26,
+      "velocity": [880, 880], "mass": 3.4, "bullet": 5.6, "rounds": ["FMJ", "HP", "AP"] },
+    { "id": "9mm", "name": "9mm", "damage": 22,
+      "velocity": [375, 400], "mass": 7.0, "bullet": 9.0, "rounds": ["FMJ", "HP", "AP"] }
+  ],
+
+  "zones": [
+    { "id": "head",         "name": "Head",         "mult": 2.167, "armour": "helmet" },
+    { "id": "neck",         "name": "Neck",         "mult": 1.633, "armour": null },
+    { "id": "upper-torso",  "name": "Upper torso",  "mult": 1.0,   "armour": "vest" },
+    { "id": "middle-torso", "name": "Middle torso", "mult": 0.944, "armour": "vest" },
+    { "id": "lower-torso",  "name": "Lower torso",  "mult": 0.889, "armour": "vest" },
+    { "id": "pelvis",       "name": "Pelvis",       "mult": 0.833, "armour": null },
+    { "id": "upper-arm",    "name": "Upper arm",    "mult": 0.5,   "armour": null },
+    { "id": "lower-arm",    "name": "Lower arm",    "mult": 0.433, "armour": null },
+    { "id": "hand",         "name": "Hand",         "mult": 0.267, "armour": null },
+    { "id": "upper-leg",    "name": "Upper leg",    "mult": 0.5,   "armour": null },
+    { "id": "lower-leg",    "name": "Lower leg",    "mult": 0.433, "armour": null },
+    { "id": "foot",         "name": "Foot",         "mult": 0.267, "armour": null }
+  ],
+
+  "weapons": [
+    { "name": "AMR 50",          "calibre": "50cal",  "class": "Sniper",        "rpm": 40,   "torso": 194.4, "range": [166.7, 222.2] },
+    { "name": "M500",            "calibre": "12g",    "class": "Shotgun",       "rpm": 120,  "torso": 243.1, "range": [208.3, 277.8] },
+    { "name": "MP43",            "calibre": "12g",    "class": "Shotgun",       "rpm": 855,  "torso": 243.1, "range": [208.3, 277.8] },
+    { "name": "BMR-308",         "calibre": "308",    "class": "Marksman",      "rpm": 460,  "torso": 89.3,  "range": [83.3, 95.2] },
+    { "name": "FAL",             "calibre": "308",    "class": "Marksman",      "rpm": 665,  "torso": 64.3,  "range": [57.1, 71.4] },
+    { "name": "Super-45",        "calibre": "45acp",  "class": "SMG",           "rpm": 1200, "torso": 34.5,  "range": [33.3, 35.7] },
+    { "name": "SVD",             "calibre": "762x54", "class": "Marksman",      "rpm": 460,  "torso": 78.7,  "range": [74.1, 83.3] },
+    { "name": "SKS",             "calibre": "762",    "class": "Marksman",      "rpm": 430,  "torso": 64.3,  "range": [57.1, 71.4] },
+    { "name": "GGX 18",          "calibre": "9mm",    "class": "SMG",           "rpm": 1200, "torso": 25.5,  "range": [25.0, 26.0] },
+    { "name": "M249 SAW",        "calibre": "556",    "class": "LMG",           "rpm": 855,  "torso": 32.5,  "range": [31.7, 33.3] },
+    { "name": "M4",              "calibre": "556",    "class": "Assault Rifle", "rpm": 785,  "torso": 30.0,  "range": [28.6, 31.7] },
+    { "name": "AMP-9",           "calibre": "9mm",    "class": "SMG",           "rpm": 900,  "torso": 25.5,  "range": [25.0, 26.0] },
+    { "name": "T-21",            "calibre": "556",    "class": "Assault Rifle", "rpm": 750,  "torso": 30.1,  "range": [28.6, 31.7] },
+    { "name": "A-91",            "calibre": "556",    "class": "Assault Rifle", "rpm": 690,  "torso": 30.1,  "range": [28.6, 31.7] },
+    { "name": "Bushmaster M17S", "calibre": "556",    "class": "Assault Rifle", "rpm": 690,  "torso": 30.1,  "range": [28.6, 31.7] },
+    { "name": "KH-2002",         "calibre": "556",    "class": "Assault Rifle", "rpm": 690,  "torso": 30.1,  "range": [28.6, 31.7] },
+    { "name": "Deagle",          "calibre": "50ae",   "class": "Pistol",        "rpm": 275,  "torso": 72.8,  "range": [71.4, 74.1] },
+    { "name": "MP5",             "calibre": "9mm",    "class": "SMG",           "rpm": 785,  "torso": 25.5,  "range": [25.0, 26.0] },
+    { "name": "PP-19 Vityaz",    "calibre": "9mm",    "class": "SMG",           "rpm": 785,  "torso": 25.5,  "range": [25.0, 26.0] },
+    { "name": "AK74",            "calibre": "545",    "class": "Assault Rifle", "rpm": 645,  "torso": 30.1,  "range": [28.6, 31.7] },
+    { "name": "Galil",           "calibre": "556",    "class": "Assault Rifle", "rpm": 645,  "torso": 30.1,  "range": [28.6, 31.7] },
+    { "name": "M1911",           "calibre": "45acp",  "class": "Pistol",        "rpm": 430,  "torso": 34.5,  "range": [33.3, 35.7] },
+    { "name": "Compound Bow",    "calibre": "arrow",  "class": "Bow",           "rpm": 90,   "torso": 154.8, "range": [142.9, 166.7] },
+    { "name": "Judge",           "calibre": "45colt", "class": "Pistol",        "rpm": 200,  "torso": 52.8,  "range": [50.0, 55.6] },
+    { "name": "MK22",            "calibre": "308",    "class": "Sniper",        "rpm": 45,   "torso": 127.0, "range": [111.1, 142.9] },
+    { "name": "Mosin Nagant",    "calibre": "762x54", "class": "Sniper",        "rpm": 45,   "torso": 105.6, "range": [100.0, 111.1] },
+    { "name": "SV98",            "calibre": "762x54", "class": "Sniper",        "rpm": 45,   "torso": 105.6, "range": [100.0, 111.1] },
+    { "name": "Scout Rifle TD",  "calibre": "556",    "class": "Marksman",      "rpm": 45,   "torso": 52.8,  "range": [50.0, 55.6] }
+  ],
+
+  "unsolved": [
+    "Range falloff. Damage clearly drops with distance and slower rounds drop faster, but no published table separates falloff from the other factors, so every figure here is point blank.",
+    "Zone multipliers outside the torso are measured off the 5.56 assault rifle profile. The head, neck and limb ratios hold across four weapons; the torso ratio does not, and varies by up to a fifth. Non-torso figures for heavier calibres are indicative until launch."
+  ]
+}

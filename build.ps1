@@ -77,6 +77,12 @@ node (Join-Path $proj "tools/build-site.js")
 # checks below still pass because they are inspecting stale output.
 if ($LASTEXITCODE -ne 0) { throw "build-site.js failed - the site was not regenerated." }
 
+# The ballistics figures are derived rather than transcribed, so they get re-derived on
+# every build and checked against the published tables they came from. If a value drifts,
+# or somebody edits data/ballistics.json by hand, this fails before the page ships.
+node (Join-Path $proj "tools/solve-ballistics.js") | Out-Null
+if ($LASTEXITCODE -ne 0) { throw "Ballistics data no longer reproduces its published source - run tools/solve-ballistics.js." }
+
 node (Join-Path $proj "tools/check-build.js")
 if ($LASTEXITCODE -ne 0) { throw "Build produced a broken page - see the failures above." }
 Write-Host "Built app + docs/planner/ + surrounding site"
