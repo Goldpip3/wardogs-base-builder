@@ -91,90 +91,13 @@ function pit(weapon, cx, cy, radius = 3) {
   return out;
 }
 
-/* ---------- the seeded designs ---------- */
-const DESIGNS = [
-  {
-    slug: "starter-fob",
-    name: "Starter FOB",
-    tagline: "The cheapest thing worth building. A walled box with a gate and a door.",
-    body: `If you have never built a FOB, build this one. It is a closed perimeter with
-      exactly one vehicle entrance and one infantry door, and nothing else. It costs less
-      than a single Drill Rig and it is the difference between a FOB that survives contact
-      and a supply crate sitting in the open.<br><br>
-      Everything is waist-height Hesco, so it is cheap and fast — but it is also vaultable.
-      Once the position is holding, upgrade the wall run to tall Hesco and cap it with
-      Bremer walls, which is what the Anti-climb Perimeter design does.`,
-    pieces: [
-      P("__fob__", 0, 0),
-      ...run("hesco-small", -8, -6, 8, -6), ...run("hesco-small", -8, 6, 8, 6),
-      ...run("hesco-small", -8, -5, -8, 5, 90), ...run("hesco-small", 8, -5, 8, 5, 90),
-      P("gate", -1.5, 6), P("door", -8, 0, 90),
-    ],
-  },
-  {
-    slug: "mortar-pit",
-    name: "Mortar Pit",
-    tagline: "L81 ringed one block out, so your own parapet does not eat the shells.",
-    body: `The mistake everyone makes first is walling a mortar in with tall Hesco and then
-      watching the rounds detonate on their own wall. The fix is two things: keep the ring
-      <strong>waist height</strong>, and keep it <strong>one block clear</strong> of the
-      tube.<br><br>
-      This is that layout — a 4×4 L81 with a low Hesco ring at radius 3 and a door on the
-      south face. The mortar converts Ammo supplies from the FOB into shells, so it only
-      works while somebody keeps hauling ammo pallets.`,
-    pieces: [P("__fob__", 12, 0), ...pit("l81-mortar", 0, 0)],
-  },
-  {
-    slug: "aa-nest",
-    name: "AA Nest",
-    tagline: "Low Hesco with sandbags on top — the height the community settled on for the CIWS.",
-    body: `The Vanguard CIWS needs clear sky and a gunner who is not immediately shot. Low
-      Hesco alone leaves you exposed; tall Hesco blocks the gun. Stacking sandbags on top of
-      low Hesco lands in between, and gives you peek-downs on the approach.<br><br>
-      Keep the sky above it clear — anything built over an emplacement blocks it, and the
-      planner will flag that.`,
-    pieces: [
-      P("__fob__", 12, 0),
-      ...pit("vanguard-ciws", 0, 0),
-      ...[-3, -1, 1, 3].flatMap(x => [P("sandbag-wall", x, -3, 0, 1), P("sandbag-wall", x, 3, 0, 1)]),
-    ],
-  },
-  {
-    slug: "anti-climb-perimeter",
-    name: "Anti-climb Perimeter",
-    tagline: "Quad Hesco wall capped with Bremer, so nobody vaults in.",
-    body: `A perimeter made of waist-height blocks is a speed bump — infantry vault it. This
-      run uses Hesco Wall (Quad) sections at full height with Bremer walls capped on top.<br><br>
-      Bremer walls are the finishing layer specifically because <strong>nothing can be built
-      on top of one</strong>. Put them down last, and put them on top of the Hesco rather
-      than on the ground where they just become an expensive short wall.`,
-    pieces: [
-      ...run("hesco-wall", -6, 0, 10, 0),
-      ...Array.from({ length: 20 }, (_, i) => P("bremer-wall", -7.5 + i, 0, 0, 1)),
-    ],
-  },
-  {
-    slug: "forward-operating-base",
-    name: "Full Forward Base",
-    tagline: "Walled compound with vehicle gate, mortar, AA, SAM and a repair station.",
-    body: `What a fully developed position looks like: a closed perimeter, one vehicle gate,
-      indirect fire, two layers of air defence and vehicle servicing inside the wire.<br><br>
-      This is expensive. Check the supply figure against what your FOB actually holds before
-      you commit — at 40 supplies to a pallet, a truck brings two pallets a trip. The usual
-      failure is not the design, it is running dry halfway through and leaving a half-built
-      wall as cover for the people attacking you.`,
-    pieces: [
-      P("__fob__", 0, 0),
-      ...run("hesco-wall", -18, -12, 14, -12), ...run("hesco-wall", -18, 12, 14, 12),
-      ...run("hesco-wall", -18, -9, -18, 9, 90), ...run("hesco-wall", 18, -9, 18, 9, 90),
-      P("gate", -2, 12), P("door", -18, 0, 90),
-      P("l81-mortar", -12, 6), P("vanguard-ciws", 12, 6),
-      P("talon-9k-sam", -12, -6), P("stingray", 12, -6),
-      P("repair-station", 6, 0), P("refuel-station", -7, 0),
-      ...run("barbed-wire", -18, -16, 12, -16), ...run("hedgehog", -6, -14, 2, -14),
-    ],
-  },
-];
+/* ---------- community designs ----------
+   Nothing here is authored by the site. Players submit a share link, it gets added to
+   data/community.json, and the build turns it into a page. Votes are not stored in the
+   repo - they come from the vote worker at runtime (see worker/vote-worker.js), so the
+   ranking cannot be quietly edited by whoever owns the repo. */
+const COMMUNITY = JSON.parse(fs.readFileSync(path.join(ROOT, "data/community.json"), "utf8"));
+const DESIGNS = (COMMUNITY.designs || []).filter(d => d.slug && d.code);
 
 /* ---------- stats, computed the same way the planner does ---------- */
 function stats(d) {
@@ -315,69 +238,158 @@ const GUIDES = [
 
 /* ---------- shared page shell ---------- */
 const CSS = `
-/* An ad has to look like an ad and sit outside the content, never dressed as a result. */
-.ad-slot{margin:26px 0;padding:8px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
-  text-align:center;overflow:hidden}
-.ad-slot::before{content:"Advertisement";display:block;font-size:10px;letter-spacing:.14em;
-  text-transform:uppercase;color:var(--dim);margin-bottom:6px}
+/* Design language lifted from bulkhead.com/games/wardogs: #0c0c0c ground, #fff7ea
+   cream, #c00b0b red, Inter Black for display, Barlow for everything else, and
+   square corners on absolutely everything. */
+@font-face{font-family:Inter;src:url(/fonts/inter-900.woff2)format("woff2");font-weight:900;font-display:swap}
+@font-face{font-family:Barlow;src:url(/fonts/barlow-400.woff2)format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:Barlow;src:url(/fonts/barlow-600.woff2)format("woff2");font-weight:600;font-display:swap}
 
-:root{--bg:#12140d;--panel:#1a1d13;--panel2:#232719;--border:#353c23;--soft:#2a3019;
---text:#dedbc6;--dim:#8d8d74;--accent:#dcaa26;--ink:#17180f;--good:#86ad55;--bad:#d4553a;
---ui:"Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,sans-serif;
---num:"Cascadia Mono",Consolas,ui-monospace,monospace}
+:root{
+  --bg:#0c0c0c;--panel:#111;--panel2:#161616;--line:#242424;--line2:#333;
+  --text:#fff7ea;--dim:rgba(255,247,234,.44);--dim2:rgba(255,247,234,.66);
+  --red:#c00b0b;--red-hot:#f30000;--good:#86ad55;--bad:#d4553a;
+  --display:Inter,"Arial Black",system-ui,sans-serif;
+  --ui:Barlow,"Segoe UI",system-ui,-apple-system,sans-serif;
+  --num:"Cascadia Mono",Consolas,ui-monospace,monospace;
+}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:var(--ui);line-height:1.65;
--webkit-font-smoothing:antialiased}
-a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
-.wrap{max-width:1060px;margin:0 auto;padding:0 22px}
-header.site{border-bottom:1px solid var(--soft);background:var(--panel);position:sticky;top:0;z-index:10}
-header.site .wrap{display:flex;align-items:center;gap:22px;height:60px;flex-wrap:wrap}
-.brand{font-weight:700;letter-spacing:.16em;color:var(--accent);font-size:15px;white-space:nowrap}
-.brand span{display:block;font-size:9px;letter-spacing:.18em;color:var(--dim);margin-top:-4px;text-transform:uppercase}
-nav.site{display:flex;gap:18px;margin-left:auto;flex-wrap:wrap}
-nav.site a{color:var(--text);font-size:13.5px}
-nav.site a.cta{background:var(--accent);color:var(--ink);padding:7px 14px;border-radius:6px;font-weight:600}
-nav.site a.cta:hover{text-decoration:none;filter:brightness(1.08)}
-h1{font-size:34px;line-height:1.2;letter-spacing:-.01em;margin:0 0 10px;text-wrap:balance}
-h2{font-size:21px;margin:32px 0 10px;color:var(--text);text-wrap:balance}
-h3{font-size:15px;margin:22px 0 8px}
-p,li{color:#cfcdb8}
-.lede{font-size:17px;color:var(--dim);max-width:62ch}
-section{padding:40px 0}
-.hero{padding:66px 0 40px;border-bottom:1px solid var(--soft)}
-.hero .lede{margin-bottom:24px}
-.btn{display:inline-block;background:var(--accent);color:var(--ink);padding:11px 20px;
-border-radius:7px;font-weight:600;font-size:15px}
-.btn:hover{text-decoration:none;filter:brightness(1.08)}
-.btn.ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
-.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
-.card{background:var(--panel);border:1px solid var(--soft);border-radius:9px;padding:16px;display:block}
-.card:hover{border-color:var(--border);text-decoration:none}
-.card h3{margin:0 0 5px;color:var(--text);font-size:16px}
-.card p{font-size:13px;color:var(--dim);margin:0}
-.card .stats{display:flex;gap:14px;margin-top:12px;font-family:var(--num);font-size:12px;
-color:var(--accent);font-variant-numeric:tabular-nums;flex-wrap:wrap}
-.card .stats span{color:var(--dim)}
-table{width:100%;border-collapse:collapse;font-size:13.5px;margin:14px 0}
-th{text-align:left;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);
-padding:8px 10px;border-bottom:1px solid var(--border);font-weight:600}
-td{padding:8px 10px;border-bottom:1px solid var(--soft);color:#cfcdb8}
-td.n{font-family:var(--num);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
-tr:hover td{background:var(--panel)}
-.tag{font-size:10px;padding:2px 6px;border-radius:4px;background:var(--panel2);color:var(--dim);
-border:1px solid var(--soft)}
-.statbar{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));margin:22px 0}
-.statbar div{background:var(--panel);border:1px solid var(--soft);border-radius:9px;padding:14px}
-.statbar b{display:block;font-family:var(--num);font-size:22px;color:var(--accent);
-font-variant-numeric:tabular-nums;line-height:1.15}
-.statbar span{font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--dim)}
-.note{background:var(--panel);border-left:3px solid var(--accent);padding:14px 16px;
-border-radius:0 8px 8px 0;margin:20px 0;font-size:14px}
-footer.site{border-top:1px solid var(--soft);margin-top:40px;padding:26px 0;color:var(--dim);font-size:13px}
-footer.site .wrap{display:flex;gap:18px;flex-wrap:wrap;align-items:center}
-footer.site a{color:var(--dim)}
-ul,ol{padding-left:20px}li{margin:5px 0}
-@media(max-width:640px){h1{font-size:26px}.hero{padding:40px 0 30px}header.site .wrap{height:auto;padding-top:12px;padding-bottom:12px}}
+body{background:var(--bg);color:var(--text);font-family:var(--ui);font-size:16px;line-height:1.6;
+  -webkit-font-smoothing:antialiased}
+a{color:var(--text);text-decoration:none}
+a:hover{color:var(--red-hot)}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+
+/* --- display type: huge, black weight, tight, always uppercase --- */
+h1,h2.display{font-family:var(--display);font-weight:900;text-transform:uppercase;
+  letter-spacing:-.03em;line-height:.92;text-wrap:balance}
+h1{font-size:clamp(38px,7vw,84px);margin:0 0 18px}
+h2{font-family:var(--ui);font-weight:400;text-transform:uppercase;letter-spacing:.08em;
+  font-size:clamp(24px,3vw,38px);margin:0 0 16px;text-wrap:balance}
+h2.display{font-size:clamp(30px,5vw,56px);letter-spacing:-.025em}
+h3{font-family:var(--ui);font-weight:600;text-transform:uppercase;letter-spacing:.1em;
+  font-size:14px;margin:0 0 8px}
+p,li{color:var(--dim2)}
+.lede{font-size:clamp(17px,1.6vw,21px);color:var(--text);max-width:56ch;line-height:1.45}
+.eyebrow{font-weight:600;text-transform:uppercase;letter-spacing:.16em;font-size:12px;
+  color:var(--red-hot);margin-bottom:14px;display:block}
+
+/* --- header --- */
+header.site{border-bottom:1px solid var(--line);background:rgba(12,12,12,.92);
+  backdrop-filter:blur(8px);position:sticky;top:0;z-index:20}
+header.site .wrap{display:flex;align-items:center;gap:28px;min-height:74px}
+.brand{font-family:var(--display);font-weight:900;letter-spacing:-.02em;font-size:22px;
+  text-transform:uppercase;line-height:1;display:flex;align-items:baseline;gap:8px}
+.brand span{font-family:var(--ui);font-weight:600;font-size:10px;letter-spacing:.18em;
+  color:var(--dim);text-transform:uppercase}
+.brand:hover{color:var(--text)}
+nav.site{display:flex;align-items:center;gap:26px;margin-left:auto}
+nav.site a{font-weight:600;text-transform:uppercase;letter-spacing:.12em;font-size:12px;color:var(--dim2)}
+nav.site a:hover{color:var(--text)}
+nav.site a[aria-current]{color:var(--text)}
+/* the CTA is a bordered block, and its label is optically centred inside it */
+nav.site a.cta{display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  border:1px solid var(--red);color:var(--text);background:transparent;
+  padding:0 18px;height:40px;letter-spacing:.14em}
+nav.site a.cta::after{content:"";width:14px;height:1px;background:currentColor;position:relative;
+  transition:width .15s}
+nav.site a.cta:hover{background:var(--red);border-color:var(--red);color:#fff}
+nav.site a.cta:hover::after{width:20px}
+
+/* --- buttons --- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:11px;height:52px;padding:0 26px;
+  border:1px solid var(--text);color:var(--text);background:transparent;font-family:var(--ui);
+  font-weight:600;text-transform:uppercase;letter-spacing:.14em;font-size:13px;cursor:pointer}
+.btn::after{content:"";width:16px;height:1px;background:currentColor;transition:width .15s}
+.btn:hover{background:var(--text);color:var(--bg)}
+.btn:hover::after{width:24px}
+.btn.primary{border-color:var(--red);background:var(--red);color:#fff}
+.btn.primary:hover{background:var(--red-hot);border-color:var(--red-hot);color:#fff}
+.btn.sm{height:38px;padding:0 16px;font-size:11px}
+.btn.sm::after{display:none}
+
+/* --- hero --- */
+.hero{padding:clamp(56px,9vw,120px) 0 clamp(40px,6vw,72px);border-bottom:1px solid var(--line);
+  position:relative;overflow:hidden}
+.hero .actions{display:flex;gap:14px;margin-top:32px;flex-wrap:wrap}
+.hero-rule{height:1px;background:linear-gradient(90deg,var(--red),transparent);margin-top:40px}
+
+section{padding:clamp(44px,6vw,76px) 0}
+section+section{border-top:1px solid var(--line)}
+.section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;
+  margin-bottom:30px;flex-wrap:wrap}
+
+/* --- cards --- */
+.grid{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);
+  grid-template-columns:repeat(auto-fill,minmax(270px,1fr))}
+.card{background:var(--panel);padding:24px;display:block;position:relative;transition:background .15s}
+.card:hover{background:var(--panel2);color:var(--text)}
+.card h3{color:var(--text);font-family:var(--display);font-weight:900;font-size:19px;
+  letter-spacing:-.01em;text-transform:uppercase;margin-bottom:8px}
+.card p{font-size:14px;color:var(--dim);line-height:1.5}
+.card .stats{display:flex;gap:18px;margin-top:18px;font-family:var(--num);font-size:12px;
+  color:var(--text);font-variant-numeric:tabular-nums;flex-wrap:wrap}
+.card .stats span{color:var(--dim);font-family:var(--ui)}
+
+/* --- tables --- */
+table{width:100%;border-collapse:collapse;font-size:14px;margin:20px 0}
+th{text-align:left;font-weight:600;font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--dim);padding:12px 12px;border-bottom:1px solid var(--line2)}
+td{padding:12px;border-bottom:1px solid var(--line);color:var(--dim2)}
+td.n{font-family:var(--num);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;
+  color:var(--text)}
+tbody tr:hover td{background:var(--panel)}
+.tag{font-size:10px;font-weight:600;padding:3px 8px;background:transparent;color:var(--dim);
+  border:1px solid var(--line2);text-transform:uppercase;letter-spacing:.1em}
+
+/* --- stat bar --- */
+.statbar{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);
+  grid-template-columns:repeat(auto-fit,minmax(140px,1fr));margin:26px 0}
+.statbar div{background:var(--panel);padding:20px}
+.statbar b{display:block;font-family:var(--display);font-weight:900;font-size:30px;color:var(--text);
+  font-variant-numeric:tabular-nums;line-height:1;letter-spacing:-.02em}
+.statbar span{font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--dim);margin-top:8px;display:block}
+
+.note{background:var(--panel);border-left:2px solid var(--red);padding:18px 20px;margin:24px 0;
+  font-size:14px;color:var(--dim2)}
+.note strong{color:var(--text)}
+
+/* --- empty / coming-soon states --- */
+.empty{border:1px dashed var(--line2);padding:clamp(32px,5vw,56px);text-align:center}
+.empty h3{font-family:var(--display);font-weight:900;font-size:22px;letter-spacing:-.01em;
+  color:var(--text);margin-bottom:10px}
+.empty p{max-width:52ch;margin:0 auto 22px}
+.wip{display:inline-block;font-weight:600;font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--red-hot);border:1px solid var(--red);padding:3px 9px;margin-bottom:14px}
+
+/* --- community designs --- */
+.vote{display:flex;align-items:center;gap:4px}
+.vote button{display:inline-flex;align-items:center;gap:5px;background:transparent;cursor:pointer;
+  border:1px solid var(--line2);color:var(--dim2);font-family:var(--ui);font-weight:600;font-size:12px;
+  padding:5px 10px;font-variant-numeric:tabular-nums}
+.vote button:hover:not(:disabled){border-color:var(--text);color:var(--text)}
+.vote button:disabled{opacity:.45;cursor:default}
+.vote button[data-cast="1"]{border-color:var(--red);color:var(--red-hot)}
+.vote .score{font-family:var(--num);font-size:13px;color:var(--text);min-width:2ch;text-align:center}
+
+.ad-slot{margin:34px 0;padding:10px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  text-align:center;overflow:hidden}
+.ad-slot::before{content:"Advertisement";display:block;font-size:9px;font-weight:600;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+
+footer.site{border-top:1px solid var(--line);margin-top:0;padding:40px 0;color:var(--dim);font-size:13px}
+footer.site .wrap{display:flex;gap:22px;flex-wrap:wrap;align-items:center}
+footer.site a{color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.1em;font-size:11px}
+footer.site a:hover{color:var(--text)}
+footer.site .fine{flex:1 1 100%;color:var(--dim);font-size:12px;line-height:1.5;order:-1;margin-bottom:6px}
+
+ul,ol{padding-left:22px}li{margin:6px 0}
+@media(max-width:760px){
+  header.site .wrap{flex-wrap:wrap;padding-top:14px;padding-bottom:14px;gap:14px}
+  nav.site{margin-left:0;gap:18px;width:100%;flex-wrap:wrap}
+  .grid{grid-template-columns:1fr}
+}
 `;
 
 function page({ title, desc, canonical, body, ogImage = "/preview.png" }) {
@@ -404,20 +416,25 @@ ${adScript}
 </head>
 <body>
 <header class="site"><div class="wrap">
-  <a href="/" class="brand">WARDOGS<span>Base Builder</span></a>
+  <a href="/" class="brand">WARDOGS <span>Base Builder</span></a>
   <nav class="site">
     <a href="/designs/">Designs</a>
     <a href="/buildables/">Buildables</a>
+    <a href="/armory/">Armory</a>
+    <a href="/vehicles/">Vehicles</a>
     <a href="/guides/">Guides</a>
-    <a href="/planner/" class="cta">Open Planner</a>
+    <a href="/planner/" class="cta">Planner</a>
   </nav>
 </div></header>
 ${body}
 ${adSlot("leaderboard") ? `<div class="wrap">${adSlot("leaderboard")}</div>` : ""}
 <footer class="site"><div class="wrap">
-  <span>Free fan-made planner for WARDOGS. Not affiliated with BULKHEAD or Team17.</span>
+  <span class="fine">A free, fan-made planner for WARDOGS, built by a player. Not affiliated with,
+  endorsed by, or connected to BULKHEAD Interactive or Team17. WARDOGS and all related marks and
+  imagery belong to their respective owners.</span>
   <a href="/planner/">Planner</a><a href="/designs/">Designs</a>
-  <a href="/buildables/">Buildables</a><a href="/guides/">Guides</a>
+  <a href="/buildables/">Buildables</a><a href="/armory/">Armory</a>
+  <a href="/loadouts/">Loadouts</a><a href="/vehicles/">Vehicles</a><a href="/guides/">Guides</a>
   <a href="https://github.com/Goldpip3/wardogs-base-builder">Source</a>
 </div></footer>
 </body>
@@ -431,18 +448,89 @@ const write = (rel, html) => {
 };
 
 /* ---------- pages ---------- */
-const withStats = DESIGNS.map(d => ({ ...d, s: stats(d), code: encodeDesign(d) }));
+/* A submitted design arrives as a share code, so decode it back into pieces before
+   costing it. A code that does not decode is dropped with a warning rather than
+   producing a page that lies about what it contains. */
+function decodeShared(code) {
+  const raw = Buffer.from(code.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8");
+  const d = JSON.parse(raw);
+  return d.p.map(a => ({
+    type: d.t[a[0]], x: a[1] / 2, y: a[2] / 2, rot: a[3] || 0, level: a[4] || 0,
+    ...(a.length > 5 ? { zone: a[5] } : {}),
+  }));
+}
+const withStats = DESIGNS.map(d => {
+  try {
+    const pieces = decodeShared(d.code);
+    if (!pieces.length || pieces.some(p => !byId[p.type])) throw new Error("unknown piece");
+    return { ...d, s: stats({ pieces }) };
+  } catch (e) {
+    console.log("  skipped " + d.slug + ": share code will not decode (" + e.message + ")");
+    return null;
+  }
+}).filter(Boolean);
 
 function designCard(d) {
-  return `<a class="card" href="/designs/${d.slug}/">
-    <h3>${esc(d.name)}</h3>
-    <p>${esc(d.tagline)}</p>
+  return `<div class="card">
+    <a href="/designs/${d.slug}/"><h3>${esc(d.name)}</h3>
+    <p>${esc(d.tagline)}</p></a>
     <div class="stats">
       <span>supplies</span>${d.s.supplies.toLocaleString()}
       <span>pallets</span>${d.s.pallets}
       <span>pieces</span>${d.s.pieces}
-    </div></a>`;
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;gap:12px">
+      ${voteWidget(d.slug)}
+      <span style="font-size:12px;color:var(--dim)">by ${esc(d.author || "anonymous")}</span>
+    </div></div>`;
 }
+
+/* The buttons render disabled and say so until a vote service is configured. Showing
+   a live-looking score that nothing is counting would be worse than showing none. */
+const VOTE_API = (COMMUNITY.voteApi || "").replace(/\/$/, "");
+function voteWidget(slug) {
+  const off = VOTE_API ? "" : " disabled title=\"Voting opens once the vote service is live\"";
+  return `<div class="vote" data-design="${esc(slug)}">
+    <button type="button" data-dir="1"${off} aria-label="Vote up">&#9650;</button>
+    <span class="score" data-role="score">${VOTE_API ? "&middot;" : "&ndash;"}</span>
+    <button type="button" data-dir="-1"${off} aria-label="Vote down">&#9660;</button>
+  </div>`;
+}
+
+// Scores are fetched rather than baked, so a page cached for a week still shows the
+// current ranking. Failure is silent and leaves the neutral dash in place.
+const VOTE_SCRIPT = !VOTE_API ? "" : `<script>
+(function(){
+  var API=${JSON.stringify(VOTE_API)};
+  var els=[].slice.call(document.querySelectorAll(".vote[data-design]"));
+  if(!els.length)return;
+  var ids=els.map(function(e){return e.dataset.design});
+  function paint(e,t){
+    var s=e.querySelector('[data-role=score]');
+    s.textContent=(t.up||0)-(t.down||0);
+    if(t.you)e.querySelectorAll("button").forEach(function(b){
+      b.dataset.cast=(+b.dataset.dir===t.you)?"1":"";});
+  }
+  fetch(API+"/votes?ids="+encodeURIComponent(ids.join(",")))
+    .then(function(r){return r.json()})
+    .then(function(all){els.forEach(function(e){if(all[e.dataset.design])paint(e,all[e.dataset.design])})})
+    .catch(function(){});
+  els.forEach(function(e){
+    e.addEventListener("click",function(ev){
+      var b=ev.target.closest("button[data-dir]");if(!b)return;
+      var mine=b.dataset.cast==="1";
+      b.blur();
+      fetch(API+"/vote",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({id:e.dataset.design,dir:mine?0:+b.dataset.dir})})
+        .then(function(r){return r.json()})
+        .then(function(t){
+          e.querySelectorAll("button").forEach(function(x){x.dataset.cast=""});
+          paint(e,t);
+        }).catch(function(){});
+    });
+  });
+})();
+</script>`;
 
 // Designs shared before the planner moved to /planner/ carry their code in the root
 // URL's hash. Forward those rather than dropping somebody on a marketing page.
@@ -451,29 +539,50 @@ const FORWARD_SHARED = `<script>
 if(m)location.replace("/planner/#d="+m[1]);})();
 </script>`;
 
+
+/* Order is by submission date until a vote service exists; after that the client
+   re-sorts on the fetched scores. Baking a stale ranking into a cached page would be
+   worse than starting from newest. */
+const ranked = withStats.slice().sort((a, b) =>
+  String(b.submitted || "").localeCompare(String(a.submitted || "")));
+
 // --- home ---
 write("index.html", page({
   title: "WARDOGS Base Builder — plan your FOB before the match",
-  desc: "Free WARDOGS base planner and buildable cost database. Lay out walls, gates and gun pits, see the Build Supply cost and supply runs, and browse ready-made FOB designs.",
+  desc: "Free WARDOGS base planner and buildable cost database. Lay out walls, gates and gun pits, see the Build Supply cost and supply runs, and browse designs built by other players.",
   canonical: "/",
   body: `${FORWARD_SHARED}
 <section class="hero"><div class="wrap">
-  <h1>Plan your WARDOGS FOB before you spend a single supply</h1>
-  <p class="lede">A free browser planner for WARDOGS forward operating bases. Lay out walls,
-  gates, gun pits and drill rigs on a grid, and see exactly what the whole thing costs in
-  Build Supplies, pallets and vehicle trips — before you haul anything.</p>
-  <p><a class="btn" href="/planner/">Open the planner</a>
-     <a class="btn ghost" href="/designs/">Browse designs</a></p>
+  <span class="eyebrow">Free · No account · Runs in your browser</span>
+  <h1>Build the FOB<br>before the match</h1>
+  <p class="lede">Lay out walls, gates and gun pits on a grid and see exactly what the whole
+  thing costs in Build Supplies, pallets and vehicle trips — before you haul anything.</p>
+  <div class="actions">
+    <a class="btn primary" href="/planner/">Open the planner</a>
+    <a class="btn" href="/designs/">Community designs</a>
+  </div>
+  <div class="hero-rule"></div>
 </div></section>
 
 <section><div class="wrap">
-  <h2>Ready-made designs</h2>
-  <p class="lede">Open any of these in the planner and edit it into your own.</p>
-  <div class="grid" style="margin-top:18px">${withStats.map(designCard).join("")}</div>
+  <div class="section-head">
+    <div><span class="eyebrow">Community</span><h2 class="display">Designs from players</h2></div>
+    ${withStats.length ? `<a class="btn sm" href="/designs/">See all</a>` : ""}
+  </div>
+  ${withStats.length
+    ? `<div class="grid">${ranked.slice(0, 6).map(designCard).join("")}</div>`
+    : `<div class="empty">
+        <h3>Nobody has submitted one yet</h3>
+        <p>This list is built by players, not by me. Make something in the planner, hit
+        Share, and send the link — the whole design travels inside the URL, so there is
+        nothing to upload and no account to make.</p>
+        <a class="btn primary" href="${esc(COMMUNITY.submitUrl)}">Submit the first design</a>
+      </div>`}
 </div></section>
 
 <section><div class="wrap">
-  <h2>What the planner does</h2>
+  <span class="eyebrow">The tool</span>
+  <h2 class="display">What the planner does</h2>
   <div class="grid" style="margin-top:14px">
     <div class="card"><h3>Every buildable, real costs</h3><p>All ${catalog.buildables.length}
       structures from the Large Hammer, with Build Supply costs read from the in-game radial menu.</p></div>
@@ -491,7 +600,8 @@ write("index.html", page({
 </div></section>
 
 <section><div class="wrap">
-  <h2>Guides</h2>
+  <span class="eyebrow">Reference</span>
+  <h2 class="display">Guides</h2>
   <div class="grid" style="margin-top:14px">
     ${GUIDES.map(g => `<a class="card" href="/guides/${g.slug}/"><h3>${esc(g.title)}</h3>
       <p>${esc(g.blurb)}</p></a>`).join("")}
@@ -546,19 +656,27 @@ write("buildables/index.html", page({
 
 // --- designs index + detail pages ---
 write("designs/index.html", page({
-  title: "WARDOGS Base Designs — ready-made FOB layouts",
-  desc: "Ready-made WARDOGS FOB designs with measured Build Supply costs, pallet counts and supply runs. Open any of them in the planner and edit.",
+  title: "WARDOGS Base Designs - built and rated by the community",
+  desc: "Player-built WARDOGS FOB designs, ranked by vote. Every one opens straight in the planner, fully editable, with its real Build Supply cost and supply runs worked out.",
   canonical: "/designs/",
   body: `<section><div class="wrap">
-  <h1>WARDOGS base designs</h1>
-  <p class="lede">Each one opens straight in the planner, fully editable. Costs are measured
-  from the real buildable data, not estimated.</p>
-  <div class="grid" style="margin-top:20px">${withStats.map(designCard).join("")}</div>
-  <div class="note">Built something good? Hit <strong>Share</strong> in the planner and send
-  me the link — the whole design travels inside the URL, and good ones get added here with
-  credit.</div>
-</div></section>`,
+  <span class="eyebrow">Community</span>
+  <h1>Base designs</h1>
+  <p class="lede">Builds submitted by players, ranked by whoever found them useful.
+  Every one opens in the planner, fully editable.</p>
+  ${withStats.length
+    ? `<div class="grid" style="margin-top:34px">${ranked.map(designCard).join("")}</div>`
+    : `<div class="empty" style="margin-top:34px">
+        <h3>No designs yet</h3>
+        <p>This list is player-built, and nobody has submitted anything yet.
+        Build something in the planner, hit <strong>Share</strong>, and send the link -
+        the whole design travels inside the URL, so there is nothing to upload.</p>
+        <a class="btn primary" href="${esc(COMMUNITY.submitUrl)}">Submit a design</a>
+      </div>`}
+  ${withStats.length ? `<p style="margin-top:34px"><a class="btn" href="${esc(COMMUNITY.submitUrl)}">Submit your build</a></p>` : ""}
+</div></section>${VOTE_SCRIPT}`,
 }));
+
 
 for (const d of withStats) {
   const s = d.s;
@@ -633,7 +751,78 @@ for (const g of GUIDES) {
 }
 
 // --- sitemap + robots ---
-const urls = ["/", "/planner/", "/designs/", "/buildables/", "/guides/"]
+
+/* ---------- sections waiting on the game ----------
+   Armory, Loadouts and Vehicles are all real plans, but every number in them has to be
+   read off the game and the game is between tests. They ship as structure now so the
+   pages exist, are linked, and are indexed - and so filling them in later is a data job
+   rather than a build job. */
+const COMING_SOON = [
+  {
+    slug: "armory",
+    nav: "Armory",
+    title: "WARDOGS Armory - weapons, attachments and costs",
+    h1: "Armory",
+    desc: "Every WARDOGS weapon and attachment with what it costs to buy and run. In progress - the numbers go in as the game comes back up.",
+    lede: "Every weapon and attachment, what it costs to buy, and what it costs to keep feeding.",
+    plan: [
+      "Each weapon with its vendor price, ammo type and what a full magazine costs to replace.",
+      "Attachments listed per weapon - optics, muzzles, grips - with the price and what they actually change.",
+      "Sorting by cost per magazine, so you can see which guns are cheap to run and which quietly drain cash.",
+    ],
+  },
+  {
+    slug: "loadouts",
+    nav: "Loadouts",
+    title: "WARDOGS Loadout Cost Calculator",
+    h1: "Loadout calculator",
+    desc: "Price up a full WARDOGS loadout - weapon, attachments, armour, ammo and gear - and see what one death costs you. In progress.",
+    lede: "Pick a weapon, hang attachments off it, add armour and ammo, and see what the whole kit costs to field once.",
+    plan: [
+      "Build a kit from the armory and get a running total as you add to it.",
+      "Cost per life: what you are actually writing off when the kit does not come home.",
+      "Share a loadout by link, the same way base designs already work.",
+    ],
+  },
+  {
+    slug: "vehicles",
+    nav: "Vehicles",
+    title: "WARDOGS Vehicles - ground and air, costs and running costs",
+    h1: "Vehicles",
+    desc: "WARDOGS ground and air vehicles with purchase price, fuel and ammunition costs. In progress.",
+    lede: "Ground and air, what each one costs to buy, and what it costs every time you take it out.",
+    plan: [
+      "Split by ground and air, with purchase price and crew requirement.",
+      "Running costs: fuel per trip, and what a full ammo load costs on something like a tank.",
+      "Repair and rearm costs, so a vehicle you keep alive can be compared against one you keep replacing.",
+    ],
+  },
+];
+
+for (const c of COMING_SOON) {
+  write(c.slug + "/index.html", page({
+    title: c.title,
+    desc: c.desc,
+    canonical: "/" + c.slug + "/",
+    body: `<section><div class="wrap">
+  <span class="eyebrow">In progress</span>
+  <h1>${esc(c.h1)}</h1>
+  <p class="lede">${esc(c.lede)}</p>
+  <div class="empty" style="margin-top:38px;text-align:left">
+    <span class="wip">Waiting on the game</span>
+    <h3>Not filled in yet</h3>
+    <p style="margin:0 0 18px">WARDOGS is between tests, and every number on this page has to be
+    read off the game rather than guessed. The page is here so it is ready the moment the
+    servers are, and so nothing gets invented in the meantime.</p>
+    <h3 style="margin-top:26px">What goes here</h3>
+    <ul style="max-width:60ch">${c.plan.map(function(x){return "<li>" + esc(x) + "</li>"}).join("")}</ul>
+  </div>
+  <p style="margin-top:34px"><a class="btn" href="/planner/">Open the planner</a></p>
+</div></section>`,
+  }));
+}
+
+const urls = ["/", "/planner/", "/designs/", "/buildables/", "/armory/", "/loadouts/", "/vehicles/", "/guides/"]
   .concat(withStats.map(d => `/designs/${d.slug}/`))
   .concat(GUIDES.map(g => `/guides/${g.slug}/`));
 write("sitemap.xml",

@@ -1,0 +1,14 @@
+name = "wardogs-votes"
+main = "vote-worker.js"
+compatibility_date = "2024-11-01"
+
+# Created with: wrangler kv namespace create VOTES
+# Paste the id it prints into the line below, then: wrangler deploy
+[[kv_namespaces]]
+binding = "VOTES"
+id = "PASTE_KV_NAMESPACE_ID_HERE"
+
+[vars]
+# Any random string. It only has to be secret enough that nobody can precompute
+# which hash belongs to which address.
+VOTE_SALT = "change-me"

@@ -1,0 +1,10 @@
+{
+  "_comment": "Community-submitted base designs. Each entry is one player's build. Add a design by pasting the share code from the planner. Votes are NOT stored here - they live in the vote service (see worker/), and the site fetches them at page load.",
+
+  "voteApi": "",
+  "voteApiNote": "Base URL of the deployed vote worker, e.g. https://votes.wardogsbuilder.workers.dev. While this is empty the site shows scores as unavailable rather than faking them.",
+
+  "submitUrl": "https://github.com/Goldpip3/wardogs-base-builder/issues/new?labels=design&title=Design%3A+&body=Paste+your+share+link+from+the+planner+below%2C+plus+a+sentence+on+what+the+build+is+for.%0A%0AShare+link%3A+%0AWhat+it+is+for%3A+%0AYour+name+%28how+you+want+to+be+credited%29%3A+",
+
+  "designs": []
+}

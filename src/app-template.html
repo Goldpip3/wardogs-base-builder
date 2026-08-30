@@ -22,25 +22,29 @@
 <meta name="twitter:description" content="Plan your WARDOGS FOB and cost it in Build Supplies before the match. Free, no account.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%2312140d'/><rect x='6' y='14' width='20' height='12' rx='2' fill='%23dcaa26'/><rect x='11' y='8' width='10' height='7' rx='2' fill='%2386ad55'/></svg>">
 <style>
+  /*__FONTS__*/
   :root {
-    /* Field-manual palette: warm olive ground, brass for anything that carries a number,
-       and red reserved exclusively for problems. */
-    --bg: #12140d;
-    --panel: #1a1d13;
-    --panel2: #232719;
-    --panel3: #2b3020;
-    --border: #353c23;
-    --border-soft: #2a3019;
-    --text: #dedbc6;
-    --dim: #8d8d74;
-    --accent: #dcaa26;
-    --accent-ink: #17180f;
-    --accent2: #86ad55;
-    --danger: #d4553a;
-    --blue: #4d8fc4;
+    /* Same palette as the site, which is the game's own: near-black ground, cream text,
+       red for anything that carries a number or a warning. Accent and danger are close
+       cousins here on purpose — in this game red is the brand colour, so a problem is
+       marked by weight and an icon rather than by hue alone. */
+    --bg: #0c0c0c;
+    --panel: #111111;
+    --panel2: #161616;
+    --panel3: #1d1d1d;
+    --border: #2e2e2e;
+    --border-soft: #222222;
+    --text: #fff7ea;
+    --dim: rgba(255, 247, 234, .44);
+    --accent: #ff5b47;          /* readable on near-black; the flat brand red is not */
+    --accent-ink: #14100e;
+    --accent2: #9ec46a;
+    --danger: #f30000;
+    --blue: #6aa8dc;
     --cell: 26px;
     --s: 1;            /* interface scale — raised automatically on large/4K displays */
-    --ui: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --display: Inter, "Arial Black", system-ui, sans-serif;
+    --ui: Barlow, "Segoe UI", system-ui, -apple-system, sans-serif;
     --num: "Cascadia Mono", Consolas, "SF Mono", ui-monospace, monospace;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -53,7 +57,8 @@
   }
   button {
     background: var(--panel2); color: var(--text); border: 1px solid var(--border);
-    padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px;
+    padding: 5px 10px; border-radius: 0; cursor: pointer; font-size: 12px;
+    letter-spacing: .04em;
     font-family: inherit; line-height: 1.3;
     display: inline-flex; align-items: center; gap: 5px;
     transition: background .12s ease, border-color .12s ease;
@@ -67,13 +72,13 @@
   button.warn:hover { border-color: var(--danger); background: #34201a; }
   input, select, textarea {
     background: #0e100a; color: var(--text); border: 1px solid var(--border);
-    border-radius: 5px; padding: 4px 7px; font-size: 12px; font-family: inherit;
+    border-radius: 0; padding: 4px 7px; font-size: 12px; font-family: inherit;
   }
   input[type=number] { font-family: var(--num); font-variant-numeric: tabular-nums; }
   input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
 
   /* segmented control — used for the storey picker */
-  .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 5px; overflow: hidden; }
+  .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 0; overflow: hidden; }
   .seg button {
     border: 0; border-radius: 0; padding: 5px 9px; background: transparent;
     border-left: 1px solid var(--border-soft); font-size: 11.5px;
@@ -87,7 +92,7 @@
   .support-link {
     margin-left: auto; text-decoration: none; font-size: 12px;
     color: var(--accent); border: 1px solid #4d3d12; background: #241f0e;
-    padding: 5px 11px; border-radius: 5px; white-space: nowrap;
+    padding: 5px 11px; border-radius: 0; white-space: nowrap;
   }
   .support-link:hover { border-color: var(--accent); background: #2f2811; }
   .group-label {
@@ -101,12 +106,12 @@
     display: flex; align-items: center; gap: 8px; padding: 7px 12px;
     background: var(--panel); border-bottom: 1px solid var(--border); flex-wrap: wrap;
   }
-  #topbar a#homeLink { text-decoration: none; border-radius: 6px; padding: 2px 5px; margin-left: -5px; }
+  #topbar a#homeLink { text-decoration: none; border-radius: 0; padding: 2px 5px; margin-left: -5px; }
   #topbar a#homeLink:hover { background: var(--panel2, #2a2f2a); }
   #topbar a#homeLink:hover h1 { color: var(--accent); }
   #topbar h1 {
-    font-size: 15px; letter-spacing: .16em; color: var(--accent); font-weight: 700;
-    margin-right: 6px; white-space: nowrap;
+    font-family: var(--display); font-weight: 900; font-size: 17px; letter-spacing: -.02em;
+    color: var(--text); margin-right: 6px; white-space: nowrap; text-transform: uppercase;
   }
   #topbar h1 span {
     color: var(--dim); font-weight: 500; letter-spacing: .1em; font-size: 9.5px;
@@ -132,13 +137,13 @@
   #items { flex: 1; overflow-y: auto; padding: 0 8px 8px 8px; }
   .item-card {
     display: flex; gap: 9px; align-items: center; padding: 6px; margin-bottom: 4px;
-    background: var(--panel2); border: 1px solid var(--border-soft); border-radius: 6px;
+    background: var(--panel2); border: 1px solid var(--border-soft); border-radius: 0;
     cursor: pointer; transition: background .12s ease, border-color .12s ease;
   }
   .item-card:hover { border-color: var(--border); background: var(--panel3); }
   .item-card.selected { border-color: var(--accent); background: #302f1c; }
   .item-card img, .item-card .noicon {
-    width: 44px; height: 44px; border-radius: 4px; background: #0e100a; object-fit: contain; flex-shrink: 0;
+    width: 44px; height: 44px; border-radius: 0; background: #0e100a; object-fit: contain; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center; font-size: 18px;
   }
   .item-card .info { min-width: 0; }
@@ -150,13 +155,13 @@
   .item-card .cost { color: var(--accent); font-family: var(--num); }
   .item-card .cost.unconfirmed { color: inherit; }
   .role-dot {
-    display: inline-block; width: 8px; height: 8px; border-radius: 2px;
+    display: inline-block; width: 8px; height: 8px; border-radius: 0;
     margin-right: 6px; vertical-align: 0; flex-shrink: 0;
   }
   .legend { display: grid; grid-template-columns: auto 1fr; gap: 5px 8px; align-items: center; }
-  .legend .sw { width: 11px; height: 11px; border-radius: 3px; }
+  .legend .sw { width: 11px; height: 11px; border-radius: 0; }
   .legend span { font-size: 11.5px; }
-  .tier-badge { font-size: 9px; padding: 1px 4px; border-radius: 3px; margin-left: 4px; vertical-align: 1px; }
+  .tier-badge { font-size: 9px; padding: 1px 4px; border-radius: 0; margin-left: 4px; vertical-align: 1px; }
   .tier-small  { background: #3d5d33; }
   .tier-medium { background: #6d5a1e; }
   .tier-large  { background: #703a2a; }
@@ -178,7 +183,7 @@
   #emptyState button { pointer-events: auto; font-size: calc(12px * var(--s)); }
   #hint {
     position: absolute; bottom: calc(30px * var(--s)); left: 50%; transform: translateX(-50%);
-    background: rgba(20,22,15,.88); border: 1px solid var(--border); border-radius: 5px;
+    background: rgba(20,22,15,.88); border: 1px solid var(--border); border-radius: 0;
     padding: calc(5px * var(--s)) calc(14px * var(--s)); font-size: calc(11.5px * var(--s));
     color: var(--dim); pointer-events: none; white-space: nowrap;
   }
@@ -233,7 +238,7 @@
   .unsized { color: var(--danger); }
   .budget-track {
     height: 7px; background: #12140d; border: 1px solid var(--border);
-    border-radius: 4px; overflow: hidden; margin-top: 6px;
+    border-radius: 0; overflow: hidden; margin-top: 6px;
   }
   .budget-fill { height: 100%; width: 0; background: var(--accent2); transition: width .15s ease; }
   .preset-row {
@@ -275,7 +280,7 @@
   }
   #modal {
     zoom: var(--s);
-    background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 0;
     width: min(680px, calc(92vw / var(--s))); max-height: calc(86vh / var(--s));
     display: flex; flex-direction: column;
   }
@@ -287,11 +292,11 @@
   .design-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 4px; border-bottom: 1px solid var(--border); }
   kbd {
     background: var(--panel2); border: 1px solid var(--border); border-bottom-width: 2px;
-    border-radius: 3px; padding: 0 5px; font-size: 11px; font-family: inherit;
+    border-radius: 0; padding: 0 5px; font-size: 11px; font-family: inherit;
   }
   .help-grid { display: grid; grid-template-columns: 130px 1fr; gap: 6px 12px; font-size: 12.5px; }
   ::-webkit-scrollbar { width: 9px; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 5px; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 0; }
   ::-webkit-scrollbar-track { background: transparent; }
 </style>
 </head>
@@ -980,6 +985,7 @@ function drawPiece(p, hasIssue) {
   // the storey you're on reads solid; the ones below show through as an underlay
   const alpha = rel === 0 ? 1 : (rel < 0 ? 0.62 : 0.48);
   drawRect(pieceRect(p), def, {
+    seams: getSeams().get(p.id) || 0,
     selected: selection.has(p.id),
     hovered: hoverId === p.id,
     issue: hasIssue,
@@ -1009,7 +1015,14 @@ function drawRect(r, def, opt) {
     ctx.rotate(r.rot);
     ctx.globalAlpha = 0.5;
     ctx.fillStyle = shade(base, -58);            // the shaded "side" of the block
-    roundRect(-w/2, -h/2, w, h, Math.min(4, z*0.15));
+    if (opt.seams) {                             // square, so a run casts one solid side
+      const bl = 0.5 * uiScale;
+      const L = -w/2 - (opt.seams & 2 ? bl : 0), R = w/2 + (opt.seams & 1 ? bl : 0);
+      const T = -h/2 - (opt.seams & 8 ? bl : 0), B = h/2 + (opt.seams & 4 ? bl : 0);
+      ctx.beginPath(); ctx.rect(L, T, R - L, B - T);
+    } else {
+      roundRect(-w/2, -h/2, w, h, Math.min(4, z*0.15));
+    }
     ctx.fill();
     ctx.restore();
   }
@@ -1020,11 +1033,28 @@ function drawRect(r, def, opt) {
   ctx.rotate(r.rot);
   ctx.globalAlpha = (opt.ghost ? 0.55 : 1) * fade;
   ctx.fillStyle = shade(base, opt.level ? 18 * Math.min(opt.level,3) : 0);
-  ctx.strokeStyle = opt.issue ? "#d05038" : (opt.selected ? "#d9a521" : (opt.hovered ? "#d8d6c4"
+  ctx.strokeStyle = opt.issue ? "#f04a2e" : (opt.selected ? "#ff5b47" : (opt.hovered ? "#fff7ea"
     : shade(base, opt.onThisLevel === false ? 50 : -25)));   // storeys you are not on read by their edge
   ctx.lineWidth = (opt.selected || opt.issue ? 2.5 : 1.5) * uiScale;
-  roundRect(-w/2, -h/2, w, h, Math.min(4, z*0.15));
-  ctx.fill(); ctx.stroke();
+  const seams = opt.seams || 0;
+  if (seams) {
+    // Part of a run: square the joined corners, fill flush, and outline only the sides
+    // that are actually exposed. Overdraw by half a line width into each neighbour so
+    // no hairline of background shows through at the join.
+    const bleed = ctx.lineWidth / 2;
+    const L = -w/2 - (seams & 2 ? bleed : 0), R = w/2 + (seams & 1 ? bleed : 0);
+    const T = -h/2 - (seams & 8 ? bleed : 0), B = h/2 + (seams & 4 ? bleed : 0);
+    ctx.beginPath(); ctx.rect(L, T, R - L, B - T); ctx.fill();
+    ctx.beginPath();
+    if (!(seams & 1)) { ctx.moveTo(w/2, T); ctx.lineTo(w/2, B); }
+    if (!(seams & 2)) { ctx.moveTo(-w/2, T); ctx.lineTo(-w/2, B); }
+    if (!(seams & 4)) { ctx.moveTo(L, h/2); ctx.lineTo(R, h/2); }
+    if (!(seams & 8)) { ctx.moveTo(L, -h/2); ctx.lineTo(R, -h/2); }
+    ctx.stroke();
+  } else {
+    roundRect(-w/2, -h/2, w, h, Math.min(4, z*0.15));
+    ctx.fill(); ctx.stroke();
+  }
   ctx.restore();
 
   // icon — drawn upright, never rotated, so it stays readable at any angle
@@ -1043,7 +1073,11 @@ function drawRect(r, def, opt) {
   if (z > 9 * uiScale && !opt.ghost && (opt.onThisLevel !== false || opt.selected || opt.hovered)) {
     ctx.save();
     ctx.translate(sx, sy);
-    const showLabel = opt.selected || opt.hovered || def.isFob || Math.min(r.w, r.h) >= 2;
+    // A ten-block run does not need its name ten times. Inside a run only the ends and
+    // whatever you are pointing at speak up.
+    const midRun = (opt.seams & 3) === 3 || (opt.seams & 12) === 12;
+    const showLabel = opt.selected || opt.hovered || def.isFob ||
+      (Math.min(r.w, r.h) >= 2 && !midRun);
     ctx.font = "600 " + Math.max(9*uiScale, Math.min(11*uiScale, z*0.4)) + "px sans-serif";
     ctx.textAlign = "center"; ctx.fillStyle = "#d8d6c4dd";
     const short = def.isFob ? "FOB" : def.name.replace(/ \(.*\)/, "").split(" ").slice(0,2).join(" ");
@@ -1052,7 +1086,8 @@ function drawRect(r, def, opt) {
     const badges = [];
     if (opt.level > 0) badges.push("L" + (opt.level + 1));
     if ((def.height || 1) > 1) badges.push("▲" + def.height);
-    if (badges.length) {
+    // Same rule as the label: a run states its height at the ends, not on every block.
+    if (badges.length && (!midRun || opt.selected || opt.hovered)) {
       ctx.fillStyle = "#d9a521"; ctx.font = `700 ${10*uiScale}px sans-serif`;
       ctx.fillText(badges.join(" "), 0, -Math.max(r.w, r.h) * z / 2 - 4 * uiScale);
     }
@@ -1203,7 +1238,53 @@ function getIssues() {
   if (!issuesCache) issuesCache = computeIssues();
   return issuesCache;
 }
-function invalidateIssues() { issuesCache = null; }
+function invalidateIssues() { issuesCache = null; seamCache = null; }
+
+/* ---------- wall runs ----------
+   Drag out ten Hesco blocks and they are one wall, so they should draw as one wall.
+   For each piece we work out which of its four sides are flush against another piece of
+   the same type on the same storey; those sides lose their outline, and the fills meet
+   with no seam. What is left is a single outline around the whole run.
+
+   Only square-on pieces merge. Once something is rotated off 90 degrees the join really
+   is a join, and pretending otherwise would draw a wall that does not exist.
+   Bit order matches the local axes: 1 = -y, 2 = +x, 4 = +y, 8 = -x. */
+let seamCache = null;
+const SEAM_EPS = 0.06;
+function getSeams() { if (!seamCache) seamCache = computeSeams(); return seamCache; }
+function computeSeams() {
+  const merged = new Map();
+  const index = buildIndex(design.pieces);
+  for (const p of design.pieces) {
+    const m = index.meta.get(p);
+    if (!m) continue;
+    const rot = ((p.rot || 0) % 360 + 360) % 360;
+    if (rot % 90 !== 0) continue;                       // off-square: keep its own outline
+    const a = m.box;
+    let mask = 0;
+    for (const q of neighbours(index, p)) {
+      if (q.type !== p.type || (q.level || 0) !== (p.level || 0)) continue;
+      const qm = index.meta.get(q);
+      if (!qm) continue;
+      const qrot = ((q.rot || 0) % 360 + 360) % 360;
+      if (qrot % 90 !== 0) continue;
+      const b = qm.box;
+      // touching along x means the y spans have to genuinely overlap, not just graze
+      const yOverlap = Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0) > SEAM_EPS;
+      const xOverlap = Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0) > SEAM_EPS;
+      if (yOverlap) {
+        if (Math.abs(b.x0 - a.x1) < SEAM_EPS) mask |= 1 << 0;   // neighbour to +x
+        if (Math.abs(a.x0 - b.x1) < SEAM_EPS) mask |= 1 << 1;   // neighbour to -x
+      }
+      if (xOverlap) {
+        if (Math.abs(b.y0 - a.y1) < SEAM_EPS) mask |= 1 << 2;   // neighbour to +y
+        if (Math.abs(a.y0 - b.y1) < SEAM_EPS) mask |= 1 << 3;   // neighbour to -y
+      }
+    }
+    if (mask) merged.set(p.id, mask);
+  }
+  return merged;
+}
 
 function updateRightPanel() {
   // cost totals
@@ -2013,7 +2094,7 @@ document.getElementById("btnPng").onclick = () => {
     const url = canvas.toDataURL("image/png");
     openModal("Layout Image",
       `<p style="color:var(--dim);font-size:12px;margin-bottom:8px">Right-click the image → “Save image as…” or “Copy image”.</p>
-       <img src="${url}" style="max-width:100%;border:1px solid var(--border);border-radius:5px">`,
+       <img src="${url}" style="max-width:100%;border:1px solid var(--border)">`,
       [
         ["⭳ Download PNG", () => {
           canvas.toBlob(blob => tryDownload(blob, (design.name||"wardogs-base").replace(/[^\w\- ]+/g,"") + ".png"));

@@ -75,13 +75,15 @@ ICONS["hesco-tall"]  = box(-1.4, -1.4, 0, 2.8, 2.8, 4.0, "hesco", { mesh: 1 });
 ICONS["hesco-quad"]  = [0, 1, 2, 3].map(i =>
   box(-3.4 + i * 1.75, -0.9, 0, 1.7, 1.8, 3.0, "hesco", { mesh: 1 })).join("");
 
-// --- sandbags: staggered rounded courses --------------------------------
+// --- sandbags -----------------------------------------------------------
+// Two low staggered courses. It is a 2x1x1 piece, so it has to read as waist-height
+// cover you can shoot over, not as a wall in its own right.
 ICONS["sandbag-wall"] = (() => {
   let s = "";
-  for (let row = 0; row < 3; row++)
-    for (let i = 0; i < 4; i++) {
-      const off = row % 2 ? 0.42 : 0;
-      s += box(-3.4 + i * 1.7 + off, -0.75, row * 0.72, 1.55, 1.5, 0.7, "sand");
+  for (let row = 0; row < 2; row++)
+    for (let i = 0; i < 5; i++) {
+      const off = row % 2 ? 0.7 : 0;
+      s += box(-3.5 + i * 1.4 + off, -0.9, row * 0.78, 1.3, 1.8, 0.76, "sand");
     }
   return s;
 })();
@@ -221,17 +223,27 @@ ICONS["talon-9k-sam"] = (() => {
     missile(-0.85, "olive") + missile(0.85, "hesco");
 })();
 
+// In the radial menu the Stingray is a low round gabion emplacement with the launcher
+// sunk into the middle, not a platform on legs. Built from short wall segments swept
+// around a circle so it reads as woven basket rather than a smooth ring.
 ICONS["stingray"] = (() => {
-  const c = px(0, 0, 3.6);
-  let s = pad(-2.6, -2.6, 5.2, 5.2, "crete", 0.45) +
-          box(-1.5, -1.5, 0.45, 3.0, 3.0, 0.9, "steel");
-  s += box(-0.9, -0.55, 3.2, 1.8, 1.1, 0.55, "dark");        // drone body
-  for (const [ax, ay] of [[-1.9, -1.9], [1.9, -1.9], [-1.9, 1.9], [1.9, 1.9]]) {
-    s += strut([0, 0, 3.5], [ax, ay, 3.5], M.steel[2], 1.9);
-    const p = px(ax, ay, 3.6);
-    s += `<ellipse cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" rx="5" ry="2.7" fill="${M.steel[0]}" opacity=".5"/>`;
-    s += `<ellipse cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" rx="5" ry="2.7" fill="none" stroke="${M.steel[2]}" stroke-width="1.1"/>`;
+  const R = 2.9, SEG = 14;
+  let s = pad(-3.2, -3.2, 6.4, 6.4, "sand", 0.3);
+  // back half first so the front of the ring overlaps it correctly
+  const order = [];
+  for (let i = 0; i < SEG; i++) {
+    const a = (i / SEG) * Math.PI * 2;
+    order.push({ a, x: Math.cos(a) * R, y: Math.sin(a) * R });
   }
+  order.sort((p, q) => (p.x + p.y) - (q.x + q.y));
+  const back = order.filter(p => p.x + p.y <= 0), front = order.filter(p => p.x + p.y > 0);
+  const seg = p => box(p.x - 0.52, p.y - 0.52, 0.3, 1.04, 1.04, 1.25, "sand");
+  s += back.map(seg).join("");
+  // launcher: a squat mount with a pair of tubes angled up out of the pit
+  s += box(-0.85, -0.85, 0.3, 1.7, 1.7, 0.85, "dark");
+  s += strut([-0.35, 0, 1.15], [-0.95, 0, 3.5], M.olive[1], 2.6);
+  s += strut([0.35, 0, 1.15], [-0.25, 0, 3.5], M.olive[0], 2.6);
+  s += front.map(seg).join("");
   return s;
 })();
 
@@ -326,7 +338,11 @@ ICONS["fob"] =
 /* ---------------- write ---------------- */
 const outDir = path.join(__dirname, "..", "assets", "icons");
 fs.mkdirSync(outDir, { recursive: true });
-for (const f of fs.readdirSync(outDir)) fs.unlinkSync(path.join(outDir, f));
+// Only clear the SVGs this script owns. The directory also holds the game's own .webp
+// renders, and an unfiltered wipe here would silently delete the whole icon set.
+for (const f of fs.readdirSync(outDir)) {
+  if (f.endsWith(".svg")) fs.unlinkSync(path.join(outDir, f));
+}
 let n = 0;
 for (const [name, body] of Object.entries(ICONS)) {
   fs.writeFileSync(path.join(outDir, name + ".svg"), wrap(body));

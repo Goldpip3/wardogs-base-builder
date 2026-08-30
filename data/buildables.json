@@ -13,9 +13,9 @@
   },
   "logistics": {
     "palletCash": 400,
-    "suppliesPerPallet": 1900,
+    "suppliesPerPallet": 1800,
     "palletConfirmed": true,
-    "note": "Build Supply Pallet is $400 and 4x2 inventory slots, and holds 1900 build supplies. Buying loose supplies at $10 each is only for topping up - the pallet is the way to actually stock a FOB.",
+    "note": "Build Supply Pallet is $400 and 4x2 inventory slots, and holds 1800 build supplies. Buying loose supplies at $10 each is only for topping up - the pallet is the way to actually stock a FOB.",
     "vehicles": [
       {
         "name": "Truck",
@@ -127,11 +127,11 @@
     {
       "id": "hesco-tall",
       "role": "cover",
-      "name": "Hesco Block (Tall)",
+      "name": "Hesco Block (Large)",
       "tier": "medium",
       "page": 2,
-      "cost": 20,
-      "costConfirmed": false,
+      "cost": 18,
+      "costConfirmed": true,
       "requiresFob": true,
       "footprint": {
         "w": 1,
@@ -523,50 +523,6 @@
         "objective",
         "uses-fuel",
         "endgame"
-      ]
-    },
-    {
-      "id": "refuel-station",
-      "role": "support",
-      "name": "Refuel Station",
-      "tier": "large",
-      "page": 3,
-      "cost": 120,
-      "costConfirmed": true,
-      "requiresFob": true,
-      "footprint": {
-        "w": 3,
-        "d": 2
-      },
-      "height": 2,
-      "sizeConfirmed": false,
-      "desc": "Friendly vehicles refuel within FOB radius, if Fuel Logistics supplies are stored at the FOB.",
-      "icon": "refuel-station.webp",
-      "tags": [
-        "logistics",
-        "uses-fuel"
-      ]
-    },
-    {
-      "id": "repair-station",
-      "role": "support",
-      "name": "Repair Station",
-      "tier": "large",
-      "page": 3,
-      "cost": 120,
-      "costConfirmed": true,
-      "requiresFob": true,
-      "footprint": {
-        "w": 3,
-        "d": 2
-      },
-      "height": 2,
-      "sizeConfirmed": false,
-      "desc": "Friendly vehicles repair within FOB radius, if Spare Parts (Mechanical) supplies are stored at the FOB.",
-      "icon": "repair-station.webp",
-      "tags": [
-        "logistics",
-        "uses-mechanical"
       ]
     }
   ],

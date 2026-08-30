@@ -15,7 +15,23 @@ Get-ChildItem "$proj\assets\icons\*" -Include *.webp, *.svg, *.png | ForEach-Obj
   $iconMap[$_.Name] = "data:$mime;base64," + [Convert]::ToBase64String([IO.File]::ReadAllBytes($_.FullName))
 }
 $iconsJson = ($iconMap.GetEnumerator() | Sort-Object Name | ForEach-Object { '"{0}":"{1}"' -f $_.Key, $_.Value }) -join ","
-$out = $tpl.Replace('/*__CATALOG__*/', $catalog).Replace('/*__ICONS__*/', "{$iconsJson}")
+
+# The site loads these fonts as files, but the planner has to work with no network at
+# all, so they are baked in as data URIs. Latin subsets, ~26 KB for all three.
+$faces = @(
+  @{ file = "inter-900.woff2";  family = "Inter";  weight = 900 },
+  @{ file = "barlow-400.woff2"; family = "Barlow"; weight = 400 },
+  @{ file = "barlow-600.woff2"; family = "Barlow"; weight = 600 }
+)
+$fontCss = ($faces | ForEach-Object {
+  $p = "$proj\assets\fonts\$($_.file)"
+  if (Test-Path $p) {
+    $b64 = [Convert]::ToBase64String([IO.File]::ReadAllBytes($p))
+    "@font-face{font-family:$($_.family);src:url(data:font/woff2;base64,$b64)format('woff2');font-weight:$($_.weight);font-display:swap}"
+  }
+}) -join "`n  "
+
+$out = $tpl.Replace('/*__CATALOG__*/', $catalog).Replace('/*__ICONS__*/', "{$iconsJson}").Replace('/*__FONTS__*/', $fontCss)
 [IO.File]::WriteAllText("$proj\WardogsBaseBuilder.html", $out, $utf8)
 # Artifact variant (no HTML skeleton — the Artifact wrapper provides it)
 $art = $out -replace '(?s)^.*?<title>', '<title>' -replace '</head>\s*<body>', '' -replace '</body>\s*</html>\s*$', ''
@@ -32,6 +48,10 @@ if (Test-Path "$proj\release\og-1200x630.png") { Copy-Item "$proj\release\og-120
 $customDomain = "www.wardogsbuilder.com"
 if ($customDomain) { [IO.File]::WriteAllText("$proj\docs\CNAME", $customDomain, $utf8) }
 elseif (Test-Path "$proj\docs\CNAME") { Remove-Item "$proj\docs\CNAME" -Force }
+
+# The site pages load these as files; the planner inlines them so it still works offline.
+New-Item -ItemType Directory -Force "$proj\docs\fonts" | Out-Null
+Copy-Item "$proj\assets\fonts\*.woff2" "$proj\docs\fonts\" -Force
 
 node (Join-Path $proj "tools/build-site.js")
 node (Join-Path $proj "tools/check-build.js")

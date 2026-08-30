@@ -23,6 +23,19 @@ const check = (ok, label, detail) => {
   if (!ok) fail++;
 };
 
+// -- 0. the app's script actually parses --
+// A bulk find-and-replace across the template once ate the tail of a template literal
+// and every check below still passed, because the page was structurally fine and simply
+// did not run. Parse it.
+{
+  const s = app.indexOf("<script>", app.indexOf("</style>"));
+  const e = app.lastIndexOf("</script>");
+  let err = null;
+  try { new (require("vm").Script)(app.slice(s + "<script>".length, e)); }
+  catch (ex) { err = ex.message; }
+  check(!err, "planner script parses", err);
+}
+
 // -- 1. every element the script reaches for actually exists in the markup --
 const ids = new Set([...app.matchAll(/\bid="([A-Za-z0-9_-]+)"/g)].map(m => m[1]));
 const looked = [...new Set([...app.matchAll(/getElementById\("([A-Za-z0-9_-]+)"\)/g)].map(m => m[1]))];
