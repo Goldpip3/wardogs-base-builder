@@ -19,7 +19,11 @@ $art = $out -replace '(?s)^.*?<title>', '<title>' -replace '</head>\s*<body>', '
 New-Item -ItemType Directory -Force "$proj\docs" | Out-Null
 [IO.File]::WriteAllText("$proj\docs\index.html", $out)
 if (Test-Path "$proj\release\og-1200x630.png") { Copy-Item "$proj\release\og-1200x630.png" "$proj\docs\preview.png" -Force }
-# custom domain claim - Pages needs this file present on every deploy
-[IO.File]::WriteAllText("$proj\docs\CNAME", "www.wardogsbuilder.com")
+# Custom domain. Leave EMPTY until the domain's DNS actually resolves — claiming a
+# domain with no records makes Pages redirect the working github.io URL into a dead
+# end, which takes the site offline. Fill it in once the DNS records are live.
+$customDomain = ""
+if ($customDomain) { [IO.File]::WriteAllText("$proj\docs\CNAME", $customDomain) }
+elseif (Test-Path "$proj\docs\CNAME") { Remove-Item "$proj\docs\CNAME" -Force }
 
 Write-Host "Built WardogsBaseBuilder.html + src/artifact.html + docs/index.html"
