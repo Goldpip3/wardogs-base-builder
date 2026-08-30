@@ -151,13 +151,26 @@ const ICONS = {
     `<path d="M40 14c5 4 5 14 0 18" stroke="${METAL}" stroke-width="2" fill="none"/>` +
     `<path d="M46 9c8 7 8 25 0 32" stroke="${METAL}" stroke-width="2" fill="none"/>`,
 
-  // ---- the FOB itself ----
+  // ---- Stingray: launch station for anti-armour FPV drones ----
+  "stingray":
+    `<path d="M8 44h48v14H8z" fill="${SHADE}"/>` +          // launch box
+    `<path d="M16 50h32" stroke-width="2" opacity=".5"/>` +
+    `<path d="M30 30h4v14h-4z" fill="${METAL}"/>` +          // mast
+    `<path d="M18 26h28v8H18z" fill="${BONE}"/>` +           // drone body
+    `<path d="M8 20h14v4H8zM42 20h14v4H42z" fill="${METAL}"/>` +   // arms
+    `<circle cx="12" cy="14" r="7" fill="none" stroke="${METAL}" stroke-width="2.5"/>` +
+    `<circle cx="52" cy="14" r="7" fill="none" stroke="${METAL}" stroke-width="2.5"/>` +
+    `<path d="M12 22v-2M52 22v-2" stroke-width="2"/>`,
+
+  // ---- the FOB itself: stepped blockhouse with a mast ----
   "fob":
-    `<path d="M8 24h48v32H8z" fill="${BONE}"/>` +
-    `<path d="M8 24l24-14 24 14" fill="${SHADE}"/>` +
-    `<path d="M20 36h10v20H20z" fill="${DARK}"/>` +
-    `<path d="M38 36h10v10H38z" fill="${DARK}"/>` +
-    `<path d="M32 10V2" stroke-width="2" stroke="${METAL}"/>`,
+    `<path d="M6 34h52v24H6z" fill="${BONE}"/>` +
+    `<path d="M14 22h36v12H14z" fill="${SHADE}"/>` +
+    `<path d="M22 12h20v10H22z" fill="${SHADE}"/>` +
+    `<path d="M26 42h12v16H26z" fill="${DARK}"/>` +          // doorway
+    `<path d="M10 38h10v7H10zM44 38h10v7H44z" fill="${DARK}"/>` +
+    `<path d="M32 12V2" stroke-width="2.5" stroke="${METAL}"/>` +
+    `<path d="M27 5h10" stroke-width="2" stroke="${METAL}"/>`,
 };
 
 const outDir = path.join(__dirname, "..", "assets", "icons");
