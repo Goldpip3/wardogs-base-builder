@@ -451,7 +451,6 @@ ${adSlot("leaderboard") ? `<div class="wrap">${adSlot("leaderboard")}</div>` : "
   <a href="/loadouts/">Loadouts</a><a href="/vehicles/">Vehicles</a><a href="/guides/">Guides</a>
   <a href="/feedback/">Feedback</a>
   <a href="/privacy/">Privacy</a>
-  <a href="https://github.com/Goldpip3/wardogs-base-builder">Source</a>
 </div></footer>
 </body>
 </html>`;
@@ -757,12 +756,6 @@ write("buildables/index.html", page({
   <h1>WARDOGS buildables and costs</h1>
   <p class="lede">Every structure you can build, what it costs in Build Supplies, and which
   hammer you need. Sizes are in Hesco blocks. One block is about 1.2 m.</p>
-  <div class="statbar">
-    <div><b>${catalog.buildables.length}</b><span>buildables</span></div>
-    <div><b>$10</b><span>per supply</span></div>
-    <div><b>$${catalog.logistics.palletCash}</b><span>per pallet</span></div>
-    <div><b>$${catalog.fob.vendorPrice.toLocaleString()}</b><span>FOB item</span></div>
-  </div>
   <table>
     <thead><tr><th>Buildable</th><th>Hammer</th><th class="n">Supplies</th>
       <th class="n">Cash</th><th class="n">W×D×H</th><th>Notes</th></tr></thead>
@@ -840,10 +833,9 @@ write("designs/index.html", page({
   <p style="font-size:13px;color:var(--dim);margin-top:20px">
   Submissions are read before they go up, which usually takes a few hours. Nothing is
   published automatically.</p>` : `
-  <div class="note" style="margin-top:40px"><strong>Submissions are not open yet.</strong>
-  The service that stores designs and votes is not live. Until it is, send a share link
-  through <a href="https://github.com/Goldpip3/wardogs-base-builder/issues">GitHub</a>
-  and it will be added by hand.</div>`}
+  <div class="note" style="margin-top:40px"><strong>Submissions are briefly closed.</strong>
+  The service that stores designs is not answering, so the form is hidden rather than
+  taking builds it would drop. Try again shortly.</div>`}
 </div></section>${COMMUNITY_SCRIPT}`,
 }));
 
@@ -1155,10 +1147,9 @@ write("feedback/index.html", page({
   <p style="font-size:13px;color:var(--dim);margin-top:24px">
   Nothing you write here appears on the site. It goes into a private list I read and work
   from. See the <a href="/privacy/">privacy page</a> for what that stores.</p>` : `
-  <div class="note" style="margin-top:30px"><strong>The form is not live yet.</strong>
-  Until it is, open an issue on
-  <a href="https://github.com/Goldpip3/wardogs-base-builder/issues">GitHub</a> and it lands
-  in the same place.</div>`}
+  <div class="note" style="margin-top:30px"><strong>The form is briefly down.</strong>
+  Nothing you send right now would reach me, so rather than swallow it quietly the form is
+  hidden. Try again shortly.</div>`}
 
   <h2 style="margin-top:56px">Most useful things to tell me</h2>
   <ul style="max-width:60ch">
@@ -1297,8 +1288,8 @@ write("privacy/index.html", page({
   <p>If this policy changes in a way that affects what is collected, the change will be
   visible in this site's
   <a href="https://github.com/Goldpip3/wardogs-base-builder/commits/main">public commit history</a>,
-  which is the whole record of how the site was built. Questions or corrections:
-  <a href="https://github.com/Goldpip3/wardogs-base-builder/issues">open an issue</a>.</p>
+  which is the whole record of how the site was built. Questions or corrections go through
+  the <a href="/feedback/">feedback form</a>.</p>
 </div></section>`,
 }));
 
