@@ -11,6 +11,16 @@
     ],
     "notes": "Costs are Build Supplies (1 supply = $10 at vendor). costConfirmed=false means read from low-res video frame, verify in game."
   },
+  "logistics": {
+    "palletCash": 400,
+    "suppliesPerPallet": 40,
+    "palletConfirmed": false,
+    "note": "Build Supply Pallet is confirmed at $400 and 4x2 inventory slots. The supply count inside it is NOT published; 40 is inferred from the $10-per-supply vendor price. Correct it in the app if you count the real figure.",
+    "vehicles": [
+      { "name": "Truck", "pallets": 2 },
+      { "name": "Helicopter", "pallets": 1 }
+    ]
+  },
   "support": {
     "label": "☕ Tip the dev",
     "url": ""

@@ -402,11 +402,21 @@
       <div class="rp-row"><label>Vendor cash (@$10)</label><span class="val" id="costCash">$0</span></div>
       <div class="rp-row"><label>+ FOB item</label><span class="val" id="costFob">—</span></div>
       <div class="rp-row"><label>Hammer needed</label><span class="val" id="hammerNeeded">—</span></div>
-      <div class="rp-row"><label>Supply runs <input type="number" id="palletSize" value="100" min="1" style="width:52px" title="supplies per pallet run"></label><span class="val" id="supplyRuns">0</span></div>
       <div class="rp-row" style="margin-top:7px"><label>You have in the FOB</label><input type="number" id="supplyStock" value="0" min="0" style="width:72px" title="Build supplies currently stocked — leave 0 to ignore"></div>
       <div class="budget-track" id="budgetTrack" style="display:none"><div class="budget-fill" id="budgetFill"></div></div>
       <div id="budgetText" style="font-size:11.5px;margin-top:4px"></div>
       <div id="costBreakdown" style="margin-top:8px"></div>
+    </div>
+
+    <div class="rp-section">
+      <h3>Hauling it there</h3>
+      <div class="rp-row">
+        <label>Supplies per pallet <span id="palletFlag" class="unsized" title="Not published by the game — count one in-game and correct it here">?</span></label>
+        <input type="number" id="palletSize" value="40" min="1" style="width:62px">
+      </div>
+      <div class="rp-row"><label>Pallets needed</label><span class="val" id="palletsNeeded">0</span></div>
+      <div class="rp-row"><label>Pallet cost</label><span class="val" id="palletCash">$0</span></div>
+      <div id="vehicleRuns" style="margin-top:7px"></div>
     </div>
 
     <div class="rp-section">
@@ -1106,8 +1116,24 @@ function updateRightPanel() {
   document.getElementById("costCash").textContent = "$" + (supplies * 10).toLocaleString();
   document.getElementById("costFob").textContent = fobCount ? `${fobCount} × $${catalog.fob.vendorPrice.toLocaleString()}` : "—";
   document.getElementById("hammerNeeded").textContent = maxTier === 0 ? "—" : ["Small","Medium","Large"][maxTier-1] + " Hammer";
-  const pallet = Math.max(1, +document.getElementById("palletSize").value || 100);
-  document.getElementById("supplyRuns").textContent = supplies ? Math.ceil(supplies / pallet) : 0;
+  /* Supplies travel as pallets, and a vehicle carries a whole number of them —
+     so the figure that actually matters is trips, not raw supply count. */
+  const log = catalog.logistics || {};
+  const pallet = Math.max(1, +document.getElementById("palletSize").value || 40);
+  const pallets = supplies ? Math.ceil(supplies / pallet) : 0;
+  document.getElementById("palletsNeeded").textContent = pallets.toLocaleString();
+  document.getElementById("palletCash").textContent =
+    "$" + (pallets * (log.palletCash || 400)).toLocaleString();
+  document.getElementById("palletFlag").style.display = log.palletConfirmed ? "none" : "";
+  const vehicles = log.vehicles && log.vehicles.length
+    ? log.vehicles : [{ name: "Truck", pallets: 2 }, { name: "Helicopter", pallets: 1 }];
+  document.getElementById("vehicleRuns").innerHTML = pallets
+    ? vehicles.map(v => {
+        const trips = Math.ceil(pallets / Math.max(1, v.pallets));
+        return `<div class="cost-line"><span class="n">${esc(v.name)} <span style="opacity:.7">· ${v.pallets} per trip</span></span>` +
+               `<span class="v">${trips.toLocaleString()} trip${trips === 1 ? "" : "s"}</span></div>`;
+      }).join("")
+    : `<span style="color:var(--dim);font-size:11.5px">Nothing to haul yet.</span>`;
 
   // budget against what's actually stocked at the FOB
   const stock = Math.max(0, +document.getElementById("supplyStock").value || 0);
@@ -1124,7 +1150,8 @@ function updateRightPanel() {
     } else {
       fill.style.background = "var(--danger)";
       const short = supplies - stock;
-      btext.innerHTML = `<span style="color:var(--danger)">${short.toLocaleString()}⛏ short</span> — ${Math.ceil(short / pallet)} more run${Math.ceil(short/pallet) > 1 ? "s" : ""}`;
+      const morePallets = Math.ceil(short / pallet);
+      btext.innerHTML = `<span style="color:var(--danger)">${short.toLocaleString()}⛏ short</span> — ${morePallets} more pallet${morePallets > 1 ? "s" : ""}`;
     }
   } else {
     track.style.display = "none";
@@ -1963,7 +1990,8 @@ document.getElementById("btnHelp").onclick = () => {
     <h3 style="margin:14px 0 6px;color:var(--accent);font-size:13px">Planning aids</h3>
     <ul style="font-size:12.5px;line-height:1.6;padding-left:18px;color:var(--text)">
       <li><b>◈ Presets</b> drops in a ready-made build — mortar pit, AA nest, SAM site, anti-climb wall, vehicle gate, raised gun platform. They land selected so you can drag them into place, and everything stays editable.</li>
-      <li><b>You have in the FOB</b> — type in your stock and the bar tells you whether the design fits, what's left over, or how many more supply runs you need.</li>
+      <li><b>You have in the FOB</b> — type in your stock and the bar tells you whether the design fits, what's left over, or how many more pallets you need.</li>
+      <li><b>Hauling it there</b> turns the supply total into the thing that actually costs you time: pallets, what they cost at the vendor, and how many trips that is by truck (2 pallets) or helicopter (1). The supply count inside a pallet <b>isn't published by the game</b> — 40 is inferred from the $400 pallet price at $10 a supply, so it's marked with a <span class="unsized">?</span>. Count one in game and correct it here.</li>
       <li><b>Anti-climb</b> counts how much of your cover is only waist height. Those pieces can be vaulted unless something taller is stacked on them, which is the usual way a perimeter gets breached.</li>
       <li><b>⇄ / ⇅ Flip</b> mirrors a selection about its own centre — build one side of a symmetric base, copy it, flip it.</li>
     </ul>
