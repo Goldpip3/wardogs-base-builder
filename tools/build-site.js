@@ -29,7 +29,7 @@ const esc = s => String(s).replace(/[&<>"']/g, c =>
    "no external resource loads" check in tools/check-build.js enforces that.
    With no publisher id configured nothing at all is emitted: no script tag, no slot,
    no reserved space. Fill in data/buildables.json -> ads.publisherId to switch it on. */
-const ADS = catalog.ads || {};
+const ADS = JSON.parse(fs.readFileSync(path.join(ROOT, "data/ads.json"), "utf8"));
 const adsOn = !!(ADS.publisherId || "").trim();
 const adScript = adsOn
   ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${esc(ADS.publisherId)}" crossorigin="anonymous"></script>`

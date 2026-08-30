@@ -54,6 +54,15 @@ const missingIcons = catalog.buildables
 check(missingIcons.length === 0,
   `all ${catalog.buildables.length} buildable icons inlined`, missingIcons.join(", "));
 
+// -- 3b. the planner ships no advertising identity at all --
+// The catalog is inlined wholesale, so anything left in it travels inside the offline
+// file people download. Ad config lives in data/ads.json for exactly this reason.
+{
+  const ads = JSON.parse(fs.readFileSync(path.join(proj, "data/ads.json"), "utf8"));
+  const leaked = (ads.publisherId || "").trim();
+  check(!leaked || !app.includes(leaked), "planner carries no publisher id");
+}
+
 // -- 4. nothing reaches the network: offline is the whole promise --
 const remote = [...app.matchAll(/(?:src|href)="(https?:\/\/[^"]+)"/g)]
   .map(m => m[1])
