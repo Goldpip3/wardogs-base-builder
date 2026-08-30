@@ -1,3 +1,3 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" stroke="#1d1f11" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
-<path d="M6 24l10-10h32l10 10z" fill="#a8a389"/><rect x="6" y="24" width="52" height="30" fill="#ddd8c0"/><rect x="15" y="32" width="34" height="10" fill="#43482f"/><path d="M6 54h52" stroke-width="2.5"/><path d="M15 32h34" stroke-width="1.5" opacity=".4"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+<path d="M-3.9 34.0L32.0 54.7L32.0 37.0L-3.9 16.2Z" fill="#a6a69c"/><path d="M67.9 34.0L32.0 54.7L32.0 37.0L67.9 16.2Z" fill="#7d7d74"/><path d="M32.0 -4.5L67.9 16.2L32.0 37.0L-3.9 16.2Z" fill="#cfcfc6"/><path d="M2.5 16.2L32.0 33.3L32.0 28.1L2.5 11.1Z" fill="#a6a69c"/><path d="M61.5 16.2L32.0 33.3L32.0 28.1L61.5 11.1Z" fill="#7d7d74"/><path d="M32.0 -6.0L61.5 11.1L32.0 28.1L2.5 11.1Z" fill="#dcdcd2"/><path d="M5.1 22.2L23.0 11.8L23.0 5.9L5.1 16.2Z" fill="#2c2f22"/><path d="M5.1 32.5L23.0 42.9L23.0 37.0L5.1 26.6Z" fill="#3a3e2d"/>
 </svg>
