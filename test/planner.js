@@ -185,8 +185,75 @@ check(/if \(standingOn\) continue;/.test(src),
   "a stack is judged once, by the piece at the bottom of it");
 check(/function computeClimb\(/.test(src) && /climbCache = null/.test(src),
   "the climb check is cached and cleared alongside the others");
-check(/opt\.climb && opt\.climb !== "secure"/.test(src) && /setLineDash/.test(src),
+check(/opt\.climb === "foot" \|\| opt\.climb === "vehicle"/.test(src) && /setLineDash/.test(src),
   "soft spots are dashed on the plan, not only counted in the panel");
+
+/* ---- and the count is of ways in, not of blocks ----
+   Two bugs the panel shipped with, both of which made the number useless on a real base:
+   every block of a run was its own "section", and walls sealed inside a closed perimeter
+   were counted as ways in alongside the perimeter itself. Run against the real code. */
+vm.runInContext(
+  // the geometry helpers come along because the reachability grid is built out of them
+  [lift("rectAABB"), lift("aabbOverlap"), lift("buildIndex"), lift("neighbours"),
+   lift("reachableFromOutside"), lift("climbRuns"), lift("computeClimb")].join("\n") +
+  "\nvar GRID_CELL = " + src.match(/const GRID_CELL = (\d+);/)[1] + ";" +
+  "\nvar HAIRLINE = " + src.match(/const HAIRLINE = ([\d.]+);/)[1] + ";" +
+  "\nvar SEAM_EPS = " + src.match(/const SEAM_EPS = ([\d.]+);/)[1] + ";" +
+  "\nvar VAULT_HEIGHT = 1; var VEHICLE_CLIMB = 2;" +
+  "\nvar CLIMB_GRID = 0.5; var CLIMB_CELL_BUDGET = 4e6;" +
+  "\nvar design = { pieces: [] };", sandbox);
+
+const climbOf = pieces => {
+  sandbox.design.pieces = pieces;
+  return vm.runInContext("computeClimb()", sandbox);
+};
+{
+  // a closed box of quads, with one wall standing on its own in the middle of the yard
+  const P = [];
+  let id = 1;
+  const add = (type, x, y, rot = 0) => P.push({ id: id++, type, x, y, rot, level: 0 });
+  for (let i = 0; i < 4; i++) {
+    add("hesco-wall", -6 + i * 4, -8);            // north
+    add("hesco-wall", -6 + i * 4, 8);             // south
+    add("hesco-wall", -8, -6 + i * 4, 90);        // west
+    add("hesco-wall", 8, -6 + i * 4, 90);         // east
+  }
+  const insideFrom = id;
+  add("hesco-wall", 0, 0);                        // a wall in the courtyard
+  const { verdict, runs } = climbOf(P);
+
+  check(verdict.get(insideFrom) === "inside",
+    "a wall sealed inside a closed perimeter is not a way in");
+  check(runs.vehicle.length === 1,
+    "a closed perimeter of 16 quads is one section, not sixteen",
+    "got " + runs.vehicle.length);
+  check(runs.vehicle[0] && runs.vehicle[0].length === 16,
+    "and that one section holds every block of the run");
+}
+{
+  // knock a hole in it and the courtyard wall becomes reachable again
+  const P = [];
+  let id = 1;
+  const add = (type, x, y, rot = 0) => P.push({ id: id++, type, x, y, rot, level: 0 });
+  for (let i = 0; i < 4; i++) {
+    if (i !== 1) add("hesco-wall", -6 + i * 4, -8);
+    add("hesco-wall", -6 + i * 4, 8);
+    add("hesco-wall", -8, -6 + i * 4, 90);
+    add("hesco-wall", 8, -6 + i * 4, 90);
+  }
+  const courtyard = id;
+  add("hesco-wall", 0, 0);
+  check(climbOf(P).verdict.get(courtyard) === "vehicle",
+    "leave a gap in the perimeter and what is behind it is a way in again");
+}
+{
+  // barbed wire laid in front of a wall must not hide the wall from the check
+  const P = [{ id: 1, type: "hesco-wall", x: 0, y: 0, rot: 0, level: 0 },
+             { id: 2, type: "barbed-wire", x: -1, y: -1, rot: 0, level: 0 },
+             { id: 3, type: "barbed-wire", x: 1, y: -1, rot: 0, level: 0 }];
+  check(climbOf(P).verdict.get(1) === "vehicle",
+    "ankle-height wire in front of a wall does not make the wall unreachable");
+}
 
 // ---- walls read as one wall ----
 /* A player laying a perimeter drops quads and then wedges single blocks in to close the
@@ -197,6 +264,7 @@ vm.runInContext(
   [lift("rectAABB"), lift("buildIndex"), lift("neighbours"),
    lift("seamFamily"), lift("computeSeams")].join("\n") +
   "\nvar GRID_CELL = " + src.match(/const GRID_CELL = (\d+);/)[1] + ";" +
+  "\nvar HAIRLINE = " + src.match(/const HAIRLINE = ([\d.]+);/)[1] + ";" +
   "\nvar SEAM_EPS = " + src.match(/const SEAM_EPS = ([\d.]+);/)[1] + ";" +
   "\nvar design = { pieces: [] };", sandbox);
 

@@ -32,9 +32,12 @@ configured, it therefore cannot reach the network, and the hosted copy does have
 - `/*__CATALOG__*/` at `src/app-template.html:477`: the whole buildables catalog, inlined
 - `/*__API__*/` at `:490` and `/*__BUILD__*/` at `:491`: injected per build
 - `/*__ICONS__*/`, `/*__FONTS__*/`: base64 art and woff2, inlined so nothing is fetched
-- `drawNow` at `:1001` branches to the 3D view; `drawRect` at `:1151` draws one piece
-- `computeClimb` at `:1499` classifies what can be vaulted or driven over
-- `computeSeams` at `:1546` decides which touching pieces draw as one wall, and which stay
+- `drawNow` at `:1007` branches to the 3D view; `drawRect` at `:1157` draws one piece
+- `computeClimb` at `:1619` classifies what can be vaulted or driven over, over a reachable
+  set from `reachableFromOutside` at `:1525`: the ground is rasterised at half a cell and the
+  outside flooded in, so a wall sealed behind the perimeter is not a way in. `climbRuns`
+  groups what is left, because one wall is one weak point however many blocks long
+- `computeSeams` at `:1670` decides which touching pieces draw as one wall, and which stay
   distinct. `seamFamily` is the rule: anything tagged `wall` merges with any other wall of
   its role, so a quad and a wedged block are one body. The same-type mask it also returns
   is what the name and the height badge key off, so an odd piece mid-run still speaks

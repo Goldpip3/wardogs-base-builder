@@ -31,9 +31,12 @@ vm.runInContext([
   "var GRID_CELL = 8;",
   "function levelName(l){ return l === 0 ? 'Ground' : 'Level ' + (l+1); }",
   "function insideFobZone(){ return true; }",
+  "var SEAM_EPS = 0.06;",
+  "var HAIRLINE = 0.4;",
   lift("pieceRect"), lift("rectCorners"), lift("rectAABB"), lift("aabbOverlap"),
   lift("rectsOverlap"), lift("canOverlay"), lift("buildIndex"), lift("neighbours"),
-  lift("touches"), lift("computeIssues"),
+  lift("touches"), lift("seamFamily"), lift("wallGap"), lift("hairlineGap"),
+  lift("computeIssues"),
 ].join("\n"), sb);
 
 // faithful transcription of the previous all-pairs implementation, every rule
@@ -59,8 +62,14 @@ vm.runInContext([
   "    if (a.type === '__fob__' || b.type === '__fob__') continue;",
   "    const da = byId[a.type], db = byId[b.type]; if (!da || !db) continue;",
   "    if (canOverlay(da, db) || canOverlay(db, da)) continue;",
-  "    if (rectsOverlap(pieceRect(a), pieceRect(b)))",
+  "    if (rectsOverlap(pieceRect(a), pieceRect(b))) {",
   "      issues.push(da.name + ' vs ' + db.name + ': overlap on level ' + ((a.level||0)+1) + '|' + b.id);",
+  "      continue;",
+  "    }",
+  "    if (seamFamily(da) !== seamFamily(db)) continue;",
+  "    const g = hairlineGap(rectAABB(pieceRect(a)), rectAABB(pieceRect(b)));",
+  "    if (g) issues.push(da.name + ' vs ' + db.name + ': ' + g.toFixed(2) +",
+  "      ' of a cell apart, so the run breaks here. Align to grid closes it|' + a.id);",
   "  }",
   "  for (const p of P) {",
   "    const lvl = p.level || 0; if (lvl === 0) continue;",
@@ -91,6 +100,43 @@ vm.runInContext([
   "}",
 ].join("\n"), sb);
 
+/* ---- a gap you cannot see ----
+   Two walls a tenth of a cell apart look joined at any zoom worth building at, and are
+   not. The plan draws two runs, which is honest, and reads as a bug because nothing says
+   why. The distance gets named instead. Checked here rather than in the equivalence loop
+   because randomised designs rarely land a pair inside a tenth of a cell of each other. */
+let hairPass = 0, hairFail = 0;
+const hcheck = (ok, label, detail) => {
+  console.log((ok ? "PASS  " : "FAIL  ") + label + (ok || !detail ? "" : ": " + detail));
+  ok ? hairPass++ : hairFail++;
+};
+{
+  const gapsIn = pieces => {
+    sb.design.pieces = pieces;
+    return sb.computeIssues().filter(i => /of a cell apart/.test(i.text));
+  };
+  const at = (id, x) => ({ id, type: "hesco-tall", x, y: 0, rot: 0, level: 0 });
+  const hair = gapsIn([at(1, 0), at(2, 1.12)]);
+  hcheck(hair.length === 1 && /0.12 of a cell apart/.test(hair[0].text),
+    "a wall a tenth of a cell short of the next one is called out, with the distance",
+    hair.map(i => i.text).join(" | ") || "nothing reported");
+  hcheck(gapsIn([at(1, 0), at(2, 1)]).length === 0, "walls that actually meet are not complained about");
+  hcheck(gapsIn([at(1, 0), at(2, 2.5)]).length === 0, "and a gap somebody meant is left alone");
+  // 6.9..7.9 and 8.02..9.02: either side of the GRID_CELL 8 line, and a hair apart
+  const across = gapsIn([{ id: 1, type: "hesco-tall", x: 7.4, y: 0, rot: 0, level: 0 },
+                         { id: 2, type: "hesco-tall", x: 8.52, y: 0, rot: 0, level: 0 }]);
+  hcheck(across.length === 1, "including a pair that straddles a spatial index boundary",
+    across.length + " reported");
+  /* Squaring up the two blocks either side of the gap only moves it along one place, so
+     the complaint carries every piece of the run it broke and clicking it selects them all. */
+  const whole = gapsIn([at(1, 0), at(2, 1), at(3, 2), at(4, 3.12), at(5, 4.12)]);
+  hcheck(whole.length === 1 && whole[0].ids && whole[0].ids.length === 5,
+    "and it carries the whole run, so one Align to grid closes every gap in it",
+    whole[0] && whole[0].ids ? whole[0].ids.join(",") : "no ids");
+  const mixed = gapsIn([at(1, 0), { id: 2, type: "barbed-wire", x: 1.62, y: 0, rot: 0, level: 0 }]);
+  hcheck(mixed.length === 0, "and wire near a wall is not a broken wall");
+}
+if (hairFail) { console.log(hairFail + " gap check(s) failed"); process.exit(1); }
 // normalise both outputs to a comparable multiset
 const norm = arr => arr.map(i =>
   (typeof i === "string" ? i

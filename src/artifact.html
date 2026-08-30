@@ -1473,7 +1473,7 @@ function draw3DNow() {
 
     // the same climb marking the plan uses, so the two views cannot disagree
     const how = climb.get(b.p.id);
-    if (how && how !== "secure") {
+    if (how === "foot" || how === "vehicle") {
       ctx.strokeStyle = how === "foot" ? "#f0503a" : "#e2a33a";
       ctx.lineWidth = 2; ctx.setLineDash([5, 4]);
       ctx.beginPath();
@@ -1779,7 +1779,7 @@ function drawRect(r, def, opt) {
      without one. Deliberately not the error styling, since a low wall is a choice, not a
      mistake. Only the outer edges of a run are marked, so a long wall shows one dashed
      line down its length instead of a ladder of them. */
-  if (!opt.ghost && opt.climb && opt.climb !== "secure" && Math.min(w, h) > 6) {
+  if (!opt.ghost && (opt.climb === "foot" || opt.climb === "vehicle") && Math.min(w, h) > 6) {
     const seams = opt.seams || 0;
     const inset = Math.max(2, Math.min(4, z * 0.09)) * uiScale;
     ctx.strokeStyle = opt.climb === "foot" ? "#f0503a" : "#e2a33a";
@@ -1911,6 +1911,11 @@ function canOverlay(top, base) {
    actual neighbours, on a big base that's the difference between a million tests a
    frame and a few thousand. */
 const GRID_CELL = 8;
+/* How far apart two pieces can be and still count as a near miss rather than a gap
+   somebody meant. The spatial index is widened by the same figure, because a rule about
+   pieces that do not touch cannot be answered by an index that only pairs pieces that do:
+   two blocks either side of a bucket boundary would never have been compared. */
+const HAIRLINE = 0.4;
 function buildIndex(pieces) {
   const cells = new Map(), meta = new Map();
   for (const p of pieces) {
@@ -1919,8 +1924,8 @@ function buildIndex(pieces) {
     const rect = pieceRect(p);
     const box = rectAABB(rect);
     meta.set(p, { def, rect, box, lvl: p.level || 0 });
-    for (let gx = Math.floor(box.x0 / GRID_CELL); gx <= Math.floor(box.x1 / GRID_CELL); gx++)
-      for (let gy = Math.floor(box.y0 / GRID_CELL); gy <= Math.floor(box.y1 / GRID_CELL); gy++) {
+    for (let gx = Math.floor((box.x0 - HAIRLINE) / GRID_CELL); gx <= Math.floor((box.x1 + HAIRLINE) / GRID_CELL); gx++)
+      for (let gy = Math.floor((box.y0 - HAIRLINE) / GRID_CELL); gy <= Math.floor((box.y1 + HAIRLINE) / GRID_CELL); gy++) {
         const k = gx + "," + gy;
         let arr = cells.get(k);
         if (!arr) cells.set(k, arr = []);
@@ -1933,8 +1938,8 @@ function neighbours(index, p) {
   const m = index.meta.get(p);
   if (!m) return [];
   const seen = new Set();
-  for (let gx = Math.floor(m.box.x0 / GRID_CELL); gx <= Math.floor(m.box.x1 / GRID_CELL); gx++)
-    for (let gy = Math.floor(m.box.y0 / GRID_CELL); gy <= Math.floor(m.box.y1 / GRID_CELL); gy++) {
+  for (let gx = Math.floor((m.box.x0 - HAIRLINE) / GRID_CELL); gx <= Math.floor((m.box.x1 + HAIRLINE) / GRID_CELL); gx++)
+    for (let gy = Math.floor((m.box.y0 - HAIRLINE) / GRID_CELL); gy <= Math.floor((m.box.y1 + HAIRLINE) / GRID_CELL); gy++) {
       const arr = index.cells.get(gx + "," + gy);
       if (arr) for (const q of arr) if (q !== p) seen.add(q);
     }
@@ -1946,6 +1951,26 @@ function touches(index, a, b) {          // AABB reject first, SAT only if it su
   if (!aabbOverlap(ma.box, mb.box)) return false;
   return rectsOverlap(ma.rect, mb.rect);
 }
+/* Two walls a tenth of a cell apart look joined at any zoom you would actually build at,
+   and are not. The plan is right to draw them as two runs, and the player is right to think
+   it looks broken, because nothing on screen says why. So name it: an invisible gap is
+   exactly the kind worth stating outright, and it is also a hole in a wall you believe is
+   solid. Anything past HAIRLINE is a gap somebody meant, a firing slit or a doorway. */
+function wallGap(a, b) {
+  /* How far apart two boxes are along the axis they face each other on. Negative when they
+     overlap, zero when they are flush, Infinity when they do not face each other at all. */
+  let gap = Infinity;
+  if (Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0) > SEAM_EPS)
+    gap = Math.min(gap, Math.max(b.x0 - a.x1, a.x0 - b.x1));
+  if (Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0) > SEAM_EPS)
+    gap = Math.min(gap, Math.max(b.y0 - a.y1, a.y0 - b.y1));
+  return gap;
+}
+function hairlineGap(a, b) {
+  const gap = wallGap(a, b);
+  return gap > SEAM_EPS && gap <= HAIRLINE ? gap : 0;
+}
+
 function computeIssues() {
   const issues = [];
   const pieces = design.pieces;
@@ -1953,6 +1978,7 @@ function computeIssues() {
   const fobs = pieces.filter(p => p.type === "__fob__");
   const reported = new Set();              // one overlap complaint per pair
   const needFob = [];                      // collapsed into a single issue below
+  const hairs = [];                        // near-miss pairs, resolved to whole runs below
 
   for (const p of pieces) {
     const m = index.meta.get(p); if (!m) continue;
@@ -1986,6 +2012,19 @@ function computeIssues() {
         if (touches(index, p, q)) {
           reported.add(key);
           issues.push({ pieceId: q.id, text: `${def.name} ⇄ ${qdef.name}: overlap on level ${lvl + 1}` });
+          continue;
+        }
+        // pieces that would have been one wall if they met, and miss by a hair
+        if (seamFamily(def) === seamFamily(qdef)) {
+          const gap = hairlineGap(m.box, mq.box);
+          if (gap) {
+            reported.add(key);
+            const issue = { pieceId: p.id, ids: [p.id, q.id],
+              text: `${def.name} ⇄ ${qdef.name}: ${gap.toFixed(2)} of a cell apart, ` +
+                    `so the run breaks here. Align to grid closes it` };
+            hairs.push(issue);
+            issues.push(issue);
+          }
         }
         continue;
       }
@@ -1999,6 +2038,34 @@ function computeIssues() {
     }
     if (!supported)
       issues.push({ pieceId: p.id, text: `${def.name}: nothing underneath to stand on at ${levelName(lvl)}` });
+  }
+
+  /* Aligning the two blocks either side of a gap does not fix a run: the rest of the run is
+     off the grid by the same fraction, so the gap simply moves along one place. What has to
+     be squared up is everything the two are part of, so the complaint carries the whole run
+     and clicking it selects the lot. Built only when there is something to build it for. */
+  if (hairs.length) {
+    const parent = new Map();
+    const find = id => { while (parent.get(id) !== id) { parent.set(id, parent.get(parent.get(id))); id = parent.get(id); } return id; };
+    for (const p of pieces) parent.set(p.id, p.id);
+    for (const p of pieces) {
+      const mp = index.meta.get(p); if (!mp) continue;
+      for (const q of neighbours(index, p)) {
+        const mq = index.meta.get(q);
+        if (!mq || mq.lvl !== mp.lvl || seamFamily(mp.def) !== seamFamily(mq.def)) continue;
+        // one run means flush, stacked or a hair apart. Overlapping reads as negative
+        if (!(wallGap(mp.box, mq.box) <= HAIRLINE)) continue;
+        const a = find(p.id), b = find(q.id);
+        if (a !== b) parent.set(a, b);
+      }
+    }
+    const runOf = new Map();
+    for (const p of pieces) {
+      const root = find(p.id);
+      if (!runOf.has(root)) runOf.set(root, []);
+      runOf.get(root).push(p.id);
+    }
+    for (const h of hairs) h.ids = runOf.get(find(h.pieceId)) || h.ids;
   }
 
   /* One line for the whole design, at the top, where the one thing to do next is legible.
@@ -2040,10 +2107,125 @@ function invalidateIssues() { issuesCache = null; seamCache = null; climbCache =
 const VAULT_HEIGHT = 1;
 const VEHICLE_CLIMB = 2;
 let climbCache = null;
-function getClimb() { if (!climbCache) climbCache = computeClimb(); return climbCache; }
+function climbData() { if (!climbCache) climbCache = computeClimb(); return climbCache; }
+function getClimb() { return climbData().verdict; }
+function getClimbRuns() { return climbData().runs; }
+
+/* ---------- what an attacker can actually get at ----------
+   A wall is only a way in if somebody can stand in front of it. The count used not to ask:
+   it flagged every low piece in the design, so on a closed base the courtyard walls were
+   listed as weak points next to the perimeter, and the number ran into the hundreds on a
+   base that has one way in.
+
+   So the ground gets rasterised and the outside is flooded in from beyond the design's own
+   bounds. Walls, gates, emplacements and the FOB stop the flood. Ankle height denial
+   pieces, barbed wire and hedgehogs, do not: a line of wire in front of a wall does not
+   make the wall unreachable, and treating it as solid would hide the whole perimeter
+   behind it. Whatever the flood can touch is what somebody can walk up to.
+
+   The grid is half a cell, because pieces sit on half cell centres. A design big enough to
+   blow the cell budget gives up and calls everything reachable, which is the old
+   behaviour: over-reporting is the safe way to be wrong about a way in. */
+const CLIMB_GRID = 0.5;
+const CLIMB_CELL_BUDGET = 4e6;
+function reachableFromOutside(pieces) {
+  const solid = [];
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const p of pieces) {
+    const d = byId[p.type];
+    if (!d) continue;
+    if (!(d.isFob || d.role === "cover" || d.role === "entry" || (d.height || 1) >= 2)) continue;
+    const b = rectAABB(pieceRect(p));
+    solid.push(b);
+    x0 = Math.min(x0, b.x0); y0 = Math.min(y0, b.y0);
+    x1 = Math.max(x1, b.x1); y1 = Math.max(y1, b.y1);
+  }
+  if (!solid.length) return null;
+  const cell = CLIMB_GRID, pad = 2;
+  const ox = Math.floor(x0) - pad, oy = Math.floor(y0) - pad;
+  const W = Math.ceil((x1 + pad - ox) / cell) + 1;
+  const H = Math.ceil((y1 + pad - oy) / cell) + 1;
+  if (W * H > CLIMB_CELL_BUDGET || W < 3 || H < 3) return null;
+
+  const blocked = new Uint8Array(W * H);
+  const lo = (v, o) => Math.max(0, Math.floor((v - o) / cell + 1e-6));
+  const hi = (v, o, n) => Math.min(n - 1, Math.ceil((v - o) / cell - 1e-6) - 1);
+  for (const b of solid)
+    for (let i = lo(b.x0, ox); i <= hi(b.x1, ox, W); i++)
+      for (let j = lo(b.y0, oy); j <= hi(b.y1, oy, H); j++) blocked[j * W + i] = 1;
+
+  // flood the border inwards. Anything it reaches is ground you can stand on
+  const open = new Uint8Array(W * H);
+  const stack = [];
+  const push = k => { if (!blocked[k] && !open[k]) { open[k] = 1; stack.push(k); } };
+  for (let i = 0; i < W; i++) { push(i); push((H - 1) * W + i); }
+  for (let j = 0; j < H; j++) { push(j * W); push(j * W + W - 1); }
+  while (stack.length) {
+    const k = stack.pop(), i = k % W, j = (k - i) / W;
+    if (i > 0) push(k - 1);
+    if (i < W - 1) push(k + 1);
+    if (j > 0) push(k - W);
+    if (j < H - 1) push(k + W);
+  }
+
+  /* A piece is reachable when open ground touches any cell it sits on. Its own cells are
+     blocked, so looking at their four neighbours walks exactly the ring around it. */
+  const reached = new Set();
+  for (const p of pieces) {
+    const d = byId[p.type]; if (!d) continue;
+    const b = rectAABB(pieceRect(p));
+    const i0 = lo(b.x0, ox), i1 = hi(b.x1, ox, W), j0 = lo(b.y0, oy), j1 = hi(b.y1, oy, H);
+    let touch = false;
+    for (let i = i0; i <= i1 && !touch; i++)
+      for (let j = j0; j <= j1 && !touch; j++) {
+        const k = j * W + i;
+        if (open[k] ||
+            (i > 0 && open[k - 1]) || (i < W - 1 && open[k + 1]) ||
+            (j > 0 && open[k - W]) || (j < H - 1 && open[k + W])) touch = true;
+      }
+    if (touch) reached.add(p.id);
+  }
+  return reached;
+}
+
+/* Two pieces belong to the same section when they are flush or stacked and the verdict on
+   them is the same. One wall is one weak point however many blocks went into it: a quad
+   run twelve pieces long is one place a truck gets parked, not twelve. */
+function climbRuns(verdict) {
+  const runs = { foot: [], vehicle: [], secure: [] };
+  const index = buildIndex(design.pieces);
+  const flush = (a, b) =>
+    aabbOverlap(a, b) ||
+    (Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0) > SEAM_EPS &&
+      (Math.abs(b.x0 - a.x1) < SEAM_EPS || Math.abs(a.x0 - b.x1) < SEAM_EPS)) ||
+    (Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0) > SEAM_EPS &&
+      (Math.abs(b.y0 - a.y1) < SEAM_EPS || Math.abs(a.y0 - b.y1) < SEAM_EPS));
+  const seen = new Set();
+  for (const p of design.pieces) {
+    const how = verdict.get(p.id);
+    if (!runs[how] || seen.has(p.id)) continue;
+    const group = [], queue = [p];
+    seen.add(p.id);
+    while (queue.length) {
+      const cur = queue.pop();
+      group.push(cur.id);
+      const cm = index.meta.get(cur); if (!cm) continue;
+      for (const q of neighbours(index, cur)) {
+        if (seen.has(q.id) || verdict.get(q.id) !== how) continue;
+        const qm = index.meta.get(q);
+        if (!qm || !flush(cm.box, qm.box)) continue;
+        seen.add(q.id); queue.push(q);
+      }
+    }
+    runs[how].push(group);
+  }
+  return runs;
+}
+
 function computeClimb() {
   const verdict = new Map();
   const cover = design.pieces.filter(p => (byId[p.type] || {}).role === "cover");
+  const reached = reachableFromOutside(design.pieces);
   for (const p of cover) {
     const def = byId[p.type];
     const stack = [p];
@@ -2059,13 +2241,16 @@ function computeClimb() {
       if ((qd.tags || []).includes("top-layer")) capped = true;
     }
     if (standingOn) continue;                 // judged as part of the stack below it
-    const how = capped ? "secure"
+    /* Nothing behind the walls is a way in. A stack counts as reachable if any part of it
+       is, because that is one thing standing on one footprint. */
+    const how = reached && !stack.some(q => reached.has(q.id)) ? "inside"
+      : capped ? "secure"
       : top <= VAULT_HEIGHT ? "foot"
       : top <= VEHICLE_CLIMB ? "vehicle"
       : "secure";
     for (const q of stack) verdict.set(q.id, how);
   }
-  return verdict;
+  return { verdict, runs: climbRuns(verdict) };
 }
 
 /* ---------- wall runs ----------
@@ -2209,24 +2394,9 @@ function updateRightPanel() {
      are standing in front of reaches, so sandbags on a hesco block count as two. */
   /* One entry per wall section: the classification marks every piece in a stack, and the
      base of each stack is the one that counts. */
-  const climb = getClimb();
-  const counted = new Set();
-  let vaultable = 0, truckable = 0, secure = 0;
-  climbWeak = { foot: [], vehicle: [] };
-  for (const p of design.pieces) {
-    const how = climb.get(p.id);
-    if (!how) continue;
-    const base = design.pieces.some(q => {
-      const qd = byId[q.type];
-      return q !== p && qd && qd.role === "cover" && (q.level || 0) < (p.level || 0) &&
-             rectsOverlap(pieceRect(p), pieceRect(q));
-    });
-    if (base || counted.has(p.id)) continue;
-    counted.add(p.id);
-    if (how === "foot") { vaultable++; climbWeak.foot.push(p.id); }
-    else if (how === "vehicle") { truckable++; climbWeak.vehicle.push(p.id); }
-    else secure++;
-  }
+  const runs = getClimbRuns();
+  climbWeak = { foot: runs.foot, vehicle: runs.vehicle };
+  const vaultable = runs.foot.length, truckable = runs.vehicle.length, secure = runs.secure.length;
 
   const climbEl = document.getElementById("antiClimb");
   /* The counts name the colours that are drawn on the plan, so the panel and the map are
@@ -2252,8 +2422,10 @@ function updateRightPanel() {
       ((vaultable || truckable)
         ? `<div style="margin-top:6px;color:var(--dim)">Dashed on the plan is where they get in.
            Anything ${VEHICLE_CLIMB} blocks or under can be crossed by parking a truck against it
-           and stepping off the roof. Cap it with a Bremer to stop that.</div>`
-        : `<div style="margin-top:6px;color:var(--dim)">Nothing here can be crossed on foot or off a vehicle.</div>`);
+           and stepping off the roof. Cap it with a Bremer to stop that. A whole run counts once,
+           and only walls something can reach from outside are counted at all.</div>`
+        : `<div style="margin-top:6px;color:var(--dim)">Nothing reachable from outside can be
+           crossed on foot or off a vehicle.</div>`);
   climbEl.querySelectorAll(".jump").forEach(el => el.onclick = () => walkWeakPoints(el.dataset.how));
 
   const bd = document.getElementById("costBreakdown");
@@ -2293,12 +2465,20 @@ function updateRightPanel() {
   const issues = getIssues();
   const ih = document.getElementById("issues");
   ih.innerHTML = issues.length
-    ? issues.slice(0, 30).map(i => `<div class="issue" data-pid="${i.pieceId||""}">⚠ ${i.text}</div>`).join("")
+    ? issues.slice(0, 30).map(i => `<div class="issue" data-pid="${i.pieceId||""}" data-pids="${(i.ids||[]).join(",")}">⚠ ${i.text}</div>`).join("")
     : `<span class="ok">✓ No issues.</span>`;
   ih.querySelectorAll(".issue").forEach(el => el.onclick = () => {
-    const pid = +el.dataset.pid; if (!pid) return;
-    const p = design.pieces.find(x => x.id === pid); if (!p) return;
-    selection = new Set([pid]); view.x = p.x; view.y = p.y; afterChange(false);
+    /* Some complaints are about a pair rather than a piece, and the fix is applied to the
+       selection, so select both. Click the gap, hit Align to grid, and it is closed. */
+    const pids = (el.dataset.pids || "").split(",").map(Number).filter(Boolean);
+    const ids = pids.length ? pids : [+el.dataset.pid].filter(Boolean);
+    if (!ids.length) return;
+    const picked = design.pieces.filter(x => ids.includes(x.id));
+    if (!picked.length) return;
+    selection = new Set(picked.map(x => x.id));
+    view.x = picked.reduce((t, x) => t + x.x, 0) / picked.length;
+    view.y = picked.reduce((t, x) => t + x.y, 0) / picked.length;
+    afterChange(false);
   });
 
   // selection props
@@ -2344,10 +2524,18 @@ function walkWeakPoints(how) {
   if (!list.length) return;
   const at = climbCursor[how] % list.length;
   climbCursor[how] = (at + 1) % list.length;
-  const p = design.pieces.find(x => x.id === list[at]);
-  if (!p) return;
-  selection = new Set([p.id]);
-  view.x = p.x; view.y = p.y;
+  const ids = new Set(list[at]);
+  const run = design.pieces.filter(p => ids.has(p.id));
+  if (!run.length) return;
+  selection = ids;
+  // centre on the middle of the run, not on whichever block happened to come first
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const p of run) {
+    const b = rectAABB(pieceRect(p));
+    x0 = Math.min(x0, b.x0); y0 = Math.min(y0, b.y0);
+    x1 = Math.max(x1, b.x1); y1 = Math.max(y1, b.y1);
+  }
+  view.x = (x0 + x1) / 2; view.y = (y0 + y1) / 2;
   afterChange(false);
   flashStatus(`${how === "foot" ? "Vaultable on foot" : "A vehicle gets over it"} · ${at + 1} of ${list.length}`);
 }
@@ -3406,7 +3594,7 @@ document.getElementById("btnHelp").onclick = () => {
     <ul style="font-size:12.5px;line-height:1.6;padding-left:18px;color:var(--text)">
       <li><b>Hauling it there</b> is the first thing on the panel, because pallets are what cost you time. A fresh FOB lands with ${FOB_STOCK_DEFAULT.toLocaleString()} supplies already inside, so only what a design costs beyond that has to be driven in. The bar shows the design against the stock plus the pallets, and what is left over when the last piece goes up.</li>
       <li>A Build Supply Pallet costs ${(catalog.logistics.palletCash || 400).toLocaleString()} and holds <b>${PALLET_DEFAULT.toLocaleString()} supplies</b>, which is why buying loose supplies at $10 each is only worth it for topping up. A truck carries 2 pallets, a helicopter 1.</li>
-      <li><b>Can they get in</b> counts how much of your cover is only waist height, or low enough to cross off a vehicle roof. Click a line and it walks you through those sections one at a time, selecting and centring each.</li>
+      <li><b>Can they get in</b> counts the sections of your perimeter that are only waist height, or low enough to cross off a vehicle roof. A whole run counts once however many blocks it took, and walls nothing can reach from outside are not counted, so a closed base does not list its own courtyard. Click a line and it walks you through those sections one at a time, selecting and centring each.</li>
       <li><b>⇄ / ⇅ Flip</b> mirrors a selection about its own centre. Build one side of a symmetric base, copy it, flip it.</li>
     </ul>
     <h3 style="margin:14px 0 6px;color:var(--accent);font-size:13px">Saving your design</h3>
