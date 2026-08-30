@@ -30,11 +30,12 @@ const lift = n => {
 };
 
 // a canvas context that remembers where it was asked to draw
-const rec = { pts: [], fills: [], rects: [] };
+const rec = { pts: [], fills: [], rects: [], icons: [] };
 const ctx = {
   _f: "",
   save() {}, restore() {}, translate() {}, rotate() {}, beginPath() {}, closePath() {},
-  fill() {}, stroke() {}, setLineDash() {}, clearRect() {}, drawImage() {},
+  fill() {}, stroke() {}, setLineDash() {}, clearRect() {},
+  drawImage(img, x, y, w, h) { rec.icons.push({ w, h }); },
   moveTo(x, y) { rec.pts.push([x, y]); },
   lineTo(x, y) { rec.pts.push([x, y]); },
   rect(x, y, w, h) { rec.pts.push([x, y], [x + w, y + h]); },
@@ -65,13 +66,15 @@ vm.runInContext(
 
 const catalog = JSON.parse(src.match(/const CATALOG_DEFAULT = ([\s\S]*?);\nconst ICONS/)[1]);
 const defs = {};
-for (const id of ["hesco-small", "hesco-tall", "bremer-wall"]) {
+for (const id of ["hesco-small", "hesco-tall", "bremer-wall", "l81-mortar"]) {
   defs[id] = catalog.buildables.find(b => b.id === id);
 }
 vm.runInContext("var byId = " + JSON.stringify(defs) + ";", sandbox);
+// count every icon as loaded, so the art is actually drawn and its size can be read
+for (const d of Object.values(defs)) sandbox.iconImgs[d.icon] = { complete: true, naturalWidth: 128 };
 
 const paint = (type, level, zoom, seams) => {
-  rec.pts = []; rec.fills = []; rec.rects = [];
+  rec.pts = []; rec.fills = []; rec.rects = []; rec.icons = [];
   vm.runInContext(
     "view.zoom = " + zoom + ";" +
     "drawRect(pieceRect({id:1,type:'" + type + "',x:0,y:0,rot:0,level:" + level + "})," +
@@ -155,9 +158,24 @@ check(/opt\.level > 0 \? "#ff5b47" : "#8b8b80"/.test(src),
     "the shadow reaches further the higher the piece is, and scales with the zoom");
 }
 
-/* ---- the art does not swamp a large piece ---- */
-check(/Math\.min\(Math\.min\(w, h\) \* 0\.75, 66 \* uiScale\)/.test(src),
-  "icon size is capped, so a 3x3 emplacement is not a photograph on a coloured square");
+/* ---- the art reads on a big piece, and still never outgrows it ----
+   Measured rather than matched against the source, because the number in the source was
+   the bug: a flat pixel cap shrinks the art relative to its own piece the further you zoom
+   in, so a 4x4 emplacement at working zoom was a stamp adrift in a field of flat colour. */
+{
+  const z = 64;
+  paint("l81-mortar", 0, z);
+  const big = rec.icons.pop(), bigBody = bodySize("l81-mortar", z);
+  check(big && big.w >= 2 * z,
+    "a 4x4 emplacement carries its art at two cells across, so you can see what it is",
+    big ? big.w.toFixed(0) + "px, wanted " + 2 * z : "nothing drawn");
+  check(big && big.w <= bigBody * 0.75,
+    "and the art still stops well inside the piece rather than becoming the piece");
+  paint("hesco-small", 0, z);
+  const small = rec.icons.pop();
+  check(small && small.w <= bodySize("hesco-small", z),
+    "a one-cell piece keeps its art inside its own cell");
+}
 
 console.log("\n" + pass + " passed, " + fail + " failed");
 process.exit(fail ? 1 : 0);

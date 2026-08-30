@@ -568,6 +568,7 @@ const CATALOG_DEFAULT = {
       "icon": "sandbag-wall.svg",
       "tags": [
         "cover",
+        "wall",
         "vaultable",
         "overlay"
       ]
@@ -1670,8 +1671,10 @@ function drawPiece(p, hasIssue) {
   const rel = viewLevel === null ? 0 : (p.level || 0) - viewLevel;
   // the storey you're on reads solid; the ones below show through as an underlay
   const alpha = rel === 0 ? 1 : (rel < 0 ? 0.62 : 0.48);
+  const seam = getSeams().get(p.id);
   drawRect(pieceRect(p), def, {
-    seams: getSeams().get(p.id) || 0,
+    seams: seam ? seam.mask : 0,
+    kin: seam ? seam.kin : 0,
     climb: getClimb().get(p.id),
     selected: selection.has(p.id),
     hovered: hoverId === p.id,
@@ -1790,9 +1793,12 @@ function drawRect(r, def, opt) {
   // icon. Drawn upright, never rotated, so it stays readable at any angle
   const iconKey = def.icon;
   if (iconKey && iconImgs[iconKey] && iconImgs[iconKey].complete && Math.min(w, h) > 14) {
-    /* Uncapped, the art on a 3x3 emplacement became a two-hundred-pixel photograph sitting
-       on a flat colour, which read as a sticker rather than as part of the plan. */
-    const s = Math.min(Math.min(w, h) * 0.75, 66 * uiScale);
+    /* The cap is in cells, not pixels. Uncapped, the art became a photograph laid over the
+       plan; capped at a flat 66px it got smaller relative to its own piece the further you
+       zoomed in, so a 4x4 mortar at working zoom was a quarter screen of flat colour with a
+       postage stamp in the middle. Two cells across holds both ends: a big emplacement still
+       looks like the thing it is, and the art never outgrows the piece it belongs to. */
+    const s = Math.min(Math.min(w, h) * 0.75, Math.max(66 * uiScale, 2.15 * z));
     const bmp = iconAt(iconKey, s);
     ctx.save();
     ctx.translate(sx, sy);
@@ -1812,7 +1818,7 @@ function drawRect(r, def, opt) {
     // already drawn as an outline round the whole thing, so repeating the name on all
     // thirteen blocks tells you nothing you cannot already see. Only hovering one
     // specific block makes it speak up.
-    const midRun = (opt.seams & 3) === 3 || (opt.seams & 12) === 12;
+    const midRun = (opt.kin & 3) === 3 || (opt.kin & 12) === 12;
     const showLabel = opt.hovered || def.isFob ||
       (!midRun && (opt.selected || Math.min(r.w, r.h) >= 2));
     /* Offsets come from how tall the piece actually is on screen, not from its longest
@@ -2068,6 +2074,14 @@ function computeClimb() {
 let seamCache = null;
 const SEAM_EPS = 0.06;
 function getSeams() { if (!seamCache) seamCache = computeSeams(); return seamCache; }
+/* Two pieces draw as one when a player would call them one wall, which is not the same as
+   being the same buildable. A quad run with a single block wedged in to close a gap is one
+   wall, and a border down that join says otherwise. So anything tagged a wall joins any
+   other wall of its role: exactly the set that already shares a colour. Shelters and towers
+   carry the cover role too, which is why the tag decides and the role alone does not. */
+function seamFamily(def) {
+  return (def.tags || []).includes("wall") ? "wall:" + def.role : def.id;
+}
 function computeSeams() {
   const merged = new Map();
   const index = buildIndex(design.pieces);
@@ -2077,27 +2091,34 @@ function computeSeams() {
     const rot = ((p.rot || 0) % 360 + 360) % 360;
     if (rot % 90 !== 0) continue;                       // off-square: keep its own outline
     const a = m.box;
-    let mask = 0;
+    let mask = 0, kin = 0;
     for (const q of neighbours(index, p)) {
-      if (q.type !== p.type || (q.level || 0) !== (p.level || 0)) continue;
+      if ((q.level || 0) !== (p.level || 0)) continue;
       const qm = index.meta.get(q);
-      if (!qm) continue;
+      if (!qm || seamFamily(qm.def) !== seamFamily(m.def)) continue;
       const qrot = ((q.rot || 0) % 360 + 360) % 360;
       if (qrot % 90 !== 0) continue;
       const b = qm.box;
       // touching along x means the y spans have to genuinely overlap, not just graze
       const yOverlap = Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0) > SEAM_EPS;
       const xOverlap = Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0) > SEAM_EPS;
+      let bit = 0;
       if (yOverlap) {
-        if (Math.abs(b.x0 - a.x1) < SEAM_EPS) mask |= 1 << 0;   // neighbour to +x
-        if (Math.abs(a.x0 - b.x1) < SEAM_EPS) mask |= 1 << 1;   // neighbour to -x
+        if (Math.abs(b.x0 - a.x1) < SEAM_EPS) bit |= 1 << 0;   // neighbour to +x
+        if (Math.abs(a.x0 - b.x1) < SEAM_EPS) bit |= 1 << 1;   // neighbour to -x
       }
       if (xOverlap) {
-        if (Math.abs(b.y0 - a.y1) < SEAM_EPS) mask |= 1 << 2;   // neighbour to +y
-        if (Math.abs(a.y0 - b.y1) < SEAM_EPS) mask |= 1 << 3;   // neighbour to -y
+        if (Math.abs(b.y0 - a.y1) < SEAM_EPS) bit |= 1 << 2;   // neighbour to +y
+        if (Math.abs(a.y0 - b.y1) < SEAM_EPS) bit |= 1 << 3;   // neighbour to -y
       }
+      mask |= bit;
+      /* Kin is the same buildable, and it is what the name and the height badge key off.
+         The bodies merge across the family, but a block of a different height sitting in
+         the middle of a run is the one thing worth saying out loud rather than smoothing
+         over, so it keeps its badge. */
+      if (q.type === p.type) kin |= bit;
     }
-    if (mask) merged.set(p.id, mask);
+    if (mask) merged.set(p.id, { mask, kin });
   }
   return merged;
 }

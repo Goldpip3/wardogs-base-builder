@@ -188,6 +188,49 @@ check(/function computeClimb\(/.test(src) && /climbCache = null/.test(src),
 check(/opt\.climb && opt\.climb !== "secure"/.test(src) && /setLineDash/.test(src),
   "soft spots are dashed on the plan, not only counted in the panel");
 
+// ---- walls read as one wall ----
+/* A player laying a perimeter drops quads and then wedges single blocks in to close the
+   gaps. Those are one wall to them, and drawing a border down every join said otherwise.
+   Bodies merge across the wall family; the name and the height badge still key off kin,
+   the same buildable, so an odd block in the middle of a run does not go quiet. */
+vm.runInContext(
+  [lift("rectAABB"), lift("buildIndex"), lift("neighbours"),
+   lift("seamFamily"), lift("computeSeams")].join("\n") +
+  "\nvar GRID_CELL = " + src.match(/const GRID_CELL = (\d+);/)[1] + ";" +
+  "\nvar SEAM_EPS = " + src.match(/const SEAM_EPS = ([\d.]+);/)[1] + ";" +
+  "\nvar design = { pieces: [] };", sandbox);
+
+const seamsOf = pieces => {
+  sandbox.design.pieces = pieces;
+  return vm.runInContext("computeSeams()", sandbox);
+};
+{
+  // a quad, a single block wedged against its end, and a bunker beyond that
+  const quad = { id: "q", type: "hesco-wall", x: -2, y: 0, rot: 0 };
+  const block = { id: "b", type: "hesco-small", x: 0.5, y: 0, rot: 0 };
+  const bunker = { id: "k", type: "bunker", x: 3, y: 0, rot: 0 };
+  const seams = seamsOf([quad, block, bunker]);
+  const q = seams.get("q"), b = seams.get("b"), k = seams.get("k");
+  check(!!q && (q.mask & 1) !== 0, "a quad joins the block wedged against it");
+  check(!!b && (b.mask & 2) !== 0, "and the block joins the quad, so the run has no border down it");
+  check(!!b && b.kin === 0, "a wedged block is nobody's kin, so it still states its own height");
+  check(!k || (k.mask & 2) === 0, "a bunker touching a wall is not part of it");
+}
+{
+  // the old rule has to survive: same buildable, same run
+  const a = { id: "a", type: "hesco-small", x: 0.5, y: 0, rot: 0 };
+  const b = { id: "b", type: "hesco-small", x: 1.5, y: 0, rot: 0 };
+  const seams = seamsOf([a, b]);
+  check((seams.get("a").mask & 1) !== 0 && (seams.get("a").kin & 1) !== 0,
+    "two of the same block are still both merged and kin");
+}
+{
+  // a level up is a different storey, not a longer wall
+  const a = { id: "a", type: "hesco-small", x: 0.5, y: 0, rot: 0, level: 0 };
+  const b = { id: "b", type: "hesco-small", x: 1.5, y: 0, rot: 0, level: 1 };
+  check(seamsOf([a, b]).size === 0, "pieces on different storeys never merge");
+}
+
 // ---- the 3D view ----
 // Depth order is the whole thing: get it wrong and far pieces draw over near ones, which
 // is the bug this view exists to fix.

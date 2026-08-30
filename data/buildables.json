@@ -96,6 +96,7 @@
       "icon": "sandbag-wall.svg",
       "tags": [
         "cover",
+        "wall",
         "vaultable",
         "overlay"
       ]
