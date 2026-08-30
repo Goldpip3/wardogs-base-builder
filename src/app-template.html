@@ -308,6 +308,7 @@
   <div class="sep"></div>
   <button id="btnSnap" class="active" title="Toggle grid snap (B). Same key as in-game">⌗ Snap</button>
   <button id="btnFit" title="Zoom to fit (F)">⛶ Fit</button>
+  <button id="btn3d" title="Switch between the flat plan and a 3D view (V). Rotate with Q and E.">◲ 3D</button>
   <div class="sep"></div>
   <span class="group-label">Storey</span>
   <span id="levelStrip" class="seg" title="Everything is shown by default. Pick a storey to work on it on its own."></span>
@@ -794,6 +795,200 @@ window.addEventListener("resize", resize);
 function toWorld(px, py) { return [ (px - canvas.clientWidth/2) / view.zoom + view.x, (py - canvas.clientHeight/2) / view.zoom + view.y ]; }
 function toScreen(wx, wy) { return [ (wx - view.x) * view.zoom + canvas.clientWidth/2, (wy - view.y) * view.zoom + canvas.clientHeight/2 ]; }
 
+/* ============ 3D VIEW ============
+   Why this exists: the plan fakes height with a shaded copy offset down and right, which
+   reads fine for one block and falls apart as soon as neighbours differ in height,
+   because nothing in a flat plan knows what is in front of what. See docs/3d-view-design.md.
+
+   Axonometric projection, painter's algorithm, plain Canvas 2D. Same projection the icons
+   use, so the whole thing reads as one product, and no dependency for a page that has to
+   work offline.
+
+   Depth order is exact for axis-aligned boxes on a grid: further from the camera always
+   means a smaller x+y, and a lower storey is always behind a higher one above it. Nothing
+   interpenetrates, because the overlap check already forbids it, so no cycles are
+   possible. A piece rotated off ninety degrees is the exception and can sort wrong against
+   a neighbour; that is a wrong-looking edge, not a crash, and it is rare enough to leave.
+
+   Placing stays in the plan. A piece dropped in 3D lands where the eye guessed rather than
+   where the grid is, and being exact is the point of this tool. */
+let view3d = false;
+const iso = { rot: 0, zoom: 15, x: 0, y: 0 };
+const ISO_K = 0.866;
+
+function isoSpin(x, y) {
+  switch (iso.rot & 3) {
+    case 1:  return [y, -x];
+    case 2:  return [-x, -y];
+    case 3:  return [-y, x];
+    default: return [x, y];
+  }
+}
+function isoPt(x, y, z) {
+  const [rx, ry] = isoSpin(x - iso.x, y - iso.y);
+  const u = iso.zoom;
+  return [
+    canvas.clientWidth / 2 + (rx - ry) * ISO_K * u,
+    canvas.clientHeight / 2 + (rx + ry) * u * 0.5 - z * u,
+  ];
+}
+
+/* Every piece as an axis-aligned box, already in draw order. */
+function isoBoxes() {
+  const out = [];
+  for (const p of design.pieces) {
+    const def = byId[p.type];
+    if (!def) continue;
+    const r = pieceRect(p);
+    const box = rectAABB(r);                       // square-on pieces: this is the rect
+    const z0 = p.level || 0;
+    const h = def.isFob ? 0.35 : (def.height || 1);
+    const [sx, sy] = isoSpin((box.x0 + box.x1) / 2 - iso.x, (box.y0 + box.y1) / 2 - iso.y);
+    out.push({ p, def, box, z0, z1: z0 + h, depth: sx + sy, lvl: z0 });
+  }
+  out.sort((a, b) => (a.depth - b.depth) || (a.lvl - b.lvl));
+  return out;
+}
+
+function isoFaces(b) {
+  const { x0, y0, x1, y1 } = b.box, { z0, z1 } = b;
+  // which two side faces point at the camera depends on how the world is spun
+  const n = iso.rot & 3;
+  const nearX = n === 0 || n === 3 ? x1 : x0;
+  const nearY = n === 0 || n === 1 ? y1 : y0;
+  return {
+    top:  [isoPt(x0, y0, z1), isoPt(x1, y0, z1), isoPt(x1, y1, z1), isoPt(x0, y1, z1)],
+    side: [isoPt(x0, nearY, z0), isoPt(x1, nearY, z0), isoPt(x1, nearY, z1), isoPt(x0, nearY, z1)],
+    face: [isoPt(nearX, y0, z0), isoPt(nearX, y1, z0), isoPt(nearX, y1, z1), isoPt(nearX, y0, z1)],
+  };
+}
+const isoFill = (pts, col) => {
+  ctx.beginPath();
+  ctx.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+  ctx.closePath();
+  ctx.fillStyle = col; ctx.fill();
+};
+
+function draw3DNow() {
+  const W = canvas.clientWidth, H = canvas.clientHeight;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = "#0c0c0c"; ctx.fillRect(0, 0, W, H);
+
+  // ground grid, drawn first and kept faint so the base sits on something
+  const fob = design.pieces.find(p => byId[p.type] && byId[p.type].isFob);
+  const half = fob ? Math.min(60, (fob.zone || 100) / 4) : 26;
+  ctx.strokeStyle = "#1e1e1e"; ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let i = -half; i <= half; i += 2) {
+    let a = isoPt(-half, i, 0), b2 = isoPt(half, i, 0);
+    ctx.moveTo(a[0], a[1]); ctx.lineTo(b2[0], b2[1]);
+    a = isoPt(i, -half, 0); b2 = isoPt(i, half, 0);
+    ctx.moveTo(a[0], a[1]); ctx.lineTo(b2[0], b2[1]);
+  }
+  ctx.stroke();
+
+  const climb = getClimb();
+  const issueIds = new Set(getIssues().map(i => i.pieceId).filter(Boolean));
+  const boxes = isoBoxes();
+
+  let drawn = 0;
+  for (const b of boxes) {
+    const f = isoFaces(b);
+    // A big base is mostly off screen. Reject on the box outline before touching a path.
+    let minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9;
+    for (const face of [f.top, f.side, f.face])
+      for (const q of face) {
+        if (q[0] < minX) minX = q[0];
+        if (q[0] > maxX) maxX = q[0];
+        if (q[1] < minY) minY = q[1];
+        if (q[1] > maxY) maxY = q[1];
+      }
+    if (maxX < -8 || minX > W + 8 || maxY < -8 || minY > H + 8) continue;
+    drawn++;
+
+    const base = pieceColor(b.def);
+    const sel = selection.has(b.p.id);
+    const bad = issueIds.has(b.p.id);
+
+    isoFill(f.side, shade(base, -46));
+    isoFill(f.face, shade(base, -64));
+    isoFill(f.top, shade(base, b.def.isFob ? 6 : -4));
+
+    // one path for all three faces rather than three stroke calls
+    ctx.lineWidth = sel || bad ? 2 : 1;
+    ctx.strokeStyle = bad ? "#f04a2e" : sel ? "#ff5b47" : shade(base, -74);
+    ctx.beginPath();
+    for (const face of [f.side, f.face, f.top]) {
+      ctx.moveTo(face[0][0], face[0][1]);
+      for (let i = 1; i < face.length; i++) ctx.lineTo(face[i][0], face[i][1]);
+      ctx.closePath();
+    }
+    ctx.stroke();
+
+    // the same climb marking the plan uses, so the two views cannot disagree
+    const how = climb.get(b.p.id);
+    if (how && how !== "secure") {
+      ctx.strokeStyle = how === "foot" ? "#f0503a" : "#e2a33a";
+      ctx.lineWidth = 2; ctx.setLineDash([5, 4]);
+      ctx.beginPath();
+      ctx.moveTo(f.top[0][0], f.top[0][1]);
+      for (let i = 1; i < f.top.length; i++) ctx.lineTo(f.top[i][0], f.top[i][1]);
+      ctx.closePath(); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+
+  lastDrawn = drawn;
+
+  if (!design.pieces.length) {
+    ctx.fillStyle = "#6b6b63";
+    ctx.font = `${14 * uiScale}px sans-serif`;
+    ctx.textAlign = "center";
+    ctx.fillText("Nothing built yet. Switch back to the plan to place something.", W / 2, H / 2);
+  }
+}
+
+/* Nearest match wins, so walk what was drawn in reverse. Only the top face is tested: the
+   sides of a tall piece would otherwise swallow clicks meant for the floor behind it. */
+function pick3D(px, py) {
+  const boxes = isoBoxes();
+  for (let i = boxes.length - 1; i >= 0; i--) {
+    if (pointInPoly(px, py, isoFaces(boxes[i]).top)) return boxes[i].p;
+  }
+  return null;
+}
+function pointInPoly(x, y, pts) {
+  let inside = false;
+  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+    const [xi, yi] = pts[i], [xj, yj] = pts[j];
+    if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+
+function fit3D() {
+  if (!design.pieces.length) { iso.x = 0; iso.y = 0; iso.zoom = 15; return; }
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  for (const p of design.pieces) {
+    const b = rectAABB(pieceRect(p));
+    x0 = Math.min(x0, b.x0); y0 = Math.min(y0, b.y0);
+    x1 = Math.max(x1, b.x1); y1 = Math.max(y1, b.y1);
+  }
+  iso.x = (x0 + x1) / 2; iso.y = (y0 + y1) / 2;
+  const spread = Math.max(4, (x1 - x0) + (y1 - y0));
+  iso.zoom = Math.max(4, Math.min(46, (canvas.clientWidth * 0.62) / (spread * ISO_K)));
+}
+
+function set3D(on) {
+  view3d = on;
+  document.getElementById("btn3d").classList.toggle("active", on);
+  document.getElementById("btn3d").textContent = on ? "▦ Plan" : "◲ 3D";
+  if (on) fit3D();
+  updateHint();
+  draw();
+}
+
 /* ============ DRAW ============ */
 /* Input events fire far faster than the screen refreshes, so collapse every request
    made within a frame into a single actual redraw. */
@@ -804,6 +999,7 @@ function draw() {
   requestAnimationFrame(() => { drawQueued = false; drawNow(); });
 }
 function drawNow() {
+  if (view3d) return draw3DNow();
   const W = canvas.clientWidth, H = canvas.clientHeight;
   ctx.clearRect(0, 0, W, H);
   ctx.fillStyle = "#191b12"; ctx.fillRect(0, 0, W, H);
@@ -1515,6 +1711,13 @@ function afterChange(save = true) {
 /* ============ MOUSE / KEYS ============ */
 canvas.addEventListener("contextmenu", e => e.preventDefault());
 canvas.addEventListener("mousedown", e => {
+  /* 3D is for looking, not building. Left-drag orbits the four orientations by panning,
+     and a click selects whatever you actually clicked on. */
+  if (view3d) {
+    if (e.button === 2) { selection.clear(); afterChange(false); return; }
+    dragging = { mode: "pan3d", sx: e.offsetX, sy: e.offsetY, vx: iso.x, vy: iso.y, moved: false };
+    return;
+  }
   const [wx, wy] = toWorld(e.offsetX, e.offsetY);
   if (e.button === 1 || spaceHeld) {
     dragging = { mode:"pan", sx:e.offsetX, sy:e.offsetY, vx:view.x, vy:view.y };
@@ -1541,6 +1744,25 @@ canvas.addEventListener("mousedown", e => {
   updateRightPanel(); draw();
 });
 canvas.addEventListener("mousemove", e => {
+  if (view3d) {
+    if (dragging && dragging.mode === "pan3d") {
+      dragging.moved = true;
+      const dx = (e.offsetX - dragging.sx) / iso.zoom, dy = (e.offsetY - dragging.sy) / iso.zoom;
+      // undo the projection so a drag moves the ground under the pointer, not the axes
+      const wx2 = (dx / ISO_K + dy * 2) / 2, wy2 = (dy * 2 - dx / ISO_K) / 2;
+      const [ux, uy] = (function (x, y) {
+        switch (iso.rot & 3) {
+          case 1:  return [-y, x];
+          case 2:  return [-x, -y];
+          case 3:  return [y, -x];
+          default: return [x, y];
+        }
+      })(wx2, wy2);
+      iso.x = dragging.vx - ux; iso.y = dragging.vy - uy;
+      draw();
+    }
+    return;
+  }
   const [wx, wy] = toWorld(e.offsetX, e.offsetY);
   lastPointer.x = wx; lastPointer.y = wy;          // paste target
   document.getElementById("sbCoords").textContent = `${wx.toFixed(1)}, ${wy.toFixed(1)}`;
@@ -1573,6 +1795,19 @@ canvas.addEventListener("mousemove", e => {
   canvas.style.cursor = h ? "pointer" : (placing ? "crosshair" : "default");
 });
 window.addEventListener("mouseup", e => {
+  if (view3d) {
+    if (dragging && dragging.mode === "pan3d" && !dragging.moved) {
+      const r = canvas.getBoundingClientRect();
+      const hit = pick3D(e.clientX - r.left, e.clientY - r.top);
+      if (hit) {
+        if (e.shiftKey) selection.has(hit.id) ? selection.delete(hit.id) : selection.add(hit.id);
+        else selection = new Set([hit.id]);
+      } else if (!e.shiftKey) selection.clear();
+      afterChange(false);
+    }
+    dragging = null;
+    return;
+  }
   if (!dragging) return;
   if (dragging.mode === "stamp") {
     const d = dragging; dragging = null;
@@ -1601,6 +1836,11 @@ canvas.addEventListener("dblclick", e => {
 });
 canvas.addEventListener("wheel", e => {
   e.preventDefault();
+  if (view3d) {
+    iso.zoom = Math.max(3, Math.min(70, iso.zoom * (e.deltaY < 0 ? 1.15 : 1 / 1.15)));
+    draw();
+    return;
+  }
   const [wx, wy] = toWorld(e.offsetX, e.offsetY);
   const factor = e.deltaY < 0 ? 1.15 : 1/1.15;
   view.zoom = Math.max(2.5 * uiScale, Math.min(90 * uiScale, view.zoom * factor));
@@ -1634,7 +1874,12 @@ window.addEventListener("keydown", e => {
   else if (k === "a" && e.shiftKey) { e.preventDefault(); alignSelection(); }
   else if (k === "r") rotateSelection(e.shiftKey ? -rotStep() : rotStep());
   else if (k === "delete" || k === "backspace") deleteSelection();
-  else if (k === "f") zoomFit();
+  else if (k === "f") { view3d ? fit3D() : zoomFit(); draw(); }
+  else if (k === "v") set3D(!view3d);
+  else if (view3d && (k === "q" || k === "e")) {
+    iso.rot = (iso.rot + (k === "q" ? 3 : 1)) & 3;
+    draw();
+  }
   else if ((e.ctrlKey || e.metaKey) && k === "z") { e.preventDefault(); e.shiftKey ? redo() : undo(); }
   else if ((e.ctrlKey || e.metaKey) && k === "y") { e.preventDefault(); redo(); }
   else if ((e.ctrlKey || e.metaKey) && k === "d") { e.preventDefault(); duplicateSelection(); }
@@ -1718,6 +1963,11 @@ function renderLevelStrip() {
 }
 function updateHint() {
   const el = document.getElementById("hint");
+  if (view3d) {
+    el.innerHTML = "Looking at it in 3D. Drag to move · wheel to zoom · <b>Q</b> and <b>E</b> to spin it · " +
+      "click a piece to select it · <b>V</b> or the button to go back to the plan, which is where you build.";
+    return;
+  }
   if (placing) {
     const def = byId[placing];
     const lvl = ghost ? autoLevelAt(ghost.cx, ghost.cy, def, ghost.rot) : 0;
@@ -1790,7 +2040,8 @@ function stepUiScale(dir) {
 
 /* ============ TOP BAR wiring ============ */
 document.getElementById("btnSnap").onclick = toggleSnap;
-document.getElementById("btnFit").onclick = zoomFit;
+document.getElementById("btnFit").onclick = () => { view3d ? fit3D() : zoomFit(); draw(); };
+document.getElementById("btn3d").onclick = () => set3D(!view3d);
 document.getElementById("btnUndo").onclick = undo;
 document.getElementById("btnRedo").onclick = redo;
 document.getElementById("btnDel").onclick = deleteSelection;
