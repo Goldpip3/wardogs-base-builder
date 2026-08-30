@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WARDOGS Buildables: All 22 Structures and Build Supply Costs</title>
+<meta name="description" content="Every WARDOGS buildable with its Build Supply cost, size, height and hammer tier — Hesco, Bremer walls, gates, bunkers, mortars, AA and the Stingray.">
+<link rel="canonical" href="https://www.wardogsbuilder.com/buildables/">
+<meta name="theme-color" content="#12140d">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="WARDOGS Base Builder">
+<meta property="og:title" content="WARDOGS Buildables: All 22 Structures and Build Supply Costs">
+<meta property="og:description" content="Every WARDOGS buildable with its Build Supply cost, size, height and hammer tier — Hesco, Bremer walls, gates, bunkers, mortars, AA and the Stingray.">
+<meta property="og:url" content="https://www.wardogsbuilder.com/buildables/">
+<meta property="og:image" content="https://www.wardogsbuilder.com/preview.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.wardogsbuilder.com/preview.png">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%2312140d'/><rect x='6' y='14' width='20' height='12' rx='2' fill='%23dcaa26'/><rect x='11' y='8' width='10' height='7' rx='2' fill='%2386ad55'/></svg>">
+<style>
+:root{--bg:#12140d;--panel:#1a1d13;--panel2:#232719;--border:#353c23;--soft:#2a3019;
+--text:#dedbc6;--dim:#8d8d74;--accent:#dcaa26;--ink:#17180f;--good:#86ad55;--bad:#d4553a;
+--ui:"Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,sans-serif;
+--num:"Cascadia Mono",Consolas,ui-monospace,monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--ui);line-height:1.65;
+-webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1060px;margin:0 auto;padding:0 22px}
+header.site{border-bottom:1px solid var(--soft);background:var(--panel);position:sticky;top:0;z-index:10}
+header.site .wrap{display:flex;align-items:center;gap:22px;height:60px;flex-wrap:wrap}
+.brand{font-weight:700;letter-spacing:.16em;color:var(--accent);font-size:15px;white-space:nowrap}
+.brand span{display:block;font-size:9px;letter-spacing:.18em;color:var(--dim);margin-top:-4px;text-transform:uppercase}
+nav.site{display:flex;gap:18px;margin-left:auto;flex-wrap:wrap}
+nav.site a{color:var(--text);font-size:13.5px}
+nav.site a.cta{background:var(--accent);color:var(--ink);padding:7px 14px;border-radius:6px;font-weight:600}
+nav.site a.cta:hover{text-decoration:none;filter:brightness(1.08)}
+h1{font-size:34px;line-height:1.2;letter-spacing:-.01em;margin:0 0 10px;text-wrap:balance}
+h2{font-size:21px;margin:32px 0 10px;color:var(--text);text-wrap:balance}
+h3{font-size:15px;margin:22px 0 8px}
+p,li{color:#cfcdb8}
+.lede{font-size:17px;color:var(--dim);max-width:62ch}
+section{padding:40px 0}
+.hero{padding:66px 0 40px;border-bottom:1px solid var(--soft)}
+.hero .lede{margin-bottom:24px}
+.btn{display:inline-block;background:var(--accent);color:var(--ink);padding:11px 20px;
+border-radius:7px;font-weight:600;font-size:15px}
+.btn:hover{text-decoration:none;filter:brightness(1.08)}
+.btn.ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.card{background:var(--panel);border:1px solid var(--soft);border-radius:9px;padding:16px;display:block}
+.card:hover{border-color:var(--border);text-decoration:none}
+.card h3{margin:0 0 5px;color:var(--text);font-size:16px}
+.card p{font-size:13px;color:var(--dim);margin:0}
+.card .stats{display:flex;gap:14px;margin-top:12px;font-family:var(--num);font-size:12px;
+color:var(--accent);font-variant-numeric:tabular-nums;flex-wrap:wrap}
+.card .stats span{color:var(--dim)}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin:14px 0}
+th{text-align:left;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);
+padding:8px 10px;border-bottom:1px solid var(--border);font-weight:600}
+td{padding:8px 10px;border-bottom:1px solid var(--soft);color:#cfcdb8}
+td.n{font-family:var(--num);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+tr:hover td{background:var(--panel)}
+.tag{font-size:10px;padding:2px 6px;border-radius:4px;background:var(--panel2);color:var(--dim);
+border:1px solid var(--soft)}
+.est{color:var(--bad)}
+.statbar{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));margin:22px 0}
+.statbar div{background:var(--panel);border:1px solid var(--soft);border-radius:9px;padding:14px}
+.statbar b{display:block;font-family:var(--num);font-size:22px;color:var(--accent);
+font-variant-numeric:tabular-nums;line-height:1.15}
+.statbar span{font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--dim)}
+.note{background:var(--panel);border-left:3px solid var(--accent);padding:14px 16px;
+border-radius:0 8px 8px 0;margin:20px 0;font-size:14px}
+footer.site{border-top:1px solid var(--soft);margin-top:40px;padding:26px 0;color:var(--dim);font-size:13px}
+footer.site .wrap{display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+footer.site a{color:var(--dim)}
+ul,ol{padding-left:20px}li{margin:5px 0}
+@media(max-width:640px){h1{font-size:26px}.hero{padding:40px 0 30px}header.site .wrap{height:auto;padding-top:12px;padding-bottom:12px}}
+</style>
+</head>
+<body>
+<header class="site"><div class="wrap">
+  <a href="/" class="brand">WARDOGS<span>Base Builder</span></a>
+  <nav class="site">
+    <a href="/designs/">Designs</a>
+    <a href="/buildables/">Buildables</a>
+    <a href="/guides/">Guides</a>
+    <a href="/planner/" class="cta">Open Planner</a>
+  </nav>
+</div></header>
+<section><div class="wrap">
+  <h1>WARDOGS buildables and costs</h1>
+  <p class="lede">Every structure you can build, what it costs in Build Supplies, and which
+  hammer you need. Sizes are in Hesco blocks — one block is about 1.2 m.</p>
+  <div class="statbar">
+    <div><b>22</b><span>buildables</span></div>
+    <div><b>$10</b><span>per supply</span></div>
+    <div><b>$400</b><span>per pallet</span></div>
+    <div><b>$2,500</b><span>FOB item</span></div>
+  </div>
+  <table>
+    <thead><tr><th>Buildable</th><th>Hammer</th><th class="n">Supplies</th>
+      <th class="n">Cash</th><th class="n">W×D×H</th><th>Notes</th></tr></thead>
+    <tbody><tr>
+      <td><strong>Barbed Wire</strong></td>
+      <td><span class="tag">small</span></td>
+      <td class="n">5</td>
+      <td class="n">$50</td>
+      <td class="n">2×1×1</td>
+      <td>No FOB needed. Slows and injures enemy infantry.</td>
+    </tr><tr>
+      <td><strong>Builder&#39;s Radio</strong></td>
+      <td><span class="tag">small</span></td>
+      <td class="n">13<span class="est">?</span></td>
+      <td class="n">$130</td>
+      <td class="n">2×1×1<span class="est">?</span></td>
+      <td>Plays music around your FOB, a place to get some R&amp;R.</td>
+    </tr><tr>
+      <td><strong>Hedgehog</strong></td>
+      <td><span class="tag">small</span></td>
+      <td class="n">14</td>
+      <td class="n">$140</td>
+      <td class="n">1×1×1<span class="est">?</span></td>
+      <td>No FOB needed. Anti-vehicle barrier used to block or channel enemy vehicles.</td>
+    </tr><tr>
+      <td><strong>Hesco Block (Small)</strong></td>
+      <td><span class="tag">small</span></td>
+      <td class="n">10</td>
+      <td class="n">$100</td>
+      <td class="n">1×1×1</td>
+      <td>Durable waist-height barrier that provides cover from small arms and explosives.</td>
+    </tr><tr>
+      <td><strong>Recon Tent</strong></td>
+      <td><span class="tag">small</span></td>
+      <td class="n">5</td>
+      <td class="n">$50</td>
+      <td class="n">2×2×1<span class="est">?</span></td>
+      <td>No FOB needed. Concealed recon position that hides occupants from infrared vision.</td>
+    </tr><tr>
+      <td><strong>Sandbag Wall</strong></td>
+      <td><span class="tag">small</span></td>
+      <td class="n">10</td>
+      <td class="n">$100</td>
+      <td class="n">2×1×1</td>
+      <td>No FOB needed. Quick to build waist height cover.</td>
+    </tr><tr>
+      <td><strong>Door</strong></td>
+      <td><span class="tag">medium</span></td>
+      <td class="n">14</td>
+      <td class="n">$140</td>
+      <td class="n">1×1×2<span class="est">?</span></td>
+      <td>Secure infantry access point, team-only.</td>
+    </tr><tr>
+      <td><strong>Gate</strong></td>
+      <td><span class="tag">medium</span></td>
+      <td class="n">52</td>
+      <td class="n">$520</td>
+      <td class="n">4×1×2</td>
+      <td>Large armored gate for friendly vehicle access, team-only.</td>
+    </tr><tr>
+      <td><strong>Hesco Block (Tall)</strong></td>
+      <td><span class="tag">medium</span></td>
+      <td class="n">20<span class="est">?</span></td>
+      <td class="n">$200</td>
+      <td class="n">1×1×2<span class="est">?</span></td>
+      <td>Tall, durable barrier that provides full-body cover from small arms and explosives.</td>
+    </tr><tr>
+      <td><strong>Hesco Wall (Quad)</strong></td>
+      <td><span class="tag">medium</span></td>
+      <td class="n">46</td>
+      <td class="n">$460</td>
+      <td class="n">4×1×2<span class="est">?</span></td>
+      <td>Consists of four Large Hesco Blocks.</td>
+    </tr><tr>
+      <td><strong>Loudspeaker</strong></td>
+      <td><span class="tag">medium</span></td>
+      <td class="n">61</td>
+      <td class="n">$610</td>
+      <td class="n">2×2×5</td>
+      <td>Climbable loudspeaker tower that lets you project your voice over long distances.</td>
+    </tr><tr>
+      <td><strong>Bremer Wall</strong></td>
+      <td><span class="tag">large</span></td>
+      <td class="n">10</td>
+      <td class="n">$100</td>
+      <td class="n">1×1×3</td>
+      <td>Tall reinforced concrete barrier topped with barbed wire.</td>
+    </tr><tr>
+      <td><strong>Bunker</strong></td>
+      <td><span class="tag">large</span></td>
+      <td class="n">61</td>
+      <td class="n">$610</td>
+      <td class="n">4×4×5</td>
+      <td>Offers protected firing positions and partial shelter from indirect fire.</td>
+    </tr><tr>
+      <td><strong>Drill Rig</strong></td>
+      <td><span class="tag">large</span></td>
+      <td class="n">1351<span class="est">?</span></td>
+      <td class="n">$13,510</td>
+      <td class="n">4×4×4<span class="est">?</span></td>
+      <td>When active, pulls the Hotzone to its location (like an active drill tower).</td>
+    </tr><tr>
+      <td><strong>Indirect Fire Shelter</strong></td>
+      <td><span class="tag">large</span></td>
+      <td class="n">61</td>
+      <td class="n">$610</td>
+      <td class="n">3×3×2<span class="est">?</span></td>
+      <td>Protection against indirect fire; four doorways for custom configuration.</td>
+    </tr><tr>
+      <td><strong>L81 Mortar</strong></td>
+      <td><span class="tag">large</span></td>
+      <td class="n">90<span class="est">?</span></td>
+      <td class="n">$900</td>
+      <td class="n">4×4×2</td>
+      <td>Short-range indirect fire.</td>
+    </tr><tr>
+      <td><strong>Recon Tower</strong></td>
+      <td><span class="tag">large</span></td>
+      <td class="n">61</td>
+      <td class="n">$610</td>
+      <td class="n">4×4×5</td>
+      <td>Two-storey tower with raised firing positions accessible by ladder.</td>
+    </tr><tr>
+      <td><strong>Refuel Station</strong></td>
+      <td><span class="tag">large</span></td>
+      <td class="n">120</td>
+      <td class="n">$1,200</td>
+      <td class="n">3×2×2<span class="est">?</span></td>
+      <td>Friendly vehicles refuel within FOB radius, if Fuel Logistics supplies are stored at the FOB.</td>
+    </tr><tr>
+      <td><strong>Repair Station</strong></td>
+      <td><span class="tag">large</span></td>
+      <td class="n">120</td>
+      <td class="n">$1,200</td>
+      <td class="n">3×2×2<span class="est">?</span></td>
+      <td>Friendly vehicles repair within FOB radius, if Spare Parts (Mechanical) supplies are stored at the FOB.</td>
+    </tr><tr>
+      <td><strong>Stingray</strong></td>
+      <td><span class="tag">large</span></td>
+      <td class="n">121</td>
+      <td class="n">$1,210</td>
+      <td class="n">4×4×2</td>
+      <td>Reloadable launch station for long-range, explosive anti-armor UAVs.</td>
+    </tr><tr>
+      <td><strong>Talon 9K-SAM</strong></td>
+      <td><span class="tag">large</span></td>
+      <td class="n">60</td>
+      <td class="n">$600</td>
+      <td class="n">4×4×2<span class="est">?</span></td>
+      <td>Reloadable heat-seeking anti-air missile station.</td>
+    </tr><tr>
+      <td><strong>Vanguard CIWS</strong></td>
+      <td><span class="tag">large</span></td>
+      <td class="n">90</td>
+      <td class="n">$900</td>
+      <td class="n">4×4×2</td>
+      <td>Manually operated anti-air close-in weapon system.</td>
+    </tr></tbody>
+  </table>
+  <div class="note"><strong>Values marked <span class="est">?</span> are not confirmed.</strong>
+  WARDOGS is in closed beta and BULKHEAD has not published build costs or structure sizes.
+  These were read frame by frame from the in-game radial menu and from play testing. You can
+  correct any of them yourself inside the planner, and the change sticks for every piece of
+  that type. If you know a real value, tell me and I will update it for everyone.</div>
+  <h2>How supplies actually move</h2>
+  <p>Structures draw <strong>Build Supplies</strong> from the FOB, not from your pocket.
+  Supplies are $10 each, and a Build Supply Pallet is $400. A truck
+  carries 2 pallets a trip, a helicopter
+  1. The planner turns any design into pallets and trips
+  for you.</p>
+  <p><a class="btn" href="/planner/">Open the planner</a></p>
+</div></section>
+<footer class="site"><div class="wrap">
+  <span>Free fan-made planner for WARDOGS. Not affiliated with BULKHEAD or Team17.</span>
+  <a href="/planner/">Planner</a><a href="/designs/">Designs</a>
+  <a href="/buildables/">Buildables</a><a href="/guides/">Guides</a>
+  <a href="https://github.com/Goldpip3/wardogs-base-builder">Source</a>
+</div></footer>
+</body>
+</html>

@@ -14,10 +14,10 @@ $out = $tpl.Replace('/*__CATALOG__*/', $catalog).Replace('/*__ICONS__*/', "{$ico
 $art = $out -replace '(?s)^.*?<title>', '<title>' -replace '</head>\s*<body>', '' -replace '</body>\s*</html>\s*$', ''
 [IO.File]::WriteAllText("$proj\src\artifact.html", $art)
 
-# docs/index.html — what GitHub Pages serves (Pages only allows / or /docs).
-# Also works as-is on Netlify, itch.io or any other static host.
-New-Item -ItemType Directory -Force "$proj\docs" | Out-Null
-[IO.File]::WriteAllText("$proj\docs\index.html", $out)
+# The planner lives at docs/planner/; the surrounding site pages are generated
+# afterwards by tools/build-site.js. GitHub Pages serves the whole docs/ folder.
+New-Item -ItemType Directory -Force "$proj\docs\planner" | Out-Null
+[IO.File]::WriteAllText("$proj\docs\planner\index.html", $out)
 if (Test-Path "$proj\release\og-1200x630.png") { Copy-Item "$proj\release\og-1200x630.png" "$proj\docs\preview.png" -Force }
 # Custom domain. Leave EMPTY until the domain's DNS actually resolves — claiming a
 # domain with no records makes Pages redirect the working github.io URL into a dead
@@ -26,4 +26,5 @@ $customDomain = "www.wardogsbuilder.com"
 if ($customDomain) { [IO.File]::WriteAllText("$proj\docs\CNAME", $customDomain) }
 elseif (Test-Path "$proj\docs\CNAME") { Remove-Item "$proj\docs\CNAME" -Force }
 
-Write-Host "Built WardogsBaseBuilder.html + src/artifact.html + docs/index.html"
+node (Join-Path $proj "tools/build-site.js")
+Write-Host "Built app + docs/planner/ + surrounding site"

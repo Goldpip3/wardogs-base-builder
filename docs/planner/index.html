@@ -1,0 +1,2316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WARDOGS Base Builder — plan your FOB before the match</title>
+<meta name="description" content="Free browser planner for WARDOGS forward operating bases. Lay out walls, gates, gun pits and drill rigs, and see the Build Supply cost, hammer tier and supply runs before you haul a pallet.">
+<meta name="theme-color" content="#12140d">
+<link rel="canonical" href="https://www.wardogsbuilder.com/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="WARDOGS Base Builder">
+<meta property="og:title" content="WARDOGS Base Builder — plan your FOB before the match">
+<meta property="og:description" content="Lay out walls, gates and gun pits on a grid and see what the whole base costs in Build Supplies. Free, no account, runs in your browser.">
+<meta property="og:url" content="https://www.wardogsbuilder.com/">
+<meta property="og:image" content="https://www.wardogsbuilder.com/preview.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="A top-down WARDOGS base plan: hesco perimeter with a gate, FOB and emplacements, with a claw hammer laid across it.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.wardogsbuilder.com/preview.png">
+<meta name="twitter:title" content="WARDOGS Base Builder">
+<meta name="twitter:description" content="Plan your WARDOGS FOB and cost it in Build Supplies before the match. Free, no account.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%2312140d'/><rect x='6' y='14' width='20' height='12' rx='2' fill='%23dcaa26'/><rect x='11' y='8' width='10' height='7' rx='2' fill='%2386ad55'/></svg>">
+<style>
+  :root {
+    /* Field-manual palette: warm olive ground, brass for anything that carries a number,
+       and red reserved exclusively for problems. */
+    --bg: #12140d;
+    --panel: #1a1d13;
+    --panel2: #232719;
+    --panel3: #2b3020;
+    --border: #353c23;
+    --border-soft: #2a3019;
+    --text: #dedbc6;
+    --dim: #8d8d74;
+    --accent: #dcaa26;
+    --accent-ink: #17180f;
+    --accent2: #86ad55;
+    --danger: #d4553a;
+    --blue: #4d8fc4;
+    --cell: 26px;
+    --s: 1;            /* interface scale — raised automatically on large/4K displays */
+    --ui: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --num: "Cascadia Mono", Consolas, "SF Mono", ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: var(--ui); font-size: 13px; line-height: 1.45;
+    display: flex; flex-direction: column;
+    -webkit-font-smoothing: antialiased;
+  }
+  button {
+    background: var(--panel2); color: var(--text); border: 1px solid var(--border);
+    padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px;
+    font-family: inherit; line-height: 1.3;
+    display: inline-flex; align-items: center; gap: 5px;
+    transition: background .12s ease, border-color .12s ease;
+  }
+  button:hover { border-color: var(--accent); background: var(--panel3); }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  button:disabled { opacity: .4; cursor: default; }
+  button:disabled:hover { border-color: var(--border); background: var(--panel2); }
+  button.active { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+  button.warn { border-color: #6b3325; color: #e8a08c; }
+  button.warn:hover { border-color: var(--danger); background: #34201a; }
+  input, select, textarea {
+    background: #0e100a; color: var(--text); border: 1px solid var(--border);
+    border-radius: 5px; padding: 4px 7px; font-size: 12px; font-family: inherit;
+  }
+  input[type=number] { font-family: var(--num); font-variant-numeric: tabular-nums; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
+
+  /* segmented control — used for the storey picker */
+  .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 5px; overflow: hidden; }
+  .seg button {
+    border: 0; border-radius: 0; padding: 5px 9px; background: transparent;
+    border-left: 1px solid var(--border-soft); font-size: 11.5px;
+  }
+  .seg button:first-child { border-left: 0; }
+  .seg button .n {
+    font-family: var(--num); font-size: 10px; color: var(--dim);
+    font-variant-numeric: tabular-nums;
+  }
+  .seg button.active .n { color: var(--accent-ink); opacity: .75; }
+  .support-link {
+    margin-left: auto; text-decoration: none; font-size: 12px;
+    color: var(--accent); border: 1px solid #4d3d12; background: #241f0e;
+    padding: 5px 11px; border-radius: 5px; white-space: nowrap;
+  }
+  .support-link:hover { border-color: var(--accent); background: #2f2811; }
+  .group-label {
+    font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--dim); margin-right: -2px;
+  }
+
+  /* Top bar */
+  #topbar {
+    zoom: var(--s);
+    display: flex; align-items: center; gap: 8px; padding: 7px 12px;
+    background: var(--panel); border-bottom: 1px solid var(--border); flex-wrap: wrap;
+  }
+  #topbar h1 {
+    font-size: 15px; letter-spacing: .16em; color: var(--accent); font-weight: 700;
+    margin-right: 6px; white-space: nowrap;
+  }
+  #topbar h1 span {
+    color: var(--dim); font-weight: 500; letter-spacing: .1em; font-size: 9.5px;
+    text-transform: uppercase; display: block; margin-top: -3px;
+  }
+  #topbar label { font-size: 11px; color: var(--dim); }
+  .sep { width: 1px; height: 22px; background: var(--border); margin: 0 3px; }
+  #designName { width: 158px; font-weight: 600; }
+
+  #main { flex: 1; display: flex; min-height: 0; }
+
+  /* Palette */
+  #palette {
+    zoom: var(--s);
+    width: 244px; max-width: calc(28vw / var(--s));  /* never crowd out the map */
+    background: var(--panel); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; min-height: 0;
+  }
+  #tierTabs { display: flex; padding: 8px 8px 0 8px; gap: 4px; }
+  #tierTabs button { flex: 1; padding: 5px 2px; font-size: 11px; justify-content: center; }
+  #search { margin: 8px; }
+  #items { flex: 1; overflow-y: auto; padding: 0 8px 8px 8px; }
+  .item-card {
+    display: flex; gap: 9px; align-items: center; padding: 6px; margin-bottom: 4px;
+    background: var(--panel2); border: 1px solid var(--border-soft); border-radius: 6px;
+    cursor: pointer; transition: background .12s ease, border-color .12s ease;
+  }
+  .item-card:hover { border-color: var(--border); background: var(--panel3); }
+  .item-card.selected { border-color: var(--accent); background: #302f1c; }
+  .item-card img, .item-card .noicon {
+    width: 44px; height: 44px; border-radius: 4px; background: #0e100a; object-fit: contain; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 18px;
+  }
+  .item-card .info { min-width: 0; }
+  .item-card .name {
+    font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis; display: flex; align-items: center;
+  }
+  .item-card .meta { font-size: 10.5px; color: var(--dim); font-variant-numeric: tabular-nums; margin-top: 1px; }
+  .item-card .cost { color: var(--accent); font-family: var(--num); }
+  .item-card .cost.unconfirmed::after { content: "?"; color: var(--danger); }
+  .role-dot {
+    display: inline-block; width: 8px; height: 8px; border-radius: 2px;
+    margin-right: 6px; vertical-align: 0; flex-shrink: 0;
+  }
+  .legend { display: grid; grid-template-columns: auto 1fr; gap: 5px 8px; align-items: center; }
+  .legend .sw { width: 11px; height: 11px; border-radius: 3px; }
+  .legend span { font-size: 11.5px; }
+  .tier-badge { font-size: 9px; padding: 1px 4px; border-radius: 3px; margin-left: 4px; vertical-align: 1px; }
+  .tier-small  { background: #3d5d33; }
+  .tier-medium { background: #6d5a1e; }
+  .tier-large  { background: #703a2a; }
+
+  /* Canvas area */
+  #canvasWrap { flex: 1; position: relative; min-width: 0; background: #191b12; }
+  #canvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: crosshair; }
+  #emptyState {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -60%);
+    text-align: center; pointer-events: none; max-width: calc(360px * var(--s));
+    font-size: calc(13px * var(--s)); color: var(--dim); line-height: 1.6;
+  }
+  #emptyState .es-title {
+    font-size: calc(17px * var(--s)); letter-spacing: .1em; text-transform: uppercase;
+    color: var(--text); font-weight: 600; margin-bottom: calc(8px * var(--s));
+  }
+  #emptyState p { margin-bottom: calc(10px * var(--s)); }
+  #emptyState .es-alt { pointer-events: auto; }
+  #emptyState button { pointer-events: auto; font-size: calc(12px * var(--s)); }
+  #hint {
+    position: absolute; bottom: calc(30px * var(--s)); left: 50%; transform: translateX(-50%);
+    background: rgba(20,22,15,.88); border: 1px solid var(--border); border-radius: 5px;
+    padding: calc(5px * var(--s)) calc(14px * var(--s)); font-size: calc(11.5px * var(--s));
+    color: var(--dim); pointer-events: none; white-space: nowrap;
+  }
+  #statusbar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: calc(22px * var(--s));
+    background: rgba(20,22,15,.9); border-top: 1px solid var(--border);
+    display: flex; align-items: center; gap: calc(16px * var(--s)); padding: 0 calc(10px * var(--s));
+    font-size: calc(11px * var(--s)); color: var(--dim);
+  }
+
+  /* Right panel */
+  #rightPanel {
+    zoom: var(--s);
+    width: 250px; max-width: calc(28vw / var(--s));  /* never crowd out the map */
+    background: var(--panel); border-left: 1px solid var(--border);
+    display: flex; flex-direction: column; overflow-y: auto; min-height: 0;
+  }
+  .rp-section { padding: 11px 13px; border-bottom: 1px solid var(--border-soft); }
+  .rp-section h3 {
+    font-size: 10px; letter-spacing: .16em; color: var(--dim);
+    text-transform: uppercase; margin-bottom: 8px; font-weight: 600;
+  }
+  .rp-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; gap: 8px; }
+  .rp-row:last-child { margin-bottom: 0; }
+  .rp-row label { color: var(--dim); font-size: 12px; }
+  .rp-row .val { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .cost-line {
+    display: flex; justify-content: space-between; font-size: 11.5px;
+    margin-bottom: 3px; font-variant-numeric: tabular-nums; gap: 10px;
+  }
+  .cost-line .n { color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cost-line .v { color: var(--text); font-family: var(--num); font-size: 11px; }
+  /* the headline number — this is the thing you actually came for */
+  .hero {
+    display: flex; align-items: baseline; justify-content: space-between;
+    padding: 2px 0 8px; margin-bottom: 8px; border-bottom: 1px solid var(--border-soft);
+  }
+  .hero .big-number {
+    font-size: 27px; font-weight: 700; color: var(--accent); line-height: 1;
+    font-family: var(--num); font-variant-numeric: tabular-nums; letter-spacing: -.02em;
+  }
+  .hero .unit { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+  .issue {
+    font-size: 11.5px; color: #e8a08c; margin-bottom: 5px; cursor: pointer;
+    padding-left: 13px; text-indent: -13px; line-height: 1.4;
+  }
+  .issue:hover { color: var(--danger); text-decoration: underline; }
+  .ok { color: var(--accent2); font-size: 11.5px; }
+  #selProps input[type=number] { width: 62px; }
+  .size-edit { display: flex; align-items: center; gap: 4px; }
+  .size-edit input[type=number] { width: 44px; }
+  .unsized { color: var(--danger); }
+  .budget-track {
+    height: 7px; background: #12140d; border: 1px solid var(--border);
+    border-radius: 4px; overflow: hidden; margin-top: 6px;
+  }
+  .budget-fill { height: 100%; width: 0; background: var(--accent2); transition: width .15s ease; }
+  .preset-row {
+    display: flex; gap: 10px; align-items: flex-start; padding: 9px 4px;
+    border-bottom: 1px solid var(--border);
+  }
+  .preset-row .body { flex: 1; min-width: 0; }
+  .preset-row .t { font-weight: 600; margin-bottom: 2px; }
+  .preset-row .d { font-size: 11.5px; color: var(--dim); line-height: 1.45; }
+  .preset-row .c { font-size: 11.5px; color: var(--accent); white-space: nowrap; margin-top: 3px; }
+
+  /* Small screens: the tool needs a pointer and room for three panels, so say so
+     plainly rather than serving a crushed layout. */
+  #smallScreen { display: none; }
+  @media (max-width: 820px) {
+    #smallScreen {
+      display: flex; position: fixed; inset: 0; z-index: 80;
+      background: var(--bg); align-items: center; justify-content: center; padding: 24px;
+    }
+    #smallScreen.dismissed { display: none; }
+  }
+  .ss-card { max-width: 380px; text-align: center; }
+  .ss-card h2 {
+    font-size: 19px; letter-spacing: .16em; color: var(--accent);
+    font-weight: 700; margin-bottom: 2px;
+  }
+  .ss-card h2 span {
+    display: block; font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--dim); font-weight: 500; margin-top: 2px;
+  }
+  .ss-card p { margin-top: 16px; color: var(--text); font-size: 14px; line-height: 1.6; }
+  .ss-card .ss-note { color: var(--dim); font-size: 13px; }
+  .ss-card button { margin-top: 20px; }
+
+  /* Modal */
+  #modalBack {
+    position: fixed; inset: 0; background: rgba(0,0,0,.6); display: none;
+    align-items: center; justify-content: center; z-index: 50;
+  }
+  #modal {
+    zoom: var(--s);
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+    width: min(680px, calc(92vw / var(--s))); max-height: calc(86vh / var(--s));
+    display: flex; flex-direction: column;
+  }
+  #modal header { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  #modal header h2 { font-size: 14px; color: var(--accent); }
+  #modalBody { padding: 14px 16px; overflow-y: auto; }
+  #modalBody textarea { width: 100%; height: calc(46vh / var(--s)); font-family: Consolas, monospace; font-size: 11px; white-space: pre; }
+  #modal footer { padding: 10px 16px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
+  .design-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 4px; border-bottom: 1px solid var(--border); }
+  kbd {
+    background: var(--panel2); border: 1px solid var(--border); border-bottom-width: 2px;
+    border-radius: 3px; padding: 0 5px; font-size: 11px; font-family: inherit;
+  }
+  .help-grid { display: grid; grid-template-columns: 130px 1fr; gap: 6px 12px; font-size: 12.5px; }
+  ::-webkit-scrollbar { width: 9px; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+</style>
+</head>
+<body>
+<div id="topbar">
+  <h1>WARDOGS <span>BASE BUILDER</span></h1>
+  <input id="designName" placeholder="Design name" value="New FOB">
+  <button id="btnNew" title="New design">✚ New</button>
+  <button id="btnDesigns" title="Saved designs">🗂 Designs</button>
+  <button id="btnShare" title="Get a link that opens this exact design">🔗 Share</button>
+  <button id="btnExport" title="Export design as JSON file">⭳ Export</button>
+  <button id="btnImport" title="Import design JSON">⭱ Import</button>
+  <button id="btnPng" title="Export layout as PNG image">🖼 PNG</button>
+  <div class="sep"></div>
+  <button id="btnUndo" title="Undo (Ctrl+Z)">↩</button>
+  <button id="btnRedo" title="Redo (Ctrl+Y)">↪</button>
+  <div class="sep"></div>
+  <button id="btnSnap" class="active" title="Toggle grid snap (B) — same key as in-game">⌗ Snap</button>
+  <button id="btnFit" title="Zoom to fit (F)">⛶ Fit</button>
+  <div class="sep"></div>
+  <span class="group-label">Storey</span>
+  <span id="levelStrip" class="seg" title="Everything is shown by default. Pick a storey to work on it on its own."></span>
+  <div class="sep"></div>
+  <button id="btnTemplates" title="Drop in a ready-made build (mortar pit, AA nest, wall section…)">◈ Presets</button>
+  <button id="btnCatalog" title="Edit the buildables catalog (costs/sizes)">⚙ Catalog</button>
+  <button id="btnHelp" title="Help & shortcuts">? Help</button>
+  <a id="btnSupport" target="_blank" rel="noopener noreferrer" style="display:none"></a>
+  <div class="sep"></div>
+  <label for="uiScale" style="color:var(--dim)">Size</label>
+  <select id="uiScale" title="Interface size — turn this up on a large or 4K monitor ( [ and ] )">
+    <option value="1">100%</option>
+    <option value="1.25">125%</option>
+    <option value="1.5">150%</option>
+    <option value="1.75">175%</option>
+    <option value="2">200%</option>
+    <option value="2.5">250%</option>
+    <option value="3">300%</option>
+  </select>
+  <input type="file" id="fileInput" accept=".json" style="display:none">
+</div>
+
+<div id="main">
+  <div id="palette">
+    <div id="tierTabs">
+      <button data-tier="all" class="active">All</button>
+      <button data-tier="small">Small</button>
+      <button data-tier="medium">Med</button>
+      <button data-tier="large">Large</button>
+    </div>
+    <input id="search" placeholder="Search buildables…">
+    <div id="items"></div>
+  </div>
+
+  <div id="canvasWrap">
+    <canvas id="canvas"></canvas>
+    <div id="emptyState">
+      <div class="es-title">Plan your FOB</div>
+      <p>Start with the <b>FOB</b> at the top of the list — it sets the square you can build inside.
+         Then pick a wall and <b>drag</b> to lay a run.</p>
+      <p class="es-alt">In a hurry? <button id="esPresets">Use a preset</button></p>
+    </div>
+    <div id="hint">Click a buildable, then click the map to place — or drag to lay a whole run. Wheel = zoom · Arrows, middle-drag or Space-drag = pan</div>
+    <div id="statusbar">
+      <span id="sbCoords">0, 0</span>
+      <span id="sbZoom">100%</span>
+      <span id="sbScale">1 cell = 1 Hesco block ≈ 1.2 m</span>
+      <span id="sbSaved"></span>
+      <span id="sbMode"></span>
+    </div>
+  </div>
+
+  <div id="rightPanel">
+    <div class="rp-section" id="selProps" style="display:none">
+      <h3>Selected</h3>
+      <div class="rp-row"><span class="val" id="selName">—</span></div>
+      <div class="rp-row"><label>Rotation</label>
+        <span><button id="rotL" title="Rotate CCW">⟲</button> <button id="rotR" title="Rotate CW (R)">⟳</button> <span id="selRot" class="val">0°</span></span>
+      </div>
+      <div class="rp-row"><label>Level (stack)</label>
+        <span><button id="lvlDn">−</button> <span id="selLvl" class="val">0</span> <button id="lvlUp">+</button></span>
+      </div>
+      <div id="sizeRows">
+        <div class="rp-row" style="margin-top:8px"><label id="szLabel">Footprint &amp; height</label></div>
+        <div class="rp-row">
+          <span class="size-edit">
+            <input type="number" id="szW" min="1" max="40" step="1" title="Width, in Hesco blocks">
+            <span>×</span>
+            <input type="number" id="szD" min="1" max="40" step="1" title="Depth, in Hesco blocks">
+            <span style="color:var(--dim)">H</span>
+            <input type="number" id="szH" min="1" max="12" step="1" title="Height, in Hesco blocks">
+          </span>
+        </div>
+      </div>
+      <div class="rp-row" id="fobSizeRow" style="display:none"><label>Build zone (cells)</label>
+        <input type="number" id="fobSize" min="10" max="400" step="2">
+      </div>
+      <div class="rp-row"><label>Note</label><input id="selNote" style="width:130px"></div>
+      <div class="rp-row" style="margin-top:8px">
+        <button id="btnMirrorH" title="Flip the selection left↔right">⇄ Flip</button>
+        <button id="btnMirrorV" title="Flip the selection up↔down">⇅ Flip</button>
+        <button id="btnSelSame" title="Select every piece of this type">⊞ Same</button>
+      </div>
+      <div class="rp-row" style="margin-top:5px">
+        <button id="btnAlign" title="Square up anything left crooked or off-grid (Shift+A)">⌗ Align to grid</button>
+      </div>
+      <div class="rp-row" style="margin-top:5px">
+        <button id="btnDup">⧉ Duplicate</button>
+        <button id="btnDel" class="warn">🗑 Delete</button>
+      </div>
+    </div>
+
+    <div class="rp-section">
+      <h3>Build Cost</h3>
+      <div class="hero">
+        <span class="big-number" id="costSupplies">0</span>
+        <span class="unit">build supplies</span>
+      </div>
+      <div class="rp-row"><label>Vendor cash (@$10)</label><span class="val" id="costCash">$0</span></div>
+      <div class="rp-row"><label>+ FOB item</label><span class="val" id="costFob">—</span></div>
+      <div class="rp-row"><label>Hammer needed</label><span class="val" id="hammerNeeded">—</span></div>
+      <div class="rp-row" style="margin-top:7px"><label>You have in the FOB</label><input type="number" id="supplyStock" value="0" min="0" style="width:72px" title="Build supplies currently stocked — leave 0 to ignore"></div>
+      <div class="budget-track" id="budgetTrack" style="display:none"><div class="budget-fill" id="budgetFill"></div></div>
+      <div id="budgetText" style="font-size:11.5px;margin-top:4px"></div>
+      <div id="costBreakdown" style="margin-top:8px"></div>
+    </div>
+
+    <div class="rp-section">
+      <h3>Hauling it there</h3>
+      <div class="rp-row">
+        <label>Supplies per pallet <span id="palletFlag" class="unsized" title="Not published by the game — count one in-game and correct it here">?</span></label>
+        <input type="number" id="palletSize" value="40" min="1" style="width:62px">
+      </div>
+      <div class="rp-row"><label>Pallets needed</label><span class="val" id="palletsNeeded">0</span></div>
+      <div class="rp-row"><label>Pallet cost</label><span class="val" id="palletCash">$0</span></div>
+      <div id="vehicleRuns" style="margin-top:7px"></div>
+    </div>
+
+    <div class="rp-section">
+      <h3>Ongoing Supplies</h3>
+      <div id="ongoing" style="font-size:11.5px; color:var(--dim)">—</div>
+    </div>
+
+    <div class="rp-section">
+      <h3>Anti-climb</h3>
+      <div id="antiClimb" style="font-size:11.5px; color:var(--dim); line-height:1.5">—</div>
+    </div>
+
+    <div class="rp-section">
+      <h3>Issues</h3>
+      <div id="issues"><span class="ok">No issues.</span></div>
+    </div>
+
+    <div class="rp-section">
+      <h3>Colour key</h3>
+      <div class="legend" id="legend"></div>
+      <div style="margin-top:9px;font-size:11.5px;color:var(--dim);line-height:1.5">
+        <b style="color:var(--text)">Height</b> — pieces rise off the plan the taller they are;
+        a <span style="color:var(--accent)">▲</span> badge gives the exact block count,
+        and <span style="color:var(--accent)">L2</span> means it's stacked on a storey above ground.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="smallScreen">
+  <div class="ss-card">
+    <h2>WARDOGS <span>Base Builder</span></h2>
+    <p>Plan your FOB between matches — walls, gates, gun pits — and see what it costs
+       in Build Supplies before you haul a single pallet.</p>
+    <p class="ss-note">It needs a mouse and a bit of room, so it's built for a desktop or laptop.
+       Open this page on a computer and you're straight in.</p>
+    <button id="ssDismiss">Let me look anyway</button>
+  </div>
+</div>
+
+<div id="modalBack">
+  <div id="modal">
+    <header><h2 id="modalTitle">Title</h2><button id="modalClose">✕</button></header>
+    <div id="modalBody"></div>
+    <footer id="modalFoot"></footer>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ============ EMBEDDED DATA ============ */
+const CATALOG_DEFAULT = {
+  "meta": {
+    "game": "WARDOGS (BULKHEAD / Team17)",
+    "dataAsOf": "Closed Beta 1, captured 2026-08-29",
+    "unit": "1 grid unit = 1 small Hesco block (~1.2m). Sizes are footprint W x D in units; height in units.",
+    "sources": [
+      "In-game radial menu frames from 'How To Build In WARDOGS - Episode 1' (Wardogs Building Community)",
+      "'WARDOGS Building 101' (DemoMan0351)",
+      "metaforge.app/wardogs buildables database",
+      "wardogshub.gg equipment prices (Beta 1, 21 Aug 2026)"
+    ],
+    "notes": "Costs are Build Supplies (1 supply = $10 at vendor). costConfirmed=false means read from low-res video frame, verify in game."
+  },
+  "logistics": {
+    "palletCash": 400,
+    "suppliesPerPallet": 40,
+    "palletConfirmed": false,
+    "note": "Build Supply Pallet is confirmed at $400 and 4x2 inventory slots. The supply count inside it is NOT published; 40 is inferred from the $10-per-supply vendor price. Correct it in the app if you count the real figure.",
+    "vehicles": [
+      { "name": "Truck", "pallets": 2 },
+      { "name": "Helicopter", "pallets": 1 }
+    ]
+  },
+  "support": {
+    "label": "☕ Tip the dev",
+    "url": ""
+  },
+  "hammers": [
+    { "id": "small",  "name": "Small Hammer",  "weightKg": 0.32, "buildSpeed": "slow",     "builds": "small buildables only" },
+    { "id": "medium", "name": "Medium Hammer", "weightKg": 1.23, "buildSpeed": "moderate", "builds": "small + basic/large buildables" },
+    { "id": "large",  "name": "Large Hammer",  "weightKg": 3.18, "buildSpeed": "fastest",  "builds": "ALL buildables" }
+  ],
+  "fob": {
+    "name": "Forward Operating Base",
+    "vendorPrice": 2500,
+    "inventorySize": "2x3",
+    "effects": [
+      "Needed to build larger structures",
+      "Holds items & resources (Build / Ammo / Fuel / Mechanical supplies)",
+      "Provides a square build radius shown blue on the minimap",
+      "Includes free Small + Medium hammers, wrenches, signal grenades at the FOB computer"
+    ],
+    "placement": "White highlight = valid, red = obstructed. Cannot be moved after placement.",
+    "footprint": { "w": 3, "d": 3 }, "height": 2, "sizeConfirmed": true,
+    "buildRadiusUnits": 100, "radiusConfirmed": false
+  },
+  "buildables": [
+    { "id": "sandbag-wall", "role": "cover",   "name": "Sandbag Wall",          "tier": "small",  "page": 1, "cost": 10,   "costConfirmed": true,  "requiresFob": false, "footprint": { "w": 2, "d": 1 }, "height": 1, "sizeConfirmed": true,  "desc": "Quick to build waist height cover. Does not require a FOB.", "icon": "sandbag-wall.svg", "tags": ["cover", "vaultable", "overlay"] },
+    { "id": "hesco-small", "role": "cover",    "name": "Hesco Block (Small)",   "tier": "small",  "page": 1, "cost": 10,   "costConfirmed": true,  "requiresFob": true,  "footprint": { "w": 1, "d": 1 }, "height": 1, "sizeConfirmed": true,  "desc": "Durable waist-height barrier that provides cover from small arms and explosives.", "icon": "hesco-small.svg", "tags": ["cover", "wall", "stackable", "upgradable"] },
+    { "id": "hesco-tall", "role": "cover",     "name": "Hesco Block (Tall)",    "tier": "medium", "page": 2, "cost": 20,   "costConfirmed": false, "requiresFob": true,  "footprint": { "w": 1, "d": 1 }, "height": 2, "sizeConfirmed": false, "desc": "Tall, durable barrier that provides full-body cover from small arms and explosives.", "icon": "hesco-tall.svg", "tags": ["wall"] },
+    { "id": "hesco-wall", "role": "cover",     "name": "Hesco Wall (Quad)",     "tier": "medium", "page": 2, "cost": 46,   "costConfirmed": true,  "requiresFob": true,  "footprint": { "w": 4, "d": 1 }, "height": 2, "sizeConfirmed": false, "desc": "Consists of four Large Hesco Blocks. Perfect for building long perimeter walls.", "icon": "hesco-quad.svg", "tags": ["wall", "perimeter"] },
+    { "id": "bremer-wall", "role": "cover",    "name": "Bremer Wall",           "tier": "large",  "page": 2, "cost": 10,   "costConfirmed": true,  "requiresFob": true,  "footprint": { "w": 1, "d": 1 }, "height": 3, "sizeConfirmed": true,  "desc": "Tall reinforced concrete barrier topped with barbed wire. Cannot be built on top of; use as final anti-climb layer on top of Hesco walls.", "icon": "bremer-wall.svg", "tags": ["wall", "anti-climb", "top-layer"] },
+    { "id": "door", "role": "entry",           "name": "Door",                  "tier": "medium", "page": 2, "cost": 14,   "costConfirmed": true,  "requiresFob": true,  "footprint": { "w": 1, "d": 1 }, "height": 2, "sizeConfirmed": false, "desc": "Secure infantry access point, team-only. Auto-closes. Needs back-wall clearance to swing.", "icon": "door.svg", "tags": ["access"] },
+    { "id": "gate", "role": "entry",           "name": "Gate",                  "tier": "medium", "page": 2, "cost": 52,   "costConfirmed": true,  "requiresFob": true,  "footprint": { "w": 4, "d": 1 }, "height": 2, "sizeConfirmed": true,  "desc": "Large armored gate for friendly vehicle access, team-only. Swings through; must be placed on the ground.", "icon": "gate.svg", "tags": ["access", "vehicle", "ground-only"] },
+    { "id": "barbed-wire", "role": "denial",    "name": "Barbed Wire",           "tier": "small",  "page": 1, "cost": 5,    "costConfirmed": true,  "requiresFob": false, "footprint": { "w": 2, "d": 1 }, "height": 1, "sizeConfirmed": true,  "desc": "Slows and injures enemy infantry. Does not require a FOB.", "icon": "barbed-wire.svg", "tags": ["area-denial"] },
+    { "id": "hedgehog", "role": "denial",       "name": "Hedgehog",              "tier": "small",  "page": 1, "cost": 14,   "costConfirmed": true,  "requiresFob": false, "footprint": { "w": 1, "d": 1 }, "height": 1, "sizeConfirmed": false, "desc": "Anti-vehicle barrier used to block or channel enemy vehicles. Does not require a FOB.", "icon": "hedgehog.svg", "tags": ["area-denial", "anti-vehicle"] },
+    { "id": "recon-tent", "role": "support",     "name": "Recon Tent",            "tier": "small",  "page": 1, "cost": 5,    "costConfirmed": true,  "requiresFob": false, "footprint": { "w": 2, "d": 2 }, "height": 1, "sizeConfirmed": false, "desc": "Concealed recon position that hides occupants from infrared vision. Does not require a FOB.", "icon": "recon-tent.svg", "tags": ["stealth"] },
+    { "id": "builders-radio", "role": "support", "name": "Builder's Radio",       "tier": "small",  "page": 1, "cost": 13,   "costConfirmed": false, "requiresFob": true,  "footprint": { "w": 2, "d": 1 }, "height": 1, "sizeConfirmed": false, "desc": "Plays music around your FOB, a place to get some R&R.", "icon": "builders-radio.svg", "tags": ["utility"] },
+    { "id": "loudspeaker", "role": "support",    "name": "Loudspeaker",           "tier": "medium", "page": 2, "cost": 61,   "costConfirmed": true,  "requiresFob": true,  "footprint": { "w": 2, "d": 2 }, "height": 5, "sizeConfirmed": true,  "desc": "Climbable loudspeaker tower that lets you project your voice over long distances.", "icon": "loudspeaker.svg", "tags": ["utility", "climbable"] },
+    { "id": "bunker", "role": "cover",         "name": "Bunker",                "tier": "large",  "page": 2, "cost": 61,   "costConfirmed": true,  "requiresFob": true,  "footprint": { "w": 4, "d": 4 }, "height": 5, "sizeConfirmed": true,  "desc": "Offers protected firing positions and partial shelter from indirect fire.", "icon": "bunker.svg", "tags": ["shelter", "firing-position"] },
+    { "id": "ifs", "role": "cover",            "name": "Indirect Fire Shelter", "tier": "large",  "page": 2, "cost": 61,   "costConfirmed": true,  "requiresFob": true,  "footprint": { "w": 3, "d": 3 }, "height": 2, "sizeConfirmed": false, "desc": "Protection against indirect fire; four doorways for custom configuration. Roof = 9 flat Hescos (3x3), walkable/expandable platform.", "icon": "ifs.svg", "tags": ["shelter", "platform"] },
+    { "id": "recon-tower", "role": "cover",    "name": "Recon Tower",           "tier": "large",  "page": 2, "cost": 61,   "costConfirmed": true,  "requiresFob": true,  "footprint": { "w": 4, "d": 4 }, "height": 5, "sizeConfirmed": true , "desc": "Two-storey tower with raised firing positions accessible by ladder. Cannot be stacked.", "icon": "recon-tower.svg", "tags": ["tower", "no-stack"] },
+    { "id": "l81-mortar", "role": "offense",     "name": "L81 Mortar",            "tier": "large",  "page": 3, "cost": 90,   "costConfirmed": false, "requiresFob": true,  "footprint": { "w": 4, "d": 4 }, "height": 2, "sizeConfirmed": true,  "desc": "Short-range indirect fire. Reload converts Ammo supplies from the FOB into shells. Needs open sky and clearance over walls; keep pit walls 1 block out.", "icon": "l81-mortar.svg", "tags": ["emplacement", "needs-sky", "uses-ammo"] },
+    { "id": "vanguard-ciws", "role": "antiair",  "name": "Vanguard CIWS",         "tier": "large",  "page": 3, "cost": 90,   "costConfirmed": true,  "requiresFob": true,  "footprint": { "w": 4, "d": 4 }, "height": 2, "sizeConfirmed": true,  "desc": "Manually operated anti-air close-in weapon system. Reload converts Ammo supplies into rounds. Needs open sky.", "icon": "vanguard-ciws.svg", "tags": ["emplacement", "anti-air", "needs-sky", "uses-ammo"] },
+    { "id": "stingray", "role": "offense",      "name": "Stingray",              "tier": "large",  "page": 3, "cost": 121,  "costConfirmed": true,  "requiresFob": true,  "footprint": { "w": 4, "d": 4 }, "height": 2, "sizeConfirmed": true,  "desc": "Reloadable launch station for long-range, explosive anti-armor UAVs. Buy units with cash and Mechanical supplies. Holds one active UAV at a time.", "icon": "stingray.svg", "tags": ["emplacement", "needs-sky", "uses-mechanical", "anti-vehicle"] },
+    { "id": "talon-9k-sam", "role": "antiair",   "name": "Talon 9K-SAM",          "tier": "large",  "page": 4, "cost": 60,   "costConfirmed": true,  "requiresFob": true,  "footprint": { "w": 4, "d": 4 }, "height": 2, "sizeConfirmed": false, "desc": "Reloadable heat-seeking anti-air missile station. Reload converts Ammo supplies into missiles. Needs open sky.", "icon": "talon-9k-sam.svg", "tags": ["emplacement", "anti-air", "needs-sky", "uses-ammo"] },
+    { "id": "drill-rig", "role": "objective",      "name": "Drill Rig",             "tier": "large",  "page": 3, "cost": 1351, "costConfirmed": false, "requiresFob": true,  "footprint": { "w": 4, "d": 4 }, "height": 4, "sizeConfirmed": false, "desc": "When active, pulls the Hotzone to its location (like an active drill tower). Requires Fuel supplies in the FOB to activate; has a cooldown.", "icon": "drill-rig.svg", "tags": ["objective", "uses-fuel", "endgame"] },
+    { "id": "refuel-station", "role": "support", "name": "Refuel Station",        "tier": "large",  "page": 3, "cost": 120,  "costConfirmed": true,  "requiresFob": true,  "footprint": { "w": 3, "d": 2 }, "height": 2, "sizeConfirmed": false, "desc": "Friendly vehicles refuel within FOB radius, if Fuel Logistics supplies are stored at the FOB.", "icon": "refuel-station.svg", "tags": ["logistics", "uses-fuel"] },
+    { "id": "repair-station", "role": "support", "name": "Repair Station",        "tier": "large",  "page": 3, "cost": 120,  "costConfirmed": true,  "requiresFob": true,  "footprint": { "w": 3, "d": 2 }, "height": 2, "sizeConfirmed": false, "desc": "Friendly vehicles repair within FOB radius, if Spare Parts (Mechanical) supplies are stored at the FOB.", "icon": "repair-station.svg", "tags": ["logistics", "uses-mechanical"] }
+  ],
+  "mechanics": {
+    "supplies": { "build": "$10/unit — all construction", "ammo": "$10/unit — mortar/CIWS/SAM reloads", "fuel": "$10/unit — refuel station, drill rig activation", "mechanical": "$10/unit — repair station" },
+    "snapping": "Toggleable (default key B). Pieces snap adjacent or stacked; toggle off for free angles.",
+    "placement": "Free placement with rotation; white/valid vs red/obstructed preview.",
+    "criticalHits": "Yellow X marks appear while building; hitting them speeds construction (Fortnite-style). Swing-cancel (release + re-press between contacts) roughly 3x build speed.",
+    "stacking": "Hescos and most pieces stack for multi-level builds; stack height limit exists ('exceeds stack limit'). Gates ground-only; Bremer walls cannot be built upon; recon towers cannot stack.",
+    "vaulting": "Waist-height items (sandbag, small hesco) are vaultable; plan anti-vault layers (tall hesco + bremer on top).",
+    "economy": "Building earns cash + Support XP. Supplies must be trucked/flown from HQ as pallets and unloaded into the FOB."
+  }
+};
+const ICONS = {"barbed-wire.svg":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMWQxZjExIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+CjxwYXRoIGQ9Ik02IDQ2aDUyIiBzdHJva2Utd2lkdGg9IjMiLz48Y2lyY2xlIGN4PSIxMyIgY3k9IjMwIiByPSI5IiBzdHJva2U9IiM4Zjk3YTAiIGZpbGw9Im5vbmUiLz48Y2lyY2xlIGN4PSIyNiIgY3k9IjMwIiByPSI5IiBzdHJva2U9IiM4Zjk3YTAiIGZpbGw9Im5vbmUiLz48Y2lyY2xlIGN4PSIzOSIgY3k9IjMwIiByPSI5IiBzdHJva2U9IiM4Zjk3YTAiIGZpbGw9Im5vbmUiLz48Y2lyY2xlIGN4PSI1MiIgY3k9IjMwIiByPSI5IiBzdHJva2U9IiM4Zjk3YTAiIGZpbGw9Im5vbmUiLz48cGF0aCBkPSJNMTAgNDZWMzRNMzIgNDZWMzBNNTQgNDZWMzQiIHN0cm9rZS13aWR0aD0iMiIvPgo8L3N2Zz4K","bremer-wall.svg":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMWQxZjExIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+CjxwYXRoIGQ9Ik0yMiAxOGgyMHYzNEgyMnoiIGZpbGw9IiNhOGEzODkiLz48cGF0aCBkPSJNMTQgNTJoMzZ2NkgxNHoiIGZpbGw9IiNkZGQ4YzAiLz48cGF0aCBkPSJNMjIgMTh2MzRNNDIgMTh2MzQiIHN0cm9rZS13aWR0aD0iMSIgb3BhY2l0eT0iLjQiLz48Y2lyY2xlIGN4PSIyNyIgY3k9IjEyIiByPSI1IiBzdHJva2U9IiM4Zjk3YTAiIGZpbGw9Im5vbmUiLz48Y2lyY2xlIGN4PSIzNyIgY3k9IjEyIiByPSI1IiBzdHJva2U9IiM4Zjk3YTAiIGZpbGw9Im5vbmUiLz4KPC9zdmc+Cg==","builders-radio.svg":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMWQxZjExIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+CjxwYXRoIGQ9Ik0xMCAyNmg0NHYyOEgxMHoiIGZpbGw9IiNkZGQ4YzAiLz48Y2lyY2xlIGN4PSIyNCIgY3k9IjQwIiByPSI4IiBmaWxsPSIjNGE0ZjM4Ii8+PHBhdGggZD0iTTM4IDM0aDEyTTM4IDQwaDEyTTM4IDQ2aDEyIiBzdHJva2Utd2lkdGg9IjIiLz48cGF0aCBkPSJNNDYgMjZMNTQgOCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2U9IiM4Zjk3YTAiLz4KPC9zdmc+Cg==","bunker.svg":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMWQxZjExIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+CjxwYXRoIGQ9Ik04IDIwaDQ4djMySDh6IiBmaWxsPSIjZGRkOGMwIi8+PHBhdGggZD0iTTggMjBsOC04aDMybDggOCIgZmlsbD0iI2E4YTM4OSIvPjxwYXRoIGQ9Ik0xNiAzMmgzMnY5SDE2eiIgZmlsbD0iIzRhNGYzOCIvPjxwYXRoIGQ9Ik04IDUyaDQ4IiBzdHJva2Utd2lkdGg9IjIiLz4KPC9zdmc+Cg==","door.svg":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMWQxZjExIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+CjxwYXRoIGQ9Ik0xOCA4aDI4djQ4SDE4eiIgZmlsbD0iI2E4YTM4OSIvPjxwYXRoIGQ9Ik0yNCAxNGgxNnY0MkgyNHoiIGZpbGw9IiM0YTRmMzgiLz48Y2lyY2xlIGN4PSIzNiIgY3k9IjM1IiByPSIyLjUiIGZpbGw9IiNkZGQ4YzAiIHN0cm9rZT0ibm9uZSIvPgo8L3N2Zz4K","drill-rig.svg":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMWQxZjExIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+CjxwYXRoIGQ9Ik0xMCA1NGg0NHY2SDEweiIgZmlsbD0iI2E4YTM4OSIvPjxwYXRoIGQ9Ik0yMCA1NEwzMiA4bDEyIDQ2eiIgZmlsbD0iI2RkZDhjMCIvPjxwYXRoIGQ9Ik0yMyA0MmgxOE0yNiAzMGgxMk0yOCAyMGg4IiBzdHJva2Utd2lkdGg9IjEuOCIvPjxwYXRoIGQ9Ik0zMiA4djQ2IiBzdHJva2Utd2lkdGg9IjEuNSIgb3BhY2l0eT0iLjUiLz4KPC9zdmc+Cg==","fob.svg":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMWQxZjExIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+CjxwYXRoIGQ9Ik02IDM0aDUydjI0SDZ6IiBmaWxsPSIjZGRkOGMwIi8+PHBhdGggZD0iTTE0IDIyaDM2djEySDE0eiIgZmlsbD0iI2E4YTM4OSIvPjxwYXRoIGQ9Ik0yMiAxMmgyMHYxMEgyMnoiIGZpbGw9IiNhOGEzODkiLz48cGF0aCBkPSJNMjYgNDJoMTJ2MTZIMjZ6IiBmaWxsPSIjNGE0ZjM4Ii8+PHBhdGggZD0iTTEwIDM4aDEwdjdIMTB6TTQ0IDM4aDEwdjdINDR6IiBmaWxsPSIjNGE0ZjM4Ii8+PHBhdGggZD0iTTMyIDEyVjIiIHN0cm9rZS13aWR0aD0iMi41IiBzdHJva2U9IiM4Zjk3YTAiLz48cGF0aCBkPSJNMjcgNWgxMCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2U9IiM4Zjk3YTAiLz4KPC9zdmc+Cg==","gate.svg":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMWQxZjExIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+CjxwYXRoIGQ9Ik02IDE2aDI0djMySDZ6TTM0IDE2aDI0djMySDM0eiIgZmlsbD0iIzhmOTdhMCIvPjxwYXRoIGQ9Ik02IDE2aDI0djMySDZ6TTM0IDE2aDI0djMySDM0eiIvPjxwYXRoIGQ9Ik0zMCAxMnY0ME0zNCAxMnY0MCIgc3Ryb2tlLXdpZHRoPSIyIi8+PHBhdGggZD0iTTQgNTJoNTZ2Nkg0eiIgZmlsbD0iI2RkZDhjMCIvPjxwYXRoIGQ9Ik0xMiAyNGwxMiAxNk01MiAyNEw0MCA0MCIgc3Ryb2tlLXdpZHRoPSIxLjUiIG9wYWNpdHk9Ii41Ii8+Cjwvc3ZnPgo=","hedgehog.svg":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMWQxZjExIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+CjxwYXRoIGQ9Ik0xMiAxMmw0MCA0ME01MiAxMkwxMiA1Mk0zMiA2djUyIiBzdHJva2Utd2lkdGg9IjUiIHN0cm9rZT0iIzhmOTdhMCIvPjxwYXRoIGQ9Ik0xMiAxMmw0MCA0ME01MiAxMkwxMiA1Mk0zMiA2djUyIiBzdHJva2Utd2lkdGg9IjEuNSIvPgo8L3N2Zz4K","hesco-quad.svg":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMWQxZjExIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+CjxyZWN0IHg9IjQiIHk9IjE2IiB3aWR0aD0iMTMiIGhlaWdodD0iMzIiIGZpbGw9IiNkZGQ4YzAiLz48cGF0aCBkPSJNMTAuNSAxNlY0OCIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIuNDUiLz48cGF0aCBkPSJNNCAzMkgxNyIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIuNDUiLz48cmVjdCB4PSIxOCIgeT0iMTYiIHdpZHRoPSIxMyIgaGVpZ2h0PSIzMiIgZmlsbD0iI2E4YTM4OSIvPjxwYXRoIGQ9Ik0yNC41IDE2VjQ4IiBzdHJva2Utd2lkdGg9IjEiIG9wYWNpdHk9Ii40NSIvPjxwYXRoIGQ9Ik0xOCAzMkgzMSIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIuNDUiLz48cmVjdCB4PSIzMiIgeT0iMTYiIHdpZHRoPSIxMyIgaGVpZ2h0PSIzMiIgZmlsbD0iI2RkZDhjMCIvPjxwYXRoIGQ9Ik0zOC41IDE2VjQ4IiBzdHJva2Utd2lkdGg9IjEiIG9wYWNpdHk9Ii40NSIvPjxwYXRoIGQ9Ik0zMiAzMkg0NSIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIuNDUiLz48cmVjdCB4PSI0NiIgeT0iMTYiIHdpZHRoPSIxMyIgaGVpZ2h0PSIzMiIgZmlsbD0iI2E4YTM4OSIvPjxwYXRoIGQ9Ik01Mi41IDE2VjQ4IiBzdHJva2Utd2lkdGg9IjEiIG9wYWNpdHk9Ii40NSIvPjxwYXRoIGQ9Ik00NiAzMkg1OSIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIuNDUiLz4KPC9zdmc+Cg==","hesco-small.svg":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMWQxZjExIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+CjxyZWN0IHg9IjE0IiB5PSIyNCIgd2lkdGg9IjM2IiBoZWlnaHQ9IjI0IiBmaWxsPSIjZGRkOGMwIi8+PHBhdGggZD0iTTMyIDI0VjQ4IiBzdHJva2Utd2lkdGg9IjEiIG9wYWNpdHk9Ii40NSIvPjxwYXRoIGQ9Ik0xNCAzNkg1MCIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIuNDUiLz4KPC9zdmc+Cg==","hesco-tall.svg":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMWQxZjExIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+CjxyZWN0IHg9IjE4IiB5PSIxMCIgd2lkdGg9IjI4IiBoZWlnaHQ9IjQ0IiBmaWxsPSIjZGRkOGMwIi8+PHBhdGggZD0iTTMyIDEwVjU0IiBzdHJva2Utd2lkdGg9IjEiIG9wYWNpdHk9Ii40NSIvPjxwYXRoIGQ9Ik0xOCAzMkg0NiIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIuNDUiLz4KPC9zdmc+Cg==","ifs.svg":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMWQxZjExIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+CjxwYXRoIGQ9Ik04IDhoNDh2NDhIOHoiIGZpbGw9IiNkZGQ4YzAiLz48cGF0aCBkPSJNMjAgMjBoMjR2MjRIMjB6IiBmaWxsPSIjNGE0ZjM4Ii8+PHBhdGggZD0iTTI2IDh2MTJNMzggOHYxMk0yNiA0NHYxMk0zOCA0NHYxMk04IDI2aDEyTTggMzhoMTJNNDQgMjZoMTJNNDQgMzhoMTIiIHN0cm9rZS13aWR0aD0iMiIvPgo8L3N2Zz4K","l81-mortar.svg":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMWQxZjExIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+CjxjaXJjbGUgY3g9IjMyIiBjeT0iMzQiIHI9IjI0IiBmaWxsPSIjYThhMzg5Ii8+PGNpcmNsZSBjeD0iMzIiIGN5PSIzNCIgcj0iMTUiIGZpbGw9IiM0YTRmMzgiLz48cGF0aCBkPSJNMzIgNDRMNDQgMTIiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlPSIjOGY5N2EwIi8+PHBhdGggZD0iTTMyIDQ0TDQ0IDEyIiBzdHJva2Utd2lkdGg9IjEuNSIvPjxwYXRoIGQ9Ik0yNCA0NmgxNiIgc3Ryb2tlLXdpZHRoPSIzIi8+Cjwvc3ZnPgo=","loudspeaker.svg":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMWQxZjExIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+CjxwYXRoIGQ9Ik0yNiA1MGgxMnY4SDI2eiIgZmlsbD0iI2E4YTM4OSIvPjxwYXRoIGQ9Ik0zMiA1MFYyMiIgc3Ryb2tlLXdpZHRoPSIzIi8+PHBhdGggZD0iTTE4IDEybDE2IDZ2MTRsLTE2IDZ6IiBmaWxsPSIjZGRkOGMwIi8+PHBhdGggZD0iTTQwIDE0YzUgNCA1IDE0IDAgMTgiIHN0cm9rZT0iIzhmOTdhMCIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIi8+PHBhdGggZD0iTTQ2IDljOCA3IDggMjUgMCAzMiIgc3Ryb2tlPSIjOGY5N2EwIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiLz4KPC9zdmc+Cg==","recon-tent.svg":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMWQxZjExIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+CjxwYXRoIGQ9Ik02IDUwTDMyIDE0bDI2IDM2eiIgZmlsbD0iI2E4YTM4OSIvPjxwYXRoIGQ9Ik02IDUwaDUyIiBzdHJva2Utd2lkdGg9IjIiLz48cGF0aCBkPSJNMTggNDRsOC0xMU0zMiA0NFYyNE00NiA0NGwtOC0xMSIgc3Ryb2tlLXdpZHRoPSIxLjIiIG9wYWNpdHk9Ii41NSIvPgo8L3N2Zz4K","recon-tower.svg":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMWQxZjExIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+CjxwYXRoIGQ9Ik0xMCA1MGg0NHY4SDEweiIgZmlsbD0iI2E4YTM4OSIvPjxwYXRoIGQ9Ik0xNiAyMmgzMnYyOEgxNnoiIGZpbGw9IiNkZGQ4YzAiLz48cGF0aCBkPSJNMTAgMTBoNDR2MTJIMTB6IiBmaWxsPSIjYThhMzg5Ii8+PHBhdGggZD0iTTIyIDMwaDIwdjEwSDIyeiIgZmlsbD0iIzRhNGYzOCIvPjxwYXRoIGQ9Ik01MCAyMnYyOE01NCAyMnYyOCIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cGF0aCBkPSJNNTAgMjhoNCIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cGF0aCBkPSJNNTAgMzVoNCIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cGF0aCBkPSJNNTAgNDJoNCIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cGF0aCBkPSJNNTAgNDloNCIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KPC9zdmc+Cg==","refuel-station.svg":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMWQxZjExIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+CjxwYXRoIGQ9Ik0xNCAxMmgyNnY0NEgxNHoiIGZpbGw9IiNkZGQ4YzAiLz48cGF0aCBkPSJNMjAgMjBoMTR2MTJIMjB6IiBmaWxsPSIjNGE0ZjM4Ii8+PHBhdGggZD0iTTQwIDI0aDh2MjBhNCA0IDAgMDEtOCAwIiBzdHJva2U9IiM4Zjk3YTAiIHN0cm9rZS13aWR0aD0iMyIgZmlsbD0ibm9uZSIvPjxwYXRoIGQ9Ik0xMCA1NmgzNCIgc3Ryb2tlLXdpZHRoPSIyIi8+Cjwvc3ZnPgo=","repair-station.svg":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMWQxZjExIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+CjxjaXJjbGUgY3g9IjMyIiBjeT0iMzIiIHI9IjE3IiBmaWxsPSIjYThhMzg5Ii8+PGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iNyIgZmlsbD0iIzRhNGYzOCIvPjxwYXRoIGQ9Ik00OSAzMkw1NiAzMiIgc3Ryb2tlLXdpZHRoPSI2IiBzdHJva2U9IiNhOGEzODkiLz48cGF0aCBkPSJNNDkgMzJMNTYgMzIiIHN0cm9rZS13aWR0aD0iMS41Ii8+PHBhdGggZD0iTTQwLjUgNDYuNzIyNDMxODY0MzM1NDU1TDQ0IDUyLjc4NDYwOTY5MDgyNjUzIiBzdHJva2Utd2lkdGg9IjYiIHN0cm9rZT0iI2E4YTM4OSIvPjxwYXRoIGQ9Ik00MC41IDQ2LjcyMjQzMTg2NDMzNTQ1NUw0NCA1Mi43ODQ2MDk2OTA4MjY1MyIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cGF0aCBkPSJNMjMuNTAwMDAwMDAwMDAwMDA0IDQ2LjcyMjQzMTg2NDMzNTQ2TDIwLjAwMDAwMDAwMDAwMDAwNyA1Mi43ODQ2MDk2OTA4MjY1MyIgc3Ryb2tlLXdpZHRoPSI2IiBzdHJva2U9IiNhOGEzODkiLz48cGF0aCBkPSJNMjMuNTAwMDAwMDAwMDAwMDA0IDQ2LjcyMjQzMTg2NDMzNTQ2TDIwLjAwMDAwMDAwMDAwMDAwNyA1Mi43ODQ2MDk2OTA4MjY1MyIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cGF0aCBkPSJNMTUgMzJMOCAzMiIgc3Ryb2tlLXdpZHRoPSI2IiBzdHJva2U9IiNhOGEzODkiLz48cGF0aCBkPSJNMTUgMzJMOCAzMiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cGF0aCBkPSJNMjMuNDk5OTk5OTk5OTk5OTkzIDE3LjI3NzU2ODEzNTY2NDU0NUwxOS45OTk5OTk5OTk5OTk5OSAxMS4yMTUzOTAzMDkxNzM0NzUiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlPSIjYThhMzg5Ii8+PHBhdGggZD0iTTIzLjQ5OTk5OTk5OTk5OTk5MyAxNy4yNzc1NjgxMzU2NjQ1NDVMMTkuOTk5OTk5OTk5OTk5OTkgMTEuMjE1MzkwMzA5MTczNDc1IiBzdHJva2Utd2lkdGg9IjEuNSIvPjxwYXRoIGQ9Ik00MC41IDE3LjI3NzU2ODEzNTY2NDU0NUw0NCAxMS4yMTUzOTAzMDkxNzM0NzIiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlPSIjYThhMzg5Ii8+PHBhdGggZD0iTTQwLjUgMTcuMjc3NTY4MTM1NjY0NTQ1TDQ0IDExLjIxNTM5MDMwOTE3MzQ3MiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KPC9zdmc+Cg==","sandbag-wall.svg":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMWQxZjExIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+CjxyZWN0IHg9IjYiIHk9IjQyIiB3aWR0aD0iMTYiIGhlaWdodD0iMTEiIHJ4PSI1LjUiIGZpbGw9IiNkZGQ4YzAiLz48cmVjdCB4PSIyMyIgeT0iNDIiIHdpZHRoPSIxNiIgaGVpZ2h0PSIxMSIgcng9IjUuNSIgZmlsbD0iI2RkZDhjMCIvPjxyZWN0IHg9IjQwIiB5PSI0MiIgd2lkdGg9IjE2IiBoZWlnaHQ9IjExIiByeD0iNS41IiBmaWxsPSIjZGRkOGMwIi8+PHJlY3QgeD0iMTEiIHk9IjMyIiB3aWR0aD0iMTYiIGhlaWdodD0iMTEiIHJ4PSI1LjUiIGZpbGw9IiNkZGQ4YzAiLz48cmVjdCB4PSIyOCIgeT0iMzIiIHdpZHRoPSIxNiIgaGVpZ2h0PSIxMSIgcng9IjUuNSIgZmlsbD0iI2RkZDhjMCIvPjxyZWN0IHg9IjQ1IiB5PSIzMiIgd2lkdGg9IjE2IiBoZWlnaHQ9IjExIiByeD0iNS41IiBmaWxsPSIjZGRkOGMwIi8+PHJlY3QgeD0iMTYiIHk9IjIyIiB3aWR0aD0iMTYiIGhlaWdodD0iMTEiIHJ4PSI1LjUiIGZpbGw9IiNkZGQ4YzAiLz48cmVjdCB4PSIzMyIgeT0iMjIiIHdpZHRoPSIxNiIgaGVpZ2h0PSIxMSIgcng9IjUuNSIgZmlsbD0iI2RkZDhjMCIvPjxyZWN0IHg9IjUwIiB5PSIyMiIgd2lkdGg9IjE2IiBoZWlnaHQ9IjExIiByeD0iNS41IiBmaWxsPSIjZGRkOGMwIi8+Cjwvc3ZnPgo=","stingray.svg":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMWQxZjExIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+CjxwYXRoIGQ9Ik04IDQ0aDQ4djE0SDh6IiBmaWxsPSIjYThhMzg5Ii8+PHBhdGggZD0iTTE2IDUwaDMyIiBzdHJva2Utd2lkdGg9IjIiIG9wYWNpdHk9Ii41Ii8+PHBhdGggZD0iTTMwIDMwaDR2MTRoLTR6IiBmaWxsPSIjOGY5N2EwIi8+PHBhdGggZD0iTTE4IDI2aDI4djhIMTh6IiBmaWxsPSIjZGRkOGMwIi8+PHBhdGggZD0iTTggMjBoMTR2NEg4ek00MiAyMGgxNHY0SDQyeiIgZmlsbD0iIzhmOTdhMCIvPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTQiIHI9IjciIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzhmOTdhMCIgc3Ryb2tlLXdpZHRoPSIyLjUiLz48Y2lyY2xlIGN4PSI1MiIgY3k9IjE0IiByPSI3IiBmaWxsPSJub25lIiBzdHJva2U9IiM4Zjk3YTAiIHN0cm9rZS13aWR0aD0iMi41Ii8+PHBhdGggZD0iTTEyIDIydi0yTTUyIDIydi0yIiBzdHJva2Utd2lkdGg9IjIiLz4KPC9zdmc+Cg==","talon-9k-sam.svg":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMWQxZjExIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+CjxwYXRoIGQ9Ik0xMiA0Nmg0MHYxMEgxMnoiIGZpbGw9IiNhOGEzODkiLz48Y2lyY2xlIGN4PSIzMiIgY3k9IjQ2IiByPSI3IiBmaWxsPSIjOGY5N2EwIi8+PHBhdGggZD0iTTIwIDQwTDQ2IDEyIiBzdHJva2Utd2lkdGg9IjciIHN0cm9rZT0iI2RkZDhjMCIvPjxwYXRoIGQ9Ik0yMCA0MEw0NiAxMiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cGF0aCBkPSJNMjYgNDZMNTIgMTgiIHN0cm9rZS13aWR0aD0iNyIgc3Ryb2tlPSIjYThhMzg5Ii8+PHBhdGggZD0iTTI2IDQ2TDUyIDE4IiBzdHJva2Utd2lkdGg9IjEuNSIvPgo8L3N2Zz4K","vanguard-ciws.svg":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMWQxZjExIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+CjxwYXRoIGQ9Ik0xMCA0NGg0NHYxMkgxMHoiIGZpbGw9IiNhOGEzODkiLz48ZWxsaXBzZSBjeD0iMzAiIGN5PSIyNiIgcng9IjE0IiByeT0iMTYiIGZpbGw9IiNkZGQ4YzAiLz48cGF0aCBkPSJNNDIgMzRsMTQtOCIgc3Ryb2tlLXdpZHRoPSI2IiBzdHJva2U9IiM4Zjk3YTAiLz48cGF0aCBkPSJNNDIgMzRsMTQtOCIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cGF0aCBkPSJNMjIgNDR2LTZNMzggNDR2LTYiIHN0cm9rZS13aWR0aD0iMS41IiBvcGFjaXR5PSIuNSIvPgo8L3N2Zz4K"};
+
+/* ============ STATE ============ */
+const LS_CATALOG = "wardogs.catalog";
+const LS_DESIGNS = "wardogs.designs";
+const LS_CURRENT = "wardogs.current";
+
+let catalog = loadCatalog();
+let byId = {};
+function indexCatalog() { byId = {}; for (const b of catalog.buildables) byId[b.id] = b; byId["__fob__"] = fobDef(); }
+function fobDef() {
+  const f = catalog.fob;
+  return { id:"__fob__", name:"FOB (Forward Operating Base)", tier:"small", cost:0, costConfirmed:true,
+    requiresFob:false, footprint:f.footprint || {w:3,d:3}, height:f.height || 2, sizeConfirmed:f.sizeConfirmed === true,
+    icon:"fob.svg",
+    desc:"Deployable FOB. Provides the square build zone; stores supplies. $"+(f.vendorPrice||2500)+" vendor item.",
+    tags:["fob"], isFob:true };
+}
+indexCatalog();
+
+let design = { name:"New FOB", pieces:[], nextId:1 };
+let viewLevel = null;              // null = every storey shown; a number = focus that one
+let uiScale = 1;                   // interface scale (also scales canvas labels & default map zoom)
+let view = { x:0, y:0, zoom:26 };  // zoom = px per cell
+let snap = true;
+let placing = null;          // catalog id being placed
+let ghost = null;            // {cx, cy, rot}
+let selection = new Set();   // piece ids
+let hoverId = null;
+let undoStack = [], redoStack = [];
+let dragging = null;         // {mode:'pan'|'move'|'marquee'|'stamp', ...}
+let lastNudge = 0;           // coalesces held-arrow nudges into one undo step
+let spaceHeld = false;
+let iconImgs = {};
+
+const TIER_ORDER = { small:1, medium:2, large:3 };
+const TIER_COLOR = { small:"#5d8a4a", medium:"#b08d2a", large:"#b05c3a" };  // fallback for custom entries
+/* Pieces are coloured by what they DO, so a layout reads at a glance. */
+const ROLE_COLOR = {
+  cover:     "#c2a132",  // hesco, sandbag, bremer, bunker, shelters — the fortification family
+  entry:     "#5fa855",  // doors & gates: how your team gets in and out
+  offense:   "#9c5ec4",  // hits the enemy (mortar)
+  antiair:   "#3f9fb5",  // anti-air emplacements
+  denial:    "#a55536",  // wire & anti-vehicle obstacles
+  support:   "#6f8593",  // logistics, comms, concealment
+  objective: "#c04f92",  // drill rig — pulls the Hot Zone
+  fob:       "#4d8fc4"
+};
+const ROLE_LABEL = {
+  cover:"Cover & structure", entry:"Entryway", offense:"Offensive fire", antiair:"Anti-air",
+  denial:"Area denial", support:"Support & logistics", objective:"Objective", fob:"FOB"
+};
+function pieceColor(def) {
+  if (def.isFob) return ROLE_COLOR.fob;
+  return ROLE_COLOR[def.role] || TIER_COLOR[def.tier] || "#888";
+}
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+/* ============ CATALOG persistence ============ */
+function loadCatalog() {
+  try { const s = localStorage.getItem(LS_CATALOG); if (s) return JSON.parse(s); } catch(e) {}
+  return JSON.parse(JSON.stringify(CATALOG_DEFAULT));
+}
+function saveCatalog() { try { localStorage.setItem(LS_CATALOG, JSON.stringify(catalog)); } catch(e) {} }
+
+/* ============ ICON preload ============ */
+for (const [k, v] of Object.entries(ICONS)) {
+  const img = new Image();
+  img.onload = () => draw();
+  img.src = v;
+  iconImgs[k] = img;
+}
+
+/* ============ PALETTE ============ */
+let tierFilter = "all";
+function renderPalette() {
+  const q = document.getElementById("search").value.trim().toLowerCase();
+  const holder = document.getElementById("items");
+  holder.innerHTML = "";
+  const list = [fobDef(), ...catalog.buildables.slice().sort((a,b) =>
+    (TIER_ORDER[a.tier]-TIER_ORDER[b.tier]) || a.name.localeCompare(b.name))];
+  for (const b of list) {
+    if (tierFilter !== "all" && !b.isFob && b.tier !== tierFilter) continue;
+    if (q && !b.name.toLowerCase().includes(q)) continue;
+    const card = document.createElement("div");
+    card.className = "item-card" + (placing === b.id ? " selected" : "");
+    card.title = b.desc || "";
+    const ic = b.icon && ICONS[b.icon]
+      ? `<img src="${ICONS[b.icon]}" alt="">`
+      : `<div class="noicon">${b.isFob ? "🏳" : "▦"}</div>`;
+    const costTxt = b.isFob ? `$${catalog.fob.vendorPrice}` :
+      `<span class="cost ${b.costConfirmed===false?'unconfirmed':''}">${b.cost}⛏</span>`;
+    card.innerHTML = `${ic}<div class="info">
+      <div class="name"><span class="role-dot" style="background:${pieceColor(b)}" title="${ROLE_LABEL[b.isFob?'fob':b.role] || 'Other'}"></span>${b.name}${b.isFob?"":`<span class="tier-badge tier-${b.tier}">${b.tier[0].toUpperCase()}</span>`}</div>
+      <div class="meta">${costTxt} · <span class="${b.sizeConfirmed===false?'unsized':''}" title="${b.sizeConfirmed===false?'Estimated size — select a placed one to correct it':'Confirmed size'}">${b.footprint.w}×${b.footprint.d}${b.height>1?`×${b.height}`:""}${b.sizeConfirmed===false?"?":""}</span>${b.requiresFob===false&&!b.isFob?" · no FOB":""}</div>
+    </div>`;
+    card.onclick = () => startPlacing(b.id);
+    holder.appendChild(card);
+  }
+}
+document.getElementById("search").oninput = renderPalette;
+document.querySelectorAll("#tierTabs button").forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll("#tierTabs button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    tierFilter = btn.dataset.tier;
+    renderPalette();
+  };
+});
+
+/* ============ GEOMETRY (oriented rects, cell units) ============ */
+function pieceRect(p) {
+  const def = byId[p.type]; if (!def) return null;
+  return { cx:p.x, cy:p.y, w:def.footprint.w, h:def.footprint.d, rot:(p.rot||0) * Math.PI/180 };
+}
+function rectCorners(r) {
+  const c = Math.cos(r.rot), s = Math.sin(r.rot), hw = r.w/2, hh = r.h/2;
+  return [[-hw,-hh],[hw,-hh],[hw,hh],[-hw,hh]].map(([x,y]) => [r.cx + x*c - y*s, r.cy + x*s + y*c]);
+}
+/* Axis-aligned bounds of a (possibly rotated) piece. Cheap, and used to reject the
+   overwhelming majority of pairs before the expensive SAT test ever runs. */
+function rectAABB(r) {
+  const c = Math.abs(Math.cos(r.rot)), s = Math.abs(Math.sin(r.rot));
+  const hw = (r.w * c + r.h * s) / 2, hh = (r.w * s + r.h * c) / 2;
+  return { x0: r.cx - hw, y0: r.cy - hh, x1: r.cx + hw, y1: r.cy + hh };
+}
+function aabbOverlap(a, b) {
+  return a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1;
+}
+function rectsOverlap(a, b) { // SAT, with small tolerance so edge-adjacent pieces don't flag
+  const EPS = 0.05;
+  for (const r of [a, b]) {
+    const axes = [[Math.cos(r.rot), Math.sin(r.rot)], [-Math.sin(r.rot), Math.cos(r.rot)]];
+    for (const ax of axes) {
+      const proj = pts => { let mn=Infinity, mx=-Infinity; for (const [x,y] of pts) { const d = x*ax[0]+y*ax[1]; mn=Math.min(mn,d); mx=Math.max(mx,d);} return [mn,mx]; };
+      const [a1,a2] = proj(rectCorners(a)), [b1,b2] = proj(rectCorners(b));
+      if (a2 - EPS <= b1 || b2 - EPS <= a1) return false;
+    }
+  }
+  return true;
+}
+function pointInRect(px, py, r) {
+  const c = Math.cos(-r.rot), s = Math.sin(-r.rot);
+  const dx = px - r.cx, dy = py - r.cy;
+  const lx = dx*c - dy*s, ly = dx*s + dy*c;
+  return Math.abs(lx) <= r.w/2 && Math.abs(ly) <= r.h/2;
+}
+function insideFobZone(p) {
+  const r = pieceRect(p);
+  for (const f of design.pieces) {
+    if (f.type !== "__fob__") continue;
+    const half = (f.zone || 100) / 2;
+    if (r.cx >= f.x - half && r.cx <= f.x + half && r.cy >= f.y - half && r.cy <= f.y + half) return true;
+  }
+  return false;
+}
+
+/* ============ UNDO ============ */
+function pushUndo() {
+  undoStack.push(JSON.stringify(design.pieces));
+  if (undoStack.length > 100) undoStack.shift();
+  redoStack.length = 0;
+}
+function undo() { if (!undoStack.length) return; redoStack.push(JSON.stringify(design.pieces)); design.pieces = JSON.parse(undoStack.pop()); selection.clear(); afterChange(false); }
+function redo() { if (!redoStack.length) return; undoStack.push(JSON.stringify(design.pieces)); design.pieces = JSON.parse(redoStack.pop()); selection.clear(); afterChange(false); }
+
+/* ============ PLACING / EDITING ============ */
+function startPlacing(id) {
+  placing = id; selection.clear(); ghost = ghost || { cx:0, cy:0, rot:0 };
+  renderPalette(); updateRightPanel(); updateHint(); draw();
+}
+function stopPlacing() {
+  placing = null;
+  if (dragging && dragging.mode === "stamp") dragging = null;
+  renderPalette(); updateHint(); draw();
+}
+function deleteSelection() {
+  if (!selection.size) return;
+  pushUndo();
+  design.pieces = design.pieces.filter(p => !selection.has(p.id));
+  selection.clear(); afterChange();
+}
+function duplicateSelection() {
+  if (!selection.size) return;
+  pushUndo();
+  const clones = [];
+  for (const p of design.pieces) if (selection.has(p.id)) {
+    const c = JSON.parse(JSON.stringify(p)); c.id = design.nextId++; c.x += 1; c.y += 1; clones.push(c);
+  }
+  design.pieces.push(...clones);
+  selection = new Set(clones.map(c => c.id));
+  afterChange();
+}
+/* With snapping on, a rotation always ends square to the grid. If a piece is sitting at
+   some odd angle from free rotating, the next R squares it up rather than adding 90 to
+   the odd angle and leaving it just as crooked. */
+function rotatedValue(cur, deg) {
+  cur = (((cur || 0) % 360) + 360) % 360;
+  let next;
+  if (!snap) next = cur + deg;
+  else if (cur % 90 === 0) next = cur + deg;          // already square — turn a quarter
+  else next = Math.round(cur / 90) * 90;              // crooked — square it up first
+  return ((next % 360) + 360) % 360;
+}
+function rotateSelection(deg) {
+  if (placing) { ghost.rot = rotatedValue(ghost.rot, deg); updateHint(); draw(); return; }
+  if (!selection.size) return;
+  pushUndo();
+  for (const p of design.pieces) if (selection.has(p.id)) p.rot = rotatedValue(p.rot, deg);
+  afterChange();
+}
+/* Explicit repair for anything left off-grid by free placement */
+function alignSelection() {
+  if (!selection.size) return;
+  pushUndo();
+  for (const p of design.pieces) if (selection.has(p.id)) {
+    p.x = Math.round(p.x * 2) / 2;
+    p.y = Math.round(p.y * 2) / 2;
+    p.rot = (Math.round((p.rot || 0) / 90) * 90) % 360;
+  }
+  afterChange();
+  flashStatus("Aligned to the grid");
+}
+function snapVal(v) { return snap ? Math.round(v * 2) / 2 : Math.round(v * 100) / 100; }
+function rotStep() { return snap ? 90 : 15; }
+
+/* Drag-to-stamp: lay a continuous run of one buildable (walls, wire, hedgehogs…).
+   Spacing is the piece's own extent along the drag axis, so segments sit edge to edge. */
+const STAMP_MAX = 300;
+function stampExtents(def, rotDeg) {
+  const rad = ((rotDeg || 0) * Math.PI) / 180;
+  const c = Math.abs(Math.cos(rad)), s = Math.abs(Math.sin(rad));
+  return {
+    x: def.footprint.w * c + def.footprint.d * s,
+    y: def.footprint.w * s + def.footprint.d * c
+  };
+}
+function stampPositions(d) {
+  const def = byId[placing]; if (!def) return [];
+  const ext = stampExtents(def, ghost.rot || 0);
+  const dx = d.x1 - d.x0, dy = d.y1 - d.y0;
+  const horiz = Math.abs(dx) >= Math.abs(dy);          // axis-locked: straight walls
+  const step = Math.max(0.5, horiz ? ext.x : ext.y);
+  const dist = horiz ? Math.abs(dx) : Math.abs(dy);
+  const n = Math.min(STAMP_MAX, Math.floor(dist / step + 1e-6) + 1);
+  const sign = (horiz ? dx : dy) < 0 ? -1 : 1;
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    out.push(horiz ? { cx: d.x0 + i * step * sign, cy: d.y0 }
+                   : { cx: d.x0, cy: d.y0 + i * step * sign });
+  }
+  return out;
+}
+function commitStamp(d) {
+  const def = byId[placing]; if (!def) return;
+  const pts = stampPositions(d);
+  if (!pts.length) return;
+  // one storey for the whole run, taken from where the drag started — so a wall
+  // laid past an existing one doesn't climb halfway along
+  const runLevel = autoLevelAt(d.x0, d.y0, def, ghost.rot);
+  pushUndo();
+  for (const pt of pts) {
+    const p = { id: design.nextId++, type: placing, x: pt.cx, y: pt.cy, rot: ghost.rot || 0,
+                level: def.isFob ? 0 : runLevel };
+    if (def.isFob) p.zone = catalog.fob.buildRadiusUnits || 100;
+    design.pieces.push(p);
+  }
+  afterChange();
+}
+
+/* ============ PRESETS ============
+   Ready-made builds taken from what beta players actually found works, so you can
+   drop a known-good emplacement in and adjust rather than rebuilding it every time. */
+function ring(radius) {                       // square ring of cells at this distance out
+  const out = [];
+  for (let x = -radius; x <= radius; x++)
+    for (let y = -radius; y <= radius; y++)
+      if (Math.max(Math.abs(x), Math.abs(y)) === radius) out.push([x, y]);
+  return out;
+}
+function emplacementPit(weapon, radius) {
+  // weapon in the middle, waist-height hesco ringed one block out (tall walls eat your
+  // own shells), with a door on the south face
+  const ps = [{ type: weapon, x: 0, y: 0, rot: 0, level: 0 }];
+  for (const [x, y] of ring(radius)) {
+    const isDoor = x === 0 && y === radius;
+    ps.push({ type: isDoor ? "door" : "hesco-small", x, y, rot: 0, level: 0 });
+  }
+  return ps;
+}
+const PRESETS = [
+  {
+    id: "mortar-pit", name: "Mortar Pit",
+    desc: "L81 ringed one block out with waist-height hesco so the tube clears the wall — the fix for shells hitting your own parapet. Door on the south face.",
+    build: () => emplacementPit("l81-mortar", 3)
+  },
+  {
+    id: "aa-nest", name: "AA Nest (CIWS)",
+    desc: "Low hesco with sandbags stacked on top — the community's “perfect height” combo for the CIWS. Keep the sky above it clear.",
+    build: () => {
+      const ps = emplacementPit("vanguard-ciws", 3);
+      for (let x = -3; x <= 3; x += 2) {
+        ps.push({ type: "sandbag-wall", x, y: -3, rot: 0, level: 1 });
+        ps.push({ type: "sandbag-wall", x, y:  3, rot: 0, level: 1 });
+      }
+      return ps;
+    }
+  },
+  {
+    id: "sam-site", name: "SAM Site (Talon)",
+    desc: "Talon 9K in a low pit with cover on all sides. Needs Ammo supplies at the FOB and open sky to track helis.",
+    build: () => emplacementPit("talon-9k-sam", 3)
+  },
+  {
+    id: "anticlimb-wall", name: "Anti-climb Wall (8 long)",
+    desc: "Two quad hesco sections with Bremer walls capped on top — nothing can be built above a Bremer, so it's the finishing layer that stops anyone vaulting in.",
+    build: () => {
+      const ps = [];
+      ps.push({ type: "hesco-wall", x: -2, y: 0, rot: 0, level: 0 });
+      ps.push({ type: "hesco-wall", x:  2, y: 0, rot: 0, level: 0 });
+      for (let x = -3.5; x <= 3.5; x += 1) ps.push({ type: "bremer-wall", x, y: 0, rot: 0, level: 1 });
+      return ps;
+    }
+  },
+  {
+    id: "vehicle-gate", name: "Vehicle Gate",
+    desc: "Armoured gate flanked by quad wall. The gate swings through, so leave the inside clear — and it has to sit on the ground.",
+    build: () => ([
+      { type: "gate",       x:  0, y: 0, rot: 0, level: 0 },
+      { type: "hesco-wall", x: -4, y: 0, rot: 0, level: 0 },
+      { type: "hesco-wall", x:  4, y: 0, rot: 0, level: 0 },
+    ])
+  },
+  {
+    id: "raised-gun", name: "Raised Gun Platform",
+    desc: "A 4×4 hesco platform with a CIWS mounted on top — height for the gun, cover underneath. Build the floor first, then the weapon on Level 2.",
+    build: () => {
+      const ps = [];
+      for (let x = -1.5; x <= 1.5; x += 1)
+        for (let y = -1.5; y <= 1.5; y += 1)
+          ps.push({ type: "hesco-tall", x, y, rot: 0, level: 0 });
+      ps.push({ type: "vanguard-ciws", x: 0, y: 0, rot: 0, level: 1 });
+      return ps;
+    }
+  }
+];
+function presetCost(t) {
+  return t.build().reduce((sum, p) => {
+    const d = byId[p.type]; return sum + (d && !d.isFob ? (d.cost || 0) : 0);
+  }, 0);
+}
+function stampPreset(t) {
+  const pieces = t.build();
+  pushUndo();
+  const ids = [];
+  for (const p of pieces) {
+    if (!byId[p.type]) continue;
+    const np = { id: design.nextId++, type: p.type,
+                 x: snapVal(view.x + p.x), y: snapVal(view.y + p.y),
+                 rot: p.rot || 0, level: p.level || 0 };
+    design.pieces.push(np);
+    ids.push(np.id);
+  }
+  selection = new Set(ids);          // land it selected so you can drag it into position
+  setViewLevel(null);
+  afterChange();
+}
+
+/* ============ CANVAS: coords ============ */
+function resize() {
+  const wrap = document.getElementById("canvasWrap");
+  canvas.width = wrap.clientWidth * devicePixelRatio;
+  canvas.height = wrap.clientHeight * devicePixelRatio;
+  ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+  draw();
+}
+window.addEventListener("resize", resize);
+function toWorld(px, py) { return [ (px - canvas.clientWidth/2) / view.zoom + view.x, (py - canvas.clientHeight/2) / view.zoom + view.y ]; }
+function toScreen(wx, wy) { return [ (wx - view.x) * view.zoom + canvas.clientWidth/2, (wy - view.y) * view.zoom + canvas.clientHeight/2 ]; }
+
+/* ============ DRAW ============ */
+/* Input events fire far faster than the screen refreshes, so collapse every request
+   made within a frame into a single actual redraw. */
+let drawQueued = false;
+function draw() {
+  if (drawQueued) return;
+  drawQueued = true;
+  requestAnimationFrame(() => { drawQueued = false; drawNow(); });
+}
+function drawNow() {
+  const W = canvas.clientWidth, H = canvas.clientHeight;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = "#191b12"; ctx.fillRect(0, 0, W, H);
+
+  // grid
+  const z = view.zoom;
+  if (z >= 7 * uiScale) {
+    const [x0, y0] = toWorld(0, 0), [x1, y1] = toWorld(W, H);
+    ctx.lineWidth = uiScale;
+    for (let gx = Math.floor(x0); gx <= Math.ceil(x1); gx++) {
+      const [sx] = toScreen(gx, 0);
+      ctx.strokeStyle = gx % 10 === 0 ? "#2e3220" : "#20241666";
+      ctx.beginPath(); ctx.moveTo(sx, 0); ctx.lineTo(sx, H); ctx.stroke();
+    }
+    for (let gy = Math.floor(y0); gy <= Math.ceil(y1); gy++) {
+      const [, sy] = toScreen(0, gy);
+      ctx.strokeStyle = gy % 10 === 0 ? "#2e3220" : "#20241666";
+      ctx.beginPath(); ctx.moveTo(0, sy); ctx.lineTo(W, sy); ctx.stroke();
+    }
+  }
+  // origin
+  const [ox, oy] = toScreen(0, 0);
+  ctx.strokeStyle = "#3a402855"; ctx.lineWidth = 1.5 * uiScale;
+  const xh = 10 * uiScale;
+  ctx.beginPath(); ctx.moveTo(ox-xh, oy); ctx.lineTo(ox+xh, oy); ctx.moveTo(ox, oy-xh); ctx.lineTo(ox, oy+xh); ctx.stroke();
+
+  // FOB zones underneath
+  for (const p of design.pieces) if (p.type === "__fob__") {
+    const half = (p.zone || 100) / 2;
+    const [zx, zy] = toScreen(p.x - half, p.y - half);
+    const side = (p.zone || 100) * z;
+    ctx.fillStyle = "#4d8fc411"; ctx.fillRect(zx, zy, side, side);
+    ctx.strokeStyle = "#4d8fc466"; ctx.setLineDash([7, 5]); ctx.lineWidth = 1.5;
+    ctx.strokeRect(zx, zy, side, side); ctx.setLineDash([]);
+    if (z > 4) {
+      ctx.fillStyle = "#4d8fc499"; ctx.font = `${10*uiScale}px sans-serif`; ctx.textAlign = "left";
+      ctx.fillText(`BUILD ZONE ${p.zone||100}×${p.zone||100}`, zx + 5*uiScale, zy + 13*uiScale);
+    }
+  }
+
+  const issues = getIssues();
+  const issueIds = new Set(issues.map(i => i.pieceId).filter(Boolean));
+
+  // only draw what's actually on screen — a big base is mostly off-view when zoomed in
+  const [vx0, vy0] = toWorld(0, 0), [vx1, vy1] = toWorld(W, H);
+  const margin = 6;
+  const visible = [];
+  for (const p of design.pieces) {
+    const def = byId[p.type]; if (!def) continue;
+    const half = Math.max(def.footprint.w, def.footprint.d) / 2 + margin;
+    if (p.x + half < vx0 || p.x - half > vx1 || p.y + half < vy0 || p.y - half > vy1) continue;
+    visible.push(p);
+  }
+  visible.sort((a, b) => (a.level || 0) - (b.level || 0));   // higher stacks draw on top
+  for (const p of visible) drawPiece(p, issueIds.has(p.id));
+  lastDrawn = visible.length;
+
+  // ghost
+  if (placing && ghost) {
+    const def = byId[placing];
+    const stamping = dragging && dragging.mode === "stamp";
+    const pts = stamping ? stampPositions(dragging) : [{ cx: ghost.cx, cy: ghost.cy }];
+    const ghostLevel = autoLevelAt(stamping ? dragging.x0 : ghost.cx,
+                                   stamping ? dragging.y0 : ghost.cy, def, ghost.rot);
+    for (const pt of pts) {
+      drawRect({ cx:pt.cx, cy:pt.cy, w:def.footprint.w, h:def.footprint.d, rot:(ghost.rot||0)*Math.PI/180 },
+        def, { ghost:true, level: def.isFob ? 0 : ghostLevel });
+    }
+    if (stamping && pts.length > 1) {          // run length + what it will cost
+      const last = pts[pts.length - 1];
+      const [lx, ly] = toScreen(last.cx, last.cy);
+      const label = `×${pts.length}` + (def.cost ? `  ${(pts.length * def.cost).toLocaleString()}⛏` : "");
+      ctx.font = `700 ${13 * uiScale}px sans-serif`;
+      const pad = 6 * uiScale, tw = ctx.measureText(label).width;
+      const bx = lx + 14 * uiScale, by = ly - 12 * uiScale;
+      ctx.fillStyle = "rgba(20,22,15,.9)";
+      ctx.strokeStyle = "#d9a521"; ctx.lineWidth = uiScale;
+      roundRect(bx, by - 11*uiScale, tw + pad*2, 24*uiScale, 4*uiScale);
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#d9a521"; ctx.textAlign = "left";
+      ctx.fillText(label, bx + pad, by + 5*uiScale);
+    }
+    if (def.isFob) {
+      const half = (catalog.fob.buildRadiusUnits || 100) / 2;
+      const [zx, zy] = toScreen(ghost.cx - half, ghost.cy - half);
+      const side = (catalog.fob.buildRadiusUnits || 100) * z;
+      ctx.strokeStyle = "#4d8fc455"; ctx.setLineDash([7,5]); ctx.strokeRect(zx, zy, side, side); ctx.setLineDash([]);
+    }
+  }
+
+  // marquee
+  if (dragging && dragging.mode === "marquee") {
+    const [ax, ay] = toScreen(dragging.x0, dragging.y0);
+    const [bx, by] = toScreen(dragging.x1, dragging.y1);
+    ctx.strokeStyle = "#d9a52188"; ctx.fillStyle = "#d9a52111";
+    ctx.fillRect(Math.min(ax,bx), Math.min(ay,by), Math.abs(bx-ax), Math.abs(by-ay));
+    ctx.strokeRect(Math.min(ax,bx), Math.min(ay,by), Math.abs(bx-ax), Math.abs(by-ay));
+  }
+}
+
+function drawPiece(p, hasIssue) {
+  const def = byId[p.type]; if (!def) return;
+  const rel = viewLevel === null ? 0 : (p.level || 0) - viewLevel;
+  // the storey you're on reads solid; the ones below show through as an underlay
+  const alpha = rel === 0 ? 1 : (rel < 0 ? 0.34 : 0.2);
+  drawRect(pieceRect(p), def, {
+    selected: selection.has(p.id),
+    hovered: hoverId === p.id,
+    issue: hasIssue,
+    level: p.level || 0,
+    note: p.note,
+    isFob: def.isFob,
+    alpha,
+    onThisLevel: rel === 0
+  });
+}
+
+function drawRect(r, def, opt) {
+  const z = view.zoom;
+  const [sx, sy] = toScreen(r.cx, r.cy);
+  const w = r.w * z, h = r.h * z;
+  const base = pieceColor(def);
+  const fade = opt.alpha === undefined ? 1 : opt.alpha;
+
+  // Height reads as an extrusion toward the bottom-right: the taller the piece — and the
+  // higher it's stacked — the further it rises off the plan. A 1-block sandbag stays flat,
+  // a 5-block tower visibly stands up.
+  const topBlocks = (opt.level || 0) + (def.height || 1);
+  if (!opt.ghost && fade === 1 && topBlocks > 1 && Math.min(w, h) > 7) {
+    const off = Math.min(12, topBlocks * 1.6) * uiScale;
+    ctx.save();
+    ctx.translate(sx + off, sy + off);
+    ctx.rotate(r.rot);
+    ctx.globalAlpha = 0.5;
+    ctx.fillStyle = shade(base, -58);            // the shaded "side" of the block
+    roundRect(-w/2, -h/2, w, h, Math.min(4, z*0.15));
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // body — rotated with the piece
+  ctx.save();
+  ctx.translate(sx, sy);
+  ctx.rotate(r.rot);
+  ctx.globalAlpha = (opt.ghost ? 0.55 : 1) * fade;
+  ctx.fillStyle = shade(base, opt.level ? 18 * Math.min(opt.level,3) : 0);
+  ctx.strokeStyle = opt.issue ? "#d05038" : (opt.selected ? "#d9a521" : (opt.hovered ? "#d8d6c4" : shade(base, -25)));
+  ctx.lineWidth = (opt.selected || opt.issue ? 2.5 : 1.5) * uiScale;
+  roundRect(-w/2, -h/2, w, h, Math.min(4, z*0.15));
+  ctx.fill(); ctx.stroke();
+  ctx.restore();
+
+  // icon — drawn upright, never rotated, so it stays readable at any angle
+  const iconKey = def.icon;
+  if (iconKey && iconImgs[iconKey] && iconImgs[iconKey].complete && Math.min(w, h) > 14) {
+    const s = Math.min(w, h) * 0.75;
+    const bmp = iconAt(iconKey, s);
+    ctx.save();
+    ctx.translate(sx, sy);
+    ctx.globalAlpha = (opt.ghost ? 0.55 : 1) * 0.9 * fade;
+    ctx.drawImage(bmp || iconImgs[iconKey], -s/2, -s/2, s, s);
+    ctx.restore();
+  }
+
+  // label & badges (unrotated)
+  if (z > 9 * uiScale && !opt.ghost && (opt.onThisLevel !== false || opt.selected || opt.hovered)) {
+    ctx.save();
+    ctx.translate(sx, sy);
+    const showLabel = opt.selected || opt.hovered || def.isFob || Math.min(r.w, r.h) >= 2;
+    ctx.font = "600 " + Math.max(9*uiScale, Math.min(11*uiScale, z*0.4)) + "px sans-serif";
+    ctx.textAlign = "center"; ctx.fillStyle = "#d8d6c4dd";
+    const short = def.isFob ? "FOB" : def.name.replace(/ \(.*\)/, "").split(" ").slice(0,2).join(" ");
+    if (showLabel) ctx.fillText(short, 0, Math.max(r.w, r.h) * z / 2 + 12 * uiScale);
+    // badges above the piece: which storey it's on, and how many blocks tall it is
+    const badges = [];
+    if (opt.level > 0) badges.push("L" + (opt.level + 1));
+    if ((def.height || 1) > 1) badges.push("▲" + def.height);
+    if (badges.length) {
+      ctx.fillStyle = "#d9a521"; ctx.font = `700 ${10*uiScale}px sans-serif`;
+      ctx.fillText(badges.join(" "), 0, -Math.max(r.w, r.h) * z / 2 - 4 * uiScale);
+    }
+    if (opt.note) {
+      ctx.fillStyle = "#7fa650"; ctx.font = `${9*uiScale}px sans-serif`;
+      ctx.fillText("✎", Math.max(r.w, r.h) * z / 2 + 6 * uiScale, 0);
+    }
+    ctx.restore();
+  }
+}
+/* Scaling an SVG on every draw makes the browser re-rasterise it each time. Bake each
+   icon to a bitmap once per size bucket and blit that instead. */
+const iconBitmaps = new Map();
+let lastDrawn = 0;
+function iconAt(key, size) {
+  const img = iconImgs[key];
+  if (!img || !img.complete || !img.naturalWidth) return null;
+  const px = Math.max(16, Math.min(256, 1 << Math.ceil(Math.log2(size))));
+  const id = key + "@" + px;
+  let bmp = iconBitmaps.get(id);
+  if (!bmp) {
+    bmp = document.createElement("canvas");
+    bmp.width = bmp.height = px;
+    bmp.getContext("2d").drawImage(img, 0, 0, px, px);
+    iconBitmaps.set(id, bmp);
+  }
+  return bmp;
+}
+function roundRect(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+function shade(hex, amt) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = Math.max(0, Math.min(255, (n >> 16) + amt));
+  const g = Math.max(0, Math.min(255, ((n >> 8) & 255) + amt));
+  const b = Math.max(0, Math.min(255, (n & 255) + amt));
+  return `rgb(${r},${g},${b})`;
+}
+
+/* ============ ISSUES / COSTS ============ */
+/* Some pieces are made to be dropped on top of cover — sandbags on a hesco wall are a
+   standard build, so overlapping one isn't a mistake. Bremer walls still refuse a topping. */
+function canOverlay(top, base) {
+  return (top.tags || []).includes("overlay") && !(base.tags || []).includes("top-layer");
+}
+/* Every rule here is "does this piece touch that piece", which is O(n^2) done naively.
+   A uniform grid buckets pieces by position so each one is only tested against its
+   actual neighbours — on a big base that's the difference between a million tests a
+   frame and a few thousand. */
+const GRID_CELL = 8;
+function buildIndex(pieces) {
+  const cells = new Map(), meta = new Map();
+  for (const p of pieces) {
+    const def = byId[p.type];
+    if (!def) continue;
+    const rect = pieceRect(p);
+    const box = rectAABB(rect);
+    meta.set(p, { def, rect, box, lvl: p.level || 0 });
+    for (let gx = Math.floor(box.x0 / GRID_CELL); gx <= Math.floor(box.x1 / GRID_CELL); gx++)
+      for (let gy = Math.floor(box.y0 / GRID_CELL); gy <= Math.floor(box.y1 / GRID_CELL); gy++) {
+        const k = gx + "," + gy;
+        let arr = cells.get(k);
+        if (!arr) cells.set(k, arr = []);
+        arr.push(p);
+      }
+  }
+  return { cells, meta };
+}
+function neighbours(index, p) {
+  const m = index.meta.get(p);
+  if (!m) return [];
+  const seen = new Set();
+  for (let gx = Math.floor(m.box.x0 / GRID_CELL); gx <= Math.floor(m.box.x1 / GRID_CELL); gx++)
+    for (let gy = Math.floor(m.box.y0 / GRID_CELL); gy <= Math.floor(m.box.y1 / GRID_CELL); gy++) {
+      const arr = index.cells.get(gx + "," + gy);
+      if (arr) for (const q of arr) if (q !== p) seen.add(q);
+    }
+  return seen;
+}
+function touches(index, a, b) {          // AABB reject first, SAT only if it survives
+  const ma = index.meta.get(a), mb = index.meta.get(b);
+  if (!ma || !mb) return false;
+  if (!aabbOverlap(ma.box, mb.box)) return false;
+  return rectsOverlap(ma.rect, mb.rect);
+}
+function computeIssues() {
+  const issues = [];
+  const pieces = design.pieces;
+  const index = buildIndex(pieces);
+  const fobs = pieces.filter(p => p.type === "__fob__");
+  const reported = new Set();              // one overlap complaint per pair
+
+  for (const p of pieces) {
+    const m = index.meta.get(p); if (!m) continue;
+    const def = m.def, lvl = m.lvl, tags = def.tags || [];
+
+    if (def.requiresFob !== false && !def.isFob) {
+      if (!fobs.length) issues.push({ pieceId: p.id, text: `${def.name}: needs a FOB (none placed)` });
+      else if (!insideFobZone(p)) issues.push({ pieceId: p.id, text: `${def.name}: outside every FOB build zone` });
+    }
+    if (tags.includes("ground-only") && lvl > 0)
+      issues.push({ pieceId: p.id, text: `${def.name}: must be placed on the ground` });
+    if (tags.includes("no-stack") && lvl > 0)
+      issues.push({ pieceId: p.id, text: `${def.name}: cannot be stacked` });
+
+    const near = neighbours(index, p);
+    let supported = lvl === 0;
+
+    for (const q of near) {
+      const mq = index.meta.get(q); if (!mq) continue;
+      const qdef = mq.def, qlvl = mq.lvl;
+
+      if (qlvl === lvl) {                                   // same storey: collision
+        if (def.isFob || qdef.isFob) continue;
+        if (canOverlay(def, qdef) || canOverlay(qdef, def)) continue;  // sandbags on a wall
+        const key = p.id < q.id ? p.id + ":" + q.id : q.id + ":" + p.id;
+        if (reported.has(key)) continue;
+        if (touches(index, p, q)) {
+          reported.add(key);
+          issues.push({ pieceId: q.id, text: `${def.name} ⇄ ${qdef.name}: overlap on level ${lvl + 1}` });
+        }
+        continue;
+      }
+      if (qlvl < lvl) {                                     // something below us
+        if (!supported && touches(index, p, q)) supported = true;
+        if ((qdef.tags || []).includes("top-layer") && touches(index, p, q))
+          issues.push({ pieceId: p.id, text: `${def.name}: can't build on top of a Bremer Wall` });
+      } else if (tags.includes("needs-sky") && touches(index, p, q)) {  // something above us
+        issues.push({ pieceId: p.id, text: `${def.name}: blocked from the sky by ${qdef.name}` });
+      }
+    }
+    if (!supported)
+      issues.push({ pieceId: p.id, text: `${def.name}: nothing underneath to stand on at ${levelName(lvl)}` });
+  }
+  return issues;
+}
+
+/* The issue list only changes when the design does, so hold onto it rather than
+   recomputing on every pan and zoom frame. */
+let issuesCache = null;
+function getIssues() {
+  if (!issuesCache) issuesCache = computeIssues();
+  return issuesCache;
+}
+function invalidateIssues() { issuesCache = null; }
+
+function updateRightPanel() {
+  // cost totals
+  let supplies = 0, fobCount = 0, maxTier = 0;
+  const counts = {};
+  for (const p of design.pieces) {
+    const def = byId[p.type]; if (!def) continue;
+    if (def.isFob) { fobCount++; continue; }
+    supplies += def.cost || 0;
+    maxTier = Math.max(maxTier, TIER_ORDER[def.tier] || 1);
+    counts[def.id] = (counts[def.id] || 0) + 1;
+  }
+  document.getElementById("costSupplies").textContent = supplies.toLocaleString();
+  document.getElementById("costCash").textContent = "$" + (supplies * 10).toLocaleString();
+  document.getElementById("costFob").textContent = fobCount ? `${fobCount} × $${catalog.fob.vendorPrice.toLocaleString()}` : "—";
+  document.getElementById("hammerNeeded").textContent = maxTier === 0 ? "—" : ["Small","Medium","Large"][maxTier-1] + " Hammer";
+  /* Supplies travel as pallets, and a vehicle carries a whole number of them —
+     so the figure that actually matters is trips, not raw supply count. */
+  const log = catalog.logistics || {};
+  const pallet = Math.max(1, +document.getElementById("palletSize").value || 40);
+  const pallets = supplies ? Math.ceil(supplies / pallet) : 0;
+  document.getElementById("palletsNeeded").textContent = pallets.toLocaleString();
+  document.getElementById("palletCash").textContent =
+    "$" + (pallets * (log.palletCash || 400)).toLocaleString();
+  document.getElementById("palletFlag").style.display = log.palletConfirmed ? "none" : "";
+  const vehicles = log.vehicles && log.vehicles.length
+    ? log.vehicles : [{ name: "Truck", pallets: 2 }, { name: "Helicopter", pallets: 1 }];
+  document.getElementById("vehicleRuns").innerHTML = pallets
+    ? vehicles.map(v => {
+        const trips = Math.ceil(pallets / Math.max(1, v.pallets));
+        return `<div class="cost-line"><span class="n">${esc(v.name)} <span style="opacity:.7">· ${v.pallets} per trip</span></span>` +
+               `<span class="v">${trips.toLocaleString()} trip${trips === 1 ? "" : "s"}</span></div>`;
+      }).join("")
+    : `<span style="color:var(--dim);font-size:11.5px">Nothing to haul yet.</span>`;
+
+  // budget against what's actually stocked at the FOB
+  const stock = Math.max(0, +document.getElementById("supplyStock").value || 0);
+  const track = document.getElementById("budgetTrack");
+  const fill = document.getElementById("budgetFill");
+  const btext = document.getElementById("budgetText");
+  if (stock > 0) {
+    track.style.display = "";
+    const ratio = supplies / stock;
+    fill.style.width = Math.min(100, ratio * 100) + "%";
+    if (supplies <= stock) {
+      fill.style.background = ratio > 0.85 ? "var(--accent)" : "var(--accent2)";
+      btext.innerHTML = `<span style="color:var(--accent2)">Fits</span> — ${(stock - supplies).toLocaleString()}⛏ left over`;
+    } else {
+      fill.style.background = "var(--danger)";
+      const short = supplies - stock;
+      const morePallets = Math.ceil(short / pallet);
+      btext.innerHTML = `<span style="color:var(--danger)">${short.toLocaleString()}⛏ short</span> — ${morePallets} more pallet${morePallets > 1 ? "s" : ""}`;
+    }
+  } else {
+    track.style.display = "none";
+    btext.innerHTML = `<span style="color:var(--dim)">Enter your stock to check the design against it.</span>`;
+  }
+
+  // waist-height cover can be vaulted unless something taller sits on top of it
+  let vaultable = 0, tallCover = 0;
+  for (const p of design.pieces) {
+    const def = byId[p.type];
+    if (!def || def.role !== "cover") continue;
+    const capped = design.pieces.some(q =>
+      q !== p && (q.level || 0) > (p.level || 0) && rectsOverlap(pieceRect(p), pieceRect(q)));
+    if ((def.height || 1) <= 1 && !capped) vaultable++; else tallCover++;
+  }
+  const climbEl = document.getElementById("antiClimb");
+  climbEl.innerHTML = (vaultable + tallCover) === 0
+    ? `<span style="color:var(--dim)">No cover placed yet.</span>`
+    : (vaultable > 0
+        ? `<span style="color:var(--accent)">${vaultable}</span> waist-height piece${vaultable>1?"s":""} can be vaulted · <span style="color:var(--accent2)">${tallCover}</span> full-height`
+        : `<span style="color:var(--accent2)">All ${tallCover} cover pieces are above vaulting height.</span>`);
+
+  const bd = document.getElementById("costBreakdown");
+  bd.innerHTML = Object.entries(counts).sort((a,b) => b[1]*byId[b[0]].cost - a[1]*byId[a[0]].cost)
+    .map(([id, n]) => `<div class="cost-line"><span class="n">${n}× ${esc(byId[id].name)}</span><span class="v">${(n*byId[id].cost).toLocaleString()}</span></div>`)
+    .join("") || `<span style="color:var(--dim);font-size:11.5px">Nothing placed yet.</span>`;
+
+  // ongoing supplies
+  const needs = { ammo: [], fuel: [], mechanical: [] };
+  for (const p of design.pieces) {
+    const def = byId[p.type]; if (!def || !def.tags) continue;
+    if (def.tags.includes("uses-ammo")) needs.ammo.push(def.name);
+    if (def.tags.includes("uses-fuel")) needs.fuel.push(def.name);
+    if (def.tags.includes("uses-mechanical")) needs.mechanical.push(def.name);
+  }
+  const parts = [];
+  if (needs.ammo.length) parts.push(`<b style="color:var(--text)">Ammo</b>: ${[...new Set(needs.ammo)].join(", ")}`);
+  if (needs.fuel.length) parts.push(`<b style="color:var(--text)">Fuel</b>: ${[...new Set(needs.fuel)].join(", ")}`);
+  if (needs.mechanical.length) parts.push(`<b style="color:var(--text)">Mechanical</b>: ${[...new Set(needs.mechanical)].join(", ")}`);
+  document.getElementById("ongoing").innerHTML = parts.join("<br>") || "No emplacements needing resupply.";
+
+  // issues
+  const issues = getIssues();
+  const ih = document.getElementById("issues");
+  ih.innerHTML = issues.length
+    ? issues.slice(0, 30).map(i => `<div class="issue" data-pid="${i.pieceId||""}">⚠ ${i.text}</div>`).join("")
+    : `<span class="ok">✓ No issues.</span>`;
+  ih.querySelectorAll(".issue").forEach(el => el.onclick = () => {
+    const pid = +el.dataset.pid; if (!pid) return;
+    const p = design.pieces.find(x => x.id === pid); if (!p) return;
+    selection = new Set([pid]); view.x = p.x; view.y = p.y; afterChange(false);
+  });
+
+  // selection props
+  const sp = document.getElementById("selProps");
+  if (selection.size === 1) {
+    const p = design.pieces.find(x => selection.has(x.id));
+    if (p) {
+      const def = byId[p.type];
+      sp.style.display = "";
+      document.getElementById("selName").textContent = def.name;
+      document.getElementById("selRot").textContent = (p.rot||0) + "°";
+      document.getElementById("selLvl").textContent = (p.level||0) + 1;
+      document.getElementById("selNote").value = p.note || "";
+      document.getElementById("szW").value = def.footprint.w;
+      document.getElementById("szD").value = def.footprint.d;
+      document.getElementById("szH").value = def.height || 1;
+      const szl = document.getElementById("szLabel");
+      const shortName = def.isFob ? "FOBs" : def.name.replace(/ \(.*\)/, "") + "s";
+      szl.innerHTML = def.sizeConfirmed === false
+        ? `Footprint &amp; height <span class="unsized" title="Unverified estimate — correct it here">(estimated)</span>`
+        : `Footprint &amp; height`;
+      szl.title = "Applies to all " + shortName + " in every design";
+      document.getElementById("sizeRows").style.display = "";
+      const fr = document.getElementById("fobSizeRow");
+      if (def.isFob) { fr.style.display = ""; document.getElementById("fobSize").value = p.zone || 100; }
+      else fr.style.display = "none";
+    }
+  } else if (selection.size > 1) {
+    sp.style.display = "";
+    document.getElementById("selName").textContent = selection.size + " pieces";
+    document.getElementById("selRot").textContent = "—";
+    document.getElementById("selLvl").textContent = "—";
+    document.getElementById("sizeRows").style.display = "none";
+    document.getElementById("fobSizeRow").style.display = "none";
+  } else sp.style.display = "none";
+}
+
+function cycleViewLevel(dir) {
+  const levels = levelsInUse();
+  const opts = [null, ...levels];
+  const i = opts.findIndex(v => v === viewLevel);
+  setViewLevel(opts[Math.max(0, Math.min(opts.length - 1, i + dir))]);
+}
+function afterChange(save = true) {
+  invalidateIssues();                     // the design moved, so the checks must re-run
+  if (save) saveCurrent();
+  if (viewLevel !== null && !levelsInUse().includes(viewLevel)) viewLevel = null;
+  renderLevelStrip();
+  updateRightPanel();
+  document.getElementById("emptyState").style.display = design.pieces.length ? "none" : "";
+  draw();
+}
+
+/* ============ MOUSE / KEYS ============ */
+canvas.addEventListener("contextmenu", e => e.preventDefault());
+canvas.addEventListener("mousedown", e => {
+  const [wx, wy] = toWorld(e.offsetX, e.offsetY);
+  if (e.button === 1 || spaceHeld) {
+    dragging = { mode:"pan", sx:e.offsetX, sy:e.offsetY, vx:view.x, vy:view.y };
+    return;
+  }
+  if (e.button === 2) { if (placing) stopPlacing(); return; }
+  if (e.button !== 0) return;
+  if (placing) {                                   // click = one piece, drag = a whole run
+    const sx = snapVal(wx), sy = snapVal(wy);
+    dragging = { mode: "stamp", x0: sx, y0: sy, x1: sx, y1: sy };
+    return;
+  }
+
+  const hit = hitTest(wx, wy);
+  if (hit) {
+    if (e.shiftKey) { selection.has(hit.id) ? selection.delete(hit.id) : selection.add(hit.id); }
+    else if (!selection.has(hit.id)) selection = new Set([hit.id]);
+    dragging = { mode:"move", wx, wy, moved:false,
+      orig: design.pieces.filter(p => selection.has(p.id)).map(p => ({ p, x:p.x, y:p.y })) };
+  } else {
+    if (!e.shiftKey) selection.clear();
+    dragging = { mode:"marquee", x0:wx, y0:wy, x1:wx, y1:wy, additive:e.shiftKey };
+  }
+  updateRightPanel(); draw();
+});
+canvas.addEventListener("mousemove", e => {
+  const [wx, wy] = toWorld(e.offsetX, e.offsetY);
+  lastPointer.x = wx; lastPointer.y = wy;          // paste target
+  document.getElementById("sbCoords").textContent = `${wx.toFixed(1)}, ${wy.toFixed(1)}`;
+  if (placing) {
+    if (dragging && dragging.mode === "stamp") { dragging.x1 = snapVal(wx); dragging.y1 = snapVal(wy); }
+    else { ghost.cx = snapVal(wx); ghost.cy = snapVal(wy); updateHint(); }
+    draw(); return;
+  }
+  if (dragging) {
+    if (dragging.mode === "pan") {
+      view.x = dragging.vx - (e.offsetX - dragging.sx) / view.zoom;
+      view.y = dragging.vy - (e.offsetY - dragging.sy) / view.zoom;
+      draw();
+    } else if (dragging.mode === "move") {
+      const dx = wx - dragging.wx, dy = wy - dragging.wy;
+      if (!dragging.moved && Math.hypot(dx, dy) * view.zoom > 4) { dragging.moved = true; pushUndo(); }
+      if (dragging.moved) {
+        for (const o of dragging.orig) { o.p.x = snapVal(o.x + dx); o.p.y = snapVal(o.y + dy); }
+        invalidateIssues();
+        updateRightPanel(); draw();
+      }
+    } else if (dragging.mode === "marquee") {
+      dragging.x1 = wx; dragging.y1 = wy; draw();
+    }
+    return;
+  }
+  const h = hitTest(wx, wy);
+  const nid = h ? h.id : null;
+  if (nid !== hoverId) { hoverId = nid; draw(); }
+  canvas.style.cursor = h ? "pointer" : (placing ? "crosshair" : "default");
+});
+window.addEventListener("mouseup", e => {
+  if (!dragging) return;
+  if (dragging.mode === "stamp") {
+    const d = dragging; dragging = null;
+    commitStamp(d);                       // stays in placing mode, ready for the next run
+    ghost.cx = d.x1; ghost.cy = d.y1;
+    draw();
+    return;
+  }
+  if (dragging.mode === "marquee") {
+    const x0 = Math.min(dragging.x0, dragging.x1), x1 = Math.max(dragging.x0, dragging.x1);
+    const y0 = Math.min(dragging.y0, dragging.y1), y1 = Math.max(dragging.y0, dragging.y1);
+    if ((x1-x0) * view.zoom > 4 || (y1-y0) * view.zoom > 4) {
+      if (!dragging.additive) selection.clear();
+      for (const p of design.pieces)
+        if (p.x >= x0 && p.x <= x1 && p.y >= y0 && p.y <= y1) selection.add(p.id);
+    }
+  }
+  if (dragging.mode === "move" && dragging.moved) saveCurrent();
+  dragging = null; updateRightPanel(); draw();
+});
+canvas.addEventListener("dblclick", e => {
+  if (placing) return;
+  const [wx, wy] = toWorld(e.offsetX, e.offsetY);
+  const hit = hitTest(wx, wy);
+  if (hit) { selection = new Set([hit.id]); selectSameType(); }
+});
+canvas.addEventListener("wheel", e => {
+  e.preventDefault();
+  const [wx, wy] = toWorld(e.offsetX, e.offsetY);
+  const factor = e.deltaY < 0 ? 1.15 : 1/1.15;
+  view.zoom = Math.max(2.5 * uiScale, Math.min(90 * uiScale, view.zoom * factor));
+  const [wx2, wy2] = toWorld(e.offsetX, e.offsetY);
+  view.x += wx - wx2; view.y += wy - wy2;
+  updateZoomLabel();
+  draw();
+}, { passive:false });
+
+function hitTest(wx, wy) {
+  // topmost storey wins; scanning once beats sorting the whole design on every mousemove
+  let best = null, bestLvl = -Infinity;
+  for (const p of design.pieces) {
+    const lvl = p.level || 0;
+    if (lvl <= bestLvl) continue;
+    if (pointInRect(wx, wy, pieceRect(p))) { best = p; bestLvl = lvl; }
+  }
+  return best;
+}
+
+window.addEventListener("keydown", e => {
+  if (["INPUT","TEXTAREA","SELECT"].includes(e.target.tagName)) return;
+  const k = e.key.toLowerCase();
+  if (k === "[") stepUiScale(-1);
+  else if (k === "]") stepUiScale(1);
+  else if (k === "pageup") { e.preventDefault(); cycleViewLevel(1); }
+  else if (k === "pagedown") { e.preventDefault(); cycleViewLevel(-1); }
+  else if (k === " ") { spaceHeld = true; canvas.style.cursor = "grab"; e.preventDefault(); }
+  else if (k === "escape") { placing ? stopPlacing() : (selection.clear(), updateRightPanel(), draw()); }
+  else if (k === "b") toggleSnap();
+  else if (k === "a" && e.shiftKey) { e.preventDefault(); alignSelection(); }
+  else if (k === "r") rotateSelection(e.shiftKey ? -rotStep() : rotStep());
+  else if (k === "delete" || k === "backspace") deleteSelection();
+  else if (k === "f") zoomFit();
+  else if ((e.ctrlKey || e.metaKey) && k === "z") { e.preventDefault(); e.shiftKey ? redo() : undo(); }
+  else if ((e.ctrlKey || e.metaKey) && k === "y") { e.preventDefault(); redo(); }
+  else if ((e.ctrlKey || e.metaKey) && k === "d") { e.preventDefault(); duplicateSelection(); }
+  else if ((e.ctrlKey || e.metaKey) && k === "c") { e.preventDefault(); copySelection(); }
+  else if ((e.ctrlKey || e.metaKey) && k === "v") { e.preventDefault(); pasteClipboard(); }
+  else if ((e.ctrlKey || e.metaKey) && k === "a") {
+    e.preventDefault();
+    selection = new Set(design.pieces.map(p => p.id));
+    updateRightPanel(); draw();
+  }
+  else if (["arrowup","arrowdown","arrowleft","arrowright"].includes(k)) {
+    e.preventDefault();
+    const ax = k === "arrowleft" ? -1 : k === "arrowright" ? 1 : 0;
+    const ay = k === "arrowup" ? -1 : k === "arrowdown" ? 1 : 0;
+    if (e.shiftKey && selection.size) {          // Shift = nudge the selection instead
+      const now = performance.now();
+      if (now - lastNudge > 500) pushUndo();     // holding a key stays one undo step
+      lastNudge = now;
+      const d = snap ? 0.5 : 0.1;
+      for (const p of design.pieces) if (selection.has(p.id)) { p.x += ax * d; p.y += ay * d; }
+      afterChange();
+    } else {                                     // pan the map, selected or not
+      const step = ((e.ctrlKey || e.metaKey) ? 240 : 70) / view.zoom;
+      view.x += ax * step; view.y += ay * step;
+      draw();
+    }
+  }
+});
+window.addEventListener("keyup", e => { if (e.key === " ") { spaceHeld = false; canvas.style.cursor = "default"; } });
+
+const MAX_LEVEL = 5;
+function levelName(l) { return l === 0 ? "Ground" : "Level " + (l + 1); }
+function levelShort(l) { return l === 0 ? "Ground" : "L" + (l + 1); }
+
+/* Stacking is automatic: drop a piece on top of something and it goes on top of it.
+   You only touch the storey control when you want to look at one floor on its own. */
+function autoLevelAt(cx, cy, def, rotDeg) {
+  if (viewLevel !== null) return viewLevel;          // focused on a storey → build there
+  const r = { cx, cy, w: def.footprint.w, h: def.footprint.d, rot: (rotDeg || 0) * Math.PI / 180 };
+  let lvl = 0;
+  for (const p of design.pieces) {
+    const pd = byId[p.type];
+    if (!pd || pd.isFob) continue;
+    if (rectsOverlap(r, pieceRect(p))) lvl = Math.max(lvl, (p.level || 0) + 1);
+  }
+  return Math.min(MAX_LEVEL, lvl);
+}
+function whatsUnder(cx, cy, def, rotDeg) {
+  const r = { cx, cy, w: def.footprint.w, h: def.footprint.d, rot: (rotDeg || 0) * Math.PI / 180 };
+  let best = null, bestLvl = -1;
+  for (const p of design.pieces) {
+    const pd = byId[p.type];
+    if (!pd || pd.isFob) continue;
+    if (rectsOverlap(r, pieceRect(p)) && (p.level || 0) > bestLvl) { bestLvl = p.level || 0; best = pd; }
+  }
+  return best;
+}
+function levelsInUse() {
+  const s = new Set([0]);
+  for (const p of design.pieces) s.add(p.level || 0);
+  return [...s].sort((a, b) => a - b);
+}
+function setViewLevel(l) {
+  viewLevel = l;
+  renderLevelStrip();
+  updateHint();
+  draw();
+}
+function renderLevelStrip() {
+  const strip = document.getElementById("levelStrip");
+  const counts = {};
+  for (const p of design.pieces) counts[p.level || 0] = (counts[p.level || 0] || 0) + 1;
+  const levels = levelsInUse();
+  const opts = [{ v: null, label: "All" }].concat(levels.map(l => ({ v: l, label: levelShort(l), n: counts[l] || 0 })));
+  strip.innerHTML = opts.map(o =>
+    `<button data-lvl="${o.v === null ? "" : o.v}" class="${o.v === viewLevel ? "active" : ""}"
+       title="${o.v === null ? "Show every storey" : "Work on " + levelName(o.v) + " on its own"}"
+     >${o.label}${o.n ? ` <span class="n">${o.n}</span>` : ""}</button>`).join("");
+  strip.querySelectorAll("button").forEach(b => b.onclick = () =>
+    setViewLevel(b.dataset.lvl === "" ? null : +b.dataset.lvl));
+}
+function updateHint() {
+  const el = document.getElementById("hint");
+  if (placing) {
+    const def = byId[placing];
+    const lvl = ghost ? autoLevelAt(ghost.cx, ghost.cy, def, ghost.rot) : 0;
+    const under = ghost && lvl > 0 ? whatsUnder(ghost.cx, ghost.cy, def, ghost.rot) : null;
+    el.innerHTML = under
+      ? `Placing <b>${esc(def.name)}</b> on top of ${esc(under.name)} — <span style="color:var(--accent)">${levelName(lvl)}</span> · drag to lay a run · R rotate · Esc to stop`
+      : `Placing <b>${esc(def.name)}</b>${viewLevel ? ` on <span style="color:var(--accent)">${levelName(viewLevel)}</span>` : ""} — click for one, or drag to lay a whole run · R rotate · Esc to stop`;
+  } else if (viewLevel !== null) {
+    el.innerHTML = `Working on <span style="color:var(--accent)">${levelName(viewLevel)}</span> — other storeys are dimmed. Press <b>All</b> to see everything again.`;
+  } else {
+    el.textContent = "Click a buildable, then click the map to place — or drag to lay a run. Drop a piece on top of another and it stacks automatically.";
+  }
+}
+
+function toggleSnap() {
+  snap = !snap;
+  document.getElementById("btnSnap").classList.toggle("active", snap);
+  document.getElementById("sbMode").textContent = snap ? "" : "FREE PLACEMENT (snap off)";
+}
+function updateZoomLabel() {
+  document.getElementById("sbZoom").textContent = Math.round(view.zoom / (26 * uiScale) * 100) + "%";
+}
+function zoomFit() {
+  if (!design.pieces.length) { view = { x:0, y:0, zoom:26 * uiScale }; updateZoomLabel(); draw(); return; }
+  let x0=Infinity, y0=Infinity, x1=-Infinity, y1=-Infinity;
+  for (const p of design.pieces) {
+    for (const [cx, cy] of rectCorners(pieceRect(p))) {
+      x0 = Math.min(x0, cx); y0 = Math.min(y0, cy); x1 = Math.max(x1, cx); y1 = Math.max(y1, cy);
+    }
+    if (p.type === "__fob__") {
+      const half = (p.zone||100)/2;
+      x0 = Math.min(x0, p.x-half); y0 = Math.min(y0, p.y-half);
+      x1 = Math.max(x1, p.x+half); y1 = Math.max(y1, p.y+half);
+    }
+  }
+  view.x = (x0+x1)/2; view.y = (y0+y1)/2;
+  view.zoom = Math.max(2.5 * uiScale, Math.min(60 * uiScale,
+    Math.min(canvas.clientWidth / (x1-x0+6), canvas.clientHeight / (y1-y0+6))));
+  updateZoomLabel();
+  draw();
+}
+
+/* ---- interface scale (big / 4K displays) ---- */
+const UI_SCALES = [1, 1.25, 1.5, 1.75, 2, 2.5, 3];
+function applyUiScale(s, persist) {
+  s = Math.max(1, Math.min(3, +s || 1));
+  const old = uiScale;
+  uiScale = s;
+  document.documentElement.style.setProperty("--s", s);
+  document.getElementById("uiScale").value = String(s);
+  view.zoom = view.zoom / old * s;          // keep the same apparent map scale
+  if (persist) { try { localStorage.setItem("wardogs.uiscale", String(s)); } catch(e) {} }
+  resize(); updateZoomLabel();
+}
+function initUiScale() {
+  let s = null;
+  try { const v = parseFloat(localStorage.getItem("wardogs.uiscale")); if (v) s = v; } catch(e) {}
+  if (!s) {                                  // first run: guess from the display
+    const w = window.innerWidth;
+    s = w >= 3300 ? 2 : w >= 2500 ? 1.5 : w >= 1900 ? 1.25 : 1;
+  }
+  applyUiScale(s, false);
+}
+document.getElementById("uiScale").onchange = e => applyUiScale(e.target.value, true);
+function stepUiScale(dir) {
+  const i = UI_SCALES.indexOf(uiScale);
+  const next = UI_SCALES[Math.max(0, Math.min(UI_SCALES.length - 1, (i < 0 ? 0 : i) + dir))];
+  if (next !== uiScale) applyUiScale(next, true);
+}
+
+/* ============ TOP BAR wiring ============ */
+document.getElementById("btnSnap").onclick = toggleSnap;
+document.getElementById("btnFit").onclick = zoomFit;
+document.getElementById("btnUndo").onclick = undo;
+document.getElementById("btnRedo").onclick = redo;
+document.getElementById("btnDel").onclick = deleteSelection;
+document.getElementById("btnDup").onclick = duplicateSelection;
+document.getElementById("rotL").onclick = () => rotateSelection(-rotStep());
+document.getElementById("rotR").onclick = () => rotateSelection(rotStep());
+document.getElementById("btnMirrorH").onclick = () => mirrorSelection("h");
+document.getElementById("btnMirrorV").onclick = () => mirrorSelection("v");
+document.getElementById("btnSelSame").onclick = selectSameType;
+document.getElementById("btnAlign").onclick = alignSelection;
+document.getElementById("supplyStock").oninput = updateRightPanel;
+document.getElementById("btnTemplates").onclick = () => {
+  const rows = PRESETS.map((t, i) => `
+    <div class="preset-row">
+      <div class="body">
+        <div class="t">${esc(t.name)}</div>
+        <div class="d">${esc(t.desc)}</div>
+        <div class="c">${presetCost(t).toLocaleString()}⛏ · ${t.build().length} pieces</div>
+      </div>
+      <button data-preset="${i}">Place</button>
+    </div>`).join("");
+  openModal("Presets",
+    `<p style="color:var(--dim);font-size:12px;margin-bottom:6px">
+       Drops the build into the middle of your view, already selected — drag it where you want it.
+       Everything stays fully editable afterwards.</p>${rows}`,
+    [["Close", closeModal]]);
+  document.getElementById("modalBody").querySelectorAll("[data-preset]").forEach(b => {
+    b.onclick = () => { stampPreset(PRESETS[+b.dataset.preset]); closeModal(); };
+  });
+};
+document.getElementById("lvlUp").onclick = () => changeLevel(1);
+document.getElementById("lvlDn").onclick = () => changeLevel(-1);
+document.getElementById("palletSize").oninput = updateRightPanel;
+document.getElementById("selNote").onchange = e => {
+  const p = design.pieces.find(x => selection.has(x.id));
+  if (p) { pushUndo(); p.note = e.target.value; afterChange(); }
+};
+document.getElementById("fobSize").onchange = e => {
+  const p = design.pieces.find(x => selection.has(x.id));
+  if (p && p.type === "__fob__") { pushUndo(); p.zone = Math.max(4, +e.target.value || 100); afterChange(); }
+};
+/* Mirror a selection about its own centre — for laying out a symmetric perimeter */
+function mirrorSelection(axis) {
+  if (!selection.size) return;
+  const sel = design.pieces.filter(p => selection.has(p.id));
+  const xs = sel.map(p => p.x), ys = sel.map(p => p.y);
+  const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
+  const cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+  pushUndo();
+  for (const p of sel) {
+    if (axis === "h") { p.x = cx - (p.x - cx); p.rot = (360 - (p.rot || 0)) % 360; }
+    else              { p.y = cy - (p.y - cy); p.rot = (540 - (p.rot || 0)) % 360; }
+  }
+  afterChange();
+}
+function selectSameType() {
+  if (selection.size !== 1) return;
+  const p = design.pieces.find(x => selection.has(x.id));
+  if (!p) return;
+  selection = new Set(design.pieces.filter(q => q.type === p.type).map(q => q.id));
+  updateRightPanel(); draw();
+}
+
+/* Copy / paste — pastes centred on the pointer so you can repeat a section anywhere */
+let clipboard = null;
+let lastPointer = { x: 0, y: 0 };
+function copySelection() {
+  if (!selection.size) return;
+  const sel = design.pieces.filter(p => selection.has(p.id));
+  const xs = sel.map(p => p.x), ys = sel.map(p => p.y);
+  const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
+  const cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+  clipboard = sel.map(p => ({ type: p.type, dx: p.x - cx, dy: p.y - cy,
+                              rot: p.rot || 0, level: p.level || 0, note: p.note, zone: p.zone }));
+  flashStatus(`Copied ${sel.length} piece${sel.length > 1 ? "s" : ""}`);
+}
+function pasteClipboard() {
+  if (!clipboard || !clipboard.length) return;
+  pushUndo();
+  const ids = [];
+  for (const c of clipboard) {
+    const np = { id: design.nextId++, type: c.type,
+                 x: snapVal(lastPointer.x + c.dx), y: snapVal(lastPointer.y + c.dy),
+                 rot: c.rot, level: c.level };
+    if (c.note) np.note = c.note;
+    if (c.zone) np.zone = c.zone;
+    design.pieces.push(np); ids.push(np.id);
+  }
+  selection = new Set(ids);
+  afterChange();
+}
+function flashStatus(msg) {
+  const el = document.getElementById("sbSaved");
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = "var(--accent)";
+  clearTimeout(savedFlashTimer);
+  savedFlashTimer = setTimeout(() => { el.style.color = "var(--dim)"; }, 1400);
+}
+
+/* Footprint editing — writes to the catalog, so it applies to every piece of that type */
+function applySizeEdit() {
+  if (selection.size !== 1) return;
+  const p = design.pieces.find(x => selection.has(x.id));
+  if (!p) return;
+  const def = byId[p.type]; if (!def) return;
+  const clamp = (v, lo, hi, fb) => Math.max(lo, Math.min(hi, Math.round(+v) || fb));
+  const w = clamp(document.getElementById("szW").value, 1, 40, def.footprint.w);
+  const d = clamp(document.getElementById("szD").value, 1, 40, def.footprint.d);
+  const h = clamp(document.getElementById("szH").value, 1, 12, def.height || 1);
+  const target = def.isFob ? catalog.fob : catalog.buildables.find(b => b.id === def.id);
+  if (!target) return;
+  target.footprint = { w, d };
+  target.height = h;
+  target.sizeConfirmed = true;          // you set it deliberately, so it's no longer a guess
+  saveCatalog(); indexCatalog(); renderPalette(); afterChange();
+}
+["szW","szD","szH"].forEach(id => document.getElementById(id).onchange = applySizeEdit);
+
+function changeLevel(d) {
+  if (!selection.size) return;
+  pushUndo();
+  let moved = null;
+  for (const p of design.pieces) if (selection.has(p.id)) {
+    p.level = Math.max(0, Math.min(MAX_LEVEL, (p.level||0) + d));
+    moved = p.level;
+  }
+  afterChange();
+  if (selection.size === 1 && moved !== null && viewLevel !== null) setViewLevel(moved);
+}
+document.getElementById("designName").onchange = e => { design.name = e.target.value; saveCurrent(); };
+
+/* ============ SAVE / LOAD ============ */
+let savedFlashTimer = null;
+function showSaved(ok) {
+  const el = document.getElementById("sbSaved");
+  if (!el) return;
+  if (!ok) {
+    el.textContent = "⚠ Can't save here — use Export";
+    el.style.color = "var(--danger)";
+    return;
+  }
+  el.textContent = `✓ Saved “${design.name}”`;
+  el.style.color = "var(--accent2)";
+  clearTimeout(savedFlashTimer);
+  savedFlashTimer = setTimeout(() => { el.style.color = "var(--dim)"; }, 1200);
+}
+/* The key this design is filed under. Tracking it is what makes renaming a rename
+   rather than a copy, and what stops a deleted design being written straight back. */
+let currentSavedName = null;
+
+function readDesigns() {
+  try { return JSON.parse(localStorage.getItem(LS_DESIGNS) || "{}"); } catch(e) { return {}; }
+}
+function writeDesigns(all) {
+  try { localStorage.setItem(LS_DESIGNS, JSON.stringify(all)); return true; } catch(e) { return false; }
+}
+function uniqueName(base, all) {
+  if (!all[base]) return base;
+  let i = 2;
+  while (all[`${base} (${i})`]) i++;
+  return `${base} (${i})`;
+}
+function saveCurrent() {
+  const name = (document.getElementById("designName").value || "").trim() || "Untitled";
+  design.name = name;
+  try {
+    const all = readDesigns();
+    if (currentSavedName && currentSavedName !== name) delete all[currentSavedName];  // rename, don't clone
+    all[name] = design;
+    localStorage.setItem(LS_DESIGNS, JSON.stringify(all));
+    localStorage.setItem(LS_CURRENT, JSON.stringify(design));
+    currentSavedName = name;
+    showSaved(true);
+  } catch(e) { showSaved(false); }   // private windows / blocked storage
+}
+function loadCurrent() {
+  try {
+    const s = localStorage.getItem(LS_CURRENT);
+    if (s) {
+      design = JSON.parse(s);
+      document.getElementById("designName").value = design.name || "New FOB";
+      currentSavedName = design.name || null;
+    }
+  } catch(e) {}
+}
+function openDesign(d, name) {
+  design = JSON.parse(JSON.stringify(d));
+  design.nextId = design.nextId || (Math.max(0, ...design.pieces.map(p => p.id)) + 1);
+  design.name = name;
+  document.getElementById("designName").value = name;
+  currentSavedName = name;
+  undoStack = []; redoStack = []; selection.clear();
+  setViewLevel(null);
+  saveCurrent(); afterChange(false); zoomFit();
+}
+/* In-app confirm. The published page runs in a sandboxed frame where window.confirm()
+   is blocked and silently returns false, which would make New and Delete do nothing. */
+function askConfirm(title, message, confirmLabel, onYes) {
+  openModal(title,
+    `<p style="font-size:12.5px;line-height:1.6">${message}</p>`,
+    [["Cancel", closeModal], [confirmLabel, () => { closeModal(); onYes(); }, "warn"]]);
+}
+function newDesign(force) {
+  if (!force && design.pieces.length) {
+    askConfirm("Start a new design?",
+      "The design you're on is already saved under its name — you can reopen it any time from <b>🗂 Designs</b>.",
+      "Start new", () => newDesign(true));
+    return;
+  }
+  const all = readDesigns();
+  design = { name: uniqueName("New FOB", all), pieces: [], nextId: 1 };
+  document.getElementById("designName").value = design.name;
+  currentSavedName = null;                 // a fresh entry; never rename over the old one
+  undoStack = []; redoStack = []; selection.clear();
+  setViewLevel(null);
+  saveCurrent(); afterChange(false); zoomFit();
+}
+function deleteDesign(name) {
+  askConfirm("Delete this design?",
+    `<b>${esc(name)}</b> will be removed permanently. This can't be undone — export it first if you want a copy.`,
+    "Delete", () => {
+      const all = readDesigns();
+      delete all[name];
+      writeDesigns(all);
+      if (currentSavedName === name) {
+        // it's the one on screen — clear the current slot too, or autosave would restore it
+        try { localStorage.removeItem(LS_CURRENT); } catch(e) {}
+        currentSavedName = null;
+        newDesign(true);
+      }
+      openModal("Saved Designs", "", [["Close", closeModal]]);
+      renderDesigns();
+    });
+}
+function duplicateDesign(name, d) {
+  const all = readDesigns();
+  const copy = JSON.parse(JSON.stringify(d));
+  const newName = uniqueName(name + " copy", all);
+  copy.name = newName;
+  all[newName] = copy;
+  writeDesigns(all);
+  renderDesigns();
+}
+document.getElementById("btnNew").onclick = () => newDesign(false);
+async function tryDownload(data, filename, mime) {
+  // On the published website, saves go through the viewer's confirmation prompt
+  if (window.claude && window.claude.use) {
+    try {
+      const dl = await claude.use("downloads");
+      if (dl) { await dl.save({ filename, data: data instanceof Blob ? data : String(data) }); return; }
+    } catch(err) {
+      if (err && err.code === "declined") return;
+      if (err && err.code === "rate_limited") { flashStatus("A save prompt is already open — try again in a moment"); return; }
+      // fall through to the local-file path
+    }
+  }
+  try {
+    const blob = data instanceof Blob ? data : new Blob([data], { type: mime || "application/octet-stream" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click(); URL.revokeObjectURL(a.href);
+  } catch(e) { flashStatus("Downloads are blocked here — use Copy instead"); }
+}
+document.getElementById("btnExport").onclick = () => {
+  const json = JSON.stringify(design, null, 2);
+  openModal("Export Design",
+    `<p style="color:var(--dim);font-size:12px;margin-bottom:8px">Copy this JSON and send it to a teammate — they paste it via Import. (Download works when running the local file.)</p>
+     <textarea id="expTa" spellcheck="false">${json.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</textarea>`,
+    [
+      ["📋 Copy to clipboard", () => {
+        const ta = document.getElementById("expTa");
+        ta.select(); navigator.clipboard ? navigator.clipboard.writeText(ta.value) : document.execCommand("copy");
+      }, "active"],
+      ["⭳ Download file", () => tryDownload(json, (design.name||"wardogs-base").replace(/[^\w\- ]+/g,"") + ".wardogs.json", "application/json")],
+      ["Close", closeModal]
+    ]);
+};
+document.getElementById("btnShare").onclick = () => {
+  if (!design.pieces.length) { flashStatus("Place something first"); return; }
+  let url;
+  try { url = shareUrl(design); }
+  catch (e) { flashStatus("Could not build a link for this design"); return; }
+  const supplies = design.pieces.reduce((t, p) => {
+    const d = byId[p.type]; return t + (d && !d.isFob ? (d.cost || 0) : 0);
+  }, 0);
+  const long = url.length > 8000;
+  openModal("Share this design",
+    `<p style="color:var(--dim);font-size:12px;margin-bottom:8px">
+       The whole design travels inside the link — anyone who opens it gets your exact layout,
+       with no account and nothing to install. Post it wherever you like.</p>
+     <div class="cost-line" style="margin-bottom:8px">
+       <span class="n">${design.pieces.length} pieces · ${supplies.toLocaleString()} build supplies</span>
+       <span class="v">${url.length.toLocaleString()} characters</span></div>
+     <textarea id="shareTa" spellcheck="false" style="height:26vh">${esc(url)}</textarea>
+     ${long ? `<div style="color:var(--accent);font-size:11.5px;margin-top:6px">
+        That's a long link — some chat apps may truncate it. Export the file instead for very large bases.</div>` : ""}`,
+    [
+      ["📋 Copy link", () => {
+        const ta = document.getElementById("shareTa");
+        ta.select();
+        if (navigator.clipboard) navigator.clipboard.writeText(ta.value).catch(() => {});
+        else document.execCommand("copy");
+        flashStatus("Link copied");
+      }, "active"],
+      ["Close", closeModal]
+    ]);
+};
+document.getElementById("btnImport").onclick = () => {
+  openModal("Import Design",
+    `<p style="color:var(--dim);font-size:12px;margin-bottom:8px">Paste a design's JSON below, or load a .wardogs.json file.</p>
+     <textarea id="impTa" spellcheck="false" placeholder='{"name": "...", "pieces": [...]}'></textarea>
+     <div id="impErr" style="color:var(--danger);font-size:12px;margin-top:6px"></div>`,
+    [
+      ["📂 Choose file…", () => document.getElementById("fileInput").click()],
+      ["Cancel", closeModal],
+      ["Load pasted JSON", () => {
+        try { applyImportedDesign(JSON.parse(document.getElementById("impTa").value)); closeModal(); }
+        catch(err) { document.getElementById("impErr").textContent = "Couldn't read that: " + err.message; }
+      }, "active"]
+    ]);
+};
+function applyImportedDesign(d) {
+  if (!Array.isArray(d.pieces)) throw new Error("not a design file (missing pieces[])");
+  design = d;
+  design.nextId = design.nextId || (Math.max(0, ...design.pieces.map(p => p.id)) + 1);
+  document.getElementById("designName").value = design.name || "Imported";
+  undoStack = []; redoStack = []; selection.clear();
+  saveCurrent(); afterChange(false); zoomFit();
+}
+document.getElementById("fileInput").onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try { applyImportedDesign(JSON.parse(rd.result)); closeModal(); }
+    catch(err) {
+      const box = document.getElementById("impErr");
+      if (box) box.textContent = "Couldn't read that file: " + err.message;
+      else flashStatus("Couldn't read that file");
+    }
+  };
+  rd.readAsText(f);
+  e.target.value = "";
+};
+document.getElementById("btnPng").onclick = () => {
+  zoomFit();
+  requestAnimationFrame(() => {
+    const url = canvas.toDataURL("image/png");
+    openModal("Layout Image",
+      `<p style="color:var(--dim);font-size:12px;margin-bottom:8px">Right-click the image → “Save image as…” or “Copy image”.</p>
+       <img src="${url}" style="max-width:100%;border:1px solid var(--border);border-radius:5px">`,
+      [
+        ["⭳ Download PNG", () => {
+          canvas.toBlob(blob => tryDownload(blob, (design.name||"wardogs-base").replace(/[^\w\- ]+/g,"") + ".png"));
+        }],
+        ["Close", closeModal]
+      ]);
+  });
+};
+
+/* ============ MODALS ============ */
+const modalBack = document.getElementById("modalBack");
+function openModal(title, bodyHtml, buttons) {
+  document.getElementById("modalTitle").textContent = title;
+  document.getElementById("modalBody").innerHTML = bodyHtml;
+  const foot = document.getElementById("modalFoot");
+  foot.innerHTML = "";
+  for (const [label, fn, cls] of buttons || []) {
+    const b = document.createElement("button");
+    b.textContent = label; if (cls) b.className = cls;
+    b.onclick = fn; foot.appendChild(b);
+  }
+  modalBack.style.display = "flex";
+}
+function closeModal() { modalBack.style.display = "none"; }
+document.getElementById("modalClose").onclick = closeModal;
+modalBack.onclick = e => { if (e.target === modalBack) closeModal(); };
+
+/* ============ SHARE LINKS ============
+   A design packs into the URL itself, so anyone can post a build to Reddit or Discord
+   and it opens ready to inspect — no account, no server, nothing to host. */
+function b64urlEncode(str) {
+  const bytes = new TextEncoder().encode(str);
+  let bin = "";
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function b64urlDecode(s) {
+  const bin = atob(s.replace(/-/g, "+").replace(/_/g, "/"));
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+function encodeDesign(d) {
+  const types = [];
+  const idx = t => { let i = types.indexOf(t); if (i < 0) { i = types.length; types.push(t); } return i; };
+  // positional arrays rather than objects — roughly a third the characters
+  const pieces = d.pieces.map(p => {
+    const a = [idx(p.type), Math.round(p.x * 2), Math.round(p.y * 2), p.rot || 0, p.level || 0];
+    if (p.type === "__fob__") a.push(p.zone || 100);
+    return a;
+  });
+  return b64urlEncode(JSON.stringify({ v: 1, n: d.name || "Shared design", t: types, p: pieces }));
+}
+function decodeDesign(code) {
+  const o = JSON.parse(b64urlDecode(code));
+  if (!o || o.v !== 1 || !Array.isArray(o.p) || !Array.isArray(o.t)) throw new Error("not a design link");
+  let id = 1;
+  const pieces = o.p.map(a => {
+    const p = { id: id++, type: o.t[a[0]], x: a[1] / 2, y: a[2] / 2, rot: a[3] || 0, level: a[4] || 0 };
+    if (a.length > 5) p.zone = a[5];
+    return p;
+  }).filter(p => p.type && byId[p.type]);
+  return { name: String(o.n || "Shared design").slice(0, 80), pieces, nextId: id };
+}
+function shareUrl(d) {
+  const base = location.origin + location.pathname;
+  return base + "#d=" + encodeDesign(d);
+}
+function loadFromHash() {
+  const m = (location.hash || "").match(/[#&]d=([A-Za-z0-9\-_]+)/);
+  if (!m) return false;
+  try {
+    const d = decodeDesign(m[1]);
+    if (!d.pieces.length) return false;
+    design = d;
+    design.name = uniqueName(d.name, readDesigns());
+    document.getElementById("designName").value = design.name;
+    currentSavedName = null;
+    undoStack = []; redoStack = []; selection.clear();
+    history.replaceState(null, "", location.pathname);   // don't re-import on refresh
+    saveCurrent();
+    return true;
+  } catch (e) { return false; }
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+}
+function renderDesigns() {
+  const all = readDesigns();
+  const names = Object.keys(all).sort((a, b) => a.localeCompare(b));
+  const body = document.getElementById("modalBody");
+  if (!names.length) {
+    body.innerHTML = "<p style='color:var(--dim)'>No saved designs yet. Designs save themselves under whatever name is in the toolbar.</p>";
+    return;
+  }
+  body.innerHTML =
+    `<p style="color:var(--dim);font-size:12px;margin-bottom:10px">
+       Designs save automatically under the name in the toolbar. Renaming there <b>renames</b> this design —
+       use <b>Copy</b> below if you want to branch off a variant instead.</p>` +
+    names.map((name, i) => {
+      const d = all[name];
+      const open = name === currentSavedName;
+      const supplies = (d.pieces || []).reduce((t, p) => {
+        const def = byId[p.type]; return t + (def && !def.isFob ? (def.cost || 0) : 0);
+      }, 0);
+      return `<div class="design-row">
+        <span>${open ? '<span style="color:var(--accent2)">● </span>' : ""}${esc(name)}
+          <span style="color:var(--dim)">· ${(d.pieces || []).length} pieces · ${supplies.toLocaleString()}⛏${open ? " · open now" : ""}</span></span>
+        <span><button data-idx="${i}" data-act="open"${open ? " disabled" : ""}>Open</button>
+              <button data-idx="${i}" data-act="copy">Copy</button>
+              <button data-idx="${i}" data-act="del" class="warn">Delete</button></span>
+      </div>`;
+    }).join("");
+  body.querySelectorAll("button[data-act]").forEach(b => b.onclick = () => {
+    const name = names[+b.dataset.idx];
+    if (b.dataset.act === "open") { openDesign(all[name], name); closeModal(); }
+    else if (b.dataset.act === "copy") duplicateDesign(name, all[name]);
+    else deleteDesign(name);
+  });
+}
+document.getElementById("btnDesigns").onclick = () => {
+  openModal("Saved Designs", "", [["Close", closeModal]]);
+  renderDesigns();
+};
+
+document.getElementById("btnCatalog").onclick = () => {
+  openModal("Catalog Editor",
+    `<p style="color:var(--dim);font-size:12px;margin-bottom:8px">
+      Costs and sizes come from Closed Beta 1 footage — items marked <code>"costConfirmed": false</code> or
+      <code>"sizeConfirmed": false</code> are estimates. Edit values here as you verify them in-game.
+      Footprints are in Hesco-block units (w × d), heights in blocks.</p>
+     <textarea id="catalogTa" spellcheck="false">${JSON.stringify(catalog, null, 2)
+       .replace(/&/g, "&amp;").replace(/</g, "&lt;")}</textarea>
+     <div id="catErr" style="color:var(--danger);font-size:12px;margin-top:6px"></div>`,
+    [
+      ["Reset to defaults", () => {
+        askConfirm("Reset the catalog?",
+          "Every cost and size goes back to the built-in Beta-1 data. Any corrections you've made will be lost.",
+          "Reset", () => {
+            catalog = JSON.parse(JSON.stringify(CATALOG_DEFAULT));
+            saveCatalog(); indexCatalog(); renderPalette(); closeModal(); afterChange(false);
+          });
+      }, "warn"],
+      ["Cancel", closeModal],
+      ["Save", () => {
+        try {
+          const c = JSON.parse(document.getElementById("catalogTa").value);
+          if (!Array.isArray(c.buildables)) throw new Error("missing buildables[]");
+          catalog = c; saveCatalog(); indexCatalog(); renderPalette(); closeModal(); afterChange(false);
+        } catch(err) { document.getElementById("catErr").textContent = "Invalid JSON: " + err.message; }
+      }, "active"]
+    ]);
+};
+
+document.getElementById("btnHelp").onclick = () => {
+  openModal("Help & Shortcuts", `
+    <div class="help-grid">
+      <span><kbd>Click</kbd> palette item</span><span>Enter placement mode (stays on, so you can keep placing)</span>
+      <span><kbd>Drag</kbd> on the map</span><span><b>Lay a whole run</b> — pieces sit edge to edge along the drag, with a live count and cost. Press <kbd>R</kbd> first to run a wall the other way.</span>
+      <span><kbd>R</kbd> / <kbd>Shift+R</kbd></span><span>Rotate piece or ghost (90° snapped, 15° free)</span>
+      <span><kbd>B</kbd></span><span>Toggle grid snap — same key as the in-game snapping toggle</span>
+      <span><kbd>Esc</kbd> / right-click</span><span>Stop placing / clear selection</span>
+      <span><kbd>Delete</kbd></span><span>Delete selected</span>
+      <span><kbd>Ctrl+D</kbd></span><span>Duplicate selected</span>
+      <span><kbd>Ctrl+C</kbd> / <kbd>Ctrl+V</kbd></span><span>Copy a section and paste it at the pointer — good for repeating a wall run or a gun pit</span>
+      <span><kbd>Ctrl+A</kbd></span><span>Select everything</span>
+      <span><kbd>Double-click</kbd></span><span>Select every piece of that same type at once</span>
+      <span><kbd>Ctrl+Z</kbd> / <kbd>Ctrl+Y</kbd></span><span>Undo / redo</span>
+      <span><kbd>Shift+Click</kbd> / drag</span><span>Multi-select / marquee select</span>
+      <span><kbd>Arrows</kbd></span><span>Pan the map — works whether or not something is selected (<kbd>Ctrl</kbd> for big steps)</span>
+      <span><kbd>Shift</kbd>+<kbd>Arrows</kbd></span><span>Nudge the selected pieces</span>
+      <span><kbd>F</kbd></span><span>Zoom to fit</span>
+      <span><kbd>Page Up</kbd> / <kbd>Page Down</kbd></span><span>Change the storey you're building on</span>
+      <span><kbd>[</kbd> / <kbd>]</kbd></span><span>Interface size — turn it up on a big or 4K monitor (also the <b>Size</b> box in the toolbar)</span>
+      <span><kbd>Space</kbd>+drag / middle-drag</span><span>Pan · <kbd>Wheel</kbd> zoom</span>
+    </div>
+    <h3 style="margin:14px 0 6px;color:var(--accent);font-size:13px">Game rules baked in</h3>
+    <ul style="font-size:12.5px;line-height:1.6;padding-left:18px;color:var(--text)">
+      <li>1 grid cell = 1 small Hesco block (≈1.2 m). Heights are in blocks too.</li>
+      <li><b>Height shows on the plan.</b> Each piece is extruded toward the bottom-right in proportion to how tall it is — a 1-block sandbag stays flat, a 5-block bunker or tower clearly stands up. The <b>▲</b> badge gives the exact block count.</li>
+      <li>Sizes marked <span class="unsized">red with a “?”</span> are estimates from beta footage. Select a placed piece and edit its <b>Footprint &amp; height</b> to correct it — the change sticks for every piece of that type, in every design.</li>
+      <li>Sandbags are meant to sit on top of hesco walls, so overlapping one is <b>not</b> flagged as a problem. Bremer walls still refuse anything on top, as in game.</li>
+    </ul>
+    <h3 style="margin:14px 0 6px;color:var(--accent);font-size:13px">Building upwards</h3>
+    <ul style="font-size:12.5px;line-height:1.6;padding-left:18px;color:var(--text)">
+      <li>Mounting a <b>CIWS, mortar or SAM on a hesco platform</b> is a normal build. Lay the platform on <b>Ground</b>, press <kbd>Page Up</kbd> to move to <b>Level 2</b>, then place the emplacement on top.</li>
+      <li>The storey you're on draws solid; <b>the ones below stay visible underneath</b>, dimmed, so you can line up with the platform you're standing on. Raised pieces cast a shadow and carry an <b>L2 / L3</b> badge.</li>
+      <li>You can also select something already placed and use <b>Level</b> in the side panel to lift it.</li>
+      <li>Anything raised with <b>nothing underneath it</b> gets flagged — a weapon floating in mid-air isn't buildable.</li>
+      <li>Gates must stay on the ground and Recon Towers can't be stacked, both as in game.</li>
+    </ul>
+    <h3 style="margin:14px 0 6px;color:var(--accent);font-size:13px">Planning aids</h3>
+    <ul style="font-size:12.5px;line-height:1.6;padding-left:18px;color:var(--text)">
+      <li><b>◈ Presets</b> drops in a ready-made build — mortar pit, AA nest, SAM site, anti-climb wall, vehicle gate, raised gun platform. They land selected so you can drag them into place, and everything stays editable.</li>
+      <li><b>You have in the FOB</b> — type in your stock and the bar tells you whether the design fits, what's left over, or how many more pallets you need.</li>
+      <li><b>Hauling it there</b> turns the supply total into the thing that actually costs you time: pallets, what they cost at the vendor, and how many trips that is by truck (2 pallets) or helicopter (1). The supply count inside a pallet <b>isn't published by the game</b> — 40 is inferred from the $400 pallet price at $10 a supply, so it's marked with a <span class="unsized">?</span>. Count one in game and correct it here.</li>
+      <li><b>Anti-climb</b> counts how much of your cover is only waist height. Those pieces can be vaulted unless something taller is stacked on them, which is the usual way a perimeter gets breached.</li>
+      <li><b>⇄ / ⇅ Flip</b> mirrors a selection about its own centre — build one side of a symmetric base, copy it, flip it.</li>
+    </ul>
+    <h3 style="margin:14px 0 6px;color:var(--accent);font-size:13px">Saving your design</h3>
+    <ul style="font-size:12.5px;line-height:1.6;padding-left:18px;color:var(--text)">
+      <li><b>It saves itself.</b> Every change is written to this browser straight away — the status bar flashes “✓ Saved” each time. Just closing the tab is safe.</li>
+      <li><b>Name it</b> in the box at the top left. That name <b>is</b> the design — editing it renames this design rather than making a second copy.</li>
+      <li><b>🗂 Designs</b> lists everything you've saved, marks the one you have open, and gives you <b>Open</b>, <b>Copy</b> (branch a variant) and <b>Delete</b> on each. <b>✚ New</b> starts a blank one without touching the current design.</li>
+      <li><b>To keep a copy or send it to someone</b>, use <b>⭳ Export</b> — copy the text, or download the file. They load it with <b>⭱ Import</b>. That's also your backup if you ever clear your browser data.</li>
+      <li>Sandbag Wall, Barbed Wire, Hedgehog and Recon Tent build <b>without</b> a FOB — everything else must sit inside a FOB's blue build square.</li>
+      <li><b>Level badge (L2, L3…)</b> = stacked height, for multi-storey hesco builds. Gates are ground-only; Recon Towers can't stack; nothing builds on top of a Bremer Wall; mortars/AA need open sky.</li>
+      <li>Costs are Build Supplies (⛏). 1 supply = $10 at the vendor. Supply runs assume the pallet size set in the panel.</li>
+      <li>Mortar, CIWS and SAM eat <b>Ammo</b> supplies; Refuel Station and Drill Rig eat <b>Fuel</b>; Repair Station eats <b>Mechanical</b>.</li>
+    </ul>`,
+    [["Close", closeModal]]);
+};
+
+/* Optional tip link. Stays hidden until a URL is set in the catalog's `support` block,
+   so the app never ships a dead button. */
+function renderSupport() {
+  const s = catalog.support;
+  const el = document.getElementById("btnSupport");
+  if (!s || !s.url) { el.style.display = "none"; return; }
+  el.style.display = "";
+  el.className = "support-link";
+  el.href = s.url;
+  el.textContent = s.label || "Support this tool";
+  el.title = "This tool is free — a tip keeps it going";
+}
+function renderLegend() {
+  document.getElementById("legend").innerHTML =
+    ["fob","cover","entry","denial","offense","antiair","support","objective"]
+      .map(r => `<span class="sw" style="background:${ROLE_COLOR[r]}"></span><span>${ROLE_LABEL[r]}</span>`)
+      .join("");
+}
+
+/* ============ INIT ============ */
+document.getElementById("esPresets").onclick = () => document.getElementById("btnTemplates").click();
+document.getElementById("ssDismiss").onclick = () => {
+  document.getElementById("smallScreen").classList.add("dismissed");
+  resize();
+};
+
+// a shared link wins over whatever was last open in this browser
+if (!loadFromHash()) loadCurrent();
+renderSupport();
+renderLegend();
+renderPalette();
+initUiScale();
+setViewLevel(null);
+resize();
+afterChange(false);
+zoomFit();
+</script>
+</body>
+</html>
