@@ -966,7 +966,7 @@ const CATALOG_DEFAULT = {
     },
     {
       "id": "stingray",
-      "role": "offense",
+      "role": "antivehicle",
       "name": "Stingray",
       "tier": "large",
       "page": 3,
@@ -1123,8 +1123,14 @@ const TIER_COLOR = { small:"#5d8a4a", medium:"#b08d2a", large:"#b05c3a" };  // f
 const ROLE_COLOR = {
   cover:     "#c2a132",  // hesco, sandbag, bremer, bunker, shelters. The fortification family
   entry:     "#5fa855",  // doors & gates: how your team gets in and out
-  offense:   "#9c5ec4",  // hits the enemy (mortar)
+  offense:   "#9c5ec4",  // indirect fire at ground targets (mortar)
   antiair:   "#3f9fb5",  // anti-air emplacements
+  /* Anti-vehicle is its own thing, not a shade of offense. The Stingray launches
+     anti-armour UAVs; the mortar drops shells on ground. They were sharing a role and
+     therefore a colour, and once both carried a render of a tube in a sandbag pit there
+     was nothing left to tell them apart at plan size. Warm counterpart to the anti-air
+     teal, which is the sibling it actually pairs with. */
+  antivehicle: "#e07b39",
   denial:    "#a55536",  // wire & anti-vehicle obstacles
   support:   "#6f8593",  // logistics, comms, concealment
   objective: "#c04f92",  // drill rig. Pulls the Hot Zone
@@ -1132,6 +1138,7 @@ const ROLE_COLOR = {
 };
 const ROLE_LABEL = {
   cover:"Cover & structure", entry:"Entryway", offense:"Offensive fire", antiair:"Anti-air",
+  antivehicle:"Anti-vehicle",
   denial:"Area denial", support:"Support & logistics", objective:"Objective", fob:"FOB"
 };
 function pieceColor(def) {
@@ -3316,10 +3323,10 @@ document.getElementById("btnExport").onclick = () => {
       ["Close", closeModal]
     ]);
 };
-document.getElementById("btnShare").onclick = () => {
+document.getElementById("btnShare").onclick = async () => {
   if (!design.pieces.length) { flashStatus("Place something first"); return; }
   let url;
-  try { url = shareUrl(design); }
+  try { url = await shareUrl(design); }
   catch (e) { flashStatus("Could not build a link for this design"); return; }
   const supplies = design.pieces.reduce((t, p) => {
     const d = byId[p.type]; return t + (d && !d.isFob ? (d.cost || 0) : 0);
@@ -3465,15 +3472,119 @@ function decodeDesign(code) {
   }).filter(p => p.type && byId[p.type]);
   return { name: String(o.n || "Shared design").slice(0, 80), pieces, nextId: id };
 }
-function shareUrl(d) {
-  const base = location.origin + location.pathname;
-  return base + "#d=" + encodeDesign(d);
+/* ---------- v2: the same design, about a tenth of the characters ----------
+ *
+ * A Discord message caps at 2000 characters, so a 607 piece base at 13,637 could not be
+ * sent as a message at all and arrived as an attachment. v1 is JSON in base64: punctuation,
+ * key names and decimal digits, none of which survive being read by a human anyway.
+ *
+ * v2 drops all of it. The header keeps the name and the type table as JSON, because those
+ * are genuinely text. The body is varints, column-major rather than row-major so like sits
+ * next to like, with the two coordinate columns delta-coded because pieces in a base are
+ * near each other. Then raw deflate over the lot. Measured on a real 607 piece base, it
+ * comes out around a fifteenth of the length, which fits a message with room to spare.
+ *
+ * Marked with a leading ~, which is not in the base64url alphabet, so a v1 code can never
+ * be mistaken for one. **v1 still decodes and always will.** Every link anyone has already
+ * posted keeps working; that is not negotiable and there is a test for it.
+ */
+function putVarint(out, n) {
+  while (n >= 0x80) { out.push((n & 0x7f) | 0x80); n = Math.floor(n / 128); }
+  out.push(n & 0x7f);
 }
-function loadFromHash() {
-  const m = (location.hash || "").match(/[#&]d=([A-Za-z0-9\-_]+)/);
+const zig = n => (n < 0 ? -n * 2 - 1 : n * 2);          // negatives stay short
+const unzig = v => (v & 1 ? -(v + 1) / 2 : v / 2);
+function varintReader(bytes) {
+  let i = 0;
+  return () => {
+    let v = 0, shift = 1, b;
+    do { b = bytes[i++]; v += (b & 0x7f) * shift; shift *= 128; } while (b & 0x80);
+    return v;
+  };
+}
+function packDesign(d) {
+  const types = [];
+  const idx = t => { let i = types.indexOf(t); if (i < 0) { i = types.length; types.push(t); } return i; };
+  const rows = d.pieces.map(p => [idx(p.type), Math.round(p.x * 2), Math.round(p.y * 2),
+                                  ((Math.round((p.rot || 0) / 90) % 4) + 4) % 4, p.level || 0, p.zone]);
+  const head = new TextEncoder().encode(JSON.stringify({ n: d.name || "Shared design", t: types }));
+  const body = [];
+  putVarint(body, rows.length);
+  for (const r of rows) putVarint(body, r[0]);
+  let prev = 0; for (const r of rows) { putVarint(body, zig(r[1] - prev)); prev = r[1]; }
+  prev = 0;     for (const r of rows) { putVarint(body, zig(r[2] - prev)); prev = r[2]; }
+  for (const r of rows) putVarint(body, r[3]);
+  for (const r of rows) putVarint(body, r[4]);
+  // the FOB carries a build zone; nothing else does, so it goes last and only for those
+  for (const r of rows) if (types[r[0]] === "__fob__") putVarint(body, r[5] || 100);
+  const out = new Uint8Array(2 + head.length + body.length);
+  out[0] = head.length & 0xff; out[1] = (head.length >> 8) & 0xff;
+  out.set(head, 2); out.set(body, 2 + head.length);
+  return out;
+}
+function unpackDesign(bytes) {
+  const headLen = bytes[0] | (bytes[1] << 8);
+  const head = JSON.parse(new TextDecoder().decode(bytes.subarray(2, 2 + headLen)));
+  if (!head || !Array.isArray(head.t)) throw new Error("not a design link");
+  const next = varintReader(bytes.subarray(2 + headLen));
+  const n = next();
+  const ti = [], xs = [], ys = [], rots = [], lvls = [];
+  for (let i = 0; i < n; i++) ti.push(next());
+  let prev = 0; for (let i = 0; i < n; i++) { prev += unzig(next()); xs.push(prev); }
+  prev = 0;     for (let i = 0; i < n; i++) { prev += unzig(next()); ys.push(prev); }
+  for (let i = 0; i < n; i++) rots.push(next());
+  for (let i = 0; i < n; i++) lvls.push(next());
+  let id = 1;
+  const pieces = [];
+  for (let i = 0; i < n; i++) {
+    const type = head.t[ti[i]];
+    const p = { id: id++, type, x: xs[i] / 2, y: ys[i] / 2, rot: rots[i] * 90, level: lvls[i] };
+    if (type === "__fob__") p.zone = next();
+    pieces.push(p);
+  }
+  return { name: String(head.n || "Shared design").slice(0, 80),
+           pieces: pieces.filter(p => p.type && byId[p.type]), nextId: id };
+}
+function bytesToB64url(bytes) {
+  let bin = "";
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function b64urlToBytes(s) {
+  const bin = atob(s.replace(/-/g, "+").replace(/_/g, "/"));
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+async function squeeze(bytes, mode) {
+  const s = mode === "in" ? new DecompressionStream("deflate-raw")
+                          : new CompressionStream("deflate-raw");
+  const w = s.writable.getWriter();
+  w.write(bytes); w.close();
+  return new Uint8Array(await new Response(s.readable).arrayBuffer());
+}
+/* Falls back to v1 wherever CompressionStream is missing, which keeps old browsers sharing
+   working links rather than none. Nothing here is allowed to make sharing fail. */
+async function encodeDesignShort(d) {
+  if (typeof CompressionStream === "undefined") return encodeDesign(d);
+  try { return "~" + bytesToB64url(await squeeze(packDesign(d), "out")); }
+  catch (e) { return encodeDesign(d); }
+}
+async function decodeDesignAny(code) {
+  if (code.charAt(0) !== "~") return decodeDesign(code);
+  return unpackDesign(await squeeze(b64urlToBytes(code.slice(1)), "in"));
+}
+async function shareUrl(d) {
+  const base = location.origin + location.pathname;
+  return base + "#d=" + await encodeDesignShort(d);
+}
+async function loadFromHash() {
+  // ~ marks a v2 code and is not in the base64url alphabet, so it has to be allowed here
+  // or the new short links look like no link at all
+  const m = (location.hash || "").match(/[#&]d=(~?[A-Za-z0-9\-_]+)/);
   if (!m) return false;
   try {
-    const d = decodeDesign(m[1]);
+    const d = await decodeDesignAny(m[1]);
     if (!d.pieces.length) return false;
     design = d;
     design.name = uniqueName(d.name, readDesigns());
@@ -3620,7 +3731,7 @@ async function loadCloudSection() {
     const name = (document.getElementById("designName").value || "").trim() || "Untitled";
     msg.textContent = "Saving...";
     try {
-      await cloudCall("/mine", { name, code: encodeDesign(design) });
+      await cloudCall("/mine", { name, code: await encodeDesignShort(design) });
       msg.innerHTML = `<span style="color:var(--accent2)">Saved "${esc(name)}" online.</span>`;
       loadCloudSection();
     } catch (e) { msg.innerHTML = `<span style="color:var(--danger)">${esc(e.message)}</span>`; }
@@ -3628,7 +3739,7 @@ async function loadCloudSection() {
   box.querySelectorAll("[data-cloud]").forEach(btn => btn.onclick = async () => {
     const d = mine[+btn.dataset.cloud];
     if (btn.dataset.act === "open") {
-      const loaded = decodeDesign(d.code);
+      const loaded = await decodeDesignAny(d.code);
       design = loaded;
       design.name = d.name;
       document.getElementById("designName").value = d.name;
@@ -3779,7 +3890,7 @@ function renderSupport() {
 }
 function renderLegend() {
   document.getElementById("legend").innerHTML =
-    ["fob","cover","entry","denial","offense","antiair","support","objective"]
+    ["fob","cover","entry","denial","offense","antiair","antivehicle","support","objective"]
       .map(r => `<span class="sw" style="background:${ROLE_COLOR[r]}"></span><span>${ROLE_LABEL[r]}</span>`)
       .join("");
 }
@@ -3791,7 +3902,7 @@ document.getElementById("ssDismiss").onclick = () => {
 };
 
 // a shared link wins over whatever was last open in this browser
-if (!loadFromHash()) loadCurrent();
+loadFromHash().then(ok => { if (!ok) loadCurrent(); });
 renderSupport();
 renderLegend();
 renderPalette();

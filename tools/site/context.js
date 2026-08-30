@@ -71,8 +71,73 @@ function adSlot(which) {
 </div>`;
 }
 
-/* ---------- share codes: identical encoding to the planner ---------- */
+/* ---------- share codes ----------
+   The same wire format as the planner, implemented twice because they cannot share a
+   module: one ships inside a standalone HTML file, the other runs at build time. v2 packs
+   the body as column-major delta varints and deflates it, which takes a real 607 piece base
+   down to roughly a fifteenth of its length, small enough to paste into a chat message.
+
+   Deflate output is not canonical, so this and the planner will not always produce the
+   same bytes for the same design, and that is fine and expected. What has to hold is that
+   either side decodes the other's, which is what test/share-links.js now checks instead of
+   string equality. v1 codes still decode here and always will. */
+const zlib = require("zlib");
+const toB64url = b => b.toString("base64")
+  .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+const fromB64url = s => Buffer.from(s.replace(/-/g, "+").replace(/_/g, "/"), "base64");
+
+function putVarint(out, n) {
+  while (n >= 0x80) { out.push((n & 0x7f) | 0x80); n = Math.floor(n / 128); }
+  out.push(n & 0x7f);
+}
+const zig = n => (n < 0 ? -n * 2 - 1 : n * 2);
+const unzig = v => (v & 1 ? -(v + 1) / 2 : v / 2);
+
+function packDesign(d) {
+  const types = [];
+  const idx = t => { let i = types.indexOf(t); if (i < 0) { i = types.length; types.push(t); } return i; };
+  const rows = d.pieces.map(p => [idx(p.type), Math.round(p.x * 2), Math.round(p.y * 2),
+                                  ((Math.round((p.rot || 0) / 90) % 4) + 4) % 4, p.level || 0, p.zone]);
+  const head = Buffer.from(JSON.stringify({ n: d.name || "Shared design", t: types }), "utf8");
+  const body = [];
+  putVarint(body, rows.length);
+  for (const r of rows) putVarint(body, r[0]);
+  let prev = 0; for (const r of rows) { putVarint(body, zig(r[1] - prev)); prev = r[1]; }
+  prev = 0;     for (const r of rows) { putVarint(body, zig(r[2] - prev)); prev = r[2]; }
+  for (const r of rows) putVarint(body, r[3]);
+  for (const r of rows) putVarint(body, r[4]);
+  for (const r of rows) if (types[r[0]] === "__fob__") putVarint(body, r[5] || 100);
+  const len = Buffer.alloc(2); len.writeUInt16LE(head.length, 0);
+  return Buffer.concat([len, head, Buffer.from(body)]);
+}
+function unpackDesign(buf) {
+  const headLen = buf.readUInt16LE(0);
+  const head = JSON.parse(buf.subarray(2, 2 + headLen).toString("utf8"));
+  const body = buf.subarray(2 + headLen);
+  let i = 0;
+  const next = () => { let v = 0, shift = 1, b;
+    do { b = body[i++]; v += (b & 0x7f) * shift; shift *= 128; } while (b & 0x80); return v; };
+  const n = next();
+  const ti = [], xs = [], ys = [], rots = [], lvls = [];
+  for (let k = 0; k < n; k++) ti.push(next());
+  let prev = 0; for (let k = 0; k < n; k++) { prev += unzig(next()); xs.push(prev); }
+  prev = 0;     for (let k = 0; k < n; k++) { prev += unzig(next()); ys.push(prev); }
+  for (let k = 0; k < n; k++) rots.push(next());
+  for (let k = 0; k < n; k++) lvls.push(next());
+  const out = [];
+  for (let k = 0; k < n; k++) {
+    const type = head.t[ti[k]];
+    const p = { type, x: xs[k] / 2, y: ys[k] / 2, rot: rots[k] * 90, level: lvls[k] };
+    if (type === "__fob__") p.zone = next();
+    out.push(p);
+  }
+  return out;
+}
+
 function encodeDesign(d) {
+  return "~" + toB64url(zlib.deflateRawSync(packDesign(d), { level: 9 }));
+}
+function encodeDesignV1(d) {
   const types = [];
   const idx = t => { let i = types.indexOf(t); if (i < 0) { i = types.length; types.push(t); } return i; };
   const pieces = d.pieces.map(p => {
@@ -199,6 +264,7 @@ function sweepDesignPages() {
    costing it. A code that does not decode is dropped with a warning rather than
    producing a page that lies about what it contains. */
 function decodeShared(code) {
+  if (code.charAt(0) === "~") return unpackDesign(zlib.inflateRawSync(fromB64url(code.slice(1))));
   const raw = Buffer.from(code.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8");
   const d = JSON.parse(raw);
   return d.p.map(a => ({

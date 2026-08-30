@@ -9,6 +9,7 @@ const rows = catalog.buildables.slice().sort((a, b) =>
   (TIER_ORDER[a.tier] - TIER_ORDER[b.tier]) || a.name.localeCompare(b.name));
 const ROLE_LABEL = {
   cover: "Walls & cover", entry: "Entryways", offense: "Offensive", antiair: "Anti-air",
+  antivehicle: "Anti-vehicle",
   denial: "Area denial", support: "Support", objective: "Objective",
 };
 
