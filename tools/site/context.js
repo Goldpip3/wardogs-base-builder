@@ -49,11 +49,14 @@ const AD_FORMATS = {
      narrow-column case as the planner's panel: a responsive display unit, not the fluid
      in-article one, which wants the width of a paragraph to look right.
 
-     200 rather than the panel unit's 250 because that is what the slack actually is: the
-     column has about 299px free on arrival, and the label, padding and margin around the
-     unit take the rest. At 250 the bottom of the ad sat below the fold on a 900px screen,
-     which is the one moment it was meant to be visible. */
-  artillery:   { minHeight: 200, style: "display:block",
+     150 rather than the panel unit's 250, and that number is measured rather than chosen.
+     On a 900px screen the column has 210px between the end of the zone note and its own
+     bottom edge, and the label, padding, margin and border around the unit eat 51 of them.
+     Anything taller hangs past the bottom of the column on arrival, which is the one moment
+     the unit is above the fold at all: once a solution is computed the solution block
+     roughly triples, the zone note grows with it, and the ad is pushed out of view for the
+     rest of the session. So it is sized to be wholly visible on load or not worth having. */
+  artillery:   { minHeight: 150, style: "display:block",
     attrs: `data-ad-format="auto" data-full-width-responsive="true"` },
 };
 function adSlot(which) {
