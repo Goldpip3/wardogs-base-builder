@@ -7,20 +7,25 @@ Last swept 2026-08-30.
 
 ## Start here if you are picking artillery back up
 
-`/artillery/` shipped with a working firing solution for the L81 Mortar and a deliberate gap
-where the SPH-2's elevation table would be. Six open questions are listed in
-`data/artillery.json` under `open`, each with what would close it, and they are rendered on
-the page so players can see them too. Read [objects/data/artillery-data.md](objects/data/artillery-data.md)
-first, then that array.
+`/artillery/` is now an interactive map calculator: Bakurani and Ozeti drawn as vector maps
+from [objects/data/artillery-maps.md](objects/data/artillery-maps.md), gun and target
+placed by click or typed coordinate, range rings for the reach, and a solution that reports
+both SPH-2 arcs where both reach. The SPH-2 elevation tables were transcribed on 2026-08-30
+from wardogs-artillery.com, the one source publishing the complete curve, and are marked
+unfired. The URL fragment carries map, weapon and both points, so a solution is a link.
 
-Five of the six need somebody with the game open, not more research. The largest is not the
-missing table: it is that **every firing table here is flat ground**, and the terrain is a
-river valley, so a shot onto high ground falls short of what the page says. One coefficient
-per platform would fix most of it.
+Six open questions remain listed in `data/artillery.json` under `open`, each with what
+would close it, and they are rendered on the page so players can see them too. Read
+[objects/data/artillery-data.md](objects/data/artillery-data.md) first, then that array.
+All six now need somebody with the game open, not more research. The largest is that
+**every firing table here is flat ground**, and the terrain is a river valley, so a shot
+onto high ground falls short of what the page says. One coefficient per platform would fix
+most of it. Second largest: nobody has fired a row of the transcribed SPH-2 tables.
 
-The one that needs no game at all: the SPH-2 low arc and high arc cross at 1181 m, and the
-page currently reports a single solution per range. Once a table exists it should report
-both arcs where both reach.
+The designed next step, blocked until the plan-cell-to-metre scale is confirmed: place a
+plan's footprint on the artillery map, so a design's own mortar gets its reach drawn over
+real terrain. That is the join between the planner and this page, and it is one confirmed
+number away.
 
 ## Waiting on Early Access, 10 September 2026
 
@@ -47,8 +52,8 @@ the tools exist so that it is a data job rather than a rebuild.
 - **A piece rotated off ninety degrees can sort wrong against a neighbour in the 3D view.**
   A wrong-looking edge, not a crash. Written up in `docs/3d-view-design.md` rather than left
   in anyone's head. Fixing it properly means a BSP tree, which is not worth it.
-- **No range rings on the plan.** Blocked on the cell-to-metre scale above. The useful part
-  of that feature, that the mortar cannot reach inside its own build zone, is stated in
-  words on `/artillery/` instead.
+- **No range rings on the plan.** Blocked on the cell-to-metre scale above. The rings
+  themselves live on `/artillery/`, where coordinates are the game's own and a metre is a
+  metre; the plan joins them the day the scale is confirmed.
 - **No CI.** `build.ps1` runs on the machine you are sitting at, and `docs/` is committed
   output, so a push ships whatever was last built. See [deploy](processes/deploy.md).

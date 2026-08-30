@@ -1,5 +1,5 @@
 {
- "_note": "Indirect fire. The mortar firing table is a community measurement, not a published one, and it is the most contested number in WARDOGS artillery. Every figure here says where it came from and how much to trust it. Nothing is invented to fill a gap: the SPH-2 ships with no elevation table because no complete one exists.",
+ "_note": "Indirect fire. The mortar firing table is a community measurement, not a published one, and it is the most contested number in WARDOGS artillery. Every figure here says where it came from and how much to trust it. Nothing is invented to fill a gap: the SPH-2 tables are transcribed from the one calculator that publishes a complete curve, and they are marked unfired until somebody checks a row in game.",
  "checkedOn": "2026-08-30",
  "gameVersion": "closed beta 1, 21 Aug 2026",
 
@@ -69,11 +69,65 @@
    "effectiveRadius": 7.5,
    "roundName": "155mm HE Shell",
    "roundCost": 60,
-   "confidence": "envelope only",
+   "confidence": "transcribed, unfired",
    "table": null,
+   "tableStep": 10,
+   "tableSource": "wardogs-artillery.com, the only source that publishes the complete curve. Transcribed 2026-08-30, not yet checked against the game.",
+   "tableLow": [
+    { "mils": 20, "dist": 1181 }, { "mils": 30, "dist": 1232 }, { "mils": 40, "dist": 1283 },
+    { "mils": 50, "dist": 1334 }, { "mils": 60, "dist": 1384 }, { "mils": 70, "dist": 1433 },
+    { "mils": 80, "dist": 1482 }, { "mils": 90, "dist": 1529 }, { "mils": 100, "dist": 1576 },
+    { "mils": 110, "dist": 1622 }, { "mils": 120, "dist": 1666 }, { "mils": 130, "dist": 1709 },
+    { "mils": 140, "dist": 1751 }, { "mils": 150, "dist": 1792 }, { "mils": 160, "dist": 1832 },
+    { "mils": 170, "dist": 1870 }, { "mils": 180, "dist": 1907 }, { "mils": 190, "dist": 1944 },
+    { "mils": 200, "dist": 1979 }, { "mils": 210, "dist": 2014 }, { "mils": 220, "dist": 2046 },
+    { "mils": 230, "dist": 2079 }, { "mils": 240, "dist": 2110 }, { "mils": 250, "dist": 2139 },
+    { "mils": 260, "dist": 2168 }, { "mils": 270, "dist": 2196 }, { "mils": 280, "dist": 2223 },
+    { "mils": 290, "dist": 2249 }, { "mils": 300, "dist": 2273 }, { "mils": 310, "dist": 2296 },
+    { "mils": 320, "dist": 2319 }, { "mils": 330, "dist": 2341 }, { "mils": 340, "dist": 2362 },
+    { "mils": 350, "dist": 2383 }, { "mils": 360, "dist": 2403 }, { "mils": 370, "dist": 2422 },
+    { "mils": 380, "dist": 2439 }, { "mils": 390, "dist": 2456 }, { "mils": 400, "dist": 2471 },
+    { "mils": 410, "dist": 2485 }, { "mils": 420, "dist": 2499 }, { "mils": 430, "dist": 2513 },
+    { "mils": 440, "dist": 2526 }, { "mils": 450, "dist": 2538 }, { "mils": 460, "dist": 2550 },
+    { "mils": 470, "dist": 2561 }, { "mils": 480, "dist": 2570 }, { "mils": 490, "dist": 2579 },
+    { "mils": 500, "dist": 2586 }, { "mils": 510, "dist": 2593 }, { "mils": 520, "dist": 2599 },
+    { "mils": 530, "dist": 2605 }, { "mils": 540, "dist": 2610 }, { "mils": 550, "dist": 2615 },
+    { "mils": 560, "dist": 2620 }, { "mils": 570, "dist": 2623 }, { "mils": 580, "dist": 2626 },
+    { "mils": 590, "dist": 2628 }, { "mils": 600, "dist": 2629 }
+   ],
+   "tableHigh": [
+    { "mils": 610, "dist": 2629 }, { "mils": 620, "dist": 2629 }, { "mils": 630, "dist": 2628 },
+    { "mils": 640, "dist": 2626 }, { "mils": 650, "dist": 2624 }, { "mils": 660, "dist": 2621 },
+    { "mils": 670, "dist": 2617 }, { "mils": 680, "dist": 2613 }, { "mils": 690, "dist": 2609 },
+    { "mils": 700, "dist": 2604 }, { "mils": 710, "dist": 2599 }, { "mils": 720, "dist": 2592 },
+    { "mils": 730, "dist": 2584 }, { "mils": 740, "dist": 2576 }, { "mils": 750, "dist": 2567 },
+    { "mils": 760, "dist": 2557 }, { "mils": 770, "dist": 2546 }, { "mils": 780, "dist": 2536 },
+    { "mils": 790, "dist": 2524 }, { "mils": 800, "dist": 2513 }, { "mils": 810, "dist": 2501 },
+    { "mils": 820, "dist": 2488 }, { "mils": 830, "dist": 2474 }, { "mils": 840, "dist": 2460 },
+    { "mils": 850, "dist": 2444 }, { "mils": 860, "dist": 2429 }, { "mils": 870, "dist": 2412 },
+    { "mils": 880, "dist": 2395 }, { "mils": 890, "dist": 2378 }, { "mils": 900, "dist": 2360 },
+    { "mils": 910, "dist": 2342 }, { "mils": 920, "dist": 2323 }, { "mils": 930, "dist": 2303 },
+    { "mils": 940, "dist": 2282 }, { "mils": 950, "dist": 2261 }, { "mils": 960, "dist": 2239 },
+    { "mils": 970, "dist": 2217 }, { "mils": 980, "dist": 2194 }, { "mils": 990, "dist": 2171 },
+    { "mils": 1000, "dist": 2147 }, { "mils": 1010, "dist": 2123 }, { "mils": 1020, "dist": 2098 },
+    { "mils": 1030, "dist": 2072 }, { "mils": 1040, "dist": 2046 }, { "mils": 1050, "dist": 2019 },
+    { "mils": 1060, "dist": 1991 }, { "mils": 1070, "dist": 1963 }, { "mils": 1080, "dist": 1934 },
+    { "mils": 1090, "dist": 1905 }, { "mils": 1100, "dist": 1875 }, { "mils": 1110, "dist": 1844 },
+    { "mils": 1120, "dist": 1813 }, { "mils": 1130, "dist": 1782 }, { "mils": 1140, "dist": 1750 },
+    { "mils": 1150, "dist": 1717 }, { "mils": 1160, "dist": 1684 }, { "mils": 1170, "dist": 1650 },
+    { "mils": 1180, "dist": 1616 }, { "mils": 1190, "dist": 1582 }, { "mils": 1200, "dist": 1547 },
+    { "mils": 1210, "dist": 1512 }, { "mils": 1220, "dist": 1475 }, { "mils": 1230, "dist": 1438 },
+    { "mils": 1240, "dist": 1401 }, { "mils": 1250, "dist": 1363 }, { "mils": 1260, "dist": 1324 },
+    { "mils": 1270, "dist": 1285 }, { "mils": 1280, "dist": 1245 }, { "mils": 1290, "dist": 1205 },
+    { "mils": 1300, "dist": 1165 }, { "mils": 1310, "dist": 1124 }, { "mils": 1320, "dist": 1083 },
+    { "mils": 1330, "dist": 1041 }, { "mils": 1340, "dist": 999 }, { "mils": 1350, "dist": 956 },
+    { "mils": 1360, "dist": 913 }, { "mils": 1370, "dist": 869 }, { "mils": 1380, "dist": 825 },
+    { "mils": 1390, "dist": 780 }
+   ],
    "notes": [
-    "Two trajectories. The low arc reaches from 1181 m to maximum range and arrives sooner; below that the high arc is the only one that reaches at all.",
+    "Two trajectories. The low arc reaches from 1181 m to maximum range and arrives sooner; below that the high arc is the only one that reaches at all. From 1181 m out, both arcs reach and both solutions are reported.",
     "Past about 2625 m the arc turns over and the table goes flat: a metre of extra range costs a great deal of elevation, and two different elevations both land. Do not fight for the last hundred metres, move the gun.",
+    "The published table continues one row past the stated envelope, to 735 m at 1400 mil. That row sits outside the envelope the other sources agree on, so it is left out here.",
     "The tagged expensive 155mm is a different projectile, a fraction of the mass and drag, and would need its own table. Whether the SPH-2 can load it is unsettled."
    ]
   }
@@ -87,9 +141,9 @@
 
  "open": [
   {
-   "what": "The SPH-2 has no elevation table",
-   "why": "No source publishes one. The envelope is known, the curve is not, and it turns over near maximum range so it cannot be interpolated from the ends.",
-   "close": "Fire at known ranges and record the dial. Twelve points across 780 to 2629 m would be enough, with extra density past 2400 m where the arc flattens. Both arcs need their own row below 1181 m."
+   "what": "The SPH-2 table is transcribed, not fired",
+   "why": "wardogs-artillery.com is the one source publishing the complete curve for both arcs, and no second source confirms it. It is carried here with that label rather than left out, because a labelled single source beats a gap.",
+   "close": "Fire three rows and compare: one mid low arc near 2000 m, one on the flat top near 2625 m, and one below 1181 m where only the high arc reaches. If all three land, trust the curve."
   },
   {
    "what": "No time of flight for either platform",
@@ -129,6 +183,11 @@
    "name": "wardogshub.gg artillery calculator",
    "url": "https://wardogshub.gg/artillery-calculator/",
    "gives": "the grid, both envelopes, grouping in MOA, the arc crossover"
+  },
+  {
+   "name": "wardogs-artillery.com",
+   "url": "https://wardogs-artillery.com/",
+   "gives": "the SPH-2 elevation table for both arcs, and the calibrated bounds, towers and spawn zones for Bakurani and Ozeti"
   },
   {
    "name": "wardogs.zone artillery calculator",

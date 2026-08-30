@@ -1,0 +1,78 @@
+{
+ "_note": "The two terrains, in the game's own X/Y where one unit is 100 m and Y counts north. Everything here is a measured position transcribed from wardogs-artillery.com, which calibrated its maps against in-game coordinates. Nothing is drawn from imagery: the planner has no business shipping another site's tiles, so the page renders these numbers as a vector map. Positions are the facts; the drawing is ours.",
+ "checkedOn": "2026-08-30",
+ "source": "wardogs-artillery.com",
+ "maps": [
+  {
+   "id": "bakurani",
+   "name": "Bakurani",
+   "extentUnits": 163.84,
+   "bounds": { "minX": 23.35, "maxX": 133.6, "minY": 19.34, "maxY": 129.65 },
+   "towers": [
+    { "label": "Tower 1", "x": 80.52, "y": 69.85 },
+    { "label": "Tower 2", "x": 77.19, "y": 70.0 },
+    { "label": "Tower 3", "x": 77.19, "y": 73.44 },
+    { "label": "Tower 4", "x": 83.64, "y": 72.85 },
+    { "label": "Tower 5", "x": 82.22, "y": 68.41 }
+   ],
+   "spawns": [
+    {
+     "label": "VALKYRA",
+     "points": [
+      { "x": 117.5, "y": 73.76 }, { "x": 121.22, "y": 70.71 },
+      { "x": 118.18, "y": 66.99 }, { "x": 114.45, "y": 70.04 }
+     ]
+    },
+    {
+     "label": "MANTICORE",
+     "points": [
+      { "x": 38.68, "y": 79.88 }, { "x": 43.39, "y": 78.85 },
+      { "x": 42.35, "y": 74.15 }, { "x": 37.65, "y": 75.18 }
+     ]
+    },
+    {
+     "label": "LONESTAR",
+     "points": [
+      { "x": 83.08, "y": 35.27 }, { "x": 87.72, "y": 36.51 },
+      { "x": 88.97, "y": 31.86 }, { "x": 84.32, "y": 30.62 }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ozeti",
+   "name": "Ozeti",
+   "extentUnits": 327.68,
+   "bounds": { "minX": 57.58, "maxX": 143.07, "minY": 21.81, "maxY": 99.56 },
+   "towers": [
+    { "label": "Tower 1", "x": 95.8, "y": 62.82 },
+    { "label": "Tower 2", "x": 100.37, "y": 59.23 },
+    { "label": "Tower 3", "x": 104.49, "y": 63.71 },
+    { "label": "Tower 4", "x": 100.62, "y": 67.64 }
+   ],
+   "spawns": [
+    {
+     "label": "VALKYRA",
+     "points": [
+      { "x": 133.98, "y": 68.51 }, { "x": 138.58, "y": 69.92 },
+      { "x": 139.99, "y": 65.32 }, { "x": 135.39, "y": 63.91 }
+     ]
+    },
+    {
+     "label": "MANTICORE",
+     "points": [
+      { "x": 69.22, "y": 90.85 }, { "x": 73.09, "y": 87.98 },
+      { "x": 70.22, "y": 84.12 }, { "x": 66.36, "y": 86.99 }
+     ]
+    },
+    {
+     "label": "LONESTAR",
+     "points": [
+      { "x": 81.52, "y": 34.03 }, { "x": 86.33, "y": 34.03 },
+      { "x": 86.33, "y": 29.21 }, { "x": 81.53, "y": 29.22 }
+     ]
+    }
+   ]
+  }
+ ]
+}

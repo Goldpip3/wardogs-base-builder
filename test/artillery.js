@@ -57,10 +57,10 @@ const spread = (d, moa) => d * (moa / 60) * Math.PI / 180;
 
 /* --- and the page does not round that answer away --- */
 {
-  const src = fs.readFileSync(path.join(ROOT, "tools/site/pages/artillery.js"), "utf8");
+  const src = fs.readFileSync(path.join(ROOT, "tools/site/artillery-map.js"), "utf8");
   check(!/Math\.round\(m ?\/ ?cur\.step\)/.test(src),
     "the page does not snap the elevation to a round number the gun has no detent for");
-  check(/onTable\?'a measured point'/.test(src),
+  check(src.includes('"a measured point"'),
     "and it says whether the answer is measured or interpolated");
 }
 
@@ -88,13 +88,96 @@ const spread = (d, moa) => d * (moa / 60) * Math.PI / 180;
     off.map(([p, d, w]) => p.id + "@" + d + " wanted " + w + " got " + spread(d, p.moa).toFixed(2)).join(", "));
 }
 
-/* --- nothing was invented for the gun that has no table --- */
+/* --- the SPH-2 tables hold together as a pair of arcs ---
+   Transcribed from one source and not yet fired against, which the data says out loud.
+   What can be checked without the game is internal consistency: the two arcs meet at the
+   turnover, the envelope is the tables' own reach, and the crossover the sources agree
+   on is where the low arc actually starts. */
 {
-  check(sph.table === null, "the SPH-2 ships no elevation table, because none is published");
-  check(sph.minRange && sph.maxRange && sph.minElevationMil && sph.maxElevationMil,
-    "but its envelope is stated, since that much is known");
+  const lo = sph.tableLow, hi = sph.tableHigh;
+  check(Array.isArray(lo) && Array.isArray(hi) && lo.length > 40 && hi.length > 60,
+    "the SPH-2 ships both arcs as tables");
+  check(/wardogs-artillery/.test(sph.tableSource || "") && /unfired|not yet/.test(sph.tableSource || ""),
+    "and says where they came from and that nobody here has fired them");
+
+  let loMono = true;
+  for (let i = 1; i < lo.length; i++)
+    if (!(lo[i].mils > lo[i - 1].mils && lo[i].dist >= lo[i - 1].dist)) loMono = false;
+  check(loMono, "the low arc is monotonic: more elevation is never less range");
+  let hiMono = true;
+  for (let i = 1; i < hi.length; i++)
+    if (!(hi[i].mils > hi[i - 1].mils && hi[i].dist <= hi[i - 1].dist)) hiMono = false;
+  check(hiMono, "the high arc is monotonic: more elevation is never more range");
+
+  check(lo[0].dist === sph.lowArcFrom,
+    "the low arc starts at the crossover the sources agree on",
+    lo[0].dist + " vs " + sph.lowArcFrom);
+  check(lo[lo.length - 1].dist === sph.maxRange && hi[0].dist === sph.maxRange,
+    "both arcs peak at the stated maximum range, which is where the curve turns over");
+  check(hi[hi.length - 1].dist === sph.minRange,
+    "the stated minimum range is the high arc's own last row, not another source's");
+  check(lo[0].mils === sph.minElevationMil && hi[hi.length - 1].mils === sph.maxElevationMil,
+    "the elevation envelope is the tables' own ends");
+  check(hi[0].mils - lo[lo.length - 1].mils === 10,
+    "the arcs are one 10 mil step apart at the turnover, one curve split in two");
+}
+
+/* --- every measured SPH-2 row round trips, on its own arc ---
+   The flat top repeats a distance across neighbouring rows, so the answer for one of
+   those distances is any of its measured elevations, not a specific one. */
+{
+  const upDial = (d, t) => {
+    if (!t || !t.length || d < t[0].dist || d > t[t.length - 1].dist) return null;
+    for (let i = 0; i < t.length - 1; i++) {
+      const a = t[i], b = t[i + 1];
+      if (d >= a.dist && d <= b.dist) {
+        const r = b.dist - a.dist;
+        return a.mils + (r > 0 ? (d - a.dist) / r : 0) * (b.mils - a.mils);
+      }
+    }
+    return null;
+  };
+  const milsFor = (t, d) => t.filter(r => r.dist === d).map(r => r.mils);
+  const offLo = sph.tableLow
+    .map(r => ({ r, got: Math.round(upDial(r.dist, sph.tableLow)) }))
+    .filter(x => !milsFor(sph.tableLow, x.r.dist).includes(x.got));
+  check(offLo.length === 0,
+    `all ${sph.tableLow.length} low arc ranges give back a measured elevation for that range`,
+    offLo.map(x => x.r.dist + "m wanted " + x.r.mils + " got " + x.got).join(", "));
+  const offHi = sph.tableHigh
+    .map(r => ({ r, got: Math.round(dial(r.dist, sph.tableHigh)) }))
+    .filter(x => !milsFor(sph.tableHigh, x.r.dist).includes(x.got));
+  check(offHi.length === 0,
+    `all ${sph.tableHigh.length} high arc ranges give back a measured elevation for that range`,
+    offHi.map(x => x.r.dist + "m wanted " + x.r.mils + " got " + x.got).join(", "));
+  check(dial(sph.minRange - 1, sph.tableHigh) === null &&
+    upDial(sph.maxRange + 1, sph.tableLow) === null,
+    "outside the envelope neither arc offers a solution");
   check(A.dispute && /3\.1 km|3100/.test(A.dispute.detail),
     "the contested mortar range is stated on the page rather than quietly resolved");
+}
+
+/* --- the map data is inside its own fences ---
+   A tower or a spawn drawn outside the playable bounds would mean a transcription slip,
+   the exact class of error hand-copied coordinates invite. */
+{
+  const M = JSON.parse(fs.readFileSync(path.join(ROOT, "data/artillery-maps.json"), "utf8"));
+  check(M.maps.length === 2 && M.maps.every(m => m.id && m.name && m.bounds && m.extentUnits),
+    "both terrains are present with bounds and an extent");
+  const outside = [];
+  for (const m of M.maps) {
+    const b = m.bounds;
+    const inB = p => p.x >= b.minX && p.x <= b.maxX && p.y >= b.minY && p.y <= b.maxY;
+    if (!(b.minX >= 0 && b.maxX <= m.extentUnits && b.minY >= 0 && b.maxY <= m.extentUnits))
+      outside.push(m.id + " bounds exceed extent");
+    for (const t of m.towers) if (!inB(t)) outside.push(m.id + " " + t.label);
+    for (const z of m.spawns) for (const p of z.points)
+      if (!inB(p)) outside.push(m.id + " " + z.label + " corner");
+  }
+  check(outside.length === 0, "every tower and spawn corner sits inside its map's bounds",
+    outside.join(", "));
+  check(/wardogs-artillery/.test(M.source || "") || /wardogs-artillery/.test(M._note || ""),
+    "the map file names where its positions came from");
 }
 
 /* --- an open question that does not say how to close it is just a complaint ---

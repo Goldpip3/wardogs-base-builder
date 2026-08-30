@@ -8,8 +8,8 @@ entity: data/artillery.json
 
 # Artillery data
 
-`data/artillery.json`: the two indirect-fire platforms, one firing table, the map grid, and
-a written-down disagreement about how far the mortar actually shoots.
+`data/artillery.json`: the two indirect-fire platforms, their firing tables, the map grid,
+and a written-down disagreement about how far the mortar actually shoots.
 
 ## Why this shape
 
@@ -19,10 +19,11 @@ carries its own provenance: a `sources` list, a `confidence` per platform, a `ca
 and a `dispute` block that names the argument instead of quietly picking a side.
 
 The mortar ships a real firing table, MIT licensed from `djzet/wardogs-calc`, cited. The
-SPH-2 ships `table: null` on purpose. Its envelope is known and its bearing, range and
-spread need no table, but no complete elevation curve is published, and two endpoints joined
-by a straight line would look like an answer while being wrong: the arc turns over near
-maximum range and two elevations land on the same spot.
+SPH-2 ships both arcs as `tableLow` and `tableHigh`, transcribed from wardogs-artillery.com,
+the one source publishing the complete curve, and `tableSource` says so along with the fact
+that nobody here has fired a row of it. The curve turns over at maximum range, which is why
+the arc is two tables and why two elevations can land on the same spot: from 1,181 m out
+both arcs reach and the page reports both dials.
 
 Grouping is the one number here that can be checked rather than trusted. Spread is range
 times the angle in radians, and that reproduces all four spreads the sources publish, which
@@ -35,9 +36,10 @@ the first place to look if you are picking artillery back up: see [../../OPEN.md
 ## Shape
 
 - `grid`: one coordinate unit is 100 m, Y counts north, the terrain is 163.84 units square
-- `platforms[]`: envelope, `moa`, reload, damage, blast, round cost, `table` or `null`
+- `platforms[]`: envelope, `moa`, reload, damage, blast, round cost, `table` for the
+  mortar, `tableLow` and `tableHigh` for the SPH-2
 - `dispute`: three sources at roughly 120 to 700 m against one at 3.1 km
-- the table's own ends are the stated envelope, so a solution can never fall outside it
+- every table's own ends are the stated envelope, so a solution can never fall outside it
 
 Citations: `data/artillery.json`, read at `tools/site/context.js:105`, rendered by
 `tools/site/pages/artillery.js`.
@@ -46,7 +48,8 @@ Citations: `data/artillery.json`, read at `tools/site/context.js:105`, rendered 
 
 - **owns:** `/artillery/`
 - **joins:** [buildables-catalog](buildables-catalog.md), which owns the L81 Mortar as a
-  thing you build and price in Build Supplies
+  thing you build and price in Build Supplies; [artillery-maps](artillery-maps.md), the
+  terrains the page draws this data's reach over
 - **looks-like-but-is-not:** [derived-data](derived-data.md). That is solved from published
   bounds and re-checked every build. This is transcribed, and its checks are consistency
   checks rather than a derivation.
@@ -54,11 +57,12 @@ Citations: `data/artillery.json`, read at `tools/site/context.js:105`, rendered 
 ## If you change this
 
 - **Hits:** `/artillery/` only. `test/artillery.js` re-checks that every measured range
-  gives back its own elevation, that the envelope matches the table's ends, and that the
-  spread relationship still holds.
+  gives back its own elevation on its own arc, that each envelope matches its tables' ends,
+  and that the spread relationship still holds.
 - **Does not hit:** the planner. It has no range rings, deliberately: drawing one needs a
   plan-cell-to-metre conversion and nothing published establishes one. `buildRadiusUnits`
-  in the buildables catalog is marked `radiusConfirmed: false` for the same reason.
+  in the buildables catalog is marked `radiusConfirmed: false` for the same reason. The
+  rings live on `/artillery/`, where coordinates are the game's own.
 
 ## Surfaces
 
