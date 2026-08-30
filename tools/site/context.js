@@ -47,8 +47,13 @@ const AD_FORMATS = {
     attrs: `data-ad-layout="in-article" data-ad-format="fluid"` },
   /* The artillery map's control column is 290px less its padding, so this is the same
      narrow-column case as the planner's panel: a responsive display unit, not the fluid
-     in-article one, which wants the width of a paragraph to look right. */
-  artillery:   { minHeight: 250, style: "display:block",
+     in-article one, which wants the width of a paragraph to look right.
+
+     200 rather than the panel unit's 250 because that is what the slack actually is: the
+     column has about 299px free on arrival, and the label, padding and margin around the
+     unit take the rest. At 250 the bottom of the ad sat below the fold on a 900px screen,
+     which is the one moment it was meant to be visible. */
+  artillery:   { minHeight: 200, style: "display:block",
     attrs: `data-ad-format="auto" data-full-width-responsive="true"` },
 };
 function adSlot(which) {
