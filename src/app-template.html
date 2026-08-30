@@ -241,14 +241,6 @@
     border-radius: 0; overflow: hidden; margin-top: 6px;
   }
   .budget-fill { height: 100%; width: 0; background: var(--accent2); transition: width .15s ease; }
-  .preset-row {
-    display: flex; gap: 10px; align-items: flex-start; padding: 9px 4px;
-    border-bottom: 1px solid var(--border);
-  }
-  .preset-row .body { flex: 1; min-width: 0; }
-  .preset-row .t { font-weight: 600; margin-bottom: 2px; }
-  .preset-row .d { font-size: 11.5px; color: var(--dim); line-height: 1.45; }
-  .preset-row .c { font-size: 11.5px; color: var(--accent); white-space: nowrap; margin-top: 3px; }
 
   /* Small screens: the tool needs a pointer and room for three panels, so say so
      plainly rather than serving a crushed layout. */
@@ -320,7 +312,6 @@
   <span class="group-label">Storey</span>
   <span id="levelStrip" class="seg" title="Everything is shown by default. Pick a storey to work on it on its own."></span>
   <div class="sep"></div>
-  <button id="btnTemplates" title="Drop in a ready-made build (mortar pit, AA nest, wall section…)">◈ Presets</button>
   <button id="btnCatalog" title="Edit the buildables catalog (costs/sizes)">⚙ Catalog</button>
   <button id="btnHelp" title="Help & shortcuts">? Help</button>
   <a id="btnSupport" target="_blank" rel="noopener noreferrer" style="display:none"></a>
@@ -356,7 +347,6 @@
       <div class="es-title">Plan your FOB</div>
       <p>Start with the <b>FOB</b> at the top of the list. it sets the square you can build inside.
          Then pick a wall and <b>drag</b> to lay a run.</p>
-      <p class="es-alt">In a hurry? <button id="esPresets">Use a preset</button></p>
     </div>
     <div id="hint">Click a buildable, then click the map to place, or drag to lay a whole run. Wheel = zoom · Arrows, middle-drag or Space-drag = pan</div>
     <div id="statusbar">
@@ -414,7 +404,6 @@
         <span class="big-number" id="costSupplies">0</span>
         <span class="unit">build supplies</span>
       </div>
-      <div class="rp-row"><label>Vendor cash (@$10)</label><span class="val" id="costCash">$0</span></div>
       <div class="rp-row"><label>+ FOB item</label><span class="val" id="costFob">-</span></div>
       <div class="rp-row" style="margin-top:7px"><label>You have in the FOB</label><input type="number" id="supplyStock" min="0" style="width:72px" title="Build supplies stocked. A fresh FOB lands with 1,750 already inside."></div>
       <div class="budget-track" id="budgetTrack" style="display:none"><div class="budget-fill" id="budgetFill"></div></div>
@@ -426,7 +415,7 @@
       <h3>Hauling it there</h3>
       <div class="rp-row">
         <label>Supplies per pallet</label>
-        <input type="number" id="palletSize" min="1" style="width:62px">
+        <span class="val" id="palletSize"></span>
       </div>
       <div class="rp-row"><label>Pallets needed</label><span class="val" id="palletsNeeded">0</span></div>
       <div class="rp-row"><label>Pallet cost</label><span class="val" id="palletCash">$0</span></div>
@@ -439,7 +428,7 @@
     </div>
 
     <div class="rp-section">
-      <h3>Anti-climb</h3>
+      <h3>Can they get in</h3>
       <div id="antiClimb" style="font-size:11.5px; color:var(--dim); line-height:1.5">. </div>
     </div>
 
@@ -790,104 +779,6 @@ function commitStamp(d) {
   afterChange();
 }
 
-/* ============ PRESETS ============
-   Ready-made builds taken from what beta players actually found works, so you can
-   drop a known-good emplacement in and adjust rather than rebuilding it every time. */
-function ring(radius) {                       // square ring of cells at this distance out
-  const out = [];
-  for (let x = -radius; x <= radius; x++)
-    for (let y = -radius; y <= radius; y++)
-      if (Math.max(Math.abs(x), Math.abs(y)) === radius) out.push([x, y]);
-  return out;
-}
-function emplacementPit(weapon, radius) {
-  // weapon in the middle, waist-height hesco ringed one block out (tall walls eat your
-  // own shells), with a door on the south face
-  const ps = [{ type: weapon, x: 0, y: 0, rot: 0, level: 0 }];
-  for (const [x, y] of ring(radius)) {
-    const isDoor = x === 0 && y === radius;
-    ps.push({ type: isDoor ? "door" : "hesco-small", x, y, rot: 0, level: 0 });
-  }
-  return ps;
-}
-const PRESETS = [
-  {
-    id: "mortar-pit", name: "Mortar Pit",
-    desc: "L81 ringed one block out with waist-height hesco so the tube clears the wall. The fix for shells hitting your own parapet. Door on the south face.",
-    build: () => emplacementPit("l81-mortar", 3)
-  },
-  {
-    id: "aa-nest", name: "AA Nest (CIWS)",
-    desc: "Low hesco with sandbags stacked on top. The community's “perfect height” combo for the CIWS. Keep the sky above it clear.",
-    build: () => {
-      const ps = emplacementPit("vanguard-ciws", 3);
-      for (let x = -3; x <= 3; x += 2) {
-        ps.push({ type: "sandbag-wall", x, y: -3, rot: 0, level: 1 });
-        ps.push({ type: "sandbag-wall", x, y:  3, rot: 0, level: 1 });
-      }
-      return ps;
-    }
-  },
-  {
-    id: "sam-site", name: "SAM Site (Talon)",
-    desc: "Talon 9K in a low pit with cover on all sides. Needs Ammo supplies at the FOB and open sky to track helis.",
-    build: () => emplacementPit("talon-9k-sam", 3)
-  },
-  {
-    id: "anticlimb-wall", name: "Anti-climb Wall (8 long)",
-    desc: "Two quad hesco sections with Bremer walls capped on top. Nothing can be built above a Bremer, so it's the finishing layer that stops anyone vaulting in.",
-    build: () => {
-      const ps = [];
-      ps.push({ type: "hesco-wall", x: -2, y: 0, rot: 0, level: 0 });
-      ps.push({ type: "hesco-wall", x:  2, y: 0, rot: 0, level: 0 });
-      for (let x = -3.5; x <= 3.5; x += 1) ps.push({ type: "bremer-wall", x, y: 0, rot: 0, level: 1 });
-      return ps;
-    }
-  },
-  {
-    id: "vehicle-gate", name: "Vehicle Gate",
-    desc: "Armoured gate flanked by quad wall. The gate swings through, so leave the inside clear, and it has to sit on the ground.",
-    build: () => ([
-      { type: "gate",       x:  0, y: 0, rot: 0, level: 0 },
-      { type: "hesco-wall", x: -4, y: 0, rot: 0, level: 0 },
-      { type: "hesco-wall", x:  4, y: 0, rot: 0, level: 0 },
-    ])
-  },
-  {
-    id: "raised-gun", name: "Raised Gun Platform",
-    desc: "A 4×4 hesco platform with a CIWS mounted on top. Height for the gun, cover underneath. Build the floor first, then the weapon on Level 2.",
-    build: () => {
-      const ps = [];
-      for (let x = -1.5; x <= 1.5; x += 1)
-        for (let y = -1.5; y <= 1.5; y += 1)
-          ps.push({ type: "hesco-tall", x, y, rot: 0, level: 0 });
-      ps.push({ type: "vanguard-ciws", x: 0, y: 0, rot: 0, level: 1 });
-      return ps;
-    }
-  }
-];
-function presetCost(t) {
-  return t.build().reduce((sum, p) => {
-    const d = byId[p.type]; return sum + (d && !d.isFob ? (d.cost || 0) : 0);
-  }, 0);
-}
-function stampPreset(t) {
-  const pieces = t.build();
-  pushUndo();
-  const ids = [];
-  for (const p of pieces) {
-    if (!byId[p.type]) continue;
-    const np = { id: design.nextId++, type: p.type,
-                 x: snapVal(view.x + p.x), y: snapVal(view.y + p.y),
-                 rot: p.rot || 0, level: p.level || 0 };
-    design.pieces.push(np);
-    ids.push(np.id);
-  }
-  selection = new Set(ids);          // land it selected so you can drag it into position
-  setViewLevel(null);
-  afterChange();
-}
-
 /* ============ CANVAS: coords ============ */
 function resize() {
   const wrap = document.getElementById("canvasWrap");
@@ -1041,23 +932,36 @@ function drawRect(r, def, opt) {
   // Height reads as an extrusion toward the bottom-right. The taller the piece and the
   // higher it is stacked, the further it rises off the plan. A 1-block sandbag stays flat,
   // a 5-block tower visibly stands up.
+  /* Height is drawn as the two sides you would actually see on a block lifted off the
+     plan: the far edges extruded down and right, with their own outline. The old version
+     was a translucent copy of the shape sitting behind it, which read as a drop shadow
+     rather than as something standing up. */
   const topBlocks = (opt.level || 0) + (def.height || 1);
   if (!opt.ghost && fade === 1 && topBlocks > 1 && Math.min(w, h) > 7) {
-    const off = Math.min(12, topBlocks * 1.6) * uiScale;
+    const off = Math.min(14, topBlocks * 2.0) * uiScale;
+    const bl = opt.seams ? 0.5 * uiScale : 0;
+    const L = -w/2 - (opt.seams & 2 ? bl : 0), R = w/2 + (opt.seams & 1 ? bl : 0);
+    const T = -h/2 - (opt.seams & 8 ? bl : 0), B = h/2 + (opt.seams & 4 ? bl : 0);
     ctx.save();
-    ctx.translate(sx + off, sy + off);
+    ctx.translate(sx, sy);
     ctx.rotate(r.rot);
-    ctx.globalAlpha = 0.5;
-    ctx.fillStyle = shade(base, -58);            // the shaded "side" of the block
-    if (opt.seams) {                             // square, so a run casts one solid side
-      const bl = 0.5 * uiScale;
-      const L = -w/2 - (opt.seams & 2 ? bl : 0), R = w/2 + (opt.seams & 1 ? bl : 0);
-      const T = -h/2 - (opt.seams & 8 ? bl : 0), B = h/2 + (opt.seams & 4 ? bl : 0);
-      ctx.beginPath(); ctx.rect(L, T, R - L, B - T);
-    } else {
-      roundRect(-w/2, -h/2, w, h, Math.min(4, z*0.15));
-    }
-    ctx.fill();
+    ctx.fillStyle = shade(base, -46);
+    ctx.beginPath();                                   // the face below
+    ctx.moveTo(L, B); ctx.lineTo(R, B);
+    ctx.lineTo(R + off, B + off); ctx.lineTo(L + off, B + off);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = shade(base, -64);
+    ctx.beginPath();                                   // the face to the right
+    ctx.moveTo(R, T); ctx.lineTo(R, B);
+    ctx.lineTo(R + off, B + off); ctx.lineTo(R + off, T + off);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = shade(base, -72);
+    ctx.lineWidth = uiScale;
+    ctx.beginPath();
+    ctx.moveTo(L, B); ctx.lineTo(L + off, B + off);
+    ctx.moveTo(R, T); ctx.lineTo(R + off, T + off);
+    ctx.moveTo(L + off, B + off); ctx.lineTo(R + off, B + off); ctx.lineTo(R + off, T + off);
+    ctx.stroke();
     ctx.restore();
   }
 
@@ -1117,10 +1021,15 @@ function drawRect(r, def, opt) {
     const midRun = (opt.seams & 3) === 3 || (opt.seams & 12) === 12;
     const showLabel = opt.hovered || def.isFob ||
       (!midRun && (opt.selected || Math.min(r.w, r.h) >= 2));
+    /* Offsets come from how tall the piece actually is on screen, not from its longest
+       side. A 4x1 wall used to throw its name two cells clear of itself, which is what
+       made a selected run look like scattered floating text. */
+    const halfDown = (rectAABB(r).y1 - r.cy) * z;
+    const halfUp = (r.cy - rectAABB(r).y0) * z;
     ctx.font = "600 " + Math.max(9*uiScale, Math.min(11*uiScale, z*0.4)) + "px sans-serif";
     ctx.textAlign = "center"; ctx.fillStyle = "#fff7eadd";
     const short = def.isFob ? "FOB" : def.name.replace(/ \(.*\)/, "").split(" ").slice(0,2).join(" ");
-    if (showLabel) ctx.fillText(short, 0, Math.max(r.w, r.h) * z / 2 + 12 * uiScale);
+    if (showLabel) ctx.fillText(short, 0, halfDown + 11 * uiScale);
     // badges above the piece: which storey it's on, and how many blocks tall it is
     const badges = [];
     if (opt.level > 0) badges.push("L" + (opt.level + 1));
@@ -1128,7 +1037,7 @@ function drawRect(r, def, opt) {
     // Same rule as the label: a run states its height at the ends, not on every block.
     if (badges.length && (!midRun || opt.hovered)) {
       ctx.fillStyle = "#ff5b47"; ctx.font = `700 ${10*uiScale}px sans-serif`;
-      ctx.fillText(badges.join(" "), 0, -Math.max(r.w, r.h) * z / 2 - 4 * uiScale);
+      ctx.fillText(badges.join(" "), 0, -halfUp - 4 * uiScale);
     }
     if (opt.note) {
       ctx.fillStyle = "#7fa650"; ctx.font = `${9*uiScale}px sans-serif`;
@@ -1352,11 +1261,10 @@ function updateRightPanel() {
     counts[def.id] = (counts[def.id] || 0) + 1;
   }
   document.getElementById("costSupplies").textContent = supplies.toLocaleString();
-  document.getElementById("costCash").textContent = "$" + (supplies * 10).toLocaleString();
   document.getElementById("costFob").textContent = fobCount ? `${fobCount} × $${catalog.fob.vendorPrice.toLocaleString()}` : "-";
   /* Supplies travel as pallets, and a vehicle carries a whole number of them, so the figure that actually matters is trips, not raw supply count. */
   const log = catalog.logistics || {};
-  const pallet = Math.max(1, +document.getElementById("palletSize").value || PALLET_DEFAULT);
+  const pallet = PALLET_DEFAULT;
   const pallets = supplies ? Math.ceil(supplies / pallet) : 0;
   document.getElementById("palletsNeeded").textContent = pallets.toLocaleString();
   document.getElementById("palletCash").textContent =
@@ -1394,21 +1302,70 @@ function updateRightPanel() {
     btext.innerHTML = `<span style="color:var(--dim)">Enter your stock to check the design against it.</span>`;
   }
 
-  // waist-height cover can be vaulted unless something taller sits on top of it
-  let vaultable = 0, tallCover = 0;
+  /* ---------- how somebody gets over this wall ----------
+     Two ways in, and they need different heights to stop.
+
+       on foot   a single block is waist height and gets vaulted.
+       by truck  park against the wall, climb onto the roof, step over. That beats
+                 anything up to VEHICLE_CLIMB blocks, which is most of a perimeter that
+                 looks tall enough.
+
+     A Bremer wall stops both regardless of the number, because nothing can be built on
+     top of one and the coil along the top is not something you step over. So a stack
+     capped with a Bremer counts as secure whatever its height.
+
+     Height is measured per stack, not per piece: what matters is how high the thing you
+     are standing in front of reaches, so sandbags on a hesco block count as two. */
+  const VAULT_HEIGHT = 1;         // blocks you can clear from the ground
+  const VEHICLE_CLIMB = 2;        // blocks you can clear off a vehicle roof
+
+  let vaultable = 0, truckable = 0, secure = 0;
   for (const p of design.pieces) {
     const def = byId[p.type];
     if (!def || def.role !== "cover") continue;
-    const capped = design.pieces.some(q =>
-      q !== p && (q.level || 0) > (p.level || 0) && rectsOverlap(pieceRect(p), pieceRect(q)));
-    if ((def.height || 1) <= 1 && !capped) vaultable++; else tallCover++;
+
+    /* One count per wall section, not per piece. Sandbags on a hesco block are one thing
+       to climb over, so only the piece at the bottom of a stack is counted and the rest
+       just contribute their height to it. */
+    const standingOn = design.pieces.some(q => {
+      if (q === p) return false;
+      const qd = byId[q.type];
+      return qd && qd.role === "cover" && (q.level || 0) < (p.level || 0) &&
+             rectsOverlap(pieceRect(p), pieceRect(q));
+    });
+    if (standingOn) continue;
+
+    // everything sharing this footprint, so a capped wall is judged by its full stack
+    let top = (p.level || 0) + (def.height || 1);
+    let cappedByTopLayer = (def.tags || []).includes("top-layer");
+    for (const q of design.pieces) {
+      if (q === p) continue;
+      const qd = byId[q.type];
+      if (!qd || !rectsOverlap(pieceRect(p), pieceRect(q))) continue;
+      const qTop = (q.level || 0) + (qd.height || 1);
+      if (qTop > top) top = qTop;
+      if ((qd.tags || []).includes("top-layer") && (q.level || 0) >= (p.level || 0))
+        cappedByTopLayer = true;
+    }
+
+    if (cappedByTopLayer) secure++;
+    else if (top <= VAULT_HEIGHT) vaultable++;
+    else if (top <= VEHICLE_CLIMB) truckable++;
+    else secure++;
   }
+
   const climbEl = document.getElementById("antiClimb");
-  climbEl.innerHTML = (vaultable + tallCover) === 0
+  const climbParts = [];
+  if (vaultable) climbParts.push(`<span style="color:var(--danger)">${vaultable}</span> vaultable on foot`);
+  if (truckable) climbParts.push(`<span style="color:var(--accent)">${truckable}</span> climbable off a vehicle`);
+  if (secure) climbParts.push(`<span style="color:var(--accent2)">${secure}</span> secure`);
+  climbEl.innerHTML = !climbParts.length
     ? `<span style="color:var(--dim)">No cover placed yet.</span>`
-    : (vaultable > 0
-        ? `<span style="color:var(--accent)">${vaultable}</span> waist-height piece${vaultable>1?"s":""} can be vaulted · <span style="color:var(--accent2)">${tallCover}</span> full-height`
-        : `<span style="color:var(--accent2)">All ${tallCover} cover pieces are above vaulting height.</span>`);
+    : climbParts.join(" · ") +
+      ((vaultable || truckable)
+        ? `<div style="margin-top:5px;color:var(--dim)">Anything ${VEHICLE_CLIMB} blocks or under
+           can be crossed by parking a truck against it. Cap a wall with a Bremer to stop that.</div>`
+        : `<div style="margin-top:5px;color:var(--dim)">Nothing here can be crossed on foot or off a vehicle.</div>`);
 
   const bd = document.getElementById("costBreakdown");
   bd.innerHTML = Object.entries(counts).sort((a,b) => b[1]*byId[b[0]].cost - a[1]*byId[a[0]].cost)
@@ -1423,11 +1380,11 @@ function updateRightPanel() {
     if (def.tags.includes("uses-fuel")) needs.fuel.push(def.name);
     if (def.tags.includes("uses-mechanical")) needs.mechanical.push(def.name);
   }
-  const parts = [];
-  if (needs.ammo.length) parts.push(`<b style="color:var(--text)">Ammo</b>: ${[...new Set(needs.ammo)].join(", ")}`);
-  if (needs.fuel.length) parts.push(`<b style="color:var(--text)">Fuel</b>: ${[...new Set(needs.fuel)].join(", ")}`);
-  if (needs.mechanical.length) parts.push(`<b style="color:var(--text)">Mechanical</b>: ${[...new Set(needs.mechanical)].join(", ")}`);
-  document.getElementById("ongoing").innerHTML = parts.join("<br>") || "No emplacements needing resupply.";
+  const resupplyParts = [];
+  if (needs.ammo.length) resupplyParts.push(`<b style="color:var(--text)">Ammo</b>: ${[...new Set(needs.ammo)].join(", ")}`);
+  if (needs.fuel.length) resupplyParts.push(`<b style="color:var(--text)">Fuel</b>: ${[...new Set(needs.fuel)].join(", ")}`);
+  if (needs.mechanical.length) resupplyParts.push(`<b style="color:var(--text)">Mechanical</b>: ${[...new Set(needs.mechanical)].join(", ")}`);
+  document.getElementById("ongoing").innerHTML = resupplyParts.join("<br>") || "No emplacements needing resupply.";
 
   // issues
   const issues = getIssues();
@@ -1780,28 +1737,8 @@ document.getElementById("btnMirrorV").onclick = () => mirrorSelection("v");
 document.getElementById("btnSelSame").onclick = selectSameType;
 document.getElementById("btnAlign").onclick = alignSelection;
 document.getElementById("supplyStock").oninput = updateRightPanel;
-document.getElementById("btnTemplates").onclick = () => {
-  const rows = PRESETS.map((t, i) => `
-    <div class="preset-row">
-      <div class="body">
-        <div class="t">${esc(t.name)}</div>
-        <div class="d">${esc(t.desc)}</div>
-        <div class="c">${presetCost(t).toLocaleString()}${COST_ICON} · ${t.build().length} pieces</div>
-      </div>
-      <button data-preset="${i}">Place</button>
-    </div>`).join("");
-  openModal("Presets",
-    `<p style="color:var(--dim);font-size:12px;margin-bottom:6px">
-       Drops the build into the middle of your view, already selected. Drag it where you want it.
-       Everything stays fully editable afterwards.</p>${rows}`,
-    [["Close", closeModal]]);
-  document.getElementById("modalBody").querySelectorAll("[data-preset]").forEach(b => {
-    b.onclick = () => { stampPreset(PRESETS[+b.dataset.preset]); closeModal(); };
-  });
-};
 document.getElementById("lvlUp").onclick = () => changeLevel(1);
 document.getElementById("lvlDn").onclick = () => changeLevel(-1);
-document.getElementById("palletSize").oninput = updateRightPanel;
 document.getElementById("selNote").onchange = e => {
   const p = design.pieces.find(x => selection.has(x.id));
   if (p) { pushUndo(); p.note = e.target.value; afterChange(); }
@@ -2464,7 +2401,6 @@ document.getElementById("btnHelp").onclick = () => {
     </ul>
     <h3 style="margin:14px 0 6px;color:var(--accent);font-size:13px">Planning aids</h3>
     <ul style="font-size:12.5px;line-height:1.6;padding-left:18px;color:var(--text)">
-      <li><b>◈ Presets</b> drops in a ready-made build. Mortar pit, AA nest, SAM site, anti-climb wall, vehicle gate, raised gun platform. They land selected so you can drag them into place, and everything stays editable.</li>
       <li><b>You have in the FOB</b>. Type in your stock and the bar tells you whether the design fits, what's left over, or how many more pallets you need.</li>
       <li><b>Hauling it there</b> turns the supply total into the thing that actually costs you time: pallets, what they cost at the vendor, and how many trips that is by truck (2 pallets) or helicopter (1). A Build Supply Pallet costs $400 and holds <b>1,900 supplies</b>, which is why buying loose supplies at $10 each is only worth it for topping up. A fresh FOB lands with 1,750 already inside.</li>
       <li><b>Anti-climb</b> counts how much of your cover is only waist height. Those pieces can be vaulted unless something taller is stacked on them, which is the usual way a perimeter gets breached.</li>
@@ -2504,7 +2440,6 @@ function renderLegend() {
 }
 
 /* ============ INIT ============ */
-document.getElementById("esPresets").onclick = () => document.getElementById("btnTemplates").click();
 document.getElementById("ssDismiss").onclick = () => {
   document.getElementById("smallScreen").classList.add("dismissed");
   resize();
@@ -2515,7 +2450,7 @@ if (!loadFromHash()) loadCurrent();
 renderSupport();
 renderLegend();
 renderPalette();
-document.getElementById("palletSize").value = PALLET_DEFAULT;
+document.getElementById("palletSize").textContent = PALLET_DEFAULT.toLocaleString();
 document.getElementById("supplyStock").value = FOB_STOCK_DEFAULT;
 document.getElementById("supplyStock").title =
   "Build supplies stocked. A fresh FOB lands with " + FOB_STOCK_DEFAULT.toLocaleString() + " already inside.";
