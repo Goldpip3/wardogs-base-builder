@@ -18,5 +18,6 @@ $art = $out -replace '(?s)^.*?<title>', '<title>' -replace '</head>\s*<body>', '
 # Also works as-is on Netlify, itch.io or any other static host.
 New-Item -ItemType Directory -Force "$proj\docs" | Out-Null
 [IO.File]::WriteAllText("$proj\docs\index.html", $out)
+if (Test-Path "$proj\release\og-1200x630.png") { Copy-Item "$proj\release\og-1200x630.png" "$proj\docs\preview.png" -Force }
 
 Write-Host "Built WardogsBaseBuilder.html + src/artifact.html + docs/index.html"
