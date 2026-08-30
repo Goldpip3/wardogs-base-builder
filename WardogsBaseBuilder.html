@@ -6,39 +6,71 @@
 <title>WARDOGS Base Builder</title>
 <style>
   :root {
-    --bg: #14160f;
-    --panel: #1d2016;
-    --panel2: #23271b;
-    --border: #3a4028;
-    --text: #d8d6c4;
-    --dim: #8a8a74;
-    --accent: #d9a521;
-    --accent2: #7fa650;
-    --danger: #d05038;
+    /* Field-manual palette: warm olive ground, brass for anything that carries a number,
+       and red reserved exclusively for problems. */
+    --bg: #12140d;
+    --panel: #1a1d13;
+    --panel2: #232719;
+    --panel3: #2b3020;
+    --border: #353c23;
+    --border-soft: #2a3019;
+    --text: #dedbc6;
+    --dim: #8d8d74;
+    --accent: #dcaa26;
+    --accent-ink: #17180f;
+    --accent2: #86ad55;
+    --danger: #d4553a;
     --blue: #4d8fc4;
     --cell: 26px;
     --s: 1;            /* interface scale — raised automatically on large/4K displays */
+    --ui: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --num: "Cascadia Mono", Consolas, "SF Mono", ui-monospace, monospace;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; overflow: hidden; }
   body {
     background: var(--bg); color: var(--text);
-    font-family: "Segoe UI", system-ui, sans-serif; font-size: 13px;
+    font-family: var(--ui); font-size: 13px; line-height: 1.45;
     display: flex; flex-direction: column;
+    -webkit-font-smoothing: antialiased;
   }
   button {
     background: var(--panel2); color: var(--text); border: 1px solid var(--border);
-    padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;
+    padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px;
+    font-family: inherit; line-height: 1.3;
     display: inline-flex; align-items: center; gap: 5px;
+    transition: background .12s ease, border-color .12s ease;
   }
-  button:hover { border-color: var(--accent); }
-  button.active { background: var(--accent); color: #1a1a10; border-color: var(--accent); font-weight: 600; }
-  button.warn { border-color: var(--danger); }
+  button:hover { border-color: var(--accent); background: var(--panel3); }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  button:disabled { opacity: .4; cursor: default; }
+  button:disabled:hover { border-color: var(--border); background: var(--panel2); }
+  button.active { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+  button.warn { border-color: #6b3325; color: #e8a08c; }
+  button.warn:hover { border-color: var(--danger); background: #34201a; }
   input, select, textarea {
-    background: #12140d; color: var(--text); border: 1px solid var(--border);
-    border-radius: 4px; padding: 4px 7px; font-size: 12px;
+    background: #0e100a; color: var(--text); border: 1px solid var(--border);
+    border-radius: 5px; padding: 4px 7px; font-size: 12px; font-family: inherit;
   }
-  input:focus, textarea:focus { outline: 1px solid var(--accent); }
+  input[type=number] { font-family: var(--num); font-variant-numeric: tabular-nums; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
+
+  /* segmented control — used for the storey picker */
+  .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 5px; overflow: hidden; }
+  .seg button {
+    border: 0; border-radius: 0; padding: 5px 9px; background: transparent;
+    border-left: 1px solid var(--border-soft); font-size: 11.5px;
+  }
+  .seg button:first-child { border-left: 0; }
+  .seg button .n {
+    font-family: var(--num); font-size: 10px; color: var(--dim);
+    font-variant-numeric: tabular-nums;
+  }
+  .seg button.active .n { color: var(--accent-ink); opacity: .75; }
+  .group-label {
+    font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--dim); margin-right: -2px;
+  }
 
   /* Top bar */
   #topbar {
@@ -46,10 +78,17 @@
     display: flex; align-items: center; gap: 8px; padding: 7px 12px;
     background: var(--panel); border-bottom: 1px solid var(--border); flex-wrap: wrap;
   }
-  #topbar h1 { font-size: 15px; letter-spacing: 2px; color: var(--accent); font-weight: 700; margin-right: 8px; white-space: nowrap; }
-  #topbar h1 span { color: var(--dim); font-weight: 400; letter-spacing: 0; font-size: 11px; }
-  .sep { width: 1px; height: 22px; background: var(--border); margin: 0 2px; }
-  #designName { width: 150px; }
+  #topbar h1 {
+    font-size: 15px; letter-spacing: .16em; color: var(--accent); font-weight: 700;
+    margin-right: 6px; white-space: nowrap;
+  }
+  #topbar h1 span {
+    color: var(--dim); font-weight: 500; letter-spacing: .1em; font-size: 9.5px;
+    text-transform: uppercase; display: block; margin-top: -3px;
+  }
+  #topbar label { font-size: 11px; color: var(--dim); }
+  .sep { width: 1px; height: 22px; background: var(--border); margin: 0 3px; }
+  #designName { width: 158px; font-weight: 600; }
 
   #main { flex: 1; display: flex; min-height: 0; }
 
@@ -65,19 +104,23 @@
   #search { margin: 8px; }
   #items { flex: 1; overflow-y: auto; padding: 0 8px 8px 8px; }
   .item-card {
-    display: flex; gap: 8px; align-items: center; padding: 6px; margin-bottom: 5px;
-    background: var(--panel2); border: 1px solid var(--border); border-radius: 5px; cursor: grab;
+    display: flex; gap: 9px; align-items: center; padding: 6px; margin-bottom: 4px;
+    background: var(--panel2); border: 1px solid var(--border-soft); border-radius: 6px;
+    cursor: pointer; transition: background .12s ease, border-color .12s ease;
   }
-  .item-card:hover { border-color: var(--accent); }
-  .item-card.selected { border-color: var(--accent); background: #2e3320; }
+  .item-card:hover { border-color: var(--border); background: var(--panel3); }
+  .item-card.selected { border-color: var(--accent); background: #302f1c; }
   .item-card img, .item-card .noicon {
     width: 44px; height: 44px; border-radius: 4px; background: #0e100a; object-fit: contain; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center; font-size: 18px;
   }
   .item-card .info { min-width: 0; }
-  .item-card .name { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .item-card .meta { font-size: 10.5px; color: var(--dim); }
-  .item-card .cost { color: var(--accent); }
+  .item-card .name {
+    font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis; display: flex; align-items: center;
+  }
+  .item-card .meta { font-size: 10.5px; color: var(--dim); font-variant-numeric: tabular-nums; margin-top: 1px; }
+  .item-card .cost { color: var(--accent); font-family: var(--num); }
   .item-card .cost.unconfirmed::after { content: "?"; color: var(--danger); }
   .role-dot {
     display: inline-block; width: 8px; height: 8px; border-radius: 2px;
@@ -94,6 +137,18 @@
   /* Canvas area */
   #canvasWrap { flex: 1; position: relative; min-width: 0; background: #191b12; }
   #canvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: crosshair; }
+  #emptyState {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -60%);
+    text-align: center; pointer-events: none; max-width: calc(360px * var(--s));
+    font-size: calc(13px * var(--s)); color: var(--dim); line-height: 1.6;
+  }
+  #emptyState .es-title {
+    font-size: calc(17px * var(--s)); letter-spacing: .1em; text-transform: uppercase;
+    color: var(--text); font-weight: 600; margin-bottom: calc(8px * var(--s));
+  }
+  #emptyState p { margin-bottom: calc(10px * var(--s)); }
+  #emptyState .es-alt { pointer-events: auto; }
+  #emptyState button { pointer-events: auto; font-size: calc(12px * var(--s)); }
   #hint {
     position: absolute; bottom: calc(30px * var(--s)); left: 50%; transform: translateX(-50%);
     background: rgba(20,22,15,.88); border: 1px solid var(--border); border-radius: 5px;
@@ -114,16 +169,36 @@
     background: var(--panel); border-left: 1px solid var(--border);
     display: flex; flex-direction: column; overflow-y: auto; min-height: 0;
   }
-  .rp-section { padding: 10px 12px; border-bottom: 1px solid var(--border); }
-  .rp-section h3 { font-size: 11px; letter-spacing: 1.5px; color: var(--dim); text-transform: uppercase; margin-bottom: 7px; }
-  .rp-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; gap: 6px; }
+  .rp-section { padding: 11px 13px; border-bottom: 1px solid var(--border-soft); }
+  .rp-section h3 {
+    font-size: 10px; letter-spacing: .16em; color: var(--dim);
+    text-transform: uppercase; margin-bottom: 8px; font-weight: 600;
+  }
+  .rp-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; gap: 8px; }
+  .rp-row:last-child { margin-bottom: 0; }
   .rp-row label { color: var(--dim); font-size: 12px; }
-  .rp-row .val { font-weight: 600; }
-  .cost-line { display: flex; justify-content: space-between; font-size: 11.5px; margin-bottom: 2px; }
-  .cost-line .n { color: var(--dim); }
-  .big-number { font-size: 19px; font-weight: 700; color: var(--accent); }
-  .issue { font-size: 11.5px; color: var(--danger); margin-bottom: 4px; cursor: pointer; }
-  .issue:hover { text-decoration: underline; }
+  .rp-row .val { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .cost-line {
+    display: flex; justify-content: space-between; font-size: 11.5px;
+    margin-bottom: 3px; font-variant-numeric: tabular-nums; gap: 10px;
+  }
+  .cost-line .n { color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cost-line .v { color: var(--text); font-family: var(--num); font-size: 11px; }
+  /* the headline number — this is the thing you actually came for */
+  .hero {
+    display: flex; align-items: baseline; justify-content: space-between;
+    padding: 2px 0 8px; margin-bottom: 8px; border-bottom: 1px solid var(--border-soft);
+  }
+  .hero .big-number {
+    font-size: 27px; font-weight: 700; color: var(--accent); line-height: 1;
+    font-family: var(--num); font-variant-numeric: tabular-nums; letter-spacing: -.02em;
+  }
+  .hero .unit { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+  .issue {
+    font-size: 11.5px; color: #e8a08c; margin-bottom: 5px; cursor: pointer;
+    padding-left: 13px; text-indent: -13px; line-height: 1.4;
+  }
+  .issue:hover { color: var(--danger); text-decoration: underline; }
   .ok { color: var(--accent2); font-size: 11.5px; }
   #selProps input[type=number] { width: 62px; }
   .size-edit { display: flex; align-items: center; gap: 4px; }
@@ -186,10 +261,8 @@
   <button id="btnSnap" class="active" title="Toggle grid snap (B) — same key as in-game">⌗ Snap</button>
   <button id="btnFit" title="Zoom to fit (F)">⛶ Fit</button>
   <div class="sep"></div>
-  <label title="Which storey you're building on. Lower levels stay visible underneath so you can line things up.">Level</label>
-  <button id="blDown" title="Go down a level (Page Down)">▾</button>
-  <span id="blNow" class="val" style="min-width:58px;text-align:center">Ground</span>
-  <button id="blUp" title="Go up a level (Page Up) — build on top of a hesco platform">▴</button>
+  <span class="group-label">Storey</span>
+  <span id="levelStrip" class="seg" title="Everything is shown by default. Pick a storey to work on it on its own."></span>
   <div class="sep"></div>
   <button id="btnTemplates" title="Drop in a ready-made build (mortar pit, AA nest, wall section…)">◈ Presets</button>
   <button id="btnCatalog" title="Edit the buildables catalog (costs/sizes)">⚙ Catalog</button>
@@ -222,6 +295,12 @@
 
   <div id="canvasWrap">
     <canvas id="canvas"></canvas>
+    <div id="emptyState">
+      <div class="es-title">Plan your FOB</div>
+      <p>Start with the <b>FOB</b> at the top of the list — it sets the square you can build inside.
+         Then pick a wall and <b>drag</b> to lay a run.</p>
+      <p class="es-alt">In a hurry? <button id="esPresets">Use a preset</button></p>
+    </div>
     <div id="hint">Click a buildable, then click the map to place — or drag to lay a whole run. Wheel = zoom · Arrows, middle-drag or Space-drag = pan</div>
     <div id="statusbar">
       <span id="sbCoords">0, 0</span>
@@ -271,7 +350,10 @@
 
     <div class="rp-section">
       <h3>Build Cost</h3>
-      <div class="rp-row"><label>Build supplies</label><span class="big-number" id="costSupplies">0</span></div>
+      <div class="hero">
+        <span class="big-number" id="costSupplies">0</span>
+        <span class="unit">build supplies</span>
+      </div>
       <div class="rp-row"><label>Vendor cash (@$10)</label><span class="val" id="costCash">$0</span></div>
       <div class="rp-row"><label>+ FOB item</label><span class="val" id="costFob">—</span></div>
       <div class="rp-row"><label>Hammer needed</label><span class="val" id="hammerNeeded">—</span></div>
@@ -405,7 +487,7 @@ function fobDef() {
 indexCatalog();
 
 let design = { name:"New FOB", pieces:[], nextId:1 };
-let buildLevel = 0;                // storey you're building on; 0 = ground
+let viewLevel = null;              // null = every storey shown; a number = focus that one
 let uiScale = 1;                   // interface scale (also scales canvas labels & default map zoom)
 let view = { x:0, y:0, zoom:26 };  // zoom = px per cell
 let snap = true;
@@ -544,12 +626,12 @@ function redo() { if (!redoStack.length) return; undoStack.push(JSON.stringify(d
 /* ============ PLACING / EDITING ============ */
 function startPlacing(id) {
   placing = id; selection.clear(); ghost = ghost || { cx:0, cy:0, rot:0 };
-  renderPalette(); updateRightPanel(); setBuildLevel(buildLevel);
+  renderPalette(); updateRightPanel(); updateHint(); draw();
 }
 function stopPlacing() {
   placing = null;
   if (dragging && dragging.mode === "stamp") dragging = null;
-  renderPalette(); setBuildLevel(buildLevel);
+  renderPalette(); updateHint(); draw();
 }
 function deleteSelection() {
   if (!selection.size) return;
@@ -609,10 +691,13 @@ function commitStamp(d) {
   const def = byId[placing]; if (!def) return;
   const pts = stampPositions(d);
   if (!pts.length) return;
+  // one storey for the whole run, taken from where the drag started — so a wall
+  // laid past an existing one doesn't climb halfway along
+  const runLevel = autoLevelAt(d.x0, d.y0, def, ghost.rot);
   pushUndo();
   for (const pt of pts) {
     const p = { id: design.nextId++, type: placing, x: pt.cx, y: pt.cy, rot: ghost.rot || 0,
-                level: def.isFob ? 0 : buildLevel };
+                level: def.isFob ? 0 : runLevel };
     if (def.isFob) p.zone = catalog.fob.buildRadiusUnits || 100;
     design.pieces.push(p);
   }
@@ -713,7 +798,7 @@ function stampPreset(t) {
     ids.push(np.id);
   }
   selection = new Set(ids);          // land it selected so you can drag it into position
-  setBuildLevel(0);
+  setViewLevel(null);
   afterChange();
 }
 
@@ -783,9 +868,11 @@ function draw() {
     const def = byId[placing];
     const stamping = dragging && dragging.mode === "stamp";
     const pts = stamping ? stampPositions(dragging) : [{ cx: ghost.cx, cy: ghost.cy }];
+    const ghostLevel = autoLevelAt(stamping ? dragging.x0 : ghost.cx,
+                                   stamping ? dragging.y0 : ghost.cy, def, ghost.rot);
     for (const pt of pts) {
       drawRect({ cx:pt.cx, cy:pt.cy, w:def.footprint.w, h:def.footprint.d, rot:(ghost.rot||0)*Math.PI/180 },
-        def, { ghost:true, level: def.isFob ? 0 : buildLevel });
+        def, { ghost:true, level: def.isFob ? 0 : ghostLevel });
     }
     if (stamping && pts.length > 1) {          // run length + what it will cost
       const last = pts[pts.length - 1];
@@ -821,7 +908,7 @@ function draw() {
 
 function drawPiece(p, hasIssue) {
   const def = byId[p.type]; if (!def) return;
-  const rel = (p.level || 0) - buildLevel;
+  const rel = viewLevel === null ? 0 : (p.level || 0) - viewLevel;
   // the storey you're on reads solid; the ones below show through as an underlay
   const alpha = rel === 0 ? 1 : (rel < 0 ? 0.34 : 0.2);
   drawRect(pieceRect(p), def, {
@@ -1046,7 +1133,7 @@ function updateRightPanel() {
 
   const bd = document.getElementById("costBreakdown");
   bd.innerHTML = Object.entries(counts).sort((a,b) => b[1]*byId[b[0]].cost - a[1]*byId[a[0]].cost)
-    .map(([id, n]) => `<div class="cost-line"><span class="n">${n}× ${byId[id].name}</span><span>${(n*byId[id].cost).toLocaleString()}⛏</span></div>`)
+    .map(([id, n]) => `<div class="cost-line"><span class="n">${n}× ${esc(byId[id].name)}</span><span class="v">${(n*byId[id].cost).toLocaleString()}</span></div>`)
     .join("") || `<span style="color:var(--dim);font-size:11.5px">Nothing placed yet.</span>`;
 
   // ongoing supplies
@@ -1110,9 +1197,18 @@ function updateRightPanel() {
   } else sp.style.display = "none";
 }
 
+function cycleViewLevel(dir) {
+  const levels = levelsInUse();
+  const opts = [null, ...levels];
+  const i = opts.findIndex(v => v === viewLevel);
+  setViewLevel(opts[Math.max(0, Math.min(opts.length - 1, i + dir))]);
+}
 function afterChange(save = true) {
   if (save) saveCurrent();
+  if (viewLevel !== null && !levelsInUse().includes(viewLevel)) viewLevel = null;
+  renderLevelStrip();
   updateRightPanel();
+  document.getElementById("emptyState").style.display = design.pieces.length ? "none" : "";
   draw();
 }
 
@@ -1150,7 +1246,7 @@ canvas.addEventListener("mousemove", e => {
   document.getElementById("sbCoords").textContent = `${wx.toFixed(1)}, ${wy.toFixed(1)}`;
   if (placing) {
     if (dragging && dragging.mode === "stamp") { dragging.x1 = snapVal(wx); dragging.y1 = snapVal(wy); }
-    else { ghost.cx = snapVal(wx); ghost.cy = snapVal(wy); }
+    else { ghost.cx = snapVal(wx); ghost.cy = snapVal(wy); updateHint(); }
     draw(); return;
   }
   if (dragging) {
@@ -1227,8 +1323,8 @@ window.addEventListener("keydown", e => {
   const k = e.key.toLowerCase();
   if (k === "[") stepUiScale(-1);
   else if (k === "]") stepUiScale(1);
-  else if (k === "pageup") { e.preventDefault(); setBuildLevel(buildLevel + 1); }
-  else if (k === "pagedown") { e.preventDefault(); setBuildLevel(buildLevel - 1); }
+  else if (k === "pageup") { e.preventDefault(); cycleViewLevel(1); }
+  else if (k === "pagedown") { e.preventDefault(); cycleViewLevel(-1); }
   else if (k === " ") { spaceHeld = true; canvas.style.cursor = "grab"; e.preventDefault(); }
   else if (k === "escape") { placing ? stopPlacing() : (selection.clear(), updateRightPanel(), draw()); }
   else if (k === "b") toggleSnap();
@@ -1267,17 +1363,70 @@ window.addEventListener("keyup", e => { if (e.key === " ") { spaceHeld = false; 
 
 const MAX_LEVEL = 5;
 function levelName(l) { return l === 0 ? "Ground" : "Level " + (l + 1); }
-function setBuildLevel(l) {
-  buildLevel = Math.max(0, Math.min(MAX_LEVEL, l));
-  document.getElementById("blNow").textContent = levelName(buildLevel);
-  document.getElementById("blNow").style.color = buildLevel ? "var(--accent)" : "var(--text)";
-  document.getElementById("hint").textContent = placing
-    ? `Placing ${byId[placing].name} on ${levelName(buildLevel)} — click for one, or drag to lay a whole run · R rotate · right-click/Esc to stop`
-    : `Building on ${levelName(buildLevel)}. Page Up / Page Down to change storey — lower levels stay visible underneath.`;
+function levelShort(l) { return l === 0 ? "Ground" : "L" + (l + 1); }
+
+/* Stacking is automatic: drop a piece on top of something and it goes on top of it.
+   You only touch the storey control when you want to look at one floor on its own. */
+function autoLevelAt(cx, cy, def, rotDeg) {
+  if (viewLevel !== null) return viewLevel;          // focused on a storey → build there
+  const r = { cx, cy, w: def.footprint.w, h: def.footprint.d, rot: (rotDeg || 0) * Math.PI / 180 };
+  let lvl = 0;
+  for (const p of design.pieces) {
+    const pd = byId[p.type];
+    if (!pd || pd.isFob) continue;
+    if (rectsOverlap(r, pieceRect(p))) lvl = Math.max(lvl, (p.level || 0) + 1);
+  }
+  return Math.min(MAX_LEVEL, lvl);
+}
+function whatsUnder(cx, cy, def, rotDeg) {
+  const r = { cx, cy, w: def.footprint.w, h: def.footprint.d, rot: (rotDeg || 0) * Math.PI / 180 };
+  let best = null, bestLvl = -1;
+  for (const p of design.pieces) {
+    const pd = byId[p.type];
+    if (!pd || pd.isFob) continue;
+    if (rectsOverlap(r, pieceRect(p)) && (p.level || 0) > bestLvl) { bestLvl = p.level || 0; best = pd; }
+  }
+  return best;
+}
+function levelsInUse() {
+  const s = new Set([0]);
+  for (const p of design.pieces) s.add(p.level || 0);
+  return [...s].sort((a, b) => a - b);
+}
+function setViewLevel(l) {
+  viewLevel = l;
+  renderLevelStrip();
+  updateHint();
   draw();
 }
-document.getElementById("blUp").onclick = () => setBuildLevel(buildLevel + 1);
-document.getElementById("blDown").onclick = () => setBuildLevel(buildLevel - 1);
+function renderLevelStrip() {
+  const strip = document.getElementById("levelStrip");
+  const counts = {};
+  for (const p of design.pieces) counts[p.level || 0] = (counts[p.level || 0] || 0) + 1;
+  const levels = levelsInUse();
+  const opts = [{ v: null, label: "All" }].concat(levels.map(l => ({ v: l, label: levelShort(l), n: counts[l] || 0 })));
+  strip.innerHTML = opts.map(o =>
+    `<button data-lvl="${o.v === null ? "" : o.v}" class="${o.v === viewLevel ? "active" : ""}"
+       title="${o.v === null ? "Show every storey" : "Work on " + levelName(o.v) + " on its own"}"
+     >${o.label}${o.n ? ` <span class="n">${o.n}</span>` : ""}</button>`).join("");
+  strip.querySelectorAll("button").forEach(b => b.onclick = () =>
+    setViewLevel(b.dataset.lvl === "" ? null : +b.dataset.lvl));
+}
+function updateHint() {
+  const el = document.getElementById("hint");
+  if (placing) {
+    const def = byId[placing];
+    const lvl = ghost ? autoLevelAt(ghost.cx, ghost.cy, def, ghost.rot) : 0;
+    const under = ghost && lvl > 0 ? whatsUnder(ghost.cx, ghost.cy, def, ghost.rot) : null;
+    el.innerHTML = under
+      ? `Placing <b>${esc(def.name)}</b> on top of ${esc(under.name)} — <span style="color:var(--accent)">${levelName(lvl)}</span> · drag to lay a run · R rotate · Esc to stop`
+      : `Placing <b>${esc(def.name)}</b>${viewLevel ? ` on <span style="color:var(--accent)">${levelName(viewLevel)}</span>` : ""} — click for one, or drag to lay a whole run · R rotate · Esc to stop`;
+  } else if (viewLevel !== null) {
+    el.innerHTML = `Working on <span style="color:var(--accent)">${levelName(viewLevel)}</span> — other storeys are dimmed. Press <b>All</b> to see everything again.`;
+  } else {
+    el.textContent = "Click a buildable, then click the map to place — or drag to lay a run. Drop a piece on top of another and it stacks automatically.";
+  }
+}
 
 function toggleSnap() {
   snap = !snap;
@@ -1465,7 +1614,7 @@ function changeLevel(d) {
     moved = p.level;
   }
   afterChange();
-  if (selection.size === 1 && moved !== null) setBuildLevel(moved);  // follow the piece up
+  if (selection.size === 1 && moved !== null && viewLevel !== null) setViewLevel(moved);
 }
 document.getElementById("designName").onchange = e => { design.name = e.target.value; saveCurrent(); };
 
@@ -1530,7 +1679,7 @@ function openDesign(d, name) {
   document.getElementById("designName").value = name;
   currentSavedName = name;
   undoStack = []; redoStack = []; selection.clear();
-  setBuildLevel(0);
+  setViewLevel(null);
   saveCurrent(); afterChange(false); zoomFit();
 }
 /* In-app confirm. The published page runs in a sandboxed frame where window.confirm()
@@ -1552,7 +1701,7 @@ function newDesign(force) {
   document.getElementById("designName").value = design.name;
   currentSavedName = null;                 // a fresh entry; never rename over the old one
   undoStack = []; redoStack = []; selection.clear();
-  setBuildLevel(0);
+  setViewLevel(null);
   saveCurrent(); afterChange(false); zoomFit();
 }
 function deleteDesign(name) {
@@ -1822,13 +1971,15 @@ function renderLegend() {
 }
 
 /* ============ INIT ============ */
+document.getElementById("esPresets").onclick = () => document.getElementById("btnTemplates").click();
+
 loadCurrent();
 renderLegend();
 renderPalette();
 initUiScale();
-setBuildLevel(0);
+setViewLevel(null);
 resize();
-updateRightPanel();
+afterChange(false);
 zoomFit();
 </script>
 </body>
