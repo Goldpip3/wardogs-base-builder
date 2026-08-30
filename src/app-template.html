@@ -297,6 +297,7 @@
   <input id="designName" placeholder="Design name" value="New FOB">
   <button id="btnNew" title="New design">✚ New</button>
   <button id="btnDesigns" title="Saved designs">🗂 Designs</button>
+  <button id="btnShare" title="Get a link that opens this exact design">🔗 Share</button>
   <button id="btnExport" title="Export design as JSON file">⭳ Export</button>
   <button id="btnImport" title="Import design JSON">⭱ Import</button>
   <button id="btnPng" title="Export layout as PNG image">🖼 PNG</button>
@@ -594,6 +595,16 @@ function rectCorners(r) {
   const c = Math.cos(r.rot), s = Math.sin(r.rot), hw = r.w/2, hh = r.h/2;
   return [[-hw,-hh],[hw,-hh],[hw,hh],[-hw,hh]].map(([x,y]) => [r.cx + x*c - y*s, r.cy + x*s + y*c]);
 }
+/* Axis-aligned bounds of a (possibly rotated) piece. Cheap, and used to reject the
+   overwhelming majority of pairs before the expensive SAT test ever runs. */
+function rectAABB(r) {
+  const c = Math.abs(Math.cos(r.rot)), s = Math.abs(Math.sin(r.rot));
+  const hw = (r.w * c + r.h * s) / 2, hh = (r.w * s + r.h * c) / 2;
+  return { x0: r.cx - hw, y0: r.cy - hh, x1: r.cx + hw, y1: r.cy + hh };
+}
+function aabbOverlap(a, b) {
+  return a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1;
+}
 function rectsOverlap(a, b) { // SAT, with small tolerance so edge-adjacent pieces don't flag
   const EPS = 0.05;
   for (const r of [a, b]) {
@@ -846,7 +857,15 @@ function toWorld(px, py) { return [ (px - canvas.clientWidth/2) / view.zoom + vi
 function toScreen(wx, wy) { return [ (wx - view.x) * view.zoom + canvas.clientWidth/2, (wy - view.y) * view.zoom + canvas.clientHeight/2 ]; }
 
 /* ============ DRAW ============ */
+/* Input events fire far faster than the screen refreshes, so collapse every request
+   made within a frame into a single actual redraw. */
+let drawQueued = false;
 function draw() {
+  if (drawQueued) return;
+  drawQueued = true;
+  requestAnimationFrame(() => { drawQueued = false; drawNow(); });
+}
+function drawNow() {
   const W = canvas.clientWidth, H = canvas.clientHeight;
   ctx.clearRect(0, 0, W, H);
   ctx.fillStyle = "#191b12"; ctx.fillRect(0, 0, W, H);
@@ -887,12 +906,22 @@ function draw() {
     }
   }
 
-  const issues = computeIssues();
+  const issues = getIssues();
   const issueIds = new Set(issues.map(i => i.pieceId).filter(Boolean));
 
-  // pieces sorted by level so higher stacks draw on top
-  const sorted = design.pieces.slice().sort((a,b) => (a.level||0) - (b.level||0));
-  for (const p of sorted) drawPiece(p, issueIds.has(p.id));
+  // only draw what's actually on screen — a big base is mostly off-view when zoomed in
+  const [vx0, vy0] = toWorld(0, 0), [vx1, vy1] = toWorld(W, H);
+  const margin = 6;
+  const visible = [];
+  for (const p of design.pieces) {
+    const def = byId[p.type]; if (!def) continue;
+    const half = Math.max(def.footprint.w, def.footprint.d) / 2 + margin;
+    if (p.x + half < vx0 || p.x - half > vx1 || p.y + half < vy0 || p.y - half > vy1) continue;
+    visible.push(p);
+  }
+  visible.sort((a, b) => (a.level || 0) - (b.level || 0));   // higher stacks draw on top
+  for (const p of visible) drawPiece(p, issueIds.has(p.id));
+  lastDrawn = visible.length;
 
   // ghost
   if (placing && ghost) {
@@ -993,10 +1022,11 @@ function drawRect(r, def, opt) {
   const iconKey = def.icon;
   if (iconKey && iconImgs[iconKey] && iconImgs[iconKey].complete && Math.min(w, h) > 14) {
     const s = Math.min(w, h) * 0.75;
+    const bmp = iconAt(iconKey, s);
     ctx.save();
     ctx.translate(sx, sy);
     ctx.globalAlpha = (opt.ghost ? 0.55 : 1) * 0.9 * fade;
-    ctx.drawImage(iconImgs[iconKey], -s/2, -s/2, s, s);
+    ctx.drawImage(bmp || iconImgs[iconKey], -s/2, -s/2, s, s);
     ctx.restore();
   }
 
@@ -1024,6 +1054,24 @@ function drawRect(r, def, opt) {
     ctx.restore();
   }
 }
+/* Scaling an SVG on every draw makes the browser re-rasterise it each time. Bake each
+   icon to a bitmap once per size bucket and blit that instead. */
+const iconBitmaps = new Map();
+let lastDrawn = 0;
+function iconAt(key, size) {
+  const img = iconImgs[key];
+  if (!img || !img.complete || !img.naturalWidth) return null;
+  const px = Math.max(16, Math.min(256, 1 << Math.ceil(Math.log2(size))));
+  const id = key + "@" + px;
+  let bmp = iconBitmaps.get(id);
+  if (!bmp) {
+    bmp = document.createElement("canvas");
+    bmp.width = bmp.height = px;
+    bmp.getContext("2d").drawImage(img, 0, 0, px, px);
+    iconBitmaps.set(id, bmp);
+  }
+  return bmp;
+}
 function roundRect(x, y, w, h, r) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
@@ -1047,64 +1095,106 @@ function shade(hex, amt) {
 function canOverlay(top, base) {
   return (top.tags || []).includes("overlay") && !(base.tags || []).includes("top-layer");
 }
+/* Every rule here is "does this piece touch that piece", which is O(n^2) done naively.
+   A uniform grid buckets pieces by position so each one is only tested against its
+   actual neighbours — on a big base that's the difference between a million tests a
+   frame and a few thousand. */
+const GRID_CELL = 8;
+function buildIndex(pieces) {
+  const cells = new Map(), meta = new Map();
+  for (const p of pieces) {
+    const def = byId[p.type];
+    if (!def) continue;
+    const rect = pieceRect(p);
+    const box = rectAABB(rect);
+    meta.set(p, { def, rect, box, lvl: p.level || 0 });
+    for (let gx = Math.floor(box.x0 / GRID_CELL); gx <= Math.floor(box.x1 / GRID_CELL); gx++)
+      for (let gy = Math.floor(box.y0 / GRID_CELL); gy <= Math.floor(box.y1 / GRID_CELL); gy++) {
+        const k = gx + "," + gy;
+        let arr = cells.get(k);
+        if (!arr) cells.set(k, arr = []);
+        arr.push(p);
+      }
+  }
+  return { cells, meta };
+}
+function neighbours(index, p) {
+  const m = index.meta.get(p);
+  if (!m) return [];
+  const seen = new Set();
+  for (let gx = Math.floor(m.box.x0 / GRID_CELL); gx <= Math.floor(m.box.x1 / GRID_CELL); gx++)
+    for (let gy = Math.floor(m.box.y0 / GRID_CELL); gy <= Math.floor(m.box.y1 / GRID_CELL); gy++) {
+      const arr = index.cells.get(gx + "," + gy);
+      if (arr) for (const q of arr) if (q !== p) seen.add(q);
+    }
+  return seen;
+}
+function touches(index, a, b) {          // AABB reject first, SAT only if it survives
+  const ma = index.meta.get(a), mb = index.meta.get(b);
+  if (!ma || !mb) return false;
+  if (!aabbOverlap(ma.box, mb.box)) return false;
+  return rectsOverlap(ma.rect, mb.rect);
+}
 function computeIssues() {
   const issues = [];
-  const fobs = design.pieces.filter(p => p.type === "__fob__");
-  for (const p of design.pieces) {
-    const def = byId[p.type]; if (!def) continue;
+  const pieces = design.pieces;
+  const index = buildIndex(pieces);
+  const fobs = pieces.filter(p => p.type === "__fob__");
+  const reported = new Set();              // one overlap complaint per pair
+
+  for (const p of pieces) {
+    const m = index.meta.get(p); if (!m) continue;
+    const def = m.def, lvl = m.lvl, tags = def.tags || [];
+
     if (def.requiresFob !== false && !def.isFob) {
       if (!fobs.length) issues.push({ pieceId: p.id, text: `${def.name}: needs a FOB (none placed)` });
       else if (!insideFobZone(p)) issues.push({ pieceId: p.id, text: `${def.name}: outside every FOB build zone` });
     }
-    if (def.tags && def.tags.includes("ground-only") && (p.level||0) > 0)
+    if (tags.includes("ground-only") && lvl > 0)
       issues.push({ pieceId: p.id, text: `${def.name}: must be placed on the ground` });
-    if (def.tags && def.tags.includes("no-stack") && (p.level||0) > 0)
+    if (tags.includes("no-stack") && lvl > 0)
       issues.push({ pieceId: p.id, text: `${def.name}: cannot be stacked` });
-  }
-  // same-level overlaps
-  for (let i = 0; i < design.pieces.length; i++) for (let j = i+1; j < design.pieces.length; j++) {
-    const a = design.pieces[i], b = design.pieces[j];
-    if ((a.level||0) !== (b.level||0)) continue;
-    if (a.type === "__fob__" || b.type === "__fob__") continue;
-    const da = byId[a.type], db = byId[b.type];
-    if (!da || !db) continue;
-    if (canOverlay(da, db) || canOverlay(db, da)) continue;   // e.g. sandbags sat on a hesco wall
-    if (rectsOverlap(pieceRect(a), pieceRect(b)))
-      issues.push({ pieceId: b.id, text: `${da.name} ⇄ ${db.name}: overlap on level ${ (a.level||0)+1 }` });
-  }
-  // anything raised off the ground needs a platform holding it up
-  for (const p of design.pieces) {
-    const lvl = p.level || 0;
-    if (lvl === 0) continue;
-    const def = byId[p.type]; if (!def) continue;
-    const supported = design.pieces.some(q =>
-      q !== p && (q.level || 0) < lvl && rectsOverlap(pieceRect(p), pieceRect(q)));
+
+    const near = neighbours(index, p);
+    let supported = lvl === 0;
+
+    for (const q of near) {
+      const mq = index.meta.get(q); if (!mq) continue;
+      const qdef = mq.def, qlvl = mq.lvl;
+
+      if (qlvl === lvl) {                                   // same storey: collision
+        if (def.isFob || qdef.isFob) continue;
+        if (canOverlay(def, qdef) || canOverlay(qdef, def)) continue;  // sandbags on a wall
+        const key = p.id < q.id ? p.id + ":" + q.id : q.id + ":" + p.id;
+        if (reported.has(key)) continue;
+        if (touches(index, p, q)) {
+          reported.add(key);
+          issues.push({ pieceId: q.id, text: `${def.name} ⇄ ${qdef.name}: overlap on level ${lvl + 1}` });
+        }
+        continue;
+      }
+      if (qlvl < lvl) {                                     // something below us
+        if (!supported && touches(index, p, q)) supported = true;
+        if ((qdef.tags || []).includes("top-layer") && touches(index, p, q))
+          issues.push({ pieceId: p.id, text: `${def.name}: can't build on top of a Bremer Wall` });
+      } else if (tags.includes("needs-sky") && touches(index, p, q)) {  // something above us
+        issues.push({ pieceId: p.id, text: `${def.name}: blocked from the sky by ${qdef.name}` });
+      }
+    }
     if (!supported)
       issues.push({ pieceId: p.id, text: `${def.name}: nothing underneath to stand on at ${levelName(lvl)}` });
   }
-
-  // pieces stacked over a bremer wall
-  for (const brem of design.pieces) {
-    const bd = byId[brem.type];
-    if (!bd || !(bd.tags||[]).includes("top-layer")) continue;
-    for (const p of design.pieces) {
-      if (p === brem || (p.level||0) <= (brem.level||0)) continue;
-      if (rectsOverlap(pieceRect(p), pieceRect(brem)))
-        issues.push({ pieceId: p.id, text: `${byId[p.type].name}: can't build on top of a Bremer Wall` });
-    }
-  }
-  // needs-sky items under higher-level pieces
-  for (const sky of design.pieces) {
-    const sd = byId[sky.type];
-    if (!sd || !(sd.tags||[]).includes("needs-sky")) continue;
-    for (const p of design.pieces) {
-      if (p === sky || (p.level||0) <= (sky.level||0)) continue;
-      if (rectsOverlap(pieceRect(p), pieceRect(sky)))
-        issues.push({ pieceId: sky.id, text: `${sd.name}: blocked from the sky by ${byId[p.type].name}` });
-    }
-  }
   return issues;
 }
+
+/* The issue list only changes when the design does, so hold onto it rather than
+   recomputing on every pan and zoom frame. */
+let issuesCache = null;
+function getIssues() {
+  if (!issuesCache) issuesCache = computeIssues();
+  return issuesCache;
+}
+function invalidateIssues() { issuesCache = null; }
 
 function updateRightPanel() {
   // cost totals
@@ -1199,7 +1289,7 @@ function updateRightPanel() {
   document.getElementById("ongoing").innerHTML = parts.join("<br>") || "No emplacements needing resupply.";
 
   // issues
-  const issues = computeIssues();
+  const issues = getIssues();
   const ih = document.getElementById("issues");
   ih.innerHTML = issues.length
     ? issues.slice(0, 30).map(i => `<div class="issue" data-pid="${i.pieceId||""}">⚠ ${i.text}</div>`).join("")
@@ -1252,6 +1342,7 @@ function cycleViewLevel(dir) {
   setViewLevel(opts[Math.max(0, Math.min(opts.length - 1, i + dir))]);
 }
 function afterChange(save = true) {
+  invalidateIssues();                     // the design moved, so the checks must re-run
   if (save) saveCurrent();
   if (viewLevel !== null && !levelsInUse().includes(viewLevel)) viewLevel = null;
   renderLevelStrip();
@@ -1281,7 +1372,7 @@ canvas.addEventListener("mousedown", e => {
     if (e.shiftKey) { selection.has(hit.id) ? selection.delete(hit.id) : selection.add(hit.id); }
     else if (!selection.has(hit.id)) selection = new Set([hit.id]);
     dragging = { mode:"move", wx, wy, moved:false,
-      orig: design.pieces.filter(p => selection.has(p.id)).map(p => ({ id:p.id, x:p.x, y:p.y })) };
+      orig: design.pieces.filter(p => selection.has(p.id)).map(p => ({ p, x:p.x, y:p.y })) };
   } else {
     if (!e.shiftKey) selection.clear();
     dragging = { mode:"marquee", x0:wx, y0:wy, x1:wx, y1:wy, additive:e.shiftKey };
@@ -1306,10 +1397,8 @@ canvas.addEventListener("mousemove", e => {
       const dx = wx - dragging.wx, dy = wy - dragging.wy;
       if (!dragging.moved && Math.hypot(dx, dy) * view.zoom > 4) { dragging.moved = true; pushUndo(); }
       if (dragging.moved) {
-        for (const o of dragging.orig) {
-          const p = design.pieces.find(x => x.id === o.id);
-          if (p) { p.x = snapVal(o.x + dx); p.y = snapVal(o.y + dy); }
-        }
+        for (const o of dragging.orig) { o.p.x = snapVal(o.x + dx); o.p.y = snapVal(o.y + dy); }
+        invalidateIssues();
         updateRightPanel(); draw();
       }
     } else if (dragging.mode === "marquee") {
@@ -1361,9 +1450,14 @@ canvas.addEventListener("wheel", e => {
 }, { passive:false });
 
 function hitTest(wx, wy) {
-  const sorted = design.pieces.slice().sort((a,b) => (b.level||0) - (a.level||0));
-  for (const p of sorted) if (pointInRect(wx, wy, pieceRect(p))) return p;
-  return null;
+  // topmost storey wins; scanning once beats sorting the whole design on every mousemove
+  let best = null, bestLvl = -Infinity;
+  for (const p of design.pieces) {
+    const lvl = p.level || 0;
+    if (lvl <= bestLvl) continue;
+    if (pointInRect(wx, wy, pieceRect(p))) { best = p; bestLvl = lvl; }
+  }
+  return best;
 }
 
 window.addEventListener("keydown", e => {
@@ -1815,6 +1909,36 @@ document.getElementById("btnExport").onclick = () => {
       ["Close", closeModal]
     ]);
 };
+document.getElementById("btnShare").onclick = () => {
+  if (!design.pieces.length) { flashStatus("Place something first"); return; }
+  let url;
+  try { url = shareUrl(design); }
+  catch (e) { flashStatus("Could not build a link for this design"); return; }
+  const supplies = design.pieces.reduce((t, p) => {
+    const d = byId[p.type]; return t + (d && !d.isFob ? (d.cost || 0) : 0);
+  }, 0);
+  const long = url.length > 8000;
+  openModal("Share this design",
+    `<p style="color:var(--dim);font-size:12px;margin-bottom:8px">
+       The whole design travels inside the link — anyone who opens it gets your exact layout,
+       with no account and nothing to install. Post it wherever you like.</p>
+     <div class="cost-line" style="margin-bottom:8px">
+       <span class="n">${design.pieces.length} pieces · ${supplies.toLocaleString()} build supplies</span>
+       <span class="v">${url.length.toLocaleString()} characters</span></div>
+     <textarea id="shareTa" spellcheck="false" style="height:26vh">${esc(url)}</textarea>
+     ${long ? `<div style="color:var(--accent);font-size:11.5px;margin-top:6px">
+        That's a long link — some chat apps may truncate it. Export the file instead for very large bases.</div>` : ""}`,
+    [
+      ["📋 Copy link", () => {
+        const ta = document.getElementById("shareTa");
+        ta.select();
+        if (navigator.clipboard) navigator.clipboard.writeText(ta.value).catch(() => {});
+        else document.execCommand("copy");
+        flashStatus("Link copied");
+      }, "active"],
+      ["Close", closeModal]
+    ]);
+};
 document.getElementById("btnImport").onclick = () => {
   openModal("Import Design",
     `<p style="color:var(--dim);font-size:12px;margin-bottom:8px">Paste a design's JSON below, or load a .wardogs.json file.</p>
@@ -1884,6 +2008,64 @@ function openModal(title, bodyHtml, buttons) {
 function closeModal() { modalBack.style.display = "none"; }
 document.getElementById("modalClose").onclick = closeModal;
 modalBack.onclick = e => { if (e.target === modalBack) closeModal(); };
+
+/* ============ SHARE LINKS ============
+   A design packs into the URL itself, so anyone can post a build to Reddit or Discord
+   and it opens ready to inspect — no account, no server, nothing to host. */
+function b64urlEncode(str) {
+  const bytes = new TextEncoder().encode(str);
+  let bin = "";
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function b64urlDecode(s) {
+  const bin = atob(s.replace(/-/g, "+").replace(/_/g, "/"));
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+function encodeDesign(d) {
+  const types = [];
+  const idx = t => { let i = types.indexOf(t); if (i < 0) { i = types.length; types.push(t); } return i; };
+  // positional arrays rather than objects — roughly a third the characters
+  const pieces = d.pieces.map(p => {
+    const a = [idx(p.type), Math.round(p.x * 2), Math.round(p.y * 2), p.rot || 0, p.level || 0];
+    if (p.type === "__fob__") a.push(p.zone || 100);
+    return a;
+  });
+  return b64urlEncode(JSON.stringify({ v: 1, n: d.name || "Shared design", t: types, p: pieces }));
+}
+function decodeDesign(code) {
+  const o = JSON.parse(b64urlDecode(code));
+  if (!o || o.v !== 1 || !Array.isArray(o.p) || !Array.isArray(o.t)) throw new Error("not a design link");
+  let id = 1;
+  const pieces = o.p.map(a => {
+    const p = { id: id++, type: o.t[a[0]], x: a[1] / 2, y: a[2] / 2, rot: a[3] || 0, level: a[4] || 0 };
+    if (a.length > 5) p.zone = a[5];
+    return p;
+  }).filter(p => p.type && byId[p.type]);
+  return { name: String(o.n || "Shared design").slice(0, 80), pieces, nextId: id };
+}
+function shareUrl(d) {
+  const base = location.origin + location.pathname;
+  return base + "#d=" + encodeDesign(d);
+}
+function loadFromHash() {
+  const m = (location.hash || "").match(/[#&]d=([A-Za-z0-9\-_]+)/);
+  if (!m) return false;
+  try {
+    const d = decodeDesign(m[1]);
+    if (!d.pieces.length) return false;
+    design = d;
+    design.name = uniqueName(d.name, readDesigns());
+    document.getElementById("designName").value = design.name;
+    currentSavedName = null;
+    undoStack = []; redoStack = []; selection.clear();
+    history.replaceState(null, "", location.pathname);   // don't re-import on refresh
+    saveCurrent();
+    return true;
+  } catch (e) { return false; }
+}
 
 function esc(s) {
   return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
@@ -2040,7 +2222,8 @@ document.getElementById("ssDismiss").onclick = () => {
   resize();
 };
 
-loadCurrent();
+// a shared link wins over whatever was last open in this browser
+if (!loadFromHash()) loadCurrent();
 renderSupport();
 renderLegend();
 renderPalette();
