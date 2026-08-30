@@ -215,7 +215,12 @@
      the edge of the map would be sitting on a click-and-drag target, which is both worse
      to use and the placement Google treats as inviting accidental clicks. Unfilled units
      collapse, so a request Google does not fill leaves no empty box behind. */
-  .rp-ad { text-align: center; }
+  .rp-ad { text-align: center; padding-left: 0; padding-right: 0; }
+  /* The panel is 250px and .rp-section insets 13px a side, which would leave 224px and put
+     a square unit just under the 250 it wants. Drop the side padding for this one section
+     so the widest unit AdSense has for the space can actually fit; the heading keeps its
+     inset so it still lines up with every other heading in the column. */
+  .rp-ad > h3 { padding-left: 13px; padding-right: 13px; }
   .rp-ad:has(ins[data-ad-status="unfilled"]) { display: none; }
   .rp-row label { color: var(--dim); font-size: 12px; }
   .rp-row .val { font-weight: 600; font-variant-numeric: tabular-nums; }
@@ -307,7 +312,7 @@
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 0; }
   ::-webkit-scrollbar-track { background: transparent; }
 </style>
-
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7658713831499963" crossorigin="anonymous"></script>
 </head>
 <body>
 <div id="topbar">
@@ -465,7 +470,12 @@
         and <span style="color:var(--accent)">L2</span> means it's stacked on a storey above ground.
       </div>
     </div>
-
+    <div class="rp-section rp-ad">
+      <h3>Advertisement</h3>
+      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-7658713831499963"
+           data-ad-slot="6502823960" data-ad-format="auto" data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
   </div>
 </div>
 
@@ -1048,7 +1058,7 @@ const LS_CATALOG = "wardogs.catalog";
    completely offline: with this empty, none of the cloud code below is ever reachable
    and the app makes no network call of any kind. */
 const CLOUD_API = "https://wardogs-votes.wardogsbuilder.workers.dev";
-const BUILD_STAMP = "20260830-222322";
+const BUILD_STAMP = "20260830-222727";
 const LS_TOKEN = "wardogs.token";
 
 const LS_DESIGNS = "wardogs.designs";

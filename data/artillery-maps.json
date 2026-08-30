@@ -1,6 +1,6 @@
 {
  "_note": "The two terrains, in the game's own X/Y where one unit is 100 m and Y counts north. Everything here is a measured position transcribed from wardogs-artillery.com, which calibrated its maps against in-game coordinates. Positions are the facts; the drawing is ours.",
- "_tiles": "The tiles block draws terrain imagery under the vectors. Shape: { path, tileSize, minZoom, maxZoom, extension, bounds }, where path is site-absolute and zoom Z is a 2^Z square of tiles spanning bounds, row 0 being the north edge, named zoom_<z>/<x>_<y>.<extension>. bounds is the calibration box in game coordinates and is not exactly the map extent, because the capture landed a few metres off the round number. Imagery is the game's own, re-encoded to lossy webp and cut to zoom 5, which is 2 m per pixel and 32 MB for both maps. We host our own copy rather than hotlink anyone.",
+ "_tiles": "The tiles block draws terrain imagery under the vectors. Shape: { path, tileSize, minZoom, maxZoom, extension, bounds }, where path is site-absolute and zoom Z is a 2^Z square of tiles spanning bounds, row 0 being the north edge, named zoom_<z>/<x>_<y>.<extension>. bounds is the calibration box in game coordinates and is not exactly the map extent, because the capture landed a few metres off the round number. Imagery is the game s own, re-encoded to lossy webp at quality 82 and cut to zoom 6, which is 1 m per pixel: 5461 tiles and about 53 MB a map. We host our own copy rather than hotlink anyone.",
  "checkedOn": "2026-08-30",
  "source": "wardogs-artillery.com",
  "maps": [
@@ -18,7 +18,7 @@
     "path": "/maps/tiles/bakurani",
     "tileSize": 256,
     "minZoom": 0,
-    "maxZoom": 5,
+    "maxZoom": 6,
     "extension": "webp",
     "bounds": {
      "minX": -0.03,
@@ -142,7 +142,7 @@
     "path": "/maps/tiles/ozeti",
     "tileSize": 256,
     "minZoom": 0,
-    "maxZoom": 5,
+    "maxZoom": 6,
     "extension": "webp",
     "bounds": {
      "minX": -0.03,
