@@ -179,13 +179,23 @@ check(!/[>\s]\?<\/span>/.test(app), "no leftover '?' estimate badges");
 {
   const stale = [];
   if (/id="palletSize"[^>]*value=/.test(app)) stale.push("palletSize has a hardcoded value");
-  if (/id="supplyStock"[^>]*value=/.test(app)) stale.push("supplyStock has a hardcoded value");
   check(stale.length === 0, "supply figures come from the catalog, not the markup", stale.join("; "));
 
   const pallet = catalog.logistics && catalog.logistics.suppliesPerPallet;
   const stock = catalog.fob && catalog.fob.startingSupplies;
   check(app.includes('"suppliesPerPallet": ' + pallet), "catalog pallet size (" + pallet + ") is inlined");
   check(app.includes('"startingSupplies": ' + stock), "catalog FOB stock (" + stock + ") is inlined");
+
+  /* Guarding the two inputs was not enough. The pallet size was also written into the help
+     text as prose, the catalog moved to 1,800 and the prose stayed on 1,900, and the app
+     told players the wrong number for months while every check above it passed. Any figure
+     written out with a thousands comma is one of these two claims or a drifted copy of one,
+     so the prose has to interpolate rather than spell it out. */
+  const written = [...new Set(app.match(/\b\d,\d{3}\b/g) || [])];
+  const fromCatalog = new Set([pallet.toLocaleString("en-US"), stock.toLocaleString("en-US")]);
+  const drifted = written.filter(n => !fromCatalog.has(n));
+  check(drifted.length === 0,
+    "no supply figure is spelled out in the app's prose", drifted.join(", "));
 }
 
 // -- 6b. no em dashes, anywhere --

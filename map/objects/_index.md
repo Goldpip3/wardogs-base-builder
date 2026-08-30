@@ -42,5 +42,7 @@ One line each. Open the card, not this file, to act.
 
 - `assets/icons/`: art. Referenced by id from the catalog; no behaviour of its own.
 - `tools/make-icons.js`, `tools/make-cover.ps1`: one-off asset tools, not on the build path.
+- `tools/serve.js`: serves `docs/` on localhost so the built site can be looked at.
+  No dependencies, nothing shipped, not on the build path. `.claude/launch.json` starts it.
 - `migrate.ps1`: moves the repo to another GitHub account. Run once, if ever.
 - `docs/`: output. See [planner-app](planner/planner-app.md) and [page-module](site/page-module.md).

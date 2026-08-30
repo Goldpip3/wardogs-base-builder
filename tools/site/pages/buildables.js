@@ -100,8 +100,9 @@ write("buildables/index.html", page({
   ${catalog.logistics.palletCash ? "$" + catalog.logistics.palletCash : "about $400"}. A truck carries
   ${catalog.logistics.vehicles[0].pallets} pallets a trip, a helicopter
   ${catalog.logistics.vehicles[1].pallets}. A fresh FOB lands with
-  ${catalog.fob.startingSupplies.toLocaleString()} already inside. The planner turns any design
-  into pallets and trips for you.</p>
+  ${catalog.fob.startingSupplies.toLocaleString()} already inside, so only what a design costs
+  beyond that has to be driven in. The planner turns any design into pallets and trips
+  for you.</p>
   <p><a class="btn" href="/planner/">Open the planner</a></p>
 </div></section>
 <script>

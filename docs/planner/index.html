@@ -233,6 +233,13 @@
     padding-left: 13px; text-indent: -13px; line-height: 1.4;
   }
   .issue:hover { color: var(--danger); text-decoration: underline; }
+  .jump { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+  .jump:hover { color: var(--text); }
+  .jump-go {
+    margin-left: auto; font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--dim); border: 1px solid var(--border); padding: 1px 6px; white-space: nowrap;
+  }
+  .jump:hover .jump-go { color: var(--text); border-color: var(--accent); }
   .ok { color: var(--accent2); font-size: 11.5px; }
   #selProps input[type=number] { width: 62px; }
   .size-edit { display: flex; align-items: center; gap: 4px; }
@@ -404,27 +411,26 @@
     </div>
 
     <div class="rp-section">
+      <h3>Hauling it there</h3>
+      <div class="hero">
+        <span class="big-number" id="palletsNeeded">0</span>
+        <span class="unit" id="palletsUnit">pallets to haul</span>
+      </div>
+      <div class="budget-track" id="budgetTrack" style="display:none"><div class="budget-fill" id="budgetFill"></div></div>
+      <div id="budgetText" style="font-size:11.5px;margin-top:4px"></div>
+      <div class="rp-row" style="margin-top:7px"><label>Pallet cost</label><span class="val" id="palletCash">$0</span></div>
+      <div class="rp-row"><label>Supplies per pallet</label><span class="val" id="palletSize"></span></div>
+      <div id="vehicleRuns" style="margin-top:7px"></div>
+    </div>
+
+    <div class="rp-section">
       <h3>Build Cost</h3>
       <div class="hero">
         <span class="big-number" id="costSupplies">0</span>
         <span class="unit">build supplies</span>
       </div>
       <div class="rp-row"><label>+ FOB item</label><span class="val" id="costFob">-</span></div>
-      <div class="rp-row" style="margin-top:7px"><label>You have in the FOB</label><input type="number" id="supplyStock" min="0" style="width:72px" title="Build supplies stocked. A fresh FOB lands with 1,750 already inside."></div>
-      <div class="budget-track" id="budgetTrack" style="display:none"><div class="budget-fill" id="budgetFill"></div></div>
-      <div id="budgetText" style="font-size:11.5px;margin-top:4px"></div>
       <div id="costBreakdown" style="margin-top:8px"></div>
-    </div>
-
-    <div class="rp-section">
-      <h3>Hauling it there</h3>
-      <div class="rp-row">
-        <label>Supplies per pallet</label>
-        <span class="val" id="palletSize"></span>
-      </div>
-      <div class="rp-row"><label>Pallets needed</label><span class="val" id="palletsNeeded">0</span></div>
-      <div class="rp-row"><label>Pallet cost</label><span class="val" id="palletCash">$0</span></div>
-      <div id="vehicleRuns" style="margin-top:7px"></div>
     </div>
 
     <div class="rp-section">
@@ -1033,7 +1039,7 @@ const LS_CATALOG = "wardogs.catalog";
    completely offline: with this empty, none of the cloud code below is ever reachable
    and the app makes no network call of any kind. */
 const CLOUD_API = "https://wardogs-votes.wardogsbuilder.workers.dev";
-const BUILD_STAMP = "20260830-210912";
+const BUILD_STAMP = "20260830-213816";
 const LS_TOKEN = "wardogs.token";
 
 const LS_DESIGNS = "wardogs.designs";
@@ -2142,11 +2148,21 @@ function updateRightPanel() {
   }
   document.getElementById("costSupplies").textContent = supplies.toLocaleString();
   document.getElementById("costFob").textContent = fobCount ? `${fobCount} × $${catalog.fob.vendorPrice.toLocaleString()}` : "-";
-  /* Supplies travel as pallets, and a vehicle carries a whole number of them, so the figure that actually matters is trips, not raw supply count. */
+  /* Supplies travel as pallets, and a vehicle carries a whole number of them, so the figure
+     that actually matters is trips, not raw supply count.
+
+     The FOB does not land empty. It arrives with its own stock, and only what a design costs
+     beyond that has to be driven in, so that is what the headline counts. This used to be a
+     box asking the player what they had in the FOB, pre-filled with the same number and
+     almost never touched, which left the biggest figure on the panel answering a question
+     nobody had asked. */
   const log = catalog.logistics || {};
   const pallet = PALLET_DEFAULT;
-  const pallets = supplies ? Math.ceil(supplies / pallet) : 0;
+  const stock = FOB_STOCK_DEFAULT;
+  const haul = Math.max(0, supplies - stock);
+  const pallets = Math.ceil(haul / pallet);
   document.getElementById("palletsNeeded").textContent = pallets.toLocaleString();
+  document.getElementById("palletsUnit").textContent = pallets === 1 ? "pallet to haul" : "pallets to haul";
   document.getElementById("palletCash").textContent =
     "$" + (pallets * (log.palletCash || 400)).toLocaleString();
   const vehicles = log.vehicles && log.vehicles.length
@@ -2157,29 +2173,30 @@ function updateRightPanel() {
         return `<div class="cost-line"><span class="n">${esc(v.name)} <span style="opacity:.7">· ${v.pallets} per trip</span></span>` +
                `<span class="v">${trips.toLocaleString()} trip${trips === 1 ? "" : "s"}</span></div>`;
       }).join("")
-    : `<span style="color:var(--dim);font-size:11.5px">Nothing to haul yet.</span>`;
+    : `<span style="color:var(--dim);font-size:11.5px">${supplies
+        ? "Nothing to drive in. The FOB arrives with enough."
+        : "Nothing to haul yet."}</span>`;
 
-  // budget against what's actually stocked at the FOB
-  const stock = Math.max(0, +document.getElementById("supplyStock").value || 0);
+  /* The bar is the design against everything it can draw on: the stock the FOB lands with,
+     plus every pallet hauled in after it. What is left when the last piece goes up is the
+     part worth knowing, because a pallet is indivisible and the remainder is yours. */
   const track = document.getElementById("budgetTrack");
   const fill = document.getElementById("budgetFill");
   const btext = document.getElementById("budgetText");
-  if (stock > 0) {
-    track.style.display = "";
-    const ratio = supplies / stock;
-    fill.style.width = Math.min(100, ratio * 100) + "%";
-    if (supplies <= stock) {
-      fill.style.background = ratio > 0.85 ? "var(--accent)" : "var(--accent2)";
-      btext.innerHTML = `<span style="color:var(--accent2)">Fits</span>, ${(stock - supplies).toLocaleString()}${COST_ICON} left over`;
-    } else {
-      fill.style.background = "var(--danger)";
-      const short = supplies - stock;
-      const morePallets = Math.ceil(short / pallet);
-      btext.innerHTML = `<span style="color:var(--danger)">${short.toLocaleString()}${COST_ICON} short</span>, ${morePallets} more pallet${morePallets > 1 ? "s" : ""}`;
-    }
-  } else {
+  const available = stock + pallets * pallet;
+  if (!supplies) {
     track.style.display = "none";
-    btext.innerHTML = `<span style="color:var(--dim)">Enter your stock to check the design against it.</span>`;
+    btext.innerHTML = `<span style="color:var(--dim)">A fresh FOB lands with ${stock.toLocaleString()}${COST_ICON} inside. Nothing to haul until you spend it.</span>`;
+  } else {
+    track.style.display = "";
+    const spare = available - supplies;
+    fill.style.width = Math.min(100, (supplies / available) * 100) + "%";
+    fill.style.background = spare < pallet * 0.15 ? "var(--accent)" : "var(--accent2)";
+    btext.innerHTML = pallets
+      ? `${stock.toLocaleString()}${COST_ICON} comes with the FOB, ${haul.toLocaleString()}${COST_ICON} has to be hauled.
+         <span style="color:var(--accent2)">${spare.toLocaleString()}${COST_ICON} spare</span> when it is built.`
+      : `<span style="color:var(--accent2)">The FOB's own ${stock.toLocaleString()}${COST_ICON} covers this</span>,
+         ${spare.toLocaleString()}${COST_ICON} left over.`;
   }
 
   /* ---------- how somebody gets over this wall ----------
@@ -2201,6 +2218,7 @@ function updateRightPanel() {
   const climb = getClimb();
   const counted = new Set();
   let vaultable = 0, truckable = 0, secure = 0;
+  climbWeak = { foot: [], vehicle: [] };
   for (const p of design.pieces) {
     const how = climb.get(p.id);
     if (!how) continue;
@@ -2211,8 +2229,8 @@ function updateRightPanel() {
     });
     if (base || counted.has(p.id)) continue;
     counted.add(p.id);
-    if (how === "foot") vaultable++;
-    else if (how === "vehicle") truckable++;
+    if (how === "foot") { vaultable++; climbWeak.foot.push(p.id); }
+    else if (how === "vehicle") { truckable++; climbWeak.vehicle.push(p.id); }
     else secure++;
   }
 
@@ -2221,11 +2239,17 @@ function updateRightPanel() {
      obviously talking about the same thing. */
   const dash = c => `<span style="display:inline-block;width:14px;border-top:2px dashed ${c};
     vertical-align:middle;margin-right:5px"></span>`;
+  /* A count tells you there are seven weak sections. It does not tell you which seven, and
+     hunting for them on a big plan is the whole job. Clicking a line walks them one at a
+     time: select, centre, and stop on the next one the next time you click. */
+  const walk = (how, inner) =>
+    `<div class="jump" data-how="${how}" title="Click to step through them on the plan">` +
+    `<span>${inner}</span><span class="jump-go">Show me</span></div>`;
   const climbParts = [];
-  if (vaultable) climbParts.push(
-    `<div>${dash("#f0503a")}<span style="color:var(--danger)">${vaultable}</span> section${vaultable>1?"s":""} vaultable on foot</div>`);
-  if (truckable) climbParts.push(
-    `<div>${dash("#e2a33a")}<span style="color:var(--accent)">${truckable}</span> section${truckable>1?"s":""} a vehicle gets you over</div>`);
+  if (vaultable) climbParts.push(walk("foot",
+    `${dash("#f0503a")}<span style="color:var(--danger)">${vaultable}</span> section${vaultable>1?"s":""} vaultable on foot`));
+  if (truckable) climbParts.push(walk("vehicle",
+    `${dash("#e2a33a")}<span style="color:var(--accent)">${truckable}</span> section${truckable>1?"s":""} a vehicle gets you over`));
   if (secure) climbParts.push(
     `<div><span style="color:var(--accent2)">${secure}</span> section${secure>1?"s":""} secure</div>`);
   climbEl.innerHTML = !climbParts.length
@@ -2236,25 +2260,40 @@ function updateRightPanel() {
            Anything ${VEHICLE_CLIMB} blocks or under can be crossed by parking a truck against it
            and stepping off the roof. Cap it with a Bremer to stop that.</div>`
         : `<div style="margin-top:6px;color:var(--dim)">Nothing here can be crossed on foot or off a vehicle.</div>`);
+  climbEl.querySelectorAll(".jump").forEach(el => el.onclick = () => walkWeakPoints(el.dataset.how));
 
   const bd = document.getElementById("costBreakdown");
   bd.innerHTML = Object.entries(counts).sort((a,b) => b[1]*byId[b[0]].cost - a[1]*byId[a[0]].cost)
     .map(([id, n]) => `<div class="cost-line"><span class="n">${n}× ${esc(byId[id].name)}</span><span class="v">${(n*byId[id].cost).toLocaleString()}</span></div>`)
     .join("") || `<span style="color:var(--dim);font-size:11.5px">Nothing placed yet.</span>`;
 
-  // ongoing supplies
-  const needs = { ammo: [], fuel: [], mechanical: [] };
+  /* Build Supplies are the one-off. Ammo, Fuel and Mechanical are the bill that keeps
+     arriving, and they are a separate stock in the FOB, so the panel counts the mouths by
+     name and by number. How much one reload actually eats is not published and is not in
+     data/buildables.json, so nothing here converts that into shells. Stating a made-up
+     number would be worse than stating none: see the open questions in map/OPEN.md. */
+  const needs = { ammo: new Map(), fuel: new Map(), mechanical: new Map() };
   for (const p of design.pieces) {
     const def = byId[p.type]; if (!def || !def.tags) continue;
-    if (def.tags.includes("uses-ammo")) needs.ammo.push(def.name);
-    if (def.tags.includes("uses-fuel")) needs.fuel.push(def.name);
-    if (def.tags.includes("uses-mechanical")) needs.mechanical.push(def.name);
+    for (const [tag, bucket] of [["uses-ammo", needs.ammo], ["uses-fuel", needs.fuel],
+                                 ["uses-mechanical", needs.mechanical]])
+      if (def.tags.includes(tag)) bucket.set(def.name, (bucket.get(def.name) || 0) + 1);
   }
-  const resupplyParts = [];
-  if (needs.ammo.length) resupplyParts.push(`<b style="color:var(--text)">Ammo</b>: ${[...new Set(needs.ammo)].join(", ")}`);
-  if (needs.fuel.length) resupplyParts.push(`<b style="color:var(--text)">Fuel</b>: ${[...new Set(needs.fuel)].join(", ")}`);
-  if (needs.mechanical.length) resupplyParts.push(`<b style="color:var(--text)">Mechanical</b>: ${[...new Set(needs.mechanical)].join(", ")}`);
-  document.getElementById("ongoing").innerHTML = resupplyParts.join("<br>") || "No emplacements needing resupply.";
+  const rate = (catalog.mechanics && catalog.mechanics.supplies) || {};
+  const perUnit = String(rate.ammo || "").match(/\$(\d+)/);
+  const line = (label, bucket) => bucket.size
+    ? `<div class="cost-line"><span class="n"><b style="color:var(--text)">${label}</b> ` +
+      [...bucket].map(([name, n]) => `${n}× ${esc(name)}`).join(", ") +
+      `</span></div>`
+    : "";
+  const resupply = line("Ammo", needs.ammo) + line("Fuel", needs.fuel) +
+                   line("Mechanical", needs.mechanical);
+  document.getElementById("ongoing").innerHTML = resupply
+    ? resupply + `<div style="margin-top:6px;color:var(--dim)">Each is its own stock in the FOB` +
+      (perUnit ? `, at ${perUnit[1]} a unit, the same as Build` : "") +
+      `. How much a single reload takes is not published, so this counts what will keep
+        drawing rather than guessing at shells.</div>`
+    : "No emplacements needing resupply.";
 
   // issues
   const issues = getIssues();
@@ -2299,6 +2338,24 @@ function updateRightPanel() {
     document.getElementById("sizeRows").style.display = "none";
     document.getElementById("fobSizeRow").style.display = "none";
   } else sp.style.display = "none";
+}
+
+/* Where the walk through the weak sections has got to, per kind. Kept outside the panel
+   render because that render is what rebuilds the lists, and losing your place on every
+   redraw would put you back at the first section every time. */
+let climbWeak = { foot: [], vehicle: [] };
+const climbCursor = { foot: 0, vehicle: 0 };
+function walkWeakPoints(how) {
+  const list = climbWeak[how] || [];
+  if (!list.length) return;
+  const at = climbCursor[how] % list.length;
+  climbCursor[how] = (at + 1) % list.length;
+  const p = design.pieces.find(x => x.id === list[at]);
+  if (!p) return;
+  selection = new Set([p.id]);
+  view.x = p.x; view.y = p.y;
+  afterChange(false);
+  flashStatus(`${how === "foot" ? "Vaultable on foot" : "A vehicle gets over it"} · ${at + 1} of ${list.length}`);
 }
 
 function cycleViewLevel(dir) {
@@ -2661,7 +2718,6 @@ document.getElementById("btnMirrorH").onclick = () => mirrorSelection("h");
 document.getElementById("btnMirrorV").onclick = () => mirrorSelection("v");
 document.getElementById("btnSelSame").onclick = selectSameType;
 document.getElementById("btnAlign").onclick = alignSelection;
-document.getElementById("supplyStock").oninput = updateRightPanel;
 document.getElementById("lvlUp").onclick = () => changeLevel(1);
 document.getElementById("lvlDn").onclick = () => changeLevel(-1);
 document.getElementById("selNote").onchange = e => {
@@ -3340,7 +3396,7 @@ document.getElementById("btnHelp").onclick = () => {
     <h3 style="margin:14px 0 6px;color:var(--accent);font-size:13px">Game rules baked in</h3>
     <ul style="font-size:12.5px;line-height:1.6;padding-left:18px;color:var(--text)">
       <li>1 grid cell = 1 small Hesco block (≈1.2 m). Heights are in blocks too.</li>
-      <li><b>Height shows on the plan.</b> Each piece is extruded toward the bottom-right in proportion to how tall it is. a 1-block sandbag stays flat, a 5-block bunker or tower clearly stands up. The <b>▲</b> badge gives the exact block count.</li>
+      <li><b>Height shows on the plan</b>, and always inside the piece's own footprint: the top face is inset in proportion to how tall it is, the fill steps lighter with every storey, and the <b>▲</b> badge gives the exact block count. Press <b>V</b> for the 3D view when you want to look at it properly.</li>
       <li>Sizes marked <span class="unsized">red with a “?”</span> are estimates from beta footage. Select a placed piece and edit its <b>Footprint &amp; height</b> to correct it. The change sticks for every piece of that type, in every design.</li>
       <li>Sandbags are meant to sit on top of hesco walls, so overlapping one is <b>not</b> flagged as a problem. Bremer walls still refuse anything on top, as in game.</li>
     </ul>
@@ -3354,9 +3410,9 @@ document.getElementById("btnHelp").onclick = () => {
     </ul>
     <h3 style="margin:14px 0 6px;color:var(--accent);font-size:13px">Planning aids</h3>
     <ul style="font-size:12.5px;line-height:1.6;padding-left:18px;color:var(--text)">
-      <li><b>You have in the FOB</b>. Type in your stock and the bar tells you whether the design fits, what's left over, or how many more pallets you need.</li>
-      <li><b>Hauling it there</b> turns the supply total into the thing that actually costs you time: pallets, what they cost at the vendor, and how many trips that is by truck (2 pallets) or helicopter (1). A Build Supply Pallet costs $400 and holds <b>1,900 supplies</b>, which is why buying loose supplies at $10 each is only worth it for topping up. A fresh FOB lands with 1,750 already inside.</li>
-      <li><b>Anti-climb</b> counts how much of your cover is only waist height. Those pieces can be vaulted unless something taller is stacked on them, which is the usual way a perimeter gets breached.</li>
+      <li><b>Hauling it there</b> is the first thing on the panel, because pallets are what cost you time. A fresh FOB lands with ${FOB_STOCK_DEFAULT.toLocaleString()} supplies already inside, so only what a design costs beyond that has to be driven in. The bar shows the design against the stock plus the pallets, and what is left over when the last piece goes up.</li>
+      <li>A Build Supply Pallet costs ${(catalog.logistics.palletCash || 400).toLocaleString()} and holds <b>${PALLET_DEFAULT.toLocaleString()} supplies</b>, which is why buying loose supplies at $10 each is only worth it for topping up. A truck carries 2 pallets, a helicopter 1.</li>
+      <li><b>Can they get in</b> counts how much of your cover is only waist height, or low enough to cross off a vehicle roof. Click a line and it walks you through those sections one at a time, selecting and centring each.</li>
       <li><b>⇄ / ⇅ Flip</b> mirrors a selection about its own centre. Build one side of a symmetric base, copy it, flip it.</li>
     </ul>
     <h3 style="margin:14px 0 6px;color:var(--accent);font-size:13px">Saving your design</h3>
@@ -3367,7 +3423,7 @@ document.getElementById("btnHelp").onclick = () => {
       <li><b>To keep a copy or send it to someone</b>, use <b>⭳ Export</b>. Copy the text, or download the file. They load it with <b>⭱ Import</b>. That's also your backup if you ever clear your browser data.</li>
       <li>Sandbag Wall, Barbed Wire, Hedgehog and Recon Tent build <b>without</b> a FOB. Everything else must sit inside a FOB's blue build square.</li>
       <li><b>Level badge (L2, L3…)</b> = stacked height, for multi-storey hesco builds. Gates are ground-only; Recon Towers can't stack; nothing builds on top of a Bremer Wall; mortars/AA need open sky.</li>
-      <li>Costs are Build Supplies. 1 supply = $10 at the vendor, or 1,900 in a $400 pallet. A fresh FOB lands with 1,750 already inside.</li>
+      <li>Costs are Build Supplies. 1 supply = $10 at the vendor, or ${PALLET_DEFAULT.toLocaleString()} in a ${(catalog.logistics.palletCash || 400).toLocaleString()} pallet. A fresh FOB lands with ${FOB_STOCK_DEFAULT.toLocaleString()} already inside.</li>
       <li>Mortar, CIWS and SAM eat <b>Ammo</b> supplies; the Drill Rig eats <b>Fuel</b>. They keep drawing after they are built, so a base is not finished when the last wall goes up.</li>
     </ul>`,
     [["Close", closeModal]]);
@@ -3404,9 +3460,6 @@ renderSupport();
 renderLegend();
 renderPalette();
 document.getElementById("palletSize").textContent = PALLET_DEFAULT.toLocaleString();
-document.getElementById("supplyStock").value = FOB_STOCK_DEFAULT;
-document.getElementById("supplyStock").title =
-  "Build supplies stocked. A fresh FOB lands with " + FOB_STOCK_DEFAULT.toLocaleString() + " already inside.";
 initUiScale();
 setViewLevel(null);
 resize();

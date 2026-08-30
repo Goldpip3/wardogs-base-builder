@@ -59,6 +59,10 @@ module.exports = ctx => {
       '<p class="lede">Every item you can buy, and what the vendor wants for it. ' +
       A.items.filter(function (i) { return i.price !== null; }).length +
       " of " + A.items.length + " have a confirmed price; the rest are blank rather than guessed.</p>" +
+      '<p class="lede sub" style="margin-top:12px">Prices only. For what a weapon and a' +
+      ' load actually do to somebody, and to what they are wearing, the' +
+      ' <a href="/ballistics/" style="text-decoration:underline">damage calculator</a>' +
+      ' takes the same catalogue and shoots people with it.</p>' +
       '<div class="chips" style="margin-top:26px">' +
         '<button class="chip" data-cat="" aria-pressed="true">All<small>' + A.items.length + "</small></button>" +
         A.categories.map(function (c) {
@@ -73,7 +77,8 @@ module.exports = ctx => {
       '<table id="cat"><thead><tr><th class="sortable" data-sort="name" data-dir="asc">Item</th>' +
       '<th>Category</th><th class="n sortable" data-sort="price">Price</th></tr></thead>' +
       "<tbody>" + rows + "</tbody></table>" +
-      '<p style="margin-top:34px"><a class="btn" href="/loadouts/">Price up a loadout</a></p>' +
+      '<p style="margin-top:34px"><a class="btn primary" href="/ballistics/">Damage calculator</a> ' +
+      '<a class="btn" href="/loadouts/">Price up a loadout</a></p>' +
       "</div></section>" +
       '<script>(function(){' +
       'var tb=document.querySelector("#cat tbody");' +

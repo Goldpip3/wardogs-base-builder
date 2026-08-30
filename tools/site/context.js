@@ -124,8 +124,11 @@ function stats(d) {
     }
     if (def.role === "cover") { cover++; if ((def.height || 1) <= 1) vault++; }
   }
+  /* Pallets are what has to be driven in, and the FOB is not empty when it lands: it comes
+     with its own build supplies, so only the cost beyond that gets hauled. The planner says
+     the same thing about the same design, and the two must not drift apart. */
   const per = catalog.logistics.suppliesPerPallet;
-  const pallets = Math.ceil(supplies / per);
+  const pallets = Math.ceil(Math.max(0, supplies - catalog.fob.startingSupplies) / per);
   return {
     supplies, pallets, fobs,
     cash: supplies * 10,

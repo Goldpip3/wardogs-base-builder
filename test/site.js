@@ -60,8 +60,9 @@ for (const slug of designDirs) {
     `${slug}: page says ${advertised} supplies, design really costs ${supplies}`);
 
   // pallets and trips must be internally consistent
+  // the FOB's own stock covers the first slice of any design, so only the rest is hauled
   const per = catalog.logistics.suppliesPerPallet;
-  const pallets = Math.ceil(supplies / per);
+  const pallets = Math.ceil(Math.max(0, supplies - catalog.fob.startingSupplies) / per);
   const advPallets = +(html.match(/<b>(\d+)<\/b><span>pallets/) || [])[1];
   const advTruck = +(html.match(/<b>(\d+)<\/b><span>truck trips/) || [])[1];
   check(advPallets === pallets && advTruck === Math.ceil(pallets / 2),

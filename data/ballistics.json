@@ -1,42 +1,84 @@
 {
-  "_note": "Pre-launch. Every number here is either transcribed from a published table or derived from one, and each entry says which. Nothing is estimated to fill a gap. See docs/ballistics-sources.md for the derivation and the two checks it has to pass.",
+  "_note": "Pre-launch. Every number here is either transcribed from a published table or derived from one, and each entry says which. Nothing is estimated to fill a gap. See docs/ballistics-sources.md for the derivation and the checks it has to pass.",
   "checkedOn": "2026-08-30",
   "gameVersion": "closed beta, pre Early Access",
   "health": 100,
 
+  "_paletteNote": "tint values are slots from the data-viz reference palette, dark column, taken in this array's order: yellow, magenta, blue, aqua, violet. That order was chosen by enumerating all 120 orderings of those five slots and keeping only the ones clearing every gate on the adjacent pairlist. This one clears CVD delta-E 13.2 and normal-vision 19.3 against the page ground. Every mark carrying a tint also carries its round name as text, so colour is never the only thing saying which load it is.",
+
   "rounds": [
-    { "id": "FMJ",      "name": "FMJ",      "long": "Standard",       "blocks": [30, 40, 55, 65] },
-    { "id": "HP",       "name": "HP",       "long": "Flesh damage",   "blocks": [83.5, 88, 94.73, 99.24] },
-    { "id": "AP",       "name": "AP",       "long": "Armour piercing","blocks": [15, 20, 27.5, 32.5] },
-    { "id": "Buckshot", "name": "Buckshot", "long": "Buckshot",       "blocks": [44, 52, 64, 72] },
-    { "id": "Slug",     "name": "Slug",     "long": "Slug and arrow", "blocks": [30, 40, 55, 65] }
+    { "id": "FMJ",      "name": "FMJ",      "long": "Standard",        "tint": "#c98500",
+      "blocks": [30, 40, 55, 65],
+      "note": "The baseline every other load is measured against, and the cheapest thing in the vendor list. Armour takes a serious but survivable share." },
+    { "id": "HP",       "name": "HP",       "long": "Flesh damage",    "tint": "#d55181",
+      "blocks": [83.5, 88, 94.73, 99.24],
+      "note": "Ruined by armour. A level 4 vest takes better than ninety-nine percent of it, which is as close to nothing as this game gets. Against a bare zone it is meant to be the heavy hitter, and that figure is the one hole in this page." },
+    { "id": "AP",       "name": "AP",       "long": "Armour piercing", "tint": "#3987e5",
+      "blocks": [15, 20, 27.5, 32.5],
+      "note": "Barely notices armour: two thirds of it still lands through level 4. It is also the most expensive thing on the shelf, and against a bare zone it does nothing standard would not." },
+    { "id": "Buckshot", "name": "Buckshot", "long": "Buckshot",        "tint": "#199e70",
+      "blocks": [44, 52, 64, 72],
+      "note": "Eight pellets, each carrying an eighth of the hit, and they can miss separately. Every shotgun figure on this page assumes all eight land unless you say otherwise." },
+    { "id": "Slug",     "name": "Slug",     "long": "Slug and arrow",  "tint": "#9085e9",
+      "blocks": [30, 40, 55, 65],
+      "note": "One heavy projectile. Armour treats it exactly as it treats standard, so the difference is all in what is behind it." }
   ],
+
+  "armour": [
+    { "slot": "helmet", "name": "Helmet", "covers": ["head"],
+      "vendor": ["Level 1 Helmet", "Level 2 Helmet", "Level 3 Helmet", "Level 4 Helmet"],
+      "note": "The head, and nothing else. A helmet is worth nothing to a man shot in the neck, and the neck is right underneath it." },
+    { "slot": "vest", "name": "Body armour", "covers": ["upper-torso", "middle-torso", "lower-torso"],
+      "vendor": ["Level 1 Armor", "Level 2 Armor", "Level 3 Armor", "Level 4 Armor"],
+      "note": "The three torso zones. Not the pelvis, not the arms, not the legs, which is why a level 4 vest changes nothing at all about a leg shot." }
+  ],
+
+  "ttkBands": [
+    { "id": "fast",  "name": "Fast",      "upTo": 0.25, "tint": "#0ca30c" },
+    { "id": "mid",   "name": "Average",   "upTo": 0.6,  "tint": "#fab219" },
+    { "id": "slow",  "name": "Slow",      "upTo": 1.2,  "tint": "#ec835a" },
+    { "id": "vslow", "name": "Very slow", "upTo": null, "tint": "#d03b3b" }
+  ],
+
+  "_vendorNote": "vendor names the exact item in data/armory.json that sells this load. Spelled out rather than pattern-matched, because the shelf and the damage tables do not agree on names: the AMR 50's ammunition is sold as '.50Cal Standard (FMJ)' and behaves as a slug, and 12g buckshot is shelved as '12g 7mm Buckshot'. test/ballistics.js fails if any of these names stops resolving, which is what turns a rename in the armory into a caught error rather than a blank price.",
 
   "calibres": [
     { "id": "12g",  "name": "12g Buckshot", "damage": 200, "pellets": 8, "perPellet": 25,
-      "velocity": [391, 480], "mass": 4.0, "bullet": 8.3, "rounds": ["Buckshot"] },
+      "velocity": [391, 480], "mass": 4.0, "bullet": 8.3, "rounds": ["Buckshot"],
+      "vendor": { "Buckshot": "12g 7mm Buckshot" } },
     { "id": "50cal", "name": ".50Cal", "damage": 107,
-      "velocity": [900, 900], "mass": 51.0, "bullet": 13.0, "rounds": ["Slug"] },
+      "velocity": [900, 900], "mass": 51.0, "bullet": 13.0, "rounds": ["Slug"],
+      "vendor": { "Slug": ".50Cal Standard (FMJ)" } },
     { "id": "arrow", "name": "Broadhead Arrow", "damage": 77,
-      "velocity": [650, 650], "mass": 25.0, "bullet": 4.0, "rounds": ["Slug"] },
+      "velocity": [650, 650], "mass": 25.0, "bullet": 4.0, "rounds": ["Slug"],
+      "vendor": { "Slug": "Broadhead Arrow" } },
     { "id": "50ae", "name": "50AE", "damage": 63,
-      "velocity": [470, 470], "mass": 19.0, "bullet": 12.7, "rounds": ["FMJ", "HP", "AP"] },
+      "velocity": [470, 470], "mass": 19.0, "bullet": 12.7, "rounds": ["FMJ", "HP", "AP"],
+      "vendor": { "FMJ": "50AE Standard (FMJ)", "HP": "50AE Flesh Damage (HP)", "AP": "50AE Armor Piercing (AP)" } },
     { "id": "308", "name": ".308 Win", "damage": 60,
-      "velocity": [840, 894], "mass": 12.0, "bullet": 7.8, "rounds": ["FMJ", "HP", "AP"] },
+      "velocity": [840, 894], "mass": 12.0, "bullet": 7.8, "rounds": ["FMJ", "HP", "AP"],
+      "vendor": { "FMJ": ".308 Win Standard (FMJ)", "HP": ".308 Win Flesh Damage (HP)", "AP": ".308 Win Armor Piercing (AP)" } },
     { "id": "762x54", "name": "7.62x54mm", "damage": 55,
-      "velocity": [800, 865], "mass": 11.7, "bullet": 7.9, "rounds": ["FMJ", "HP", "AP"] },
+      "velocity": [800, 865], "mass": 11.7, "bullet": 7.9, "rounds": ["FMJ", "HP", "AP"],
+      "vendor": { "FMJ": "7.62x54mm Standard (FMJ)", "HP": "7.62x54mm Flesh Damage (HP)", "AP": "7.62x54mm Armor Piercing (AP)" } },
     { "id": "45colt", "name": ".45 Colt", "damage": 45,
-      "velocity": [335, 335], "mass": 10.0, "bullet": 11.4, "rounds": ["FMJ", "HP", "AP"] },
+      "velocity": [335, 335], "mass": 10.0, "bullet": 11.4, "rounds": ["FMJ", "HP", "AP"],
+      "vendor": { "FMJ": ".45 Colt Standard (FMJ)", "HP": ".45 Colt Flesh Damage (HP)", "AP": ".45 Colt Armor Piercing (AP)" } },
     { "id": "762", "name": "7.62mm", "damage": 42,
-      "velocity": [735, 735], "mass": 8.0, "bullet": 7.9, "rounds": ["FMJ", "HP", "AP"] },
+      "velocity": [735, 735], "mass": 8.0, "bullet": 7.9, "rounds": ["FMJ", "HP", "AP"],
+      "vendor": { "FMJ": "7.62mm Standard (FMJ)", "HP": "7.62mm Flesh Damage (HP)", "AP": "7.62mm Armor Piercing (AP)" } },
     { "id": "45acp", "name": ".45 ACP", "damage": 30,
-      "velocity": [253, 375], "mass": 15.0, "bullet": 11.5, "rounds": ["FMJ", "HP", "AP"] },
+      "velocity": [253, 375], "mass": 15.0, "bullet": 11.5, "rounds": ["FMJ", "HP", "AP"],
+      "vendor": { "FMJ": ".45 ACP Standard (FMJ)", "HP": ".45 ACP Flesh Damage (HP)", "AP": ".45 ACP Armor Piercing (AP)" } },
     { "id": "556", "name": "5.56mm", "damage": 28,
-      "velocity": [715, 975], "mass": 4.1, "bullet": 5.7, "rounds": ["FMJ", "HP", "AP"] },
+      "velocity": [715, 975], "mass": 4.1, "bullet": 5.7, "rounds": ["FMJ", "HP", "AP"],
+      "vendor": { "FMJ": "5.56mm Standard (FMJ)", "HP": "5.56mm Flesh Damage (HP)", "AP": "5.56mm Armor Piercing (AP)" } },
     { "id": "545", "name": "5.45mm", "damage": 26,
-      "velocity": [880, 880], "mass": 3.4, "bullet": 5.6, "rounds": ["FMJ", "HP", "AP"] },
+      "velocity": [880, 880], "mass": 3.4, "bullet": 5.6, "rounds": ["FMJ", "HP", "AP"],
+      "vendor": { "FMJ": "5.45mm Standard (FMJ)", "HP": "5.45mm Flesh Damage (HP)", "AP": "5.45mm Armor Piercing (AP)" } },
     { "id": "9mm", "name": "9mm", "damage": 22,
-      "velocity": [375, 400], "mass": 7.0, "bullet": 9.0, "rounds": ["FMJ", "HP", "AP"] }
+      "velocity": [375, 400], "mass": 7.0, "bullet": 9.0, "rounds": ["FMJ", "HP", "AP"],
+      "vendor": { "FMJ": "9mm Standard (FMJ)", "HP": "9mm Flesh Damage (HP)", "AP": "9mm Armor Piercing (AP)" } }
   ],
 
   "zones": [
@@ -85,8 +127,43 @@
     { "name": "Scout Rifle TD",  "calibre": "556",    "class": "Marksman",      "rpm": 45,   "torso": 52.8,  "range": [50.0, 55.6] }
   ],
 
+  "_unfiguredNote": "Everything the vendor sells that this page cannot put a damage figure on. Listed rather than dropped, because a weapon missing from a ranking reads as a weapon that does not exist, and the honest answer is that it exists and nobody has published enough about it.",
+
+  "unfiguredWeapons": [
+    { "name": "PKM", "calibre": "7.62x51mm", "kind": "Small arm",
+      "why": "No published shots-to-kill row, and 7.62x51mm has no published damage either, so there is nothing to solve from." },
+    { "name": "GGX 17", "calibre": null, "kind": "Small arm",
+      "why": "In the vendor list at $200 with no calibre stated and no ranking row. Not enough to place it." },
+    { "name": "RPG-7", "calibre": "93mm", "kind": "Launcher",
+      "why": "Explosive. Damage is blast, not a hit zone, so it does not belong in a body-part table at all." },
+    { "name": "MAAWS", "calibre": "84mm", "kind": "Launcher",
+      "why": "Explosive, same reason." },
+    { "name": "MGL-40", "calibre": "40mm", "kind": "Launcher",
+      "why": "Explosive, same reason." },
+    { "name": "9K333 Verba", "calibre": "72mm", "kind": "Anti-air",
+      "why": "A guided anti-air missile, not an anti-personnel weapon." }
+  ],
+
+  "unfiguredLoads": [
+    { "name": "12g Rifled Slug", "round": "Slug", "chamberedBy": "M500, MP43",
+      "why": "Every shotgun row that was solved is buckshot, so the slug is a separate unknown wearing the same shell." },
+    { "name": "7.62x51mm Standard (FMJ)", "round": "FMJ", "chamberedBy": "PKM",
+      "why": "The only weapon that chambers it has no ranking row." },
+    { "name": "7.62x51mm Armor Piercing (AP)", "round": "AP", "chamberedBy": "PKM",
+      "why": "Same as the standard load in that calibre: the only weapon firing it has no ranking row." },
+    { "name": ".338", "round": "FMJ", "chamberedBy": "nothing in the vendor list",
+      "why": "Sold with no price, no damage and no weapon to fire it. Almost certainly a launch calibre arriving early." },
+    { "name": ".338 AP", "round": "AP", "chamberedBy": "nothing in the vendor list",
+      "why": "Sold with no price and nothing to fire it, exactly as the standard .338 is." },
+    { "name": ".338 HP", "round": "HP", "chamberedBy": "nothing in the vendor list",
+      "why": "Sold with no price and nothing to fire it, exactly as the standard .338 is." },
+    { "name": "Rambo Explosive Arrow", "round": "Slug", "chamberedBy": "Compound Bow",
+      "why": "Explosive, so it is blast damage rather than a hit zone." }
+  ],
+
   "unsolved": [
-    "Range falloff. Damage clearly drops with distance and slower rounds drop faster, but no published table separates falloff from the other factors, so every figure here is point blank.",
+    "What flesh damage actually does to flesh. Every armour figure for HP is published and this page uses them, but no source gives its damage against an unarmoured zone, so the calculator treats it as equal to standard there. That is almost certainly wrong: the vendor charges nearly twice as much for it, and a round that was strictly worse everywhere would not sell. Read every unarmoured HP figure on this page as a floor rather than a value.",
+    "Range falloff. Damage clearly drops with distance and slower rounds drop faster, but no published table separates falloff from the other factors, so every damage figure here is point blank. Flight time is shown because muzzle velocity is published. Damage at range is not shown, because it is not.",
     "Zone multipliers outside the torso are measured off the 5.56 assault rifle profile. The head, neck and limb ratios hold across four weapons; the torso ratio does not, and varies by up to a fifth. Non-torso figures for heavier calibres are indicative until launch."
   ]
 }
