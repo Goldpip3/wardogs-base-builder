@@ -1,0 +1,9 @@
+# build outputs are committed on purpose — dist/index.html is what GitHub Pages serves
+# and WardogsBaseBuilder.html is the download people grab from the README
+
+# editor / OS noise
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/

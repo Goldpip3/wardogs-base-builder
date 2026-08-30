@@ -1,0 +1,21 @@
+# Rebuilds WardogsBaseBuilder.html from src/app-template.html + data/buildables.json + assets/icons
+$proj = $PSScriptRoot
+$tpl = Get-Content "$proj\src\app-template.html" -Raw
+$catalog = (Get-Content "$proj\data\buildables.json" -Raw).Trim()
+$iconMap = @{}
+Get-ChildItem "$proj\assets\icons\*" -Include *.webp, *.svg, *.png | ForEach-Object {
+  $mime = switch ($_.Extension) { ".webp" {"image/webp"} ".svg" {"image/svg+xml"} ".png" {"image/png"} }
+  $iconMap[$_.Name] = "data:$mime;base64," + [Convert]::ToBase64String([IO.File]::ReadAllBytes($_.FullName))
+}
+$iconsJson = ($iconMap.GetEnumerator() | Sort-Object Name | ForEach-Object { '"{0}":"{1}"' -f $_.Key, $_.Value }) -join ","
+$out = $tpl.Replace('/*__CATALOG__*/', $catalog).Replace('/*__ICONS__*/', "{$iconsJson}")
+[IO.File]::WriteAllText("$proj\WardogsBaseBuilder.html", $out)
+# Artifact variant (no HTML skeleton — the Artifact wrapper provides it)
+$art = $out -replace '(?s)^.*?<title>', '<title>' -replace '</head>\s*<body>', '' -replace '</body>\s*</html>\s*$', ''
+[IO.File]::WriteAllText("$proj\src\artifact.html", $art)
+
+# dist/index.html — drop this folder on any static host (GitHub Pages, Netlify, itch.io)
+New-Item -ItemType Directory -Force "$proj\dist" | Out-Null
+[IO.File]::WriteAllText("$proj\dist\index.html", $out)
+
+Write-Host "Built WardogsBaseBuilder.html + src/artifact.html + dist/index.html"

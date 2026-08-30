@@ -1,0 +1,1771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WARDOGS Base Builder</title>
+<style>
+  :root {
+    --bg: #14160f;
+    --panel: #1d2016;
+    --panel2: #23271b;
+    --border: #3a4028;
+    --text: #d8d6c4;
+    --dim: #8a8a74;
+    --accent: #d9a521;
+    --accent2: #7fa650;
+    --danger: #d05038;
+    --blue: #4d8fc4;
+    --cell: 26px;
+    --s: 1;            /* interface scale — raised automatically on large/4K displays */
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 13px;
+    display: flex; flex-direction: column;
+  }
+  button {
+    background: var(--panel2); color: var(--text); border: 1px solid var(--border);
+    padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  button:hover { border-color: var(--accent); }
+  button.active { background: var(--accent); color: #1a1a10; border-color: var(--accent); font-weight: 600; }
+  button.warn { border-color: var(--danger); }
+  input, select, textarea {
+    background: #12140d; color: var(--text); border: 1px solid var(--border);
+    border-radius: 4px; padding: 4px 7px; font-size: 12px;
+  }
+  input:focus, textarea:focus { outline: 1px solid var(--accent); }
+
+  /* Top bar */
+  #topbar {
+    zoom: var(--s);
+    display: flex; align-items: center; gap: 8px; padding: 7px 12px;
+    background: var(--panel); border-bottom: 1px solid var(--border); flex-wrap: wrap;
+  }
+  #topbar h1 { font-size: 15px; letter-spacing: 2px; color: var(--accent); font-weight: 700; margin-right: 8px; white-space: nowrap; }
+  #topbar h1 span { color: var(--dim); font-weight: 400; letter-spacing: 0; font-size: 11px; }
+  .sep { width: 1px; height: 22px; background: var(--border); margin: 0 2px; }
+  #designName { width: 150px; }
+
+  #main { flex: 1; display: flex; min-height: 0; }
+
+  /* Palette */
+  #palette {
+    zoom: var(--s);
+    width: 244px; max-width: calc(28vw / var(--s));  /* never crowd out the map */
+    background: var(--panel); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; min-height: 0;
+  }
+  #tierTabs { display: flex; padding: 8px 8px 0 8px; gap: 4px; }
+  #tierTabs button { flex: 1; padding: 5px 2px; font-size: 11px; justify-content: center; }
+  #search { margin: 8px; }
+  #items { flex: 1; overflow-y: auto; padding: 0 8px 8px 8px; }
+  .item-card {
+    display: flex; gap: 8px; align-items: center; padding: 6px; margin-bottom: 5px;
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 5px; cursor: grab;
+  }
+  .item-card:hover { border-color: var(--accent); }
+  .item-card.selected { border-color: var(--accent); background: #2e3320; }
+  .item-card img, .item-card .noicon {
+    width: 44px; height: 44px; border-radius: 4px; background: #0e100a; object-fit: contain; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 18px;
+  }
+  .item-card .info { min-width: 0; }
+  .item-card .name { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item-card .meta { font-size: 10.5px; color: var(--dim); }
+  .item-card .cost { color: var(--accent); }
+  .item-card .cost.unconfirmed::after { content: "?"; color: var(--danger); }
+  .role-dot {
+    display: inline-block; width: 8px; height: 8px; border-radius: 2px;
+    margin-right: 6px; vertical-align: 0; flex-shrink: 0;
+  }
+  .legend { display: grid; grid-template-columns: auto 1fr; gap: 5px 8px; align-items: center; }
+  .legend .sw { width: 11px; height: 11px; border-radius: 3px; }
+  .legend span { font-size: 11.5px; }
+  .tier-badge { font-size: 9px; padding: 1px 4px; border-radius: 3px; margin-left: 4px; vertical-align: 1px; }
+  .tier-small  { background: #3d5d33; }
+  .tier-medium { background: #6d5a1e; }
+  .tier-large  { background: #703a2a; }
+
+  /* Canvas area */
+  #canvasWrap { flex: 1; position: relative; min-width: 0; background: #191b12; }
+  #canvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: crosshair; }
+  #hint {
+    position: absolute; bottom: calc(30px * var(--s)); left: 50%; transform: translateX(-50%);
+    background: rgba(20,22,15,.88); border: 1px solid var(--border); border-radius: 5px;
+    padding: calc(5px * var(--s)) calc(14px * var(--s)); font-size: calc(11.5px * var(--s));
+    color: var(--dim); pointer-events: none; white-space: nowrap;
+  }
+  #statusbar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: calc(22px * var(--s));
+    background: rgba(20,22,15,.9); border-top: 1px solid var(--border);
+    display: flex; align-items: center; gap: calc(16px * var(--s)); padding: 0 calc(10px * var(--s));
+    font-size: calc(11px * var(--s)); color: var(--dim);
+  }
+
+  /* Right panel */
+  #rightPanel {
+    zoom: var(--s);
+    width: 250px; max-width: calc(28vw / var(--s));  /* never crowd out the map */
+    background: var(--panel); border-left: 1px solid var(--border);
+    display: flex; flex-direction: column; overflow-y: auto; min-height: 0;
+  }
+  .rp-section { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  .rp-section h3 { font-size: 11px; letter-spacing: 1.5px; color: var(--dim); text-transform: uppercase; margin-bottom: 7px; }
+  .rp-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; gap: 6px; }
+  .rp-row label { color: var(--dim); font-size: 12px; }
+  .rp-row .val { font-weight: 600; }
+  .cost-line { display: flex; justify-content: space-between; font-size: 11.5px; margin-bottom: 2px; }
+  .cost-line .n { color: var(--dim); }
+  .big-number { font-size: 19px; font-weight: 700; color: var(--accent); }
+  .issue { font-size: 11.5px; color: var(--danger); margin-bottom: 4px; cursor: pointer; }
+  .issue:hover { text-decoration: underline; }
+  .ok { color: var(--accent2); font-size: 11.5px; }
+  #selProps input[type=number] { width: 62px; }
+  .size-edit { display: flex; align-items: center; gap: 4px; }
+  .size-edit input[type=number] { width: 44px; }
+  .unsized { color: var(--danger); }
+  .budget-track {
+    height: 7px; background: #12140d; border: 1px solid var(--border);
+    border-radius: 4px; overflow: hidden; margin-top: 6px;
+  }
+  .budget-fill { height: 100%; width: 0; background: var(--accent2); transition: width .15s ease; }
+  .preset-row {
+    display: flex; gap: 10px; align-items: flex-start; padding: 9px 4px;
+    border-bottom: 1px solid var(--border);
+  }
+  .preset-row .body { flex: 1; min-width: 0; }
+  .preset-row .t { font-weight: 600; margin-bottom: 2px; }
+  .preset-row .d { font-size: 11.5px; color: var(--dim); line-height: 1.45; }
+  .preset-row .c { font-size: 11.5px; color: var(--accent); white-space: nowrap; margin-top: 3px; }
+
+  /* Modal */
+  #modalBack {
+    position: fixed; inset: 0; background: rgba(0,0,0,.6); display: none;
+    align-items: center; justify-content: center; z-index: 50;
+  }
+  #modal {
+    zoom: var(--s);
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+    width: min(680px, calc(92vw / var(--s))); max-height: calc(86vh / var(--s));
+    display: flex; flex-direction: column;
+  }
+  #modal header { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  #modal header h2 { font-size: 14px; color: var(--accent); }
+  #modalBody { padding: 14px 16px; overflow-y: auto; }
+  #modalBody textarea { width: 100%; height: calc(46vh / var(--s)); font-family: Consolas, monospace; font-size: 11px; white-space: pre; }
+  #modal footer { padding: 10px 16px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
+  .design-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 4px; border-bottom: 1px solid var(--border); }
+  kbd {
+    background: var(--panel2); border: 1px solid var(--border); border-bottom-width: 2px;
+    border-radius: 3px; padding: 0 5px; font-size: 11px; font-family: inherit;
+  }
+  .help-grid { display: grid; grid-template-columns: 130px 1fr; gap: 6px 12px; font-size: 12.5px; }
+  ::-webkit-scrollbar { width: 9px; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+</style>
+</head>
+<body>
+<div id="topbar">
+  <h1>WARDOGS <span>BASE BUILDER</span></h1>
+  <input id="designName" placeholder="Design name" value="New FOB">
+  <button id="btnNew" title="New design">✚ New</button>
+  <button id="btnDesigns" title="Saved designs">🗂 Designs</button>
+  <button id="btnExport" title="Export design as JSON file">⭳ Export</button>
+  <button id="btnImport" title="Import design JSON">⭱ Import</button>
+  <button id="btnPng" title="Export layout as PNG image">🖼 PNG</button>
+  <div class="sep"></div>
+  <button id="btnUndo" title="Undo (Ctrl+Z)">↩</button>
+  <button id="btnRedo" title="Redo (Ctrl+Y)">↪</button>
+  <div class="sep"></div>
+  <button id="btnSnap" class="active" title="Toggle grid snap (B) — same key as in-game">⌗ Snap</button>
+  <button id="btnFit" title="Zoom to fit (F)">⛶ Fit</button>
+  <div class="sep"></div>
+  <label title="Which storey you're building on. Lower levels stay visible underneath so you can line things up.">Level</label>
+  <button id="blDown" title="Go down a level (Page Down)">▾</button>
+  <span id="blNow" class="val" style="min-width:58px;text-align:center">Ground</span>
+  <button id="blUp" title="Go up a level (Page Up) — build on top of a hesco platform">▴</button>
+  <div class="sep"></div>
+  <button id="btnTemplates" title="Drop in a ready-made build (mortar pit, AA nest, wall section…)">◈ Presets</button>
+  <button id="btnCatalog" title="Edit the buildables catalog (costs/sizes)">⚙ Catalog</button>
+  <button id="btnHelp" title="Help & shortcuts">? Help</button>
+  <div class="sep"></div>
+  <label for="uiScale" style="color:var(--dim)">Size</label>
+  <select id="uiScale" title="Interface size — turn this up on a large or 4K monitor ( [ and ] )">
+    <option value="1">100%</option>
+    <option value="1.25">125%</option>
+    <option value="1.5">150%</option>
+    <option value="1.75">175%</option>
+    <option value="2">200%</option>
+    <option value="2.5">250%</option>
+    <option value="3">300%</option>
+  </select>
+  <input type="file" id="fileInput" accept=".json" style="display:none">
+</div>
+
+<div id="main">
+  <div id="palette">
+    <div id="tierTabs">
+      <button data-tier="all" class="active">All</button>
+      <button data-tier="small">Small</button>
+      <button data-tier="medium">Med</button>
+      <button data-tier="large">Large</button>
+    </div>
+    <input id="search" placeholder="Search buildables…">
+    <div id="items"></div>
+  </div>
+
+  <div id="canvasWrap">
+    <canvas id="canvas"></canvas>
+    <div id="hint">Click a buildable, then click the map to place — or drag to lay a whole run. Wheel = zoom · Arrows, middle-drag or Space-drag = pan</div>
+    <div id="statusbar">
+      <span id="sbCoords">0, 0</span>
+      <span id="sbZoom">100%</span>
+      <span id="sbScale">1 cell = 1 Hesco block ≈ 1.2 m</span>
+      <span id="sbSaved"></span>
+      <span id="sbMode"></span>
+    </div>
+  </div>
+
+  <div id="rightPanel">
+    <div class="rp-section" id="selProps" style="display:none">
+      <h3>Selected</h3>
+      <div class="rp-row"><span class="val" id="selName">—</span></div>
+      <div class="rp-row"><label>Rotation</label>
+        <span><button id="rotL" title="Rotate CCW">⟲</button> <button id="rotR" title="Rotate CW (R)">⟳</button> <span id="selRot" class="val">0°</span></span>
+      </div>
+      <div class="rp-row"><label>Level (stack)</label>
+        <span><button id="lvlDn">−</button> <span id="selLvl" class="val">0</span> <button id="lvlUp">+</button></span>
+      </div>
+      <div id="sizeRows">
+        <div class="rp-row" style="margin-top:8px"><label id="szLabel">Footprint &amp; height</label></div>
+        <div class="rp-row">
+          <span class="size-edit">
+            <input type="number" id="szW" min="1" max="40" step="1" title="Width, in Hesco blocks">
+            <span>×</span>
+            <input type="number" id="szD" min="1" max="40" step="1" title="Depth, in Hesco blocks">
+            <span style="color:var(--dim)">H</span>
+            <input type="number" id="szH" min="1" max="12" step="1" title="Height, in Hesco blocks">
+          </span>
+        </div>
+      </div>
+      <div class="rp-row" id="fobSizeRow" style="display:none"><label>Build zone (cells)</label>
+        <input type="number" id="fobSize" min="10" max="400" step="2">
+      </div>
+      <div class="rp-row"><label>Note</label><input id="selNote" style="width:130px"></div>
+      <div class="rp-row" style="margin-top:8px">
+        <button id="btnMirrorH" title="Flip the selection left↔right">⇄ Flip</button>
+        <button id="btnMirrorV" title="Flip the selection up↔down">⇅ Flip</button>
+        <button id="btnSelSame" title="Select every piece of this type">⊞ Same</button>
+      </div>
+      <div class="rp-row" style="margin-top:5px">
+        <button id="btnDup">⧉ Duplicate</button>
+        <button id="btnDel" class="warn">🗑 Delete</button>
+      </div>
+    </div>
+
+    <div class="rp-section">
+      <h3>Build Cost</h3>
+      <div class="rp-row"><label>Build supplies</label><span class="big-number" id="costSupplies">0</span></div>
+      <div class="rp-row"><label>Vendor cash (@$10)</label><span class="val" id="costCash">$0</span></div>
+      <div class="rp-row"><label>+ FOB item</label><span class="val" id="costFob">—</span></div>
+      <div class="rp-row"><label>Hammer needed</label><span class="val" id="hammerNeeded">—</span></div>
+      <div class="rp-row"><label>Supply runs <input type="number" id="palletSize" value="100" min="1" style="width:52px" title="supplies per pallet run"></label><span class="val" id="supplyRuns">0</span></div>
+      <div class="rp-row" style="margin-top:7px"><label>You have in the FOB</label><input type="number" id="supplyStock" value="0" min="0" style="width:72px" title="Build supplies currently stocked — leave 0 to ignore"></div>
+      <div class="budget-track" id="budgetTrack" style="display:none"><div class="budget-fill" id="budgetFill"></div></div>
+      <div id="budgetText" style="font-size:11.5px;margin-top:4px"></div>
+      <div id="costBreakdown" style="margin-top:8px"></div>
+    </div>
+
+    <div class="rp-section">
+      <h3>Ongoing Supplies</h3>
+      <div id="ongoing" style="font-size:11.5px; color:var(--dim)">—</div>
+    </div>
+
+    <div class="rp-section">
+      <h3>Anti-climb</h3>
+      <div id="antiClimb" style="font-size:11.5px; color:var(--dim); line-height:1.5">—</div>
+    </div>
+
+    <div class="rp-section">
+      <h3>Issues</h3>
+      <div id="issues"><span class="ok">No issues.</span></div>
+    </div>
+
+    <div class="rp-section">
+      <h3>Colour key</h3>
+      <div class="legend" id="legend"></div>
+      <div style="margin-top:9px;font-size:11.5px;color:var(--dim);line-height:1.5">
+        <b style="color:var(--text)">Height</b> — pieces rise off the plan the taller they are;
+        a <span style="color:var(--accent)">▲</span> badge gives the exact block count,
+        and <span style="color:var(--accent)">L2</span> means it's stacked on a storey above ground.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="modalBack">
+  <div id="modal">
+    <header><h2 id="modalTitle">Title</h2><button id="modalClose">✕</button></header>
+    <div id="modalBody"></div>
+    <footer id="modalFoot"></footer>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ============ EMBEDDED DATA ============ */
+const CATALOG_DEFAULT = /*__CATALOG__*/;
+const ICONS = /*__ICONS__*/;
+
+/* ============ STATE ============ */
+const LS_CATALOG = "wardogs.catalog";
+const LS_DESIGNS = "wardogs.designs";
+const LS_CURRENT = "wardogs.current";
+
+let catalog = loadCatalog();
+let byId = {};
+function indexCatalog() { byId = {}; for (const b of catalog.buildables) byId[b.id] = b; byId["__fob__"] = fobDef(); }
+function fobDef() {
+  const f = catalog.fob;
+  return { id:"__fob__", name:"FOB (Forward Operating Base)", tier:"small", cost:0, costConfirmed:true,
+    requiresFob:false, footprint:f.footprint || {w:4,d:4}, height:f.height || 2, sizeConfirmed:f.sizeConfirmed === true,
+    desc:"Deployable FOB. Provides the square build zone; stores supplies. $"+(f.vendorPrice||2500)+" vendor item.",
+    icon:null, tags:["fob"], isFob:true };
+}
+indexCatalog();
+
+let design = { name:"New FOB", pieces:[], nextId:1 };
+let buildLevel = 0;                // storey you're building on; 0 = ground
+let uiScale = 1;                   // interface scale (also scales canvas labels & default map zoom)
+let view = { x:0, y:0, zoom:26 };  // zoom = px per cell
+let snap = true;
+let placing = null;          // catalog id being placed
+let ghost = null;            // {cx, cy, rot}
+let selection = new Set();   // piece ids
+let hoverId = null;
+let undoStack = [], redoStack = [];
+let dragging = null;         // {mode:'pan'|'move'|'marquee'|'stamp', ...}
+let lastNudge = 0;           // coalesces held-arrow nudges into one undo step
+let spaceHeld = false;
+let iconImgs = {};
+
+const TIER_ORDER = { small:1, medium:2, large:3 };
+const TIER_COLOR = { small:"#5d8a4a", medium:"#b08d2a", large:"#b05c3a" };  // fallback for custom entries
+/* Pieces are coloured by what they DO, so a layout reads at a glance. */
+const ROLE_COLOR = {
+  cover:     "#c2a132",  // hesco, sandbag, bremer, bunker, shelters — the fortification family
+  entry:     "#5fa855",  // doors & gates: how your team gets in and out
+  offense:   "#9c5ec4",  // hits the enemy (mortar)
+  antiair:   "#3f9fb5",  // anti-air emplacements
+  denial:    "#a55536",  // wire & anti-vehicle obstacles
+  support:   "#6f8593",  // logistics, comms, concealment
+  objective: "#c04f92",  // drill rig — pulls the Hot Zone
+  fob:       "#4d8fc4"
+};
+const ROLE_LABEL = {
+  cover:"Cover & structure", entry:"Entryway", offense:"Offensive fire", antiair:"Anti-air",
+  denial:"Area denial", support:"Support & logistics", objective:"Objective", fob:"FOB"
+};
+function pieceColor(def) {
+  if (def.isFob) return ROLE_COLOR.fob;
+  return ROLE_COLOR[def.role] || TIER_COLOR[def.tier] || "#888";
+}
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+/* ============ CATALOG persistence ============ */
+function loadCatalog() {
+  try { const s = localStorage.getItem(LS_CATALOG); if (s) return JSON.parse(s); } catch(e) {}
+  return JSON.parse(JSON.stringify(CATALOG_DEFAULT));
+}
+function saveCatalog() { try { localStorage.setItem(LS_CATALOG, JSON.stringify(catalog)); } catch(e) {} }
+
+/* ============ ICON preload ============ */
+for (const [k, v] of Object.entries(ICONS)) {
+  const img = new Image();
+  img.onload = () => draw();
+  img.src = v;
+  iconImgs[k] = img;
+}
+
+/* ============ PALETTE ============ */
+let tierFilter = "all";
+function renderPalette() {
+  const q = document.getElementById("search").value.trim().toLowerCase();
+  const holder = document.getElementById("items");
+  holder.innerHTML = "";
+  const list = [fobDef(), ...catalog.buildables.slice().sort((a,b) =>
+    (TIER_ORDER[a.tier]-TIER_ORDER[b.tier]) || a.name.localeCompare(b.name))];
+  for (const b of list) {
+    if (tierFilter !== "all" && !b.isFob && b.tier !== tierFilter) continue;
+    if (q && !b.name.toLowerCase().includes(q)) continue;
+    const card = document.createElement("div");
+    card.className = "item-card" + (placing === b.id ? " selected" : "");
+    card.title = b.desc || "";
+    const ic = b.icon && ICONS[b.icon]
+      ? `<img src="${ICONS[b.icon]}" alt="">`
+      : `<div class="noicon">${b.isFob ? "🏳" : "▦"}</div>`;
+    const costTxt = b.isFob ? `$${catalog.fob.vendorPrice}` :
+      `<span class="cost ${b.costConfirmed===false?'unconfirmed':''}">${b.cost}⛏</span>`;
+    card.innerHTML = `${ic}<div class="info">
+      <div class="name"><span class="role-dot" style="background:${pieceColor(b)}" title="${ROLE_LABEL[b.isFob?'fob':b.role] || 'Other'}"></span>${b.name}${b.isFob?"":`<span class="tier-badge tier-${b.tier}">${b.tier[0].toUpperCase()}</span>`}</div>
+      <div class="meta">${costTxt} · <span class="${b.sizeConfirmed===false?'unsized':''}" title="${b.sizeConfirmed===false?'Estimated size — select a placed one to correct it':'Confirmed size'}">${b.footprint.w}×${b.footprint.d}${b.height>1?`×${b.height}`:""}${b.sizeConfirmed===false?"?":""}</span>${b.requiresFob===false&&!b.isFob?" · no FOB":""}</div>
+    </div>`;
+    card.onclick = () => startPlacing(b.id);
+    holder.appendChild(card);
+  }
+}
+document.getElementById("search").oninput = renderPalette;
+document.querySelectorAll("#tierTabs button").forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll("#tierTabs button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    tierFilter = btn.dataset.tier;
+    renderPalette();
+  };
+});
+
+/* ============ GEOMETRY (oriented rects, cell units) ============ */
+function pieceRect(p) {
+  const def = byId[p.type]; if (!def) return null;
+  return { cx:p.x, cy:p.y, w:def.footprint.w, h:def.footprint.d, rot:(p.rot||0) * Math.PI/180 };
+}
+function rectCorners(r) {
+  const c = Math.cos(r.rot), s = Math.sin(r.rot), hw = r.w/2, hh = r.h/2;
+  return [[-hw,-hh],[hw,-hh],[hw,hh],[-hw,hh]].map(([x,y]) => [r.cx + x*c - y*s, r.cy + x*s + y*c]);
+}
+function rectsOverlap(a, b) { // SAT, with small tolerance so edge-adjacent pieces don't flag
+  const EPS = 0.05;
+  for (const r of [a, b]) {
+    const axes = [[Math.cos(r.rot), Math.sin(r.rot)], [-Math.sin(r.rot), Math.cos(r.rot)]];
+    for (const ax of axes) {
+      const proj = pts => { let mn=Infinity, mx=-Infinity; for (const [x,y] of pts) { const d = x*ax[0]+y*ax[1]; mn=Math.min(mn,d); mx=Math.max(mx,d);} return [mn,mx]; };
+      const [a1,a2] = proj(rectCorners(a)), [b1,b2] = proj(rectCorners(b));
+      if (a2 - EPS <= b1 || b2 - EPS <= a1) return false;
+    }
+  }
+  return true;
+}
+function pointInRect(px, py, r) {
+  const c = Math.cos(-r.rot), s = Math.sin(-r.rot);
+  const dx = px - r.cx, dy = py - r.cy;
+  const lx = dx*c - dy*s, ly = dx*s + dy*c;
+  return Math.abs(lx) <= r.w/2 && Math.abs(ly) <= r.h/2;
+}
+function insideFobZone(p) {
+  const r = pieceRect(p);
+  for (const f of design.pieces) {
+    if (f.type !== "__fob__") continue;
+    const half = (f.zone || 100) / 2;
+    if (r.cx >= f.x - half && r.cx <= f.x + half && r.cy >= f.y - half && r.cy <= f.y + half) return true;
+  }
+  return false;
+}
+
+/* ============ UNDO ============ */
+function pushUndo() {
+  undoStack.push(JSON.stringify(design.pieces));
+  if (undoStack.length > 100) undoStack.shift();
+  redoStack.length = 0;
+}
+function undo() { if (!undoStack.length) return; redoStack.push(JSON.stringify(design.pieces)); design.pieces = JSON.parse(undoStack.pop()); selection.clear(); afterChange(false); }
+function redo() { if (!redoStack.length) return; undoStack.push(JSON.stringify(design.pieces)); design.pieces = JSON.parse(redoStack.pop()); selection.clear(); afterChange(false); }
+
+/* ============ PLACING / EDITING ============ */
+function startPlacing(id) {
+  placing = id; selection.clear(); ghost = ghost || { cx:0, cy:0, rot:0 };
+  renderPalette(); updateRightPanel(); setBuildLevel(buildLevel);
+}
+function stopPlacing() {
+  placing = null;
+  if (dragging && dragging.mode === "stamp") dragging = null;
+  renderPalette(); setBuildLevel(buildLevel);
+}
+function deleteSelection() {
+  if (!selection.size) return;
+  pushUndo();
+  design.pieces = design.pieces.filter(p => !selection.has(p.id));
+  selection.clear(); afterChange();
+}
+function duplicateSelection() {
+  if (!selection.size) return;
+  pushUndo();
+  const clones = [];
+  for (const p of design.pieces) if (selection.has(p.id)) {
+    const c = JSON.parse(JSON.stringify(p)); c.id = design.nextId++; c.x += 1; c.y += 1; clones.push(c);
+  }
+  design.pieces.push(...clones);
+  selection = new Set(clones.map(c => c.id));
+  afterChange();
+}
+function rotateSelection(deg) {
+  if (placing) { ghost.rot = ((ghost.rot||0) + deg + 360) % 360; draw(); return; }
+  if (!selection.size) return;
+  pushUndo();
+  for (const p of design.pieces) if (selection.has(p.id)) p.rot = ((p.rot||0) + deg + 360) % 360;
+  afterChange();
+}
+function snapVal(v) { return snap ? Math.round(v * 2) / 2 : Math.round(v * 100) / 100; }
+function rotStep() { return snap ? 90 : 15; }
+
+/* Drag-to-stamp: lay a continuous run of one buildable (walls, wire, hedgehogs…).
+   Spacing is the piece's own extent along the drag axis, so segments sit edge to edge. */
+const STAMP_MAX = 300;
+function stampExtents(def, rotDeg) {
+  const rad = ((rotDeg || 0) * Math.PI) / 180;
+  const c = Math.abs(Math.cos(rad)), s = Math.abs(Math.sin(rad));
+  return {
+    x: def.footprint.w * c + def.footprint.d * s,
+    y: def.footprint.w * s + def.footprint.d * c
+  };
+}
+function stampPositions(d) {
+  const def = byId[placing]; if (!def) return [];
+  const ext = stampExtents(def, ghost.rot || 0);
+  const dx = d.x1 - d.x0, dy = d.y1 - d.y0;
+  const horiz = Math.abs(dx) >= Math.abs(dy);          // axis-locked: straight walls
+  const step = Math.max(0.5, horiz ? ext.x : ext.y);
+  const dist = horiz ? Math.abs(dx) : Math.abs(dy);
+  const n = Math.min(STAMP_MAX, Math.floor(dist / step + 1e-6) + 1);
+  const sign = (horiz ? dx : dy) < 0 ? -1 : 1;
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    out.push(horiz ? { cx: d.x0 + i * step * sign, cy: d.y0 }
+                   : { cx: d.x0, cy: d.y0 + i * step * sign });
+  }
+  return out;
+}
+function commitStamp(d) {
+  const def = byId[placing]; if (!def) return;
+  const pts = stampPositions(d);
+  if (!pts.length) return;
+  pushUndo();
+  for (const pt of pts) {
+    const p = { id: design.nextId++, type: placing, x: pt.cx, y: pt.cy, rot: ghost.rot || 0,
+                level: def.isFob ? 0 : buildLevel };
+    if (def.isFob) p.zone = catalog.fob.buildRadiusUnits || 100;
+    design.pieces.push(p);
+  }
+  afterChange();
+}
+
+/* ============ PRESETS ============
+   Ready-made builds taken from what beta players actually found works, so you can
+   drop a known-good emplacement in and adjust rather than rebuilding it every time. */
+function ring(radius) {                       // square ring of cells at this distance out
+  const out = [];
+  for (let x = -radius; x <= radius; x++)
+    for (let y = -radius; y <= radius; y++)
+      if (Math.max(Math.abs(x), Math.abs(y)) === radius) out.push([x, y]);
+  return out;
+}
+function emplacementPit(weapon, radius) {
+  // weapon in the middle, waist-height hesco ringed one block out (tall walls eat your
+  // own shells), with a door on the south face
+  const ps = [{ type: weapon, x: 0, y: 0, rot: 0, level: 0 }];
+  for (const [x, y] of ring(radius)) {
+    const isDoor = x === 0 && y === radius;
+    ps.push({ type: isDoor ? "door" : "hesco-small", x, y, rot: 0, level: 0 });
+  }
+  return ps;
+}
+const PRESETS = [
+  {
+    id: "mortar-pit", name: "Mortar Pit",
+    desc: "L81 ringed one block out with waist-height hesco so the tube clears the wall — the fix for shells hitting your own parapet. Door on the south face.",
+    build: () => emplacementPit("l81-mortar", 3)
+  },
+  {
+    id: "aa-nest", name: "AA Nest (CIWS)",
+    desc: "Low hesco with sandbags stacked on top — the community's “perfect height” combo for the CIWS. Keep the sky above it clear.",
+    build: () => {
+      const ps = emplacementPit("vanguard-ciws", 3);
+      for (let x = -3; x <= 3; x += 2) {
+        ps.push({ type: "sandbag-wall", x, y: -3, rot: 0, level: 1 });
+        ps.push({ type: "sandbag-wall", x, y:  3, rot: 0, level: 1 });
+      }
+      return ps;
+    }
+  },
+  {
+    id: "sam-site", name: "SAM Site (Talon)",
+    desc: "Talon 9K in a low pit with cover on all sides. Needs Ammo supplies at the FOB and open sky to track helis.",
+    build: () => emplacementPit("talon-9k-sam", 3)
+  },
+  {
+    id: "anticlimb-wall", name: "Anti-climb Wall (8 long)",
+    desc: "Two quad hesco sections with Bremer walls capped on top — nothing can be built above a Bremer, so it's the finishing layer that stops anyone vaulting in.",
+    build: () => {
+      const ps = [];
+      ps.push({ type: "hesco-wall", x: -2, y: 0, rot: 0, level: 0 });
+      ps.push({ type: "hesco-wall", x:  2, y: 0, rot: 0, level: 0 });
+      for (let x = -3.5; x <= 3.5; x += 1) ps.push({ type: "bremer-wall", x, y: 0, rot: 0, level: 1 });
+      return ps;
+    }
+  },
+  {
+    id: "vehicle-gate", name: "Vehicle Gate",
+    desc: "Armoured gate flanked by quad wall. The gate swings through, so leave the inside clear — and it has to sit on the ground.",
+    build: () => ([
+      { type: "gate",       x:  0, y: 0, rot: 0, level: 0 },
+      { type: "hesco-wall", x: -4, y: 0, rot: 0, level: 0 },
+      { type: "hesco-wall", x:  4, y: 0, rot: 0, level: 0 },
+    ])
+  },
+  {
+    id: "raised-gun", name: "Raised Gun Platform",
+    desc: "A 4×4 hesco platform with a CIWS mounted on top — height for the gun, cover underneath. Build the floor first, then the weapon on Level 2.",
+    build: () => {
+      const ps = [];
+      for (let x = -1.5; x <= 1.5; x += 1)
+        for (let y = -1.5; y <= 1.5; y += 1)
+          ps.push({ type: "hesco-tall", x, y, rot: 0, level: 0 });
+      ps.push({ type: "vanguard-ciws", x: 0, y: 0, rot: 0, level: 1 });
+      return ps;
+    }
+  }
+];
+function presetCost(t) {
+  return t.build().reduce((sum, p) => {
+    const d = byId[p.type]; return sum + (d && !d.isFob ? (d.cost || 0) : 0);
+  }, 0);
+}
+function stampPreset(t) {
+  const pieces = t.build();
+  pushUndo();
+  const ids = [];
+  for (const p of pieces) {
+    if (!byId[p.type]) continue;
+    const np = { id: design.nextId++, type: p.type,
+                 x: snapVal(view.x + p.x), y: snapVal(view.y + p.y),
+                 rot: p.rot || 0, level: p.level || 0 };
+    design.pieces.push(np);
+    ids.push(np.id);
+  }
+  selection = new Set(ids);          // land it selected so you can drag it into position
+  setBuildLevel(0);
+  afterChange();
+}
+
+/* ============ CANVAS: coords ============ */
+function resize() {
+  const wrap = document.getElementById("canvasWrap");
+  canvas.width = wrap.clientWidth * devicePixelRatio;
+  canvas.height = wrap.clientHeight * devicePixelRatio;
+  ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+  draw();
+}
+window.addEventListener("resize", resize);
+function toWorld(px, py) { return [ (px - canvas.clientWidth/2) / view.zoom + view.x, (py - canvas.clientHeight/2) / view.zoom + view.y ]; }
+function toScreen(wx, wy) { return [ (wx - view.x) * view.zoom + canvas.clientWidth/2, (wy - view.y) * view.zoom + canvas.clientHeight/2 ]; }
+
+/* ============ DRAW ============ */
+function draw() {
+  const W = canvas.clientWidth, H = canvas.clientHeight;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = "#191b12"; ctx.fillRect(0, 0, W, H);
+
+  // grid
+  const z = view.zoom;
+  if (z >= 7 * uiScale) {
+    const [x0, y0] = toWorld(0, 0), [x1, y1] = toWorld(W, H);
+    ctx.lineWidth = uiScale;
+    for (let gx = Math.floor(x0); gx <= Math.ceil(x1); gx++) {
+      const [sx] = toScreen(gx, 0);
+      ctx.strokeStyle = gx % 10 === 0 ? "#2e3220" : "#20241666";
+      ctx.beginPath(); ctx.moveTo(sx, 0); ctx.lineTo(sx, H); ctx.stroke();
+    }
+    for (let gy = Math.floor(y0); gy <= Math.ceil(y1); gy++) {
+      const [, sy] = toScreen(0, gy);
+      ctx.strokeStyle = gy % 10 === 0 ? "#2e3220" : "#20241666";
+      ctx.beginPath(); ctx.moveTo(0, sy); ctx.lineTo(W, sy); ctx.stroke();
+    }
+  }
+  // origin
+  const [ox, oy] = toScreen(0, 0);
+  ctx.strokeStyle = "#3a402855"; ctx.lineWidth = 1.5 * uiScale;
+  const xh = 10 * uiScale;
+  ctx.beginPath(); ctx.moveTo(ox-xh, oy); ctx.lineTo(ox+xh, oy); ctx.moveTo(ox, oy-xh); ctx.lineTo(ox, oy+xh); ctx.stroke();
+
+  // FOB zones underneath
+  for (const p of design.pieces) if (p.type === "__fob__") {
+    const half = (p.zone || 100) / 2;
+    const [zx, zy] = toScreen(p.x - half, p.y - half);
+    const side = (p.zone || 100) * z;
+    ctx.fillStyle = "#4d8fc411"; ctx.fillRect(zx, zy, side, side);
+    ctx.strokeStyle = "#4d8fc466"; ctx.setLineDash([7, 5]); ctx.lineWidth = 1.5;
+    ctx.strokeRect(zx, zy, side, side); ctx.setLineDash([]);
+    if (z > 4) {
+      ctx.fillStyle = "#4d8fc499"; ctx.font = `${10*uiScale}px sans-serif`; ctx.textAlign = "left";
+      ctx.fillText(`BUILD ZONE ${p.zone||100}×${p.zone||100}`, zx + 5*uiScale, zy + 13*uiScale);
+    }
+  }
+
+  const issues = computeIssues();
+  const issueIds = new Set(issues.map(i => i.pieceId).filter(Boolean));
+
+  // pieces sorted by level so higher stacks draw on top
+  const sorted = design.pieces.slice().sort((a,b) => (a.level||0) - (b.level||0));
+  for (const p of sorted) drawPiece(p, issueIds.has(p.id));
+
+  // ghost
+  if (placing && ghost) {
+    const def = byId[placing];
+    const stamping = dragging && dragging.mode === "stamp";
+    const pts = stamping ? stampPositions(dragging) : [{ cx: ghost.cx, cy: ghost.cy }];
+    for (const pt of pts) {
+      drawRect({ cx:pt.cx, cy:pt.cy, w:def.footprint.w, h:def.footprint.d, rot:(ghost.rot||0)*Math.PI/180 },
+        def, { ghost:true, level: def.isFob ? 0 : buildLevel });
+    }
+    if (stamping && pts.length > 1) {          // run length + what it will cost
+      const last = pts[pts.length - 1];
+      const [lx, ly] = toScreen(last.cx, last.cy);
+      const label = `×${pts.length}` + (def.cost ? `  ${(pts.length * def.cost).toLocaleString()}⛏` : "");
+      ctx.font = `700 ${13 * uiScale}px sans-serif`;
+      const pad = 6 * uiScale, tw = ctx.measureText(label).width;
+      const bx = lx + 14 * uiScale, by = ly - 12 * uiScale;
+      ctx.fillStyle = "rgba(20,22,15,.9)";
+      ctx.strokeStyle = "#d9a521"; ctx.lineWidth = uiScale;
+      roundRect(bx, by - 11*uiScale, tw + pad*2, 24*uiScale, 4*uiScale);
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#d9a521"; ctx.textAlign = "left";
+      ctx.fillText(label, bx + pad, by + 5*uiScale);
+    }
+    if (def.isFob) {
+      const half = (catalog.fob.buildRadiusUnits || 100) / 2;
+      const [zx, zy] = toScreen(ghost.cx - half, ghost.cy - half);
+      const side = (catalog.fob.buildRadiusUnits || 100) * z;
+      ctx.strokeStyle = "#4d8fc455"; ctx.setLineDash([7,5]); ctx.strokeRect(zx, zy, side, side); ctx.setLineDash([]);
+    }
+  }
+
+  // marquee
+  if (dragging && dragging.mode === "marquee") {
+    const [ax, ay] = toScreen(dragging.x0, dragging.y0);
+    const [bx, by] = toScreen(dragging.x1, dragging.y1);
+    ctx.strokeStyle = "#d9a52188"; ctx.fillStyle = "#d9a52111";
+    ctx.fillRect(Math.min(ax,bx), Math.min(ay,by), Math.abs(bx-ax), Math.abs(by-ay));
+    ctx.strokeRect(Math.min(ax,bx), Math.min(ay,by), Math.abs(bx-ax), Math.abs(by-ay));
+  }
+}
+
+function drawPiece(p, hasIssue) {
+  const def = byId[p.type]; if (!def) return;
+  const rel = (p.level || 0) - buildLevel;
+  // the storey you're on reads solid; the ones below show through as an underlay
+  const alpha = rel === 0 ? 1 : (rel < 0 ? 0.34 : 0.2);
+  drawRect(pieceRect(p), def, {
+    selected: selection.has(p.id),
+    hovered: hoverId === p.id,
+    issue: hasIssue,
+    level: p.level || 0,
+    note: p.note,
+    isFob: def.isFob,
+    alpha,
+    onThisLevel: rel === 0
+  });
+}
+
+function drawRect(r, def, opt) {
+  const z = view.zoom;
+  const [sx, sy] = toScreen(r.cx, r.cy);
+  const w = r.w * z, h = r.h * z;
+  const base = pieceColor(def);
+  const fade = opt.alpha === undefined ? 1 : opt.alpha;
+
+  // Height reads as an extrusion toward the bottom-right: the taller the piece — and the
+  // higher it's stacked — the further it rises off the plan. A 1-block sandbag stays flat,
+  // a 5-block tower visibly stands up.
+  const topBlocks = (opt.level || 0) + (def.height || 1);
+  if (!opt.ghost && fade === 1 && topBlocks > 1 && Math.min(w, h) > 7) {
+    const off = Math.min(12, topBlocks * 1.6) * uiScale;
+    ctx.save();
+    ctx.translate(sx + off, sy + off);
+    ctx.rotate(r.rot);
+    ctx.globalAlpha = 0.5;
+    ctx.fillStyle = shade(base, -58);            // the shaded "side" of the block
+    roundRect(-w/2, -h/2, w, h, Math.min(4, z*0.15));
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // body — rotated with the piece
+  ctx.save();
+  ctx.translate(sx, sy);
+  ctx.rotate(r.rot);
+  ctx.globalAlpha = (opt.ghost ? 0.55 : 1) * fade;
+  ctx.fillStyle = shade(base, opt.level ? 18 * Math.min(opt.level,3) : 0);
+  ctx.strokeStyle = opt.issue ? "#d05038" : (opt.selected ? "#d9a521" : (opt.hovered ? "#d8d6c4" : shade(base, -25)));
+  ctx.lineWidth = (opt.selected || opt.issue ? 2.5 : 1.5) * uiScale;
+  roundRect(-w/2, -h/2, w, h, Math.min(4, z*0.15));
+  ctx.fill(); ctx.stroke();
+  ctx.restore();
+
+  // icon — drawn upright, never rotated, so it stays readable at any angle
+  const iconKey = def.icon;
+  if (iconKey && iconImgs[iconKey] && iconImgs[iconKey].complete && Math.min(w, h) > 14) {
+    const s = Math.min(w, h) * 0.75;
+    ctx.save();
+    ctx.translate(sx, sy);
+    ctx.globalAlpha = (opt.ghost ? 0.55 : 1) * 0.9 * fade;
+    ctx.drawImage(iconImgs[iconKey], -s/2, -s/2, s, s);
+    ctx.restore();
+  }
+
+  // label & badges (unrotated)
+  if (z > 9 * uiScale && !opt.ghost && (opt.onThisLevel !== false || opt.selected || opt.hovered)) {
+    ctx.save();
+    ctx.translate(sx, sy);
+    const showLabel = opt.selected || opt.hovered || def.isFob || Math.min(r.w, r.h) >= 2;
+    ctx.font = "600 " + Math.max(9*uiScale, Math.min(11*uiScale, z*0.4)) + "px sans-serif";
+    ctx.textAlign = "center"; ctx.fillStyle = "#d8d6c4dd";
+    const short = def.isFob ? "FOB" : def.name.replace(/ \(.*\)/, "").split(" ").slice(0,2).join(" ");
+    if (showLabel) ctx.fillText(short, 0, Math.max(r.w, r.h) * z / 2 + 12 * uiScale);
+    // badges above the piece: which storey it's on, and how many blocks tall it is
+    const badges = [];
+    if (opt.level > 0) badges.push("L" + (opt.level + 1));
+    if ((def.height || 1) > 1) badges.push("▲" + def.height);
+    if (badges.length) {
+      ctx.fillStyle = "#d9a521"; ctx.font = `700 ${10*uiScale}px sans-serif`;
+      ctx.fillText(badges.join(" "), 0, -Math.max(r.w, r.h) * z / 2 - 4 * uiScale);
+    }
+    if (opt.note) {
+      ctx.fillStyle = "#7fa650"; ctx.font = `${9*uiScale}px sans-serif`;
+      ctx.fillText("✎", Math.max(r.w, r.h) * z / 2 + 6 * uiScale, 0);
+    }
+    ctx.restore();
+  }
+}
+function roundRect(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+function shade(hex, amt) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = Math.max(0, Math.min(255, (n >> 16) + amt));
+  const g = Math.max(0, Math.min(255, ((n >> 8) & 255) + amt));
+  const b = Math.max(0, Math.min(255, (n & 255) + amt));
+  return `rgb(${r},${g},${b})`;
+}
+
+/* ============ ISSUES / COSTS ============ */
+/* Some pieces are made to be dropped on top of cover — sandbags on a hesco wall are a
+   standard build, so overlapping one isn't a mistake. Bremer walls still refuse a topping. */
+function canOverlay(top, base) {
+  return (top.tags || []).includes("overlay") && !(base.tags || []).includes("top-layer");
+}
+function computeIssues() {
+  const issues = [];
+  const fobs = design.pieces.filter(p => p.type === "__fob__");
+  for (const p of design.pieces) {
+    const def = byId[p.type]; if (!def) continue;
+    if (def.requiresFob !== false && !def.isFob) {
+      if (!fobs.length) issues.push({ pieceId: p.id, text: `${def.name}: needs a FOB (none placed)` });
+      else if (!insideFobZone(p)) issues.push({ pieceId: p.id, text: `${def.name}: outside every FOB build zone` });
+    }
+    if (def.tags && def.tags.includes("ground-only") && (p.level||0) > 0)
+      issues.push({ pieceId: p.id, text: `${def.name}: must be placed on the ground` });
+    if (def.tags && def.tags.includes("no-stack") && (p.level||0) > 0)
+      issues.push({ pieceId: p.id, text: `${def.name}: cannot be stacked` });
+  }
+  // same-level overlaps
+  for (let i = 0; i < design.pieces.length; i++) for (let j = i+1; j < design.pieces.length; j++) {
+    const a = design.pieces[i], b = design.pieces[j];
+    if ((a.level||0) !== (b.level||0)) continue;
+    if (a.type === "__fob__" || b.type === "__fob__") continue;
+    const da = byId[a.type], db = byId[b.type];
+    if (!da || !db) continue;
+    if (canOverlay(da, db) || canOverlay(db, da)) continue;   // e.g. sandbags sat on a hesco wall
+    if (rectsOverlap(pieceRect(a), pieceRect(b)))
+      issues.push({ pieceId: b.id, text: `${da.name} ⇄ ${db.name}: overlap on level ${ (a.level||0)+1 }` });
+  }
+  // anything raised off the ground needs a platform holding it up
+  for (const p of design.pieces) {
+    const lvl = p.level || 0;
+    if (lvl === 0) continue;
+    const def = byId[p.type]; if (!def) continue;
+    const supported = design.pieces.some(q =>
+      q !== p && (q.level || 0) < lvl && rectsOverlap(pieceRect(p), pieceRect(q)));
+    if (!supported)
+      issues.push({ pieceId: p.id, text: `${def.name}: nothing underneath to stand on at ${levelName(lvl)}` });
+  }
+
+  // pieces stacked over a bremer wall
+  for (const brem of design.pieces) {
+    const bd = byId[brem.type];
+    if (!bd || !(bd.tags||[]).includes("top-layer")) continue;
+    for (const p of design.pieces) {
+      if (p === brem || (p.level||0) <= (brem.level||0)) continue;
+      if (rectsOverlap(pieceRect(p), pieceRect(brem)))
+        issues.push({ pieceId: p.id, text: `${byId[p.type].name}: can't build on top of a Bremer Wall` });
+    }
+  }
+  // needs-sky items under higher-level pieces
+  for (const sky of design.pieces) {
+    const sd = byId[sky.type];
+    if (!sd || !(sd.tags||[]).includes("needs-sky")) continue;
+    for (const p of design.pieces) {
+      if (p === sky || (p.level||0) <= (sky.level||0)) continue;
+      if (rectsOverlap(pieceRect(p), pieceRect(sky)))
+        issues.push({ pieceId: sky.id, text: `${sd.name}: blocked from the sky by ${byId[p.type].name}` });
+    }
+  }
+  return issues;
+}
+
+function updateRightPanel() {
+  // cost totals
+  let supplies = 0, fobCount = 0, maxTier = 0;
+  const counts = {};
+  for (const p of design.pieces) {
+    const def = byId[p.type]; if (!def) continue;
+    if (def.isFob) { fobCount++; continue; }
+    supplies += def.cost || 0;
+    maxTier = Math.max(maxTier, TIER_ORDER[def.tier] || 1);
+    counts[def.id] = (counts[def.id] || 0) + 1;
+  }
+  document.getElementById("costSupplies").textContent = supplies.toLocaleString();
+  document.getElementById("costCash").textContent = "$" + (supplies * 10).toLocaleString();
+  document.getElementById("costFob").textContent = fobCount ? `${fobCount} × $${catalog.fob.vendorPrice.toLocaleString()}` : "—";
+  document.getElementById("hammerNeeded").textContent = maxTier === 0 ? "—" : ["Small","Medium","Large"][maxTier-1] + " Hammer";
+  const pallet = Math.max(1, +document.getElementById("palletSize").value || 100);
+  document.getElementById("supplyRuns").textContent = supplies ? Math.ceil(supplies / pallet) : 0;
+
+  // budget against what's actually stocked at the FOB
+  const stock = Math.max(0, +document.getElementById("supplyStock").value || 0);
+  const track = document.getElementById("budgetTrack");
+  const fill = document.getElementById("budgetFill");
+  const btext = document.getElementById("budgetText");
+  if (stock > 0) {
+    track.style.display = "";
+    const ratio = supplies / stock;
+    fill.style.width = Math.min(100, ratio * 100) + "%";
+    if (supplies <= stock) {
+      fill.style.background = ratio > 0.85 ? "var(--accent)" : "var(--accent2)";
+      btext.innerHTML = `<span style="color:var(--accent2)">Fits</span> — ${(stock - supplies).toLocaleString()}⛏ left over`;
+    } else {
+      fill.style.background = "var(--danger)";
+      const short = supplies - stock;
+      btext.innerHTML = `<span style="color:var(--danger)">${short.toLocaleString()}⛏ short</span> — ${Math.ceil(short / pallet)} more run${Math.ceil(short/pallet) > 1 ? "s" : ""}`;
+    }
+  } else {
+    track.style.display = "none";
+    btext.innerHTML = `<span style="color:var(--dim)">Enter your stock to check the design against it.</span>`;
+  }
+
+  // waist-height cover can be vaulted unless something taller sits on top of it
+  let vaultable = 0, tallCover = 0;
+  for (const p of design.pieces) {
+    const def = byId[p.type];
+    if (!def || def.role !== "cover") continue;
+    const capped = design.pieces.some(q =>
+      q !== p && (q.level || 0) > (p.level || 0) && rectsOverlap(pieceRect(p), pieceRect(q)));
+    if ((def.height || 1) <= 1 && !capped) vaultable++; else tallCover++;
+  }
+  const climbEl = document.getElementById("antiClimb");
+  climbEl.innerHTML = (vaultable + tallCover) === 0
+    ? `<span style="color:var(--dim)">No cover placed yet.</span>`
+    : (vaultable > 0
+        ? `<span style="color:var(--accent)">${vaultable}</span> waist-height piece${vaultable>1?"s":""} can be vaulted · <span style="color:var(--accent2)">${tallCover}</span> full-height`
+        : `<span style="color:var(--accent2)">All ${tallCover} cover pieces are above vaulting height.</span>`);
+
+  const bd = document.getElementById("costBreakdown");
+  bd.innerHTML = Object.entries(counts).sort((a,b) => b[1]*byId[b[0]].cost - a[1]*byId[a[0]].cost)
+    .map(([id, n]) => `<div class="cost-line"><span class="n">${n}× ${byId[id].name}</span><span>${(n*byId[id].cost).toLocaleString()}⛏</span></div>`)
+    .join("") || `<span style="color:var(--dim);font-size:11.5px">Nothing placed yet.</span>`;
+
+  // ongoing supplies
+  const needs = { ammo: [], fuel: [], mechanical: [] };
+  for (const p of design.pieces) {
+    const def = byId[p.type]; if (!def || !def.tags) continue;
+    if (def.tags.includes("uses-ammo")) needs.ammo.push(def.name);
+    if (def.tags.includes("uses-fuel")) needs.fuel.push(def.name);
+    if (def.tags.includes("uses-mechanical")) needs.mechanical.push(def.name);
+  }
+  const parts = [];
+  if (needs.ammo.length) parts.push(`<b style="color:var(--text)">Ammo</b>: ${[...new Set(needs.ammo)].join(", ")}`);
+  if (needs.fuel.length) parts.push(`<b style="color:var(--text)">Fuel</b>: ${[...new Set(needs.fuel)].join(", ")}`);
+  if (needs.mechanical.length) parts.push(`<b style="color:var(--text)">Mechanical</b>: ${[...new Set(needs.mechanical)].join(", ")}`);
+  document.getElementById("ongoing").innerHTML = parts.join("<br>") || "No emplacements needing resupply.";
+
+  // issues
+  const issues = computeIssues();
+  const ih = document.getElementById("issues");
+  ih.innerHTML = issues.length
+    ? issues.slice(0, 30).map(i => `<div class="issue" data-pid="${i.pieceId||""}">⚠ ${i.text}</div>`).join("")
+    : `<span class="ok">✓ No issues.</span>`;
+  ih.querySelectorAll(".issue").forEach(el => el.onclick = () => {
+    const pid = +el.dataset.pid; if (!pid) return;
+    const p = design.pieces.find(x => x.id === pid); if (!p) return;
+    selection = new Set([pid]); view.x = p.x; view.y = p.y; afterChange(false);
+  });
+
+  // selection props
+  const sp = document.getElementById("selProps");
+  if (selection.size === 1) {
+    const p = design.pieces.find(x => selection.has(x.id));
+    if (p) {
+      const def = byId[p.type];
+      sp.style.display = "";
+      document.getElementById("selName").textContent = def.name;
+      document.getElementById("selRot").textContent = (p.rot||0) + "°";
+      document.getElementById("selLvl").textContent = (p.level||0) + 1;
+      document.getElementById("selNote").value = p.note || "";
+      document.getElementById("szW").value = def.footprint.w;
+      document.getElementById("szD").value = def.footprint.d;
+      document.getElementById("szH").value = def.height || 1;
+      const szl = document.getElementById("szLabel");
+      const shortName = def.isFob ? "FOBs" : def.name.replace(/ \(.*\)/, "") + "s";
+      szl.innerHTML = def.sizeConfirmed === false
+        ? `Footprint &amp; height <span class="unsized" title="Unverified estimate — correct it here">(estimated)</span>`
+        : `Footprint &amp; height`;
+      szl.title = "Applies to all " + shortName + " in every design";
+      document.getElementById("sizeRows").style.display = "";
+      const fr = document.getElementById("fobSizeRow");
+      if (def.isFob) { fr.style.display = ""; document.getElementById("fobSize").value = p.zone || 100; }
+      else fr.style.display = "none";
+    }
+  } else if (selection.size > 1) {
+    sp.style.display = "";
+    document.getElementById("selName").textContent = selection.size + " pieces";
+    document.getElementById("selRot").textContent = "—";
+    document.getElementById("selLvl").textContent = "—";
+    document.getElementById("sizeRows").style.display = "none";
+    document.getElementById("fobSizeRow").style.display = "none";
+  } else sp.style.display = "none";
+}
+
+function afterChange(save = true) {
+  if (save) saveCurrent();
+  updateRightPanel();
+  draw();
+}
+
+/* ============ MOUSE / KEYS ============ */
+canvas.addEventListener("contextmenu", e => e.preventDefault());
+canvas.addEventListener("mousedown", e => {
+  const [wx, wy] = toWorld(e.offsetX, e.offsetY);
+  if (e.button === 1 || spaceHeld) {
+    dragging = { mode:"pan", sx:e.offsetX, sy:e.offsetY, vx:view.x, vy:view.y };
+    return;
+  }
+  if (e.button === 2) { if (placing) stopPlacing(); return; }
+  if (e.button !== 0) return;
+  if (placing) {                                   // click = one piece, drag = a whole run
+    const sx = snapVal(wx), sy = snapVal(wy);
+    dragging = { mode: "stamp", x0: sx, y0: sy, x1: sx, y1: sy };
+    return;
+  }
+
+  const hit = hitTest(wx, wy);
+  if (hit) {
+    if (e.shiftKey) { selection.has(hit.id) ? selection.delete(hit.id) : selection.add(hit.id); }
+    else if (!selection.has(hit.id)) selection = new Set([hit.id]);
+    dragging = { mode:"move", wx, wy, moved:false,
+      orig: design.pieces.filter(p => selection.has(p.id)).map(p => ({ id:p.id, x:p.x, y:p.y })) };
+  } else {
+    if (!e.shiftKey) selection.clear();
+    dragging = { mode:"marquee", x0:wx, y0:wy, x1:wx, y1:wy, additive:e.shiftKey };
+  }
+  updateRightPanel(); draw();
+});
+canvas.addEventListener("mousemove", e => {
+  const [wx, wy] = toWorld(e.offsetX, e.offsetY);
+  lastPointer.x = wx; lastPointer.y = wy;          // paste target
+  document.getElementById("sbCoords").textContent = `${wx.toFixed(1)}, ${wy.toFixed(1)}`;
+  if (placing) {
+    if (dragging && dragging.mode === "stamp") { dragging.x1 = snapVal(wx); dragging.y1 = snapVal(wy); }
+    else { ghost.cx = snapVal(wx); ghost.cy = snapVal(wy); }
+    draw(); return;
+  }
+  if (dragging) {
+    if (dragging.mode === "pan") {
+      view.x = dragging.vx - (e.offsetX - dragging.sx) / view.zoom;
+      view.y = dragging.vy - (e.offsetY - dragging.sy) / view.zoom;
+      draw();
+    } else if (dragging.mode === "move") {
+      const dx = wx - dragging.wx, dy = wy - dragging.wy;
+      if (!dragging.moved && Math.hypot(dx, dy) * view.zoom > 4) { dragging.moved = true; pushUndo(); }
+      if (dragging.moved) {
+        for (const o of dragging.orig) {
+          const p = design.pieces.find(x => x.id === o.id);
+          if (p) { p.x = snapVal(o.x + dx); p.y = snapVal(o.y + dy); }
+        }
+        updateRightPanel(); draw();
+      }
+    } else if (dragging.mode === "marquee") {
+      dragging.x1 = wx; dragging.y1 = wy; draw();
+    }
+    return;
+  }
+  const h = hitTest(wx, wy);
+  const nid = h ? h.id : null;
+  if (nid !== hoverId) { hoverId = nid; draw(); }
+  canvas.style.cursor = h ? "pointer" : (placing ? "crosshair" : "default");
+});
+window.addEventListener("mouseup", e => {
+  if (!dragging) return;
+  if (dragging.mode === "stamp") {
+    const d = dragging; dragging = null;
+    commitStamp(d);                       // stays in placing mode, ready for the next run
+    ghost.cx = d.x1; ghost.cy = d.y1;
+    draw();
+    return;
+  }
+  if (dragging.mode === "marquee") {
+    const x0 = Math.min(dragging.x0, dragging.x1), x1 = Math.max(dragging.x0, dragging.x1);
+    const y0 = Math.min(dragging.y0, dragging.y1), y1 = Math.max(dragging.y0, dragging.y1);
+    if ((x1-x0) * view.zoom > 4 || (y1-y0) * view.zoom > 4) {
+      if (!dragging.additive) selection.clear();
+      for (const p of design.pieces)
+        if (p.x >= x0 && p.x <= x1 && p.y >= y0 && p.y <= y1) selection.add(p.id);
+    }
+  }
+  if (dragging.mode === "move" && dragging.moved) saveCurrent();
+  dragging = null; updateRightPanel(); draw();
+});
+canvas.addEventListener("dblclick", e => {
+  if (placing) return;
+  const [wx, wy] = toWorld(e.offsetX, e.offsetY);
+  const hit = hitTest(wx, wy);
+  if (hit) { selection = new Set([hit.id]); selectSameType(); }
+});
+canvas.addEventListener("wheel", e => {
+  e.preventDefault();
+  const [wx, wy] = toWorld(e.offsetX, e.offsetY);
+  const factor = e.deltaY < 0 ? 1.15 : 1/1.15;
+  view.zoom = Math.max(2.5 * uiScale, Math.min(90 * uiScale, view.zoom * factor));
+  const [wx2, wy2] = toWorld(e.offsetX, e.offsetY);
+  view.x += wx - wx2; view.y += wy - wy2;
+  updateZoomLabel();
+  draw();
+}, { passive:false });
+
+function hitTest(wx, wy) {
+  const sorted = design.pieces.slice().sort((a,b) => (b.level||0) - (a.level||0));
+  for (const p of sorted) if (pointInRect(wx, wy, pieceRect(p))) return p;
+  return null;
+}
+
+window.addEventListener("keydown", e => {
+  if (["INPUT","TEXTAREA","SELECT"].includes(e.target.tagName)) return;
+  const k = e.key.toLowerCase();
+  if (k === "[") stepUiScale(-1);
+  else if (k === "]") stepUiScale(1);
+  else if (k === "pageup") { e.preventDefault(); setBuildLevel(buildLevel + 1); }
+  else if (k === "pagedown") { e.preventDefault(); setBuildLevel(buildLevel - 1); }
+  else if (k === " ") { spaceHeld = true; canvas.style.cursor = "grab"; e.preventDefault(); }
+  else if (k === "escape") { placing ? stopPlacing() : (selection.clear(), updateRightPanel(), draw()); }
+  else if (k === "b") toggleSnap();
+  else if (k === "r") rotateSelection(e.shiftKey ? -rotStep() : rotStep());
+  else if (k === "delete" || k === "backspace") deleteSelection();
+  else if (k === "f") zoomFit();
+  else if ((e.ctrlKey || e.metaKey) && k === "z") { e.preventDefault(); e.shiftKey ? redo() : undo(); }
+  else if ((e.ctrlKey || e.metaKey) && k === "y") { e.preventDefault(); redo(); }
+  else if ((e.ctrlKey || e.metaKey) && k === "d") { e.preventDefault(); duplicateSelection(); }
+  else if ((e.ctrlKey || e.metaKey) && k === "c") { e.preventDefault(); copySelection(); }
+  else if ((e.ctrlKey || e.metaKey) && k === "v") { e.preventDefault(); pasteClipboard(); }
+  else if ((e.ctrlKey || e.metaKey) && k === "a") {
+    e.preventDefault();
+    selection = new Set(design.pieces.map(p => p.id));
+    updateRightPanel(); draw();
+  }
+  else if (["arrowup","arrowdown","arrowleft","arrowright"].includes(k)) {
+    e.preventDefault();
+    const ax = k === "arrowleft" ? -1 : k === "arrowright" ? 1 : 0;
+    const ay = k === "arrowup" ? -1 : k === "arrowdown" ? 1 : 0;
+    if (e.shiftKey && selection.size) {          // Shift = nudge the selection instead
+      const now = performance.now();
+      if (now - lastNudge > 500) pushUndo();     // holding a key stays one undo step
+      lastNudge = now;
+      const d = snap ? 0.5 : 0.1;
+      for (const p of design.pieces) if (selection.has(p.id)) { p.x += ax * d; p.y += ay * d; }
+      afterChange();
+    } else {                                     // pan the map, selected or not
+      const step = ((e.ctrlKey || e.metaKey) ? 240 : 70) / view.zoom;
+      view.x += ax * step; view.y += ay * step;
+      draw();
+    }
+  }
+});
+window.addEventListener("keyup", e => { if (e.key === " ") { spaceHeld = false; canvas.style.cursor = "default"; } });
+
+const MAX_LEVEL = 5;
+function levelName(l) { return l === 0 ? "Ground" : "Level " + (l + 1); }
+function setBuildLevel(l) {
+  buildLevel = Math.max(0, Math.min(MAX_LEVEL, l));
+  document.getElementById("blNow").textContent = levelName(buildLevel);
+  document.getElementById("blNow").style.color = buildLevel ? "var(--accent)" : "var(--text)";
+  document.getElementById("hint").textContent = placing
+    ? `Placing ${byId[placing].name} on ${levelName(buildLevel)} — click for one, or drag to lay a whole run · R rotate · right-click/Esc to stop`
+    : `Building on ${levelName(buildLevel)}. Page Up / Page Down to change storey — lower levels stay visible underneath.`;
+  draw();
+}
+document.getElementById("blUp").onclick = () => setBuildLevel(buildLevel + 1);
+document.getElementById("blDown").onclick = () => setBuildLevel(buildLevel - 1);
+
+function toggleSnap() {
+  snap = !snap;
+  document.getElementById("btnSnap").classList.toggle("active", snap);
+  document.getElementById("sbMode").textContent = snap ? "" : "FREE PLACEMENT (snap off)";
+}
+function updateZoomLabel() {
+  document.getElementById("sbZoom").textContent = Math.round(view.zoom / (26 * uiScale) * 100) + "%";
+}
+function zoomFit() {
+  if (!design.pieces.length) { view = { x:0, y:0, zoom:26 * uiScale }; updateZoomLabel(); draw(); return; }
+  let x0=Infinity, y0=Infinity, x1=-Infinity, y1=-Infinity;
+  for (const p of design.pieces) {
+    for (const [cx, cy] of rectCorners(pieceRect(p))) {
+      x0 = Math.min(x0, cx); y0 = Math.min(y0, cy); x1 = Math.max(x1, cx); y1 = Math.max(y1, cy);
+    }
+    if (p.type === "__fob__") {
+      const half = (p.zone||100)/2;
+      x0 = Math.min(x0, p.x-half); y0 = Math.min(y0, p.y-half);
+      x1 = Math.max(x1, p.x+half); y1 = Math.max(y1, p.y+half);
+    }
+  }
+  view.x = (x0+x1)/2; view.y = (y0+y1)/2;
+  view.zoom = Math.max(2.5 * uiScale, Math.min(60 * uiScale,
+    Math.min(canvas.clientWidth / (x1-x0+6), canvas.clientHeight / (y1-y0+6))));
+  updateZoomLabel();
+  draw();
+}
+
+/* ---- interface scale (big / 4K displays) ---- */
+const UI_SCALES = [1, 1.25, 1.5, 1.75, 2, 2.5, 3];
+function applyUiScale(s, persist) {
+  s = Math.max(1, Math.min(3, +s || 1));
+  const old = uiScale;
+  uiScale = s;
+  document.documentElement.style.setProperty("--s", s);
+  document.getElementById("uiScale").value = String(s);
+  view.zoom = view.zoom / old * s;          // keep the same apparent map scale
+  if (persist) { try { localStorage.setItem("wardogs.uiscale", String(s)); } catch(e) {} }
+  resize(); updateZoomLabel();
+}
+function initUiScale() {
+  let s = null;
+  try { const v = parseFloat(localStorage.getItem("wardogs.uiscale")); if (v) s = v; } catch(e) {}
+  if (!s) {                                  // first run: guess from the display
+    const w = window.innerWidth;
+    s = w >= 3300 ? 2 : w >= 2500 ? 1.5 : w >= 1900 ? 1.25 : 1;
+  }
+  applyUiScale(s, false);
+}
+document.getElementById("uiScale").onchange = e => applyUiScale(e.target.value, true);
+function stepUiScale(dir) {
+  const i = UI_SCALES.indexOf(uiScale);
+  const next = UI_SCALES[Math.max(0, Math.min(UI_SCALES.length - 1, (i < 0 ? 0 : i) + dir))];
+  if (next !== uiScale) applyUiScale(next, true);
+}
+
+/* ============ TOP BAR wiring ============ */
+document.getElementById("btnSnap").onclick = toggleSnap;
+document.getElementById("btnFit").onclick = zoomFit;
+document.getElementById("btnUndo").onclick = undo;
+document.getElementById("btnRedo").onclick = redo;
+document.getElementById("btnDel").onclick = deleteSelection;
+document.getElementById("btnDup").onclick = duplicateSelection;
+document.getElementById("rotL").onclick = () => rotateSelection(-rotStep());
+document.getElementById("rotR").onclick = () => rotateSelection(rotStep());
+document.getElementById("btnMirrorH").onclick = () => mirrorSelection("h");
+document.getElementById("btnMirrorV").onclick = () => mirrorSelection("v");
+document.getElementById("btnSelSame").onclick = selectSameType;
+document.getElementById("supplyStock").oninput = updateRightPanel;
+document.getElementById("btnTemplates").onclick = () => {
+  const rows = PRESETS.map((t, i) => `
+    <div class="preset-row">
+      <div class="body">
+        <div class="t">${esc(t.name)}</div>
+        <div class="d">${esc(t.desc)}</div>
+        <div class="c">${presetCost(t).toLocaleString()}⛏ · ${t.build().length} pieces</div>
+      </div>
+      <button data-preset="${i}">Place</button>
+    </div>`).join("");
+  openModal("Presets",
+    `<p style="color:var(--dim);font-size:12px;margin-bottom:6px">
+       Drops the build into the middle of your view, already selected — drag it where you want it.
+       Everything stays fully editable afterwards.</p>${rows}`,
+    [["Close", closeModal]]);
+  document.getElementById("modalBody").querySelectorAll("[data-preset]").forEach(b => {
+    b.onclick = () => { stampPreset(PRESETS[+b.dataset.preset]); closeModal(); };
+  });
+};
+document.getElementById("lvlUp").onclick = () => changeLevel(1);
+document.getElementById("lvlDn").onclick = () => changeLevel(-1);
+document.getElementById("palletSize").oninput = updateRightPanel;
+document.getElementById("selNote").onchange = e => {
+  const p = design.pieces.find(x => selection.has(x.id));
+  if (p) { pushUndo(); p.note = e.target.value; afterChange(); }
+};
+document.getElementById("fobSize").onchange = e => {
+  const p = design.pieces.find(x => selection.has(x.id));
+  if (p && p.type === "__fob__") { pushUndo(); p.zone = Math.max(4, +e.target.value || 100); afterChange(); }
+};
+/* Mirror a selection about its own centre — for laying out a symmetric perimeter */
+function mirrorSelection(axis) {
+  if (!selection.size) return;
+  const sel = design.pieces.filter(p => selection.has(p.id));
+  const xs = sel.map(p => p.x), ys = sel.map(p => p.y);
+  const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
+  const cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+  pushUndo();
+  for (const p of sel) {
+    if (axis === "h") { p.x = cx - (p.x - cx); p.rot = (360 - (p.rot || 0)) % 360; }
+    else              { p.y = cy - (p.y - cy); p.rot = (540 - (p.rot || 0)) % 360; }
+  }
+  afterChange();
+}
+function selectSameType() {
+  if (selection.size !== 1) return;
+  const p = design.pieces.find(x => selection.has(x.id));
+  if (!p) return;
+  selection = new Set(design.pieces.filter(q => q.type === p.type).map(q => q.id));
+  updateRightPanel(); draw();
+}
+
+/* Copy / paste — pastes centred on the pointer so you can repeat a section anywhere */
+let clipboard = null;
+let lastPointer = { x: 0, y: 0 };
+function copySelection() {
+  if (!selection.size) return;
+  const sel = design.pieces.filter(p => selection.has(p.id));
+  const xs = sel.map(p => p.x), ys = sel.map(p => p.y);
+  const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
+  const cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+  clipboard = sel.map(p => ({ type: p.type, dx: p.x - cx, dy: p.y - cy,
+                              rot: p.rot || 0, level: p.level || 0, note: p.note, zone: p.zone }));
+  flashStatus(`Copied ${sel.length} piece${sel.length > 1 ? "s" : ""}`);
+}
+function pasteClipboard() {
+  if (!clipboard || !clipboard.length) return;
+  pushUndo();
+  const ids = [];
+  for (const c of clipboard) {
+    const np = { id: design.nextId++, type: c.type,
+                 x: snapVal(lastPointer.x + c.dx), y: snapVal(lastPointer.y + c.dy),
+                 rot: c.rot, level: c.level };
+    if (c.note) np.note = c.note;
+    if (c.zone) np.zone = c.zone;
+    design.pieces.push(np); ids.push(np.id);
+  }
+  selection = new Set(ids);
+  afterChange();
+}
+function flashStatus(msg) {
+  const el = document.getElementById("sbSaved");
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = "var(--accent)";
+  clearTimeout(savedFlashTimer);
+  savedFlashTimer = setTimeout(() => { el.style.color = "var(--dim)"; }, 1400);
+}
+
+/* Footprint editing — writes to the catalog, so it applies to every piece of that type */
+function applySizeEdit() {
+  if (selection.size !== 1) return;
+  const p = design.pieces.find(x => selection.has(x.id));
+  if (!p) return;
+  const def = byId[p.type]; if (!def) return;
+  const clamp = (v, lo, hi, fb) => Math.max(lo, Math.min(hi, Math.round(+v) || fb));
+  const w = clamp(document.getElementById("szW").value, 1, 40, def.footprint.w);
+  const d = clamp(document.getElementById("szD").value, 1, 40, def.footprint.d);
+  const h = clamp(document.getElementById("szH").value, 1, 12, def.height || 1);
+  const target = def.isFob ? catalog.fob : catalog.buildables.find(b => b.id === def.id);
+  if (!target) return;
+  target.footprint = { w, d };
+  target.height = h;
+  target.sizeConfirmed = true;          // you set it deliberately, so it's no longer a guess
+  saveCatalog(); indexCatalog(); renderPalette(); afterChange();
+}
+["szW","szD","szH"].forEach(id => document.getElementById(id).onchange = applySizeEdit);
+
+function changeLevel(d) {
+  if (!selection.size) return;
+  pushUndo();
+  let moved = null;
+  for (const p of design.pieces) if (selection.has(p.id)) {
+    p.level = Math.max(0, Math.min(MAX_LEVEL, (p.level||0) + d));
+    moved = p.level;
+  }
+  afterChange();
+  if (selection.size === 1 && moved !== null) setBuildLevel(moved);  // follow the piece up
+}
+document.getElementById("designName").onchange = e => { design.name = e.target.value; saveCurrent(); };
+
+/* ============ SAVE / LOAD ============ */
+let savedFlashTimer = null;
+function showSaved(ok) {
+  const el = document.getElementById("sbSaved");
+  if (!el) return;
+  if (!ok) {
+    el.textContent = "⚠ Can't save here — use Export";
+    el.style.color = "var(--danger)";
+    return;
+  }
+  el.textContent = `✓ Saved “${design.name}”`;
+  el.style.color = "var(--accent2)";
+  clearTimeout(savedFlashTimer);
+  savedFlashTimer = setTimeout(() => { el.style.color = "var(--dim)"; }, 1200);
+}
+/* The key this design is filed under. Tracking it is what makes renaming a rename
+   rather than a copy, and what stops a deleted design being written straight back. */
+let currentSavedName = null;
+
+function readDesigns() {
+  try { return JSON.parse(localStorage.getItem(LS_DESIGNS) || "{}"); } catch(e) { return {}; }
+}
+function writeDesigns(all) {
+  try { localStorage.setItem(LS_DESIGNS, JSON.stringify(all)); return true; } catch(e) { return false; }
+}
+function uniqueName(base, all) {
+  if (!all[base]) return base;
+  let i = 2;
+  while (all[`${base} (${i})`]) i++;
+  return `${base} (${i})`;
+}
+function saveCurrent() {
+  const name = (document.getElementById("designName").value || "").trim() || "Untitled";
+  design.name = name;
+  try {
+    const all = readDesigns();
+    if (currentSavedName && currentSavedName !== name) delete all[currentSavedName];  // rename, don't clone
+    all[name] = design;
+    localStorage.setItem(LS_DESIGNS, JSON.stringify(all));
+    localStorage.setItem(LS_CURRENT, JSON.stringify(design));
+    currentSavedName = name;
+    showSaved(true);
+  } catch(e) { showSaved(false); }   // private windows / blocked storage
+}
+function loadCurrent() {
+  try {
+    const s = localStorage.getItem(LS_CURRENT);
+    if (s) {
+      design = JSON.parse(s);
+      document.getElementById("designName").value = design.name || "New FOB";
+      currentSavedName = design.name || null;
+    }
+  } catch(e) {}
+}
+function openDesign(d, name) {
+  design = JSON.parse(JSON.stringify(d));
+  design.nextId = design.nextId || (Math.max(0, ...design.pieces.map(p => p.id)) + 1);
+  design.name = name;
+  document.getElementById("designName").value = name;
+  currentSavedName = name;
+  undoStack = []; redoStack = []; selection.clear();
+  setBuildLevel(0);
+  saveCurrent(); afterChange(false); zoomFit();
+}
+/* In-app confirm. The published page runs in a sandboxed frame where window.confirm()
+   is blocked and silently returns false, which would make New and Delete do nothing. */
+function askConfirm(title, message, confirmLabel, onYes) {
+  openModal(title,
+    `<p style="font-size:12.5px;line-height:1.6">${message}</p>`,
+    [["Cancel", closeModal], [confirmLabel, () => { closeModal(); onYes(); }, "warn"]]);
+}
+function newDesign(force) {
+  if (!force && design.pieces.length) {
+    askConfirm("Start a new design?",
+      "The design you're on is already saved under its name — you can reopen it any time from <b>🗂 Designs</b>.",
+      "Start new", () => newDesign(true));
+    return;
+  }
+  const all = readDesigns();
+  design = { name: uniqueName("New FOB", all), pieces: [], nextId: 1 };
+  document.getElementById("designName").value = design.name;
+  currentSavedName = null;                 // a fresh entry; never rename over the old one
+  undoStack = []; redoStack = []; selection.clear();
+  setBuildLevel(0);
+  saveCurrent(); afterChange(false); zoomFit();
+}
+function deleteDesign(name) {
+  askConfirm("Delete this design?",
+    `<b>${esc(name)}</b> will be removed permanently. This can't be undone — export it first if you want a copy.`,
+    "Delete", () => {
+      const all = readDesigns();
+      delete all[name];
+      writeDesigns(all);
+      if (currentSavedName === name) {
+        // it's the one on screen — clear the current slot too, or autosave would restore it
+        try { localStorage.removeItem(LS_CURRENT); } catch(e) {}
+        currentSavedName = null;
+        newDesign(true);
+      }
+      openModal("Saved Designs", "", [["Close", closeModal]]);
+      renderDesigns();
+    });
+}
+function duplicateDesign(name, d) {
+  const all = readDesigns();
+  const copy = JSON.parse(JSON.stringify(d));
+  const newName = uniqueName(name + " copy", all);
+  copy.name = newName;
+  all[newName] = copy;
+  writeDesigns(all);
+  renderDesigns();
+}
+document.getElementById("btnNew").onclick = () => newDesign(false);
+async function tryDownload(data, filename, mime) {
+  // On the published website, saves go through the viewer's confirmation prompt
+  if (window.claude && window.claude.use) {
+    try {
+      const dl = await claude.use("downloads");
+      if (dl) { await dl.save({ filename, data: data instanceof Blob ? data : String(data) }); return; }
+    } catch(err) {
+      if (err && err.code === "declined") return;
+      if (err && err.code === "rate_limited") { flashStatus("A save prompt is already open — try again in a moment"); return; }
+      // fall through to the local-file path
+    }
+  }
+  try {
+    const blob = data instanceof Blob ? data : new Blob([data], { type: mime || "application/octet-stream" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click(); URL.revokeObjectURL(a.href);
+  } catch(e) { flashStatus("Downloads are blocked here — use Copy instead"); }
+}
+document.getElementById("btnExport").onclick = () => {
+  const json = JSON.stringify(design, null, 2);
+  openModal("Export Design",
+    `<p style="color:var(--dim);font-size:12px;margin-bottom:8px">Copy this JSON and send it to a teammate — they paste it via Import. (Download works when running the local file.)</p>
+     <textarea id="expTa" spellcheck="false">${json.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</textarea>`,
+    [
+      ["📋 Copy to clipboard", () => {
+        const ta = document.getElementById("expTa");
+        ta.select(); navigator.clipboard ? navigator.clipboard.writeText(ta.value) : document.execCommand("copy");
+      }, "active"],
+      ["⭳ Download file", () => tryDownload(json, (design.name||"wardogs-base").replace(/[^\w\- ]+/g,"") + ".wardogs.json", "application/json")],
+      ["Close", closeModal]
+    ]);
+};
+document.getElementById("btnImport").onclick = () => {
+  openModal("Import Design",
+    `<p style="color:var(--dim);font-size:12px;margin-bottom:8px">Paste a design's JSON below, or load a .wardogs.json file.</p>
+     <textarea id="impTa" spellcheck="false" placeholder='{"name": "...", "pieces": [...]}'></textarea>
+     <div id="impErr" style="color:var(--danger);font-size:12px;margin-top:6px"></div>`,
+    [
+      ["📂 Choose file…", () => document.getElementById("fileInput").click()],
+      ["Cancel", closeModal],
+      ["Load pasted JSON", () => {
+        try { applyImportedDesign(JSON.parse(document.getElementById("impTa").value)); closeModal(); }
+        catch(err) { document.getElementById("impErr").textContent = "Couldn't read that: " + err.message; }
+      }, "active"]
+    ]);
+};
+function applyImportedDesign(d) {
+  if (!Array.isArray(d.pieces)) throw new Error("not a design file (missing pieces[])");
+  design = d;
+  design.nextId = design.nextId || (Math.max(0, ...design.pieces.map(p => p.id)) + 1);
+  document.getElementById("designName").value = design.name || "Imported";
+  undoStack = []; redoStack = []; selection.clear();
+  saveCurrent(); afterChange(false); zoomFit();
+}
+document.getElementById("fileInput").onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try { applyImportedDesign(JSON.parse(rd.result)); closeModal(); }
+    catch(err) {
+      const box = document.getElementById("impErr");
+      if (box) box.textContent = "Couldn't read that file: " + err.message;
+      else flashStatus("Couldn't read that file");
+    }
+  };
+  rd.readAsText(f);
+  e.target.value = "";
+};
+document.getElementById("btnPng").onclick = () => {
+  zoomFit();
+  requestAnimationFrame(() => {
+    const url = canvas.toDataURL("image/png");
+    openModal("Layout Image",
+      `<p style="color:var(--dim);font-size:12px;margin-bottom:8px">Right-click the image → “Save image as…” or “Copy image”.</p>
+       <img src="${url}" style="max-width:100%;border:1px solid var(--border);border-radius:5px">`,
+      [
+        ["⭳ Download PNG", () => {
+          canvas.toBlob(blob => tryDownload(blob, (design.name||"wardogs-base").replace(/[^\w\- ]+/g,"") + ".png"));
+        }],
+        ["Close", closeModal]
+      ]);
+  });
+};
+
+/* ============ MODALS ============ */
+const modalBack = document.getElementById("modalBack");
+function openModal(title, bodyHtml, buttons) {
+  document.getElementById("modalTitle").textContent = title;
+  document.getElementById("modalBody").innerHTML = bodyHtml;
+  const foot = document.getElementById("modalFoot");
+  foot.innerHTML = "";
+  for (const [label, fn, cls] of buttons || []) {
+    const b = document.createElement("button");
+    b.textContent = label; if (cls) b.className = cls;
+    b.onclick = fn; foot.appendChild(b);
+  }
+  modalBack.style.display = "flex";
+}
+function closeModal() { modalBack.style.display = "none"; }
+document.getElementById("modalClose").onclick = closeModal;
+modalBack.onclick = e => { if (e.target === modalBack) closeModal(); };
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+}
+function renderDesigns() {
+  const all = readDesigns();
+  const names = Object.keys(all).sort((a, b) => a.localeCompare(b));
+  const body = document.getElementById("modalBody");
+  if (!names.length) {
+    body.innerHTML = "<p style='color:var(--dim)'>No saved designs yet. Designs save themselves under whatever name is in the toolbar.</p>";
+    return;
+  }
+  body.innerHTML =
+    `<p style="color:var(--dim);font-size:12px;margin-bottom:10px">
+       Designs save automatically under the name in the toolbar. Renaming there <b>renames</b> this design —
+       use <b>Copy</b> below if you want to branch off a variant instead.</p>` +
+    names.map((name, i) => {
+      const d = all[name];
+      const open = name === currentSavedName;
+      const supplies = (d.pieces || []).reduce((t, p) => {
+        const def = byId[p.type]; return t + (def && !def.isFob ? (def.cost || 0) : 0);
+      }, 0);
+      return `<div class="design-row">
+        <span>${open ? '<span style="color:var(--accent2)">● </span>' : ""}${esc(name)}
+          <span style="color:var(--dim)">· ${(d.pieces || []).length} pieces · ${supplies.toLocaleString()}⛏${open ? " · open now" : ""}</span></span>
+        <span><button data-idx="${i}" data-act="open"${open ? " disabled" : ""}>Open</button>
+              <button data-idx="${i}" data-act="copy">Copy</button>
+              <button data-idx="${i}" data-act="del" class="warn">Delete</button></span>
+      </div>`;
+    }).join("");
+  body.querySelectorAll("button[data-act]").forEach(b => b.onclick = () => {
+    const name = names[+b.dataset.idx];
+    if (b.dataset.act === "open") { openDesign(all[name], name); closeModal(); }
+    else if (b.dataset.act === "copy") duplicateDesign(name, all[name]);
+    else deleteDesign(name);
+  });
+}
+document.getElementById("btnDesigns").onclick = () => {
+  openModal("Saved Designs", "", [["Close", closeModal]]);
+  renderDesigns();
+};
+
+document.getElementById("btnCatalog").onclick = () => {
+  openModal("Catalog Editor",
+    `<p style="color:var(--dim);font-size:12px;margin-bottom:8px">
+      Costs and sizes come from Closed Beta 1 footage — items marked <code>"costConfirmed": false</code> or
+      <code>"sizeConfirmed": false</code> are estimates. Edit values here as you verify them in-game.
+      Footprints are in Hesco-block units (w × d), heights in blocks.</p>
+     <textarea id="catalogTa" spellcheck="false">${JSON.stringify(catalog, null, 2)
+       .replace(/&/g, "&amp;").replace(/</g, "&lt;")}</textarea>
+     <div id="catErr" style="color:var(--danger);font-size:12px;margin-top:6px"></div>`,
+    [
+      ["Reset to defaults", () => {
+        askConfirm("Reset the catalog?",
+          "Every cost and size goes back to the built-in Beta-1 data. Any corrections you've made will be lost.",
+          "Reset", () => {
+            catalog = JSON.parse(JSON.stringify(CATALOG_DEFAULT));
+            saveCatalog(); indexCatalog(); renderPalette(); closeModal(); afterChange(false);
+          });
+      }, "warn"],
+      ["Cancel", closeModal],
+      ["Save", () => {
+        try {
+          const c = JSON.parse(document.getElementById("catalogTa").value);
+          if (!Array.isArray(c.buildables)) throw new Error("missing buildables[]");
+          catalog = c; saveCatalog(); indexCatalog(); renderPalette(); closeModal(); afterChange(false);
+        } catch(err) { document.getElementById("catErr").textContent = "Invalid JSON: " + err.message; }
+      }, "active"]
+    ]);
+};
+
+document.getElementById("btnHelp").onclick = () => {
+  openModal("Help & Shortcuts", `
+    <div class="help-grid">
+      <span><kbd>Click</kbd> palette item</span><span>Enter placement mode (stays on, so you can keep placing)</span>
+      <span><kbd>Drag</kbd> on the map</span><span><b>Lay a whole run</b> — pieces sit edge to edge along the drag, with a live count and cost. Press <kbd>R</kbd> first to run a wall the other way.</span>
+      <span><kbd>R</kbd> / <kbd>Shift+R</kbd></span><span>Rotate piece or ghost (90° snapped, 15° free)</span>
+      <span><kbd>B</kbd></span><span>Toggle grid snap — same key as the in-game snapping toggle</span>
+      <span><kbd>Esc</kbd> / right-click</span><span>Stop placing / clear selection</span>
+      <span><kbd>Delete</kbd></span><span>Delete selected</span>
+      <span><kbd>Ctrl+D</kbd></span><span>Duplicate selected</span>
+      <span><kbd>Ctrl+C</kbd> / <kbd>Ctrl+V</kbd></span><span>Copy a section and paste it at the pointer — good for repeating a wall run or a gun pit</span>
+      <span><kbd>Ctrl+A</kbd></span><span>Select everything</span>
+      <span><kbd>Double-click</kbd></span><span>Select every piece of that same type at once</span>
+      <span><kbd>Ctrl+Z</kbd> / <kbd>Ctrl+Y</kbd></span><span>Undo / redo</span>
+      <span><kbd>Shift+Click</kbd> / drag</span><span>Multi-select / marquee select</span>
+      <span><kbd>Arrows</kbd></span><span>Pan the map — works whether or not something is selected (<kbd>Ctrl</kbd> for big steps)</span>
+      <span><kbd>Shift</kbd>+<kbd>Arrows</kbd></span><span>Nudge the selected pieces</span>
+      <span><kbd>F</kbd></span><span>Zoom to fit</span>
+      <span><kbd>Page Up</kbd> / <kbd>Page Down</kbd></span><span>Change the storey you're building on</span>
+      <span><kbd>[</kbd> / <kbd>]</kbd></span><span>Interface size — turn it up on a big or 4K monitor (also the <b>Size</b> box in the toolbar)</span>
+      <span><kbd>Space</kbd>+drag / middle-drag</span><span>Pan · <kbd>Wheel</kbd> zoom</span>
+    </div>
+    <h3 style="margin:14px 0 6px;color:var(--accent);font-size:13px">Game rules baked in</h3>
+    <ul style="font-size:12.5px;line-height:1.6;padding-left:18px;color:var(--text)">
+      <li>1 grid cell = 1 small Hesco block (≈1.2 m). Heights are in blocks too.</li>
+      <li><b>Height shows on the plan.</b> Each piece is extruded toward the bottom-right in proportion to how tall it is — a 1-block sandbag stays flat, a 5-block bunker or tower clearly stands up. The <b>▲</b> badge gives the exact block count.</li>
+      <li>Sizes marked <span class="unsized">red with a “?”</span> are estimates from beta footage. Select a placed piece and edit its <b>Footprint &amp; height</b> to correct it — the change sticks for every piece of that type, in every design.</li>
+      <li>Sandbags are meant to sit on top of hesco walls, so overlapping one is <b>not</b> flagged as a problem. Bremer walls still refuse anything on top, as in game.</li>
+    </ul>
+    <h3 style="margin:14px 0 6px;color:var(--accent);font-size:13px">Building upwards</h3>
+    <ul style="font-size:12.5px;line-height:1.6;padding-left:18px;color:var(--text)">
+      <li>Mounting a <b>CIWS, mortar or SAM on a hesco platform</b> is a normal build. Lay the platform on <b>Ground</b>, press <kbd>Page Up</kbd> to move to <b>Level 2</b>, then place the emplacement on top.</li>
+      <li>The storey you're on draws solid; <b>the ones below stay visible underneath</b>, dimmed, so you can line up with the platform you're standing on. Raised pieces cast a shadow and carry an <b>L2 / L3</b> badge.</li>
+      <li>You can also select something already placed and use <b>Level</b> in the side panel to lift it.</li>
+      <li>Anything raised with <b>nothing underneath it</b> gets flagged — a weapon floating in mid-air isn't buildable.</li>
+      <li>Gates must stay on the ground and Recon Towers can't be stacked, both as in game.</li>
+    </ul>
+    <h3 style="margin:14px 0 6px;color:var(--accent);font-size:13px">Planning aids</h3>
+    <ul style="font-size:12.5px;line-height:1.6;padding-left:18px;color:var(--text)">
+      <li><b>◈ Presets</b> drops in a ready-made build — mortar pit, AA nest, SAM site, anti-climb wall, vehicle gate, raised gun platform. They land selected so you can drag them into place, and everything stays editable.</li>
+      <li><b>You have in the FOB</b> — type in your stock and the bar tells you whether the design fits, what's left over, or how many more supply runs you need.</li>
+      <li><b>Anti-climb</b> counts how much of your cover is only waist height. Those pieces can be vaulted unless something taller is stacked on them, which is the usual way a perimeter gets breached.</li>
+      <li><b>⇄ / ⇅ Flip</b> mirrors a selection about its own centre — build one side of a symmetric base, copy it, flip it.</li>
+    </ul>
+    <h3 style="margin:14px 0 6px;color:var(--accent);font-size:13px">Saving your design</h3>
+    <ul style="font-size:12.5px;line-height:1.6;padding-left:18px;color:var(--text)">
+      <li><b>It saves itself.</b> Every change is written to this browser straight away — the status bar flashes “✓ Saved” each time. Just closing the tab is safe.</li>
+      <li><b>Name it</b> in the box at the top left. That name <b>is</b> the design — editing it renames this design rather than making a second copy.</li>
+      <li><b>🗂 Designs</b> lists everything you've saved, marks the one you have open, and gives you <b>Open</b>, <b>Copy</b> (branch a variant) and <b>Delete</b> on each. <b>✚ New</b> starts a blank one without touching the current design.</li>
+      <li><b>To keep a copy or send it to someone</b>, use <b>⭳ Export</b> — copy the text, or download the file. They load it with <b>⭱ Import</b>. That's also your backup if you ever clear your browser data.</li>
+      <li>Sandbag Wall, Barbed Wire, Hedgehog and Recon Tent build <b>without</b> a FOB — everything else must sit inside a FOB's blue build square.</li>
+      <li><b>Level badge (L2, L3…)</b> = stacked height, for multi-storey hesco builds. Gates are ground-only; Recon Towers can't stack; nothing builds on top of a Bremer Wall; mortars/AA need open sky.</li>
+      <li>Costs are Build Supplies (⛏). 1 supply = $10 at the vendor. Supply runs assume the pallet size set in the panel.</li>
+      <li>Mortar, CIWS and SAM eat <b>Ammo</b> supplies; Refuel Station and Drill Rig eat <b>Fuel</b>; Repair Station eats <b>Mechanical</b>.</li>
+    </ul>`,
+    [["Close", closeModal]]);
+};
+
+function renderLegend() {
+  document.getElementById("legend").innerHTML =
+    ["fob","cover","entry","denial","offense","antiair","support","objective"]
+      .map(r => `<span class="sw" style="background:${ROLE_COLOR[r]}"></span><span>${ROLE_LABEL[r]}</span>`)
+      .join("");
+}
+
+/* ============ INIT ============ */
+loadCurrent();
+renderLegend();
+renderPalette();
+initUiScale();
+setBuildLevel(0);
+resize();
+updateRightPanel();
+zoomFit();
+</script>
+</body>
+</html>
