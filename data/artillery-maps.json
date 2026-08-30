@@ -8,82 +8,245 @@
    "id": "bakurani",
    "name": "Bakurani",
    "extentUnits": 163.84,
-   "bounds": { "minX": 23.35, "maxX": 133.6, "minY": 19.34, "maxY": 129.65 },
+   "bounds": {
+    "minX": 23.35,
+    "maxX": 133.6,
+    "minY": 19.34,
+    "maxY": 129.65
+   },
    "tiles": {
-    "path": "/maps/tiles/bakurani", "tileSize": 256, "minZoom": 0, "maxZoom": 5,
+    "path": "/maps/tiles/bakurani",
+    "tileSize": 256,
+    "minZoom": 0,
+    "maxZoom": 5,
     "extension": "webp",
-    "bounds": { "minX": -0.03, "maxX": 163.81, "minY": -0.01, "maxY": 163.83 }
+    "bounds": {
+     "minX": -0.03,
+     "maxX": 163.81,
+     "minY": -0.01,
+     "maxY": 163.83
+    }
    },
    "towers": [
-    { "label": "Tower 1", "x": 80.52, "y": 69.85 },
-    { "label": "Tower 2", "x": 77.19, "y": 70.0 },
-    { "label": "Tower 3", "x": 77.19, "y": 73.44 },
-    { "label": "Tower 4", "x": 83.64, "y": 72.85 },
-    { "label": "Tower 5", "x": 82.22, "y": 68.41 }
+    {
+     "label": "Tower 1",
+     "x": 80.52,
+     "y": 69.85
+    },
+    {
+     "label": "Tower 2",
+     "x": 77.19,
+     "y": 70
+    },
+    {
+     "label": "Tower 3",
+     "x": 77.19,
+     "y": 73.44
+    },
+    {
+     "label": "Tower 4",
+     "x": 83.64,
+     "y": 72.85
+    },
+    {
+     "label": "Tower 5",
+     "x": 82.22,
+     "y": 68.41
+    }
    ],
    "spawns": [
     {
      "label": "VALKYRA",
      "points": [
-      { "x": 117.5, "y": 73.76 }, { "x": 121.22, "y": 70.71 },
-      { "x": 118.18, "y": 66.99 }, { "x": 114.45, "y": 70.04 }
+      {
+       "x": 117.5,
+       "y": 73.76
+      },
+      {
+       "x": 121.22,
+       "y": 70.71
+      },
+      {
+       "x": 118.18,
+       "y": 66.99
+      },
+      {
+       "x": 114.45,
+       "y": 70.04
+      }
      ]
     },
     {
      "label": "MANTICORE",
      "points": [
-      { "x": 38.68, "y": 79.88 }, { "x": 43.39, "y": 78.85 },
-      { "x": 42.35, "y": 74.15 }, { "x": 37.65, "y": 75.18 }
+      {
+       "x": 38.68,
+       "y": 79.88
+      },
+      {
+       "x": 43.39,
+       "y": 78.85
+      },
+      {
+       "x": 42.35,
+       "y": 74.15
+      },
+      {
+       "x": 37.65,
+       "y": 75.18
+      }
      ]
     },
     {
      "label": "LONESTAR",
      "points": [
-      { "x": 83.08, "y": 35.27 }, { "x": 87.72, "y": 36.51 },
-      { "x": 88.97, "y": 31.86 }, { "x": 84.32, "y": 30.62 }
+      {
+       "x": 83.08,
+       "y": 35.27
+      },
+      {
+       "x": 87.72,
+       "y": 36.51
+      },
+      {
+       "x": 88.97,
+       "y": 31.86
+      },
+      {
+       "x": 84.32,
+       "y": 30.62
+      }
      ]
     }
-   ]
+   ],
+   "controlZone": {
+    "centre": {
+     "x": 79.9,
+     "y": 71.8
+    },
+    "radiusMetres": 500,
+    "confirmed": false
+   }
   },
   {
    "id": "ozeti",
    "name": "Ozeti",
    "extentUnits": 163.84,
-   "bounds": { "minX": 57.58, "maxX": 143.07, "minY": 21.81, "maxY": 99.56 },
+   "bounds": {
+    "minX": 57.58,
+    "maxX": 143.07,
+    "minY": 21.81,
+    "maxY": 99.56
+   },
    "tiles": {
-    "path": "/maps/tiles/ozeti", "tileSize": 256, "minZoom": 0, "maxZoom": 5,
+    "path": "/maps/tiles/ozeti",
+    "tileSize": 256,
+    "minZoom": 0,
+    "maxZoom": 5,
     "extension": "webp",
-    "bounds": { "minX": -0.03, "maxX": 163.81, "minY": -0.01, "maxY": 163.83 }
+    "bounds": {
+     "minX": -0.03,
+     "maxX": 163.81,
+     "minY": -0.01,
+     "maxY": 163.83
+    }
    },
    "towers": [
-    { "label": "Tower 1", "x": 95.8, "y": 62.82 },
-    { "label": "Tower 2", "x": 100.37, "y": 59.23 },
-    { "label": "Tower 3", "x": 104.49, "y": 63.71 },
-    { "label": "Tower 4", "x": 100.62, "y": 67.64 }
+    {
+     "label": "Tower 1",
+     "x": 95.8,
+     "y": 62.82
+    },
+    {
+     "label": "Tower 2",
+     "x": 100.37,
+     "y": 59.23
+    },
+    {
+     "label": "Tower 3",
+     "x": 104.49,
+     "y": 63.71
+    },
+    {
+     "label": "Tower 4",
+     "x": 100.62,
+     "y": 67.64
+    }
    ],
    "spawns": [
     {
      "label": "VALKYRA",
      "points": [
-      { "x": 133.98, "y": 68.51 }, { "x": 138.58, "y": 69.92 },
-      { "x": 139.99, "y": 65.32 }, { "x": 135.39, "y": 63.91 }
+      {
+       "x": 133.98,
+       "y": 68.51
+      },
+      {
+       "x": 138.58,
+       "y": 69.92
+      },
+      {
+       "x": 139.99,
+       "y": 65.32
+      },
+      {
+       "x": 135.39,
+       "y": 63.91
+      }
      ]
     },
     {
      "label": "MANTICORE",
      "points": [
-      { "x": 69.22, "y": 90.85 }, { "x": 73.09, "y": 87.98 },
-      { "x": 70.22, "y": 84.12 }, { "x": 66.36, "y": 86.99 }
+      {
+       "x": 69.22,
+       "y": 90.85
+      },
+      {
+       "x": 73.09,
+       "y": 87.98
+      },
+      {
+       "x": 70.22,
+       "y": 84.12
+      },
+      {
+       "x": 66.36,
+       "y": 86.99
+      }
      ]
     },
     {
      "label": "LONESTAR",
      "points": [
-      { "x": 81.52, "y": 34.03 }, { "x": 86.33, "y": 34.03 },
-      { "x": 86.33, "y": 29.21 }, { "x": 81.53, "y": 29.22 }
+      {
+       "x": 81.52,
+       "y": 34.03
+      },
+      {
+       "x": 86.33,
+       "y": 34.03
+      },
+      {
+       "x": 86.33,
+       "y": 29.21
+      },
+      {
+       "x": 81.53,
+       "y": 29.22
+      }
      ]
     }
-   ]
+   ],
+   "controlZone": {
+    "centre": {
+     "x": 100.1,
+     "y": 63.5
+    },
+    "radiusMetres": 500,
+    "confirmed": false
+   }
   }
- ]
+ ],
+ "_controlZone": "The ring the match is fought inside, drawn on every map. Centre and radius were measured off metaforge.app, which draws the real zones, by pixel against tower coordinates whose game X/Y are known: three Bakurani zones came back 500, 515 and 512 m and Ozeti about 550, so 500 m is the figure and radiusConfirmed is false until somebody reads it in game. Note it is NOT the map centre. It sits on the tower cluster. Press material says the control zone is 2x2 km, which does not match anything drawn on either map, so it is not used here."
 }

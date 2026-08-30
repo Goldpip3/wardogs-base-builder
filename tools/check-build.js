@@ -94,12 +94,30 @@ const mojibake = app.match(/Ã.|â€.|â‡.|Â./g);
 check(!mojibake, "no mojibake from a codepage mismatch",
   mojibake && [...new Set(mojibake)].slice(0, 6).join(" "));
 
-// -- 3. every catalog icon was actually inlined --
-const missingIcons = catalog.buildables
-  .map(b => b.icon)
-  .filter(icon => icon && !app.includes('"' + icon + '":"data:'));
-check(missingIcons.length === 0,
-  `all ${catalog.buildables.length} buildable icons inlined`, missingIcons.join(", "));
+/* -- 3. every catalog icon was actually inlined --
+   This used to walk `catalog.buildables` alone, and the FOB is not in that array: it sits
+   beside it as `catalog.fob`. So the one icon a player sees before they have placed anything
+   was the only icon nothing checked, and a wrong FOB icon shipped twice and had to be
+   reported twice by the user before anyone noticed. Walk every icon the catalog names,
+   wherever in the file it lives, and check the file exists as well as that it was inlined:
+   a name pointing at nothing inlines nothing and would otherwise fail silently. */
+{
+  const named = [];
+  (function collect(node, where) {
+    if (!node || typeof node !== "object") return;
+    if (Array.isArray(node)) return node.forEach((n, i) => collect(n, where + "[" + i + "]"));
+    for (const [k, v] of Object.entries(node)) {
+      if (k === "icon" && typeof v === "string" && v) named.push({ icon: v, where });
+      else collect(v, where + "." + k);
+    }
+  })(catalog, "catalog");
+
+  const iconDir = path.join(proj, "assets", "icons");
+  const onDisk = new Set(fs.existsSync(iconDir) ? fs.readdirSync(iconDir) : []);
+  const bad = named.filter(n => !onDisk.has(n.icon) || !app.includes('"' + n.icon + '":"data:'));
+  check(bad.length === 0, `all ${named.length} catalog icons exist and are inlined`,
+    bad.map(n => n.icon + " (" + n.where + ")").join(", "));
+}
 
 // -- 3b. the planner ships no advertising identity at all --
 // The catalog is inlined wholesale, so anything left in it travels inside the offline
