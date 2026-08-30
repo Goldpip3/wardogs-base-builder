@@ -1,6 +1,6 @@
 {
   "_comment": "Community-submitted base designs. Each entry is one player's build. Add a design by pasting the share code from the planner. Votes are NOT stored here - they live in the vote service (see worker/), and the site fetches them at page load.",
-  "voteApi": "",
+  "voteApi": "https://wardogs-votes.wardogsbuilder.workers.dev",
   "voteApiNote": "Base URL of the deployed community worker, e.g. https://wardogs-votes.<you>.workers.dev. While this is empty the site shows the static empty state and no submit form, rather than controls that cannot do anything.",
   "designs": []
 }

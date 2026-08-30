@@ -3,15 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Feedback</title>
-<meta name="description" content="Tell me what to add, what is broken, or which number is wrong. Goes straight to the person who builds this.">
-<link rel="canonical" href="https://www.wardogsbuilder.com/feedback/">
+<title>Moderate</title>
+<meta name="description" content="Review submitted designs.">
+<link rel="canonical" href="https://www.wardogsbuilder.com/moderate/">
+<meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#12140d">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="WARDOGS Base Builder">
-<meta property="og:title" content="Feedback">
-<meta property="og:description" content="Tell me what to add, what is broken, or which number is wrong. Goes straight to the person who builds this.">
-<meta property="og:url" content="https://www.wardogsbuilder.com/feedback/">
+<meta property="og:title" content="Moderate">
+<meta property="og:description" content="Review submitted designs.">
+<meta property="og:url" content="https://www.wardogsbuilder.com/moderate/">
 <meta property="og:image" content="https://www.wardogsbuilder.com/preview.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://www.wardogsbuilder.com/preview.png">
@@ -198,70 +199,110 @@ ul,ol{padding-left:22px}li{margin:6px 0}
     <a href="/planner/" class="cta">Planner</a>
   </nav>
 </div></header>
-<section><div class="wrap" style="max-width:720px">
-  <span class="eyebrow">Say something</span>
-  <h1>Feedback</h1>
-  <p class="lede">This is one person's side project, so there is nobody to escalate to.
-  Whatever you write here I read.</p>
-
-  
-  <form class="form" id="fbForm">
-    <div class="field">
-      <label for="fbKind">What is it</label>
-      <select id="fbKind" style="width:100%;background:var(--panel);color:var(--text);
-        border:1px solid var(--line2);padding:11px 13px;font-family:var(--ui);font-size:15px">
-        <option value="idea">Something to add</option>
-        <option value="bug">Something is broken</option>
-        <option value="data">A number is wrong</option>
-        <option value="other">Something else</option>
-      </select>
-    </div>
-    <div class="field">
-      <label for="fbText">Go on</label>
-      <textarea id="fbText" required maxlength="4000" style="min-height:150px"
-        placeholder="Be as blunt as you like. If it is a wrong number, say which buildable and what it should be."></textarea>
-    </div>
-    <div class="field">
-      <label for="fbContact">Reply to (optional)</label>
-      <input id="fbContact" maxlength="120" placeholder="Discord, Reddit, email, or leave it blank">
-      <div class="hint">Only so I can come back to you. Nothing is sent to it automatically,
-      and it is never shown on the site.</div>
-    </div>
-    <div><button class="btn primary" type="submit">Send</button></div>
-    <div class="msg" id="fbMsg" style="display:none"></div>
-  </form>
-  <p style="font-size:13px;color:var(--dim);margin-top:24px">
-  Nothing you write here appears on the site. It goes into a private list I read and work
-  from. See the <a href="/privacy/">privacy page</a> for what that stores.</p>
-
-  <h2 style="margin-top:56px">Most useful things to tell me</h2>
-  <ul style="max-width:60ch">
-    <li><strong>A cost or size that is wrong.</strong> Everything in the planner was read off
-    the radial menu frame by frame, so some of it will be off. Say which piece and what the
-    real number is and it gets fixed for everyone.</li>
-    <li><strong>Something the game does that the planner does not know about.</strong>
-    Stacking rules, what can sit on what, anything that will not build in game but the
-    planner allows.</li>
-    <li><strong>Anything that is annoying to use.</strong> Especially if it is annoying every
-    single time. Those are the ones worth fixing.</li>
-  </ul>
+<section><div class="wrap" style="max-width:860px">
+  <h1>Moderate</h1>
+  <p class="lede">Submitted designs wait here until you approve them.</p>
+  <div class="field" style="max-width:420px;margin:26px 0">
+    <label for="tok">Admin token</label>
+    <input id="tok" type="password" placeholder="the ADMIN_TOKEN secret">
+    <div class="hint">Kept in this browser only. Never sent anywhere but your own worker.</div>
+  </div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap">
+    <button class="btn" id="load">Design queue</button>
+    <button class="btn" id="loadFb">Feedback</button>
+    <button class="btn sm" id="dumpFb">Download all as JSON</button>
+  </div>
+  <div id="out" style="margin-top:30px"></div>
 </div></section>
 <script>
 (function(){
 var API="https://wardogs-votes.wardogsbuilder.workers.dev";
-var f=document.getElementById("fbForm"), out=document.getElementById("fbMsg");
-f.addEventListener("submit",function(e){
-  e.preventDefault();
-  out.style.display=""; out.className="msg"; out.textContent="Sending...";
-  fetch(API+"/feedback",{method:"POST",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({kind:document.getElementById("fbKind").value,
-      text:document.getElementById("fbText").value,
-      contact:document.getElementById("fbContact").value,
-      page:document.referrer||""})})
-    .then(function(r){return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||"That did not send."); return j; });})
-    .then(function(){ f.reset(); out.className="msg good"; out.textContent="Got it. Thanks."; })
-    .catch(function(err){ out.className="msg"; out.textContent=err.message; });
+var tokEl=document.getElementById("tok"), out=document.getElementById("out");
+try{ tokEl.value=localStorage.getItem("wardogs.admin")||""; }catch(e){}
+var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});};
+
+function call(path,opts){
+  opts=opts||{};
+  opts.headers=Object.assign({"Content-Type":"application/json",
+    "X-Admin-Token":tokEl.value},opts.headers||{});
+  return fetch(API+path,opts).then(function(r){
+    return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||("HTTP "+r.status)); return j; });
+  });
+}
+function render(ds){
+  if(!ds.length){ out.innerHTML='<div class="empty"><h3>Queue is empty</h3><p>Nothing waiting.</p></div>'; return; }
+  out.innerHTML=ds.map(function(d){
+    return '<div class="card" style="border:1px solid var(--line);margin-bottom:1px">'+
+      '<h3>'+esc(d.name)+'</h3>'+
+      '<p>'+esc(d.note||"(no description)")+'</p>'+
+      '<div class="stats"><span>by</span>'+esc(d.author)+'<span>slug</span>'+esc(d.slug)+'</div>'+
+      '<div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">'+
+      '<a class="btn sm" target="_blank" rel="noopener" href="/planner/#d='+esc(d.code)+'">Open it first</a>'+
+      '<button class="btn sm" data-act="approve" data-slug="'+esc(d.slug)+'">Approve</button>'+
+      '<button class="btn sm" data-act="reject" data-slug="'+esc(d.slug)+'">Reject</button>'+
+      '<button class="btn sm" data-act="delete" data-slug="'+esc(d.slug)+'">Delete</button>'+
+      '</div></div>';
+  }).join("");
+}
+function load(){
+  out.textContent="Loading...";
+  try{ localStorage.setItem("wardogs.admin",tokEl.value); }catch(e){}
+  call("/admin/pending").then(function(j){ render(j.designs||[]); })
+    .catch(function(e){ out.innerHTML='<div class="msg">'+esc(e.message)+'</div>'; });
+}
+document.getElementById("load").addEventListener("click",load);
+
+/* Feedback is read here and nowhere else. The JSON dump is the way out: everything
+   people have sent, in one file, to do whatever you want with later. */
+function renderFeedback(items){
+  if(!items.length){
+    out.innerHTML='<div class="empty"><h3>Nothing yet</h3><p>Nobody has sent anything in.</p></div>';
+    return;
+  }
+  out.innerHTML=items.map(function(f){
+    return '<div class="card" style="border:1px solid var(--line);margin-bottom:1px">'+
+      '<div class="stats" style="margin:0 0 10px"><span>'+esc(f.kind)+'</span>'+
+      new Date(f.at).toLocaleString()+
+      (f.contact?'<span>reply to</span>'+esc(f.contact):"")+'</div>'+
+      '<p style="white-space:pre-wrap;overflow-wrap:anywhere;color:var(--text)">'+esc(f.text)+'</p>'+
+      '<div style="margin-top:14px"><button class="btn sm" data-fbkey="'+esc(f.key)+'">Delete</button></div></div>';
+  }).join("");
+}
+function loadFeedback(){
+  out.textContent="Loading...";
+  try{ localStorage.setItem("wardogs.admin",tokEl.value); }catch(e){}
+  return call("/admin/feedback").then(function(j){ renderFeedback(j.feedback||[]); })
+    .catch(function(e){ out.innerHTML='<div class="msg">'+esc(e.message)+'</div>'; });
+}
+document.getElementById("loadFb").addEventListener("click",loadFeedback);
+document.getElementById("dumpFb").addEventListener("click",function(){
+  call("/admin/feedback").then(function(j){
+    var blob=new Blob([JSON.stringify(j.feedback||[],null,2)],{type:"application/json"});
+    var a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download="wardogs-feedback.json";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }).catch(function(e){ alert(e.message); });
 });
+out.addEventListener("click",function(ev){
+  var fb=ev.target.closest("button[data-fbkey]");
+  if(fb){
+    if(!confirm("Delete this feedback?")) return;
+    fb.disabled=true;
+    call("/admin/feedback/delete",{method:"POST",body:JSON.stringify({key:fb.dataset.fbkey})})
+      .then(loadFeedback).catch(function(e){ fb.disabled=false; alert(e.message); });
+    return;
+  }
+  var b=ev.target.closest("button[data-act]"); if(!b) return;
+  if(b.dataset.act==="delete" && !confirm("Delete this permanently?")) return;
+  b.disabled=true;
+  call("/admin/design",{method:"POST",
+    body:JSON.stringify({slug:b.dataset.slug,action:b.dataset.act})})
+    .then(load).catch(function(e){ b.disabled=false; alert(e.message); });
+});
+if(tokEl.value) load();
 })();
 </script>
 

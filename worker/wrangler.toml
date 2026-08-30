@@ -3,12 +3,11 @@ main = "vote-worker.js"
 compatibility_date = "2024-11-01"
 
 # Created with: wrangler kv namespace create VOTES
-# Paste the id it prints into the line below, then: wrangler deploy
 [[kv_namespaces]]
 binding = "VOTES"
-id = "PASTE_KV_NAMESPACE_ID_HERE"
+id = "366137c732974a1ca2242ffde5528479"
 
-[vars]
-# Any random string. It only has to be secret enough that nobody can precompute
-# which hash belongs to which address.
-VOTE_SALT = "change-me"
+# ADMIN_TOKEN and VOTE_SALT are deliberately NOT here. They are set with
+# `wrangler secret put`, which keeps them out of the repo. A value listed under
+# [vars] would be committed in plain text and would also quietly override the
+# secret of the same name.

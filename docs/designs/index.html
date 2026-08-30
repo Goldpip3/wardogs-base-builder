@@ -214,11 +214,162 @@ ul,ol{padding-left:22px}li{margin:6px 0}
   </div>
 
   
-  <div class="note" style="margin-top:40px"><strong>Submissions are not open yet.</strong>
-  The service that stores designs and votes is not live. Until it is, send a share link
-  through <a href="https://github.com/Goldpip3/wardogs-base-builder/issues">GitHub</a>
-  and it will be added by hand.</div>
-</div></section>
+  <h2 class="display" style="margin-top:60px">Submit a build</h2>
+  <p class="lede" style="font-size:17px">Paste the link from <strong>Share</strong> in the
+  planner. The whole design travels inside it, so there is no file to upload.</p>
+  <form class="form" id="submitForm">
+    <div class="field">
+      <label for="sCode">Share link</label>
+      <input id="sCode" required placeholder="https://www.wardogsbuilder.com/planner/#d=...">
+      <div class="hint">Open your design, hit Share, copy the link, paste it here.</div>
+    </div>
+    <div class="field">
+      <label for="sName">Name it</label>
+      <input id="sName" required maxlength="60" placeholder="Anti-climb perimeter">
+    </div>
+    <div class="field">
+      <label for="sAuthor">Your name</label>
+      <input id="sAuthor" maxlength="32" placeholder="anonymous">
+    </div>
+    <div class="field">
+      <label for="sNote">What is it for</label>
+      <textarea id="sNote" maxlength="300" placeholder="One or two lines on what it is good at."></textarea>
+    </div>
+    <div><button class="btn primary" type="submit">Submit</button></div>
+    <div class="msg" id="submitMsg" style="display:none"></div>
+  </form>
+  <p style="font-size:13px;color:var(--dim);margin-top:20px">
+  Submissions are read before they go up, which usually takes a few hours. Nothing is
+  published automatically.</p>
+</div></section><script>
+(function(){
+var API="https://wardogs-votes.wardogsbuilder.workers.dev";
+var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});};
+var ago=function(ms){
+  var s=Math.max(1,(Date.now()-ms)/1000);
+  var u=[[86400*365,"y"],[86400*30,"mo"],[86400,"d"],[3600,"h"],[60,"m"]];
+  for(var i=0;i<u.length;i++) if(s>=u[i][0]) return Math.floor(s/u[i][0])+u[i][1]+" ago";
+  return "just now";
+};
+var post=function(path,body){
+  return fetch(API+path,{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(body)}).then(function(r){
+      return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||"That did not work."); return j; });
+    });
+};
+
+/* ---- submit ---- */
+var form=document.getElementById("submitForm");
+if(form) form.addEventListener("submit",function(e){
+  e.preventDefault();
+  var out=document.getElementById("submitMsg");
+  // people paste the whole link; the design is the bit after #d=
+  var raw=(document.getElementById("sCode").value||"").trim();
+  var m=raw.match(/[#&]d=([A-Za-z0-9_-]+)/);
+  var code=m?m[1]:raw;
+  out.className="msg"; out.textContent="Sending...";
+  post("/submit",{name:document.getElementById("sName").value,
+                  author:document.getElementById("sAuthor").value,
+                  note:document.getElementById("sNote").value,
+                  code:code})
+    .then(function(){
+      form.reset();
+      out.className="msg good";
+      out.textContent="Thanks. It goes up once it has been looked over, usually the same day.";
+    })
+    .catch(function(err){ out.className="msg"; out.textContent=err.message; });
+});
+
+/* ---- the list ---- */
+var list=document.getElementById("designList");
+if(list){
+  fetch(API+"/designs").then(function(r){return r.json();}).then(function(j){
+    var ds=j.designs||[];
+    if(!ds.length) return;                       // keep whatever static state is there
+    list.innerHTML=ds.map(function(d){
+      var score=(d.votes.up||0)-(d.votes.down||0);
+      return '<details class="design"><summary>'+
+        '<div class="card"><h3>'+esc(d.name)+'</h3>'+
+        (d.note?'<p>'+esc(d.note)+'</p>':'')+
+        '<div class="stats"><span>by</span>'+esc(d.author)+
+        '<span>score</span><b data-role="score">'+score+'</b>'+
+        '<span>'+ago(d.submitted)+'</span></div>'+
+        '<div class="vote" data-design="'+esc(d.slug)+'" style="margin-top:14px">'+
+        '<button type="button" data-dir="1" aria-label="Vote up">&#9650;</button>'+
+        '<span class="score" data-role="n">'+score+'</span>'+
+        '<button type="button" data-dir="-1" aria-label="Vote down">&#9660;</button>'+
+        '<a class="btn sm" style="margin-left:14px" href="/planner/#d='+esc(d.code)+'">Open in planner</a>'+
+        '</div></div></summary>'+
+        '<div class="design-open" data-thread="'+esc(d.slug)+'">'+
+        '<h3>Comments</h3><div class="thread" data-role="list"></div>'+
+        '<form class="form" data-role="form" style="margin-top:16px">'+
+        '<div class="field"><label>Your name</label><input maxlength="32" data-role="who" placeholder="anonymous"></div>'+
+        '<div class="field"><label>Comment</label><textarea maxlength="1500" data-role="text" required></textarea></div>'+
+        '<button class="btn sm" type="submit">Post comment</button>'+
+        '<div class="msg" data-role="msg" style="display:none"></div></form></div></details>';
+    }).join("");
+    wireVotes(list);
+    wireThreads(list);
+  }).catch(function(){});
+}
+
+function wireVotes(root){
+  root.querySelectorAll(".vote[data-design]").forEach(function(e){
+    e.addEventListener("click",function(ev){
+      var b=ev.target.closest("button[data-dir]"); if(!b) return;
+      ev.preventDefault();
+      var mine=b.dataset.cast==="1";
+      post("/vote",{id:e.dataset.design,dir:mine?0:+b.dataset.dir}).then(function(t){
+        var n=(t.up||0)-(t.down||0);
+        e.querySelector('[data-role=n]').textContent=n;
+        var card=e.closest(".card"); if(card){
+          var s=card.querySelector('[data-role=score]'); if(s) s.textContent=n; }
+        e.querySelectorAll("button").forEach(function(x){x.dataset.cast="";});
+        if(t.you) b.dataset.cast="1";
+      }).catch(function(){});
+    });
+  });
+}
+
+function wireThreads(root){
+  root.querySelectorAll("details.design").forEach(function(det){
+    var box=det.querySelector("[data-thread]"); if(!box) return;
+    var slug=box.dataset.thread, loaded=false;
+    var listEl=box.querySelector("[data-role=list]");
+    var render=function(cs){
+      listEl.innerHTML=cs.length
+        ? cs.map(function(c){
+            return '<div class="cmt"><span class="who">'+esc(c.author)+
+              '<span class="when">'+ago(c.at)+'</span></span><p>'+esc(c.text)+'</p></div>';
+          }).join("")
+        : '<div class="cmt"><p>No comments yet.</p></div>';
+    };
+    det.addEventListener("toggle",function(){
+      if(!det.open||loaded) return;
+      loaded=true;
+      fetch(API+"/comments?design="+encodeURIComponent(slug))
+        .then(function(r){return r.json();}).then(function(j){render(j.comments||[]);})
+        .catch(function(){});
+    });
+    box.querySelector("[data-role=form]").addEventListener("submit",function(e){
+      e.preventDefault();
+      var msg=box.querySelector("[data-role=msg]");
+      var txt=box.querySelector("[data-role=text]");
+      msg.style.display=""; msg.className="msg"; msg.textContent="Posting...";
+      post("/comment",{design:slug,author:box.querySelector("[data-role=who]").value,text:txt.value})
+        .then(function(){
+          txt.value="";
+          msg.className="msg good"; msg.textContent="Posted.";
+          return fetch(API+"/comments?design="+encodeURIComponent(slug))
+            .then(function(r){return r.json();}).then(function(j){render(j.comments||[]);});
+        })
+        .catch(function(err){ msg.className="msg"; msg.textContent=err.message; });
+    });
+  });
+}
+})();
+</script>
 
 <footer class="site"><div class="wrap">
   <span class="fine">A free, fan-made planner for WARDOGS, built by a player. Not affiliated with,
