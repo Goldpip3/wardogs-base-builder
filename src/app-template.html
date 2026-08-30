@@ -914,6 +914,7 @@ function drawPiece(p, hasIssue) {
   const alpha = rel === 0 ? 1 : (rel < 0 ? 0.62 : 0.48);
   drawRect(pieceRect(p), def, {
     seams: getSeams().get(p.id) || 0,
+    climb: getClimb().get(p.id),
     selected: selection.has(p.id),
     hovered: hoverId === p.id,
     issue: hasIssue,
@@ -973,10 +974,13 @@ function drawRect(r, def, opt) {
   ctx.translate(sx, sy);
   ctx.rotate(r.rot);
   ctx.globalAlpha = (opt.ghost ? 0.55 : 1) * fade;
-  ctx.fillStyle = shade(base, opt.level ? 18 * Math.min(opt.level,3) : 0);
+  /* The role colour lives in the edge, not in a flood of it. A perimeter used to render
+     as one saturated slab with icons floating in the middle of it; now each piece reads
+     as a shape with a coloured border and a dark body the icon sits on. */
+  ctx.fillStyle = shade(base, -62 + (opt.level ? 10 * Math.min(opt.level, 3) : 0));
   ctx.strokeStyle = opt.issue ? "#f04a2e" : (opt.selected ? "#ff5b47" : (opt.hovered ? "#fff7ea"
-    : shade(base, opt.onThisLevel === false ? 50 : -25)));   // storeys you are not on read by their edge
-  ctx.lineWidth = (opt.selected || opt.issue ? 2.5 : 1.5) * uiScale;
+    : (opt.onThisLevel === false ? shade(base, -20) : base)));
+  ctx.lineWidth = (opt.selected || opt.issue ? 2.5 : 1.6) * uiScale;
   const seams = opt.seams || 0;
   if (seams) {
     // Part of a run: square the joined corners, fill flush, and outline only the sides
@@ -995,6 +999,28 @@ function drawRect(r, def, opt) {
   } else {
     roundRect(-w/2, -h/2, w, h, Math.min(4, z*0.15));
     ctx.fill(); ctx.stroke();
+  }
+
+  /* A soft spot in the perimeter is marked on the plan rather than only counted in the
+     panel, because the question is always "where", not "how many". A dashed line inside
+     the edge: amber for anything a vehicle gets you over, red for what can be vaulted
+     without one. Deliberately not the error styling, since a low wall is a choice, not a
+     mistake. Only the outer edges of a run are marked, so a long wall shows one dashed
+     line down its length instead of a ladder of them. */
+  if (!opt.ghost && opt.climb && opt.climb !== "secure" && Math.min(w, h) > 6) {
+    const seams = opt.seams || 0;
+    const inset = Math.max(2, Math.min(4, z * 0.09)) * uiScale;
+    ctx.strokeStyle = opt.climb === "foot" ? "#f0503a" : "#e2a33a";
+    ctx.lineWidth = 1.8 * uiScale;
+    ctx.setLineDash([5 * uiScale, 4 * uiScale]);
+    const l = -w/2 + inset, rr = w/2 - inset, tp = -h/2 + inset, bt = h/2 - inset;
+    ctx.beginPath();
+    if (!(seams & 1)) { ctx.moveTo(rr, tp); ctx.lineTo(rr, bt); }
+    if (!(seams & 2)) { ctx.moveTo(l, tp); ctx.lineTo(l, bt); }
+    if (!(seams & 4)) { ctx.moveTo(l, bt); ctx.lineTo(rr, bt); }
+    if (!(seams & 8)) { ctx.moveTo(l, tp); ctx.lineTo(rr, tp); }
+    ctx.stroke();
+    ctx.setLineDash([]);
   }
   ctx.restore();
 
@@ -1204,7 +1230,53 @@ function getIssues() {
   if (!issuesCache) issuesCache = computeIssues();
   return issuesCache;
 }
-function invalidateIssues() { issuesCache = null; seamCache = null; }
+function invalidateIssues() { issuesCache = null; seamCache = null; climbCache = null; }
+
+/* ---------- who can get over what ----------
+   Two ways in, needing different heights to stop.
+
+     on foot   one block is waist height and gets vaulted.
+     by truck  park against the wall, climb on the roof, step over. That beats anything up
+               to VEHICLE_CLIMB blocks, which is most of a perimeter that looks tall enough
+               from directly above.
+
+   A Bremer wall stops both whatever the height under it, because nothing can be built on
+   top of one and the coil along the top is not something you step over.
+
+   Measured per stack, not per piece: what matters is how high the thing in front of you
+   reaches, so sandbags on a hesco block count as two. The piece at the bottom carries the
+   verdict for the whole stack, and the rest are marked as part of it so the plan can
+   outline the whole section rather than just its base. */
+const VAULT_HEIGHT = 1;
+const VEHICLE_CLIMB = 2;
+let climbCache = null;
+function getClimb() { if (!climbCache) climbCache = computeClimb(); return climbCache; }
+function computeClimb() {
+  const verdict = new Map();
+  const cover = design.pieces.filter(p => (byId[p.type] || {}).role === "cover");
+  for (const p of cover) {
+    const def = byId[p.type];
+    const stack = [p];
+    let top = (p.level || 0) + (def.height || 1);
+    let capped = (def.tags || []).includes("top-layer");
+    let standingOn = false;
+    for (const q of cover) {
+      if (q === p || !rectsOverlap(pieceRect(p), pieceRect(q))) continue;
+      const qd = byId[q.type];
+      if ((q.level || 0) < (p.level || 0)) { standingOn = true; break; }
+      stack.push(q);
+      top = Math.max(top, (q.level || 0) + (qd.height || 1));
+      if ((qd.tags || []).includes("top-layer")) capped = true;
+    }
+    if (standingOn) continue;                 // judged as part of the stack below it
+    const how = capped ? "secure"
+      : top <= VAULT_HEIGHT ? "foot"
+      : top <= VEHICLE_CLIMB ? "vehicle"
+      : "secure";
+    for (const q of stack) verdict.set(q.id, how);
+  }
+  return verdict;
+}
 
 /* ---------- wall runs ----------
    Drag out ten Hesco blocks and they are one wall, so they should draw as one wall.
@@ -1319,56 +1391,46 @@ function updateRightPanel() {
 
      Height is measured per stack, not per piece: what matters is how high the thing you
      are standing in front of reaches, so sandbags on a hesco block count as two. */
-  const VAULT_HEIGHT = 1;         // blocks you can clear from the ground
-  const VEHICLE_CLIMB = 2;        // blocks you can clear off a vehicle roof
-
+  /* One entry per wall section: the classification marks every piece in a stack, and the
+     base of each stack is the one that counts. */
+  const climb = getClimb();
+  const counted = new Set();
   let vaultable = 0, truckable = 0, secure = 0;
   for (const p of design.pieces) {
-    const def = byId[p.type];
-    if (!def || def.role !== "cover") continue;
-
-    /* One count per wall section, not per piece. Sandbags on a hesco block are one thing
-       to climb over, so only the piece at the bottom of a stack is counted and the rest
-       just contribute their height to it. */
-    const standingOn = design.pieces.some(q => {
-      if (q === p) return false;
+    const how = climb.get(p.id);
+    if (!how) continue;
+    const base = design.pieces.some(q => {
       const qd = byId[q.type];
-      return qd && qd.role === "cover" && (q.level || 0) < (p.level || 0) &&
+      return q !== p && qd && qd.role === "cover" && (q.level || 0) < (p.level || 0) &&
              rectsOverlap(pieceRect(p), pieceRect(q));
     });
-    if (standingOn) continue;
-
-    // everything sharing this footprint, so a capped wall is judged by its full stack
-    let top = (p.level || 0) + (def.height || 1);
-    let cappedByTopLayer = (def.tags || []).includes("top-layer");
-    for (const q of design.pieces) {
-      if (q === p) continue;
-      const qd = byId[q.type];
-      if (!qd || !rectsOverlap(pieceRect(p), pieceRect(q))) continue;
-      const qTop = (q.level || 0) + (qd.height || 1);
-      if (qTop > top) top = qTop;
-      if ((qd.tags || []).includes("top-layer") && (q.level || 0) >= (p.level || 0))
-        cappedByTopLayer = true;
-    }
-
-    if (cappedByTopLayer) secure++;
-    else if (top <= VAULT_HEIGHT) vaultable++;
-    else if (top <= VEHICLE_CLIMB) truckable++;
+    if (base || counted.has(p.id)) continue;
+    counted.add(p.id);
+    if (how === "foot") vaultable++;
+    else if (how === "vehicle") truckable++;
     else secure++;
   }
 
   const climbEl = document.getElementById("antiClimb");
+  /* The counts name the colours that are drawn on the plan, so the panel and the map are
+     obviously talking about the same thing. */
+  const dash = c => `<span style="display:inline-block;width:14px;border-top:2px dashed ${c};
+    vertical-align:middle;margin-right:5px"></span>`;
   const climbParts = [];
-  if (vaultable) climbParts.push(`<span style="color:var(--danger)">${vaultable}</span> vaultable on foot`);
-  if (truckable) climbParts.push(`<span style="color:var(--accent)">${truckable}</span> climbable off a vehicle`);
-  if (secure) climbParts.push(`<span style="color:var(--accent2)">${secure}</span> secure`);
+  if (vaultable) climbParts.push(
+    `<div>${dash("#f0503a")}<span style="color:var(--danger)">${vaultable}</span> section${vaultable>1?"s":""} vaultable on foot</div>`);
+  if (truckable) climbParts.push(
+    `<div>${dash("#e2a33a")}<span style="color:var(--accent)">${truckable}</span> section${truckable>1?"s":""} a vehicle gets you over</div>`);
+  if (secure) climbParts.push(
+    `<div><span style="color:var(--accent2)">${secure}</span> section${secure>1?"s":""} secure</div>`);
   climbEl.innerHTML = !climbParts.length
     ? `<span style="color:var(--dim)">No cover placed yet.</span>`
-    : climbParts.join(" · ") +
+    : climbParts.join("") +
       ((vaultable || truckable)
-        ? `<div style="margin-top:5px;color:var(--dim)">Anything ${VEHICLE_CLIMB} blocks or under
-           can be crossed by parking a truck against it. Cap a wall with a Bremer to stop that.</div>`
-        : `<div style="margin-top:5px;color:var(--dim)">Nothing here can be crossed on foot or off a vehicle.</div>`);
+        ? `<div style="margin-top:6px;color:var(--dim)">Dashed on the plan is where they get in.
+           Anything ${VEHICLE_CLIMB} blocks or under can be crossed by parking a truck against it
+           and stepping off the roof. Cap it with a Bremer to stop that.</div>`
+        : `<div style="margin-top:6px;color:var(--dim)">Nothing here can be crossed on foot or off a vehicle.</div>`);
 
   const bd = document.getElementById("costBreakdown");
   bd.innerHTML = Object.entries(counts).sort((a,b) => b[1]*byId[b[0]].cost - a[1]*byId[a[0]].cost)
