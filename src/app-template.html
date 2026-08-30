@@ -79,6 +79,12 @@
     font-variant-numeric: tabular-nums;
   }
   .seg button.active .n { color: var(--accent-ink); opacity: .75; }
+  .support-link {
+    margin-left: auto; text-decoration: none; font-size: 12px;
+    color: var(--accent); border: 1px solid #4d3d12; background: #241f0e;
+    padding: 5px 11px; border-radius: 5px; white-space: nowrap;
+  }
+  .support-link:hover { border-color: var(--accent); background: #2f2811; }
   .group-label {
     font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
     color: var(--dim); margin-right: -2px;
@@ -302,6 +308,7 @@
   <button id="btnTemplates" title="Drop in a ready-made build (mortar pit, AA nest, wall section…)">◈ Presets</button>
   <button id="btnCatalog" title="Edit the buildables catalog (costs/sizes)">⚙ Catalog</button>
   <button id="btnHelp" title="Help & shortcuts">? Help</button>
+  <a id="btnSupport" target="_blank" rel="noopener noreferrer" style="display:none"></a>
   <div class="sep"></div>
   <label for="uiScale" style="color:var(--dim)">Size</label>
   <select id="uiScale" title="Interface size — turn this up on a large or 4K monitor ( [ and ] )">
@@ -376,6 +383,9 @@
         <button id="btnMirrorH" title="Flip the selection left↔right">⇄ Flip</button>
         <button id="btnMirrorV" title="Flip the selection up↔down">⇅ Flip</button>
         <button id="btnSelSame" title="Select every piece of this type">⊞ Same</button>
+      </div>
+      <div class="rp-row" style="margin-top:5px">
+        <button id="btnAlign" title="Square up anything left crooked or off-grid (Shift+A)">⌗ Align to grid</button>
       </div>
       <div class="rp-row" style="margin-top:5px">
         <button id="btnDup">⧉ Duplicate</button>
@@ -462,9 +472,10 @@ function indexCatalog() { byId = {}; for (const b of catalog.buildables) byId[b.
 function fobDef() {
   const f = catalog.fob;
   return { id:"__fob__", name:"FOB (Forward Operating Base)", tier:"small", cost:0, costConfirmed:true,
-    requiresFob:false, footprint:f.footprint || {w:4,d:4}, height:f.height || 2, sizeConfirmed:f.sizeConfirmed === true,
+    requiresFob:false, footprint:f.footprint || {w:3,d:3}, height:f.height || 2, sizeConfirmed:f.sizeConfirmed === true,
+    icon:"fob.svg",
     desc:"Deployable FOB. Provides the square build zone; stores supplies. $"+(f.vendorPrice||2500)+" vendor item.",
-    icon:null, tags:["fob"], isFob:true };
+    tags:["fob"], isFob:true };
 }
 indexCatalog();
 
@@ -632,12 +643,35 @@ function duplicateSelection() {
   selection = new Set(clones.map(c => c.id));
   afterChange();
 }
+/* With snapping on, a rotation always ends square to the grid. If a piece is sitting at
+   some odd angle from free rotating, the next R squares it up rather than adding 90 to
+   the odd angle and leaving it just as crooked. */
+function rotatedValue(cur, deg) {
+  cur = (((cur || 0) % 360) + 360) % 360;
+  let next;
+  if (!snap) next = cur + deg;
+  else if (cur % 90 === 0) next = cur + deg;          // already square — turn a quarter
+  else next = Math.round(cur / 90) * 90;              // crooked — square it up first
+  return ((next % 360) + 360) % 360;
+}
 function rotateSelection(deg) {
-  if (placing) { ghost.rot = ((ghost.rot||0) + deg + 360) % 360; draw(); return; }
+  if (placing) { ghost.rot = rotatedValue(ghost.rot, deg); updateHint(); draw(); return; }
   if (!selection.size) return;
   pushUndo();
-  for (const p of design.pieces) if (selection.has(p.id)) p.rot = ((p.rot||0) + deg + 360) % 360;
+  for (const p of design.pieces) if (selection.has(p.id)) p.rot = rotatedValue(p.rot, deg);
   afterChange();
+}
+/* Explicit repair for anything left off-grid by free placement */
+function alignSelection() {
+  if (!selection.size) return;
+  pushUndo();
+  for (const p of design.pieces) if (selection.has(p.id)) {
+    p.x = Math.round(p.x * 2) / 2;
+    p.y = Math.round(p.y * 2) / 2;
+    p.rot = (Math.round((p.rot || 0) / 90) * 90) % 360;
+  }
+  afterChange();
+  flashStatus("Aligned to the grid");
 }
 function snapVal(v) { return snap ? Math.round(v * 2) / 2 : Math.round(v * 100) / 100; }
 function rotStep() { return snap ? 90 : 15; }
@@ -1310,6 +1344,7 @@ window.addEventListener("keydown", e => {
   else if (k === " ") { spaceHeld = true; canvas.style.cursor = "grab"; e.preventDefault(); }
   else if (k === "escape") { placing ? stopPlacing() : (selection.clear(), updateRightPanel(), draw()); }
   else if (k === "b") toggleSnap();
+  else if (k === "a" && e.shiftKey) { e.preventDefault(); alignSelection(); }
   else if (k === "r") rotateSelection(e.shiftKey ? -rotStep() : rotStep());
   else if (k === "delete" || k === "backspace") deleteSelection();
   else if (k === "f") zoomFit();
@@ -1478,6 +1513,7 @@ document.getElementById("rotR").onclick = () => rotateSelection(rotStep());
 document.getElementById("btnMirrorH").onclick = () => mirrorSelection("h");
 document.getElementById("btnMirrorV").onclick = () => mirrorSelection("v");
 document.getElementById("btnSelSame").onclick = selectSameType;
+document.getElementById("btnAlign").onclick = alignSelection;
 document.getElementById("supplyStock").oninput = updateRightPanel;
 document.getElementById("btnTemplates").onclick = () => {
   const rows = PRESETS.map((t, i) => `
@@ -1945,6 +1981,18 @@ document.getElementById("btnHelp").onclick = () => {
     [["Close", closeModal]]);
 };
 
+/* Optional tip link. Stays hidden until a URL is set in the catalog's `support` block,
+   so the app never ships a dead button. */
+function renderSupport() {
+  const s = catalog.support;
+  const el = document.getElementById("btnSupport");
+  if (!s || !s.url) { el.style.display = "none"; return; }
+  el.style.display = "";
+  el.className = "support-link";
+  el.href = s.url;
+  el.textContent = s.label || "Support this tool";
+  el.title = "This tool is free — a tip keeps it going";
+}
 function renderLegend() {
   document.getElementById("legend").innerHTML =
     ["fob","cover","entry","denial","offense","antiair","support","objective"]
@@ -1960,6 +2008,7 @@ document.getElementById("ssDismiss").onclick = () => {
 };
 
 loadCurrent();
+renderSupport();
 renderLegend();
 renderPalette();
 initUiScale();
