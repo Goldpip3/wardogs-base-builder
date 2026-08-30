@@ -101,6 +101,9 @@
     display: flex; align-items: center; gap: 8px; padding: 7px 12px;
     background: var(--panel); border-bottom: 1px solid var(--border); flex-wrap: wrap;
   }
+  #topbar a#homeLink { text-decoration: none; border-radius: 6px; padding: 2px 5px; margin-left: -5px; }
+  #topbar a#homeLink:hover { background: var(--panel2, #2a2f2a); }
+  #topbar a#homeLink:hover h1 { color: var(--accent); }
   #topbar h1 {
     font-size: 15px; letter-spacing: .16em; color: var(--accent); font-weight: 700;
     margin-right: 6px; white-space: nowrap;
@@ -109,6 +112,7 @@
     color: var(--dim); font-weight: 500; letter-spacing: .1em; font-size: 9.5px;
     text-transform: uppercase; display: block; margin-top: -3px;
   }
+  .cost-ico { width: 12px; height: 12px; object-fit: contain; vertical-align: -2px; margin-left: 2px; }
   #topbar label { font-size: 11px; color: var(--dim); }
   .sep { width: 1px; height: 22px; background: var(--border); margin: 0 3px; }
   #designName { width: 158px; font-weight: 600; }
@@ -144,7 +148,7 @@
   }
   .item-card .meta { font-size: 10.5px; color: var(--dim); font-variant-numeric: tabular-nums; margin-top: 1px; }
   .item-card .cost { color: var(--accent); font-family: var(--num); }
-  .item-card .cost.unconfirmed::after { content: "?"; color: var(--danger); }
+  .item-card .cost.unconfirmed { color: inherit; }
   .role-dot {
     display: inline-block; width: 8px; height: 8px; border-radius: 2px;
     margin-right: 6px; vertical-align: 0; flex-shrink: 0;
@@ -293,7 +297,7 @@
 </head>
 <body>
 <div id="topbar">
-  <h1>WARDOGS <span>BASE BUILDER</span></h1>
+  <a id="homeLink" href="/" title="Back to wardogsbuilder.com"><h1>WARDOGS <span>BASE BUILDER</span></h1></a>
   <input id="designName" placeholder="Design name" value="New FOB">
   <button id="btnNew" title="New design">✚ New</button>
   <button id="btnDesigns" title="Saved designs">🗂 Designs</button>
@@ -408,7 +412,7 @@
       <div class="rp-row"><label>Vendor cash (@$10)</label><span class="val" id="costCash">$0</span></div>
       <div class="rp-row"><label>+ FOB item</label><span class="val" id="costFob">—</span></div>
       <div class="rp-row"><label>Hammer needed</label><span class="val" id="hammerNeeded">—</span></div>
-      <div class="rp-row" style="margin-top:7px"><label>You have in the FOB</label><input type="number" id="supplyStock" value="0" min="0" style="width:72px" title="Build supplies currently stocked — leave 0 to ignore"></div>
+      <div class="rp-row" style="margin-top:7px"><label>You have in the FOB</label><input type="number" id="supplyStock" value="1750" min="0" style="width:72px" title="Build supplies stocked. A fresh FOB lands with 1,750 already inside."></div>
       <div class="budget-track" id="budgetTrack" style="display:none"><div class="budget-fill" id="budgetFill"></div></div>
       <div id="budgetText" style="font-size:11.5px;margin-top:4px"></div>
       <div id="costBreakdown" style="margin-top:8px"></div>
@@ -417,8 +421,8 @@
     <div class="rp-section">
       <h3>Hauling it there</h3>
       <div class="rp-row">
-        <label>Supplies per pallet <span id="palletFlag" class="unsized" title="Not published by the game — count one in-game and correct it here">?</span></label>
-        <input type="number" id="palletSize" value="40" min="1" style="width:62px">
+        <label>Supplies per pallet</label>
+        <input type="number" id="palletSize" value="1900" min="1" style="width:62px">
       </div>
       <div class="rp-row"><label>Pallets needed</label><span class="val" id="palletsNeeded">0</span></div>
       <div class="rp-row"><label>Pallet cost</label><span class="val" id="palletCash">$0</span></div>
@@ -476,6 +480,10 @@
 /* ============ EMBEDDED DATA ============ */
 const CATALOG_DEFAULT = /*__CATALOG__*/;
 const ICONS = /*__ICONS__*/;
+/* Build Supplies are shown with the in-game build tool rather than a stand-in glyph. */
+const COST_ICON = ICONS["_cost.webp"]
+  ? `<img class="cost-ico" src="${ICONS["_cost.webp"]}" alt=" build supplies">` : "";
+const COST_UNIT = " BS";   // canvas labels, where an image would cost a draw call each
 
 /* ============ STATE ============ */
 const LS_CATALOG = "wardogs.catalog";
@@ -567,10 +575,10 @@ function renderPalette() {
       ? `<img src="${ICONS[b.icon]}" alt="">`
       : `<div class="noicon">${b.isFob ? "🏳" : "▦"}</div>`;
     const costTxt = b.isFob ? `$${catalog.fob.vendorPrice}` :
-      `<span class="cost ${b.costConfirmed===false?'unconfirmed':''}">${b.cost}⛏</span>`;
+      `<span class="cost">${b.cost}${COST_ICON}</span>`;
     card.innerHTML = `${ic}<div class="info">
       <div class="name"><span class="role-dot" style="background:${pieceColor(b)}" title="${ROLE_LABEL[b.isFob?'fob':b.role] || 'Other'}"></span>${b.name}${b.isFob?"":`<span class="tier-badge tier-${b.tier}">${b.tier[0].toUpperCase()}</span>`}</div>
-      <div class="meta">${costTxt} · <span class="${b.sizeConfirmed===false?'unsized':''}" title="${b.sizeConfirmed===false?'Estimated size — select a placed one to correct it':'Confirmed size'}">${b.footprint.w}×${b.footprint.d}${b.height>1?`×${b.height}`:""}${b.sizeConfirmed===false?"?":""}</span>${b.requiresFob===false&&!b.isFob?" · no FOB":""}</div>
+      <div class="meta">${costTxt} · <span class="${b.sizeConfirmed===false?'unsized':''}" title="${b.sizeConfirmed===false?'Estimated size — select a placed one to correct it':'Confirmed size'}">${b.footprint.w}×${b.footprint.d}${b.height>1?`×${b.height}`:""}</span>${b.requiresFob===false&&!b.isFob?" · no FOB":""}</div>
     </div>`;
     card.onclick = () => startPlacing(b.id);
     holder.appendChild(card);
@@ -937,7 +945,7 @@ function drawNow() {
     if (stamping && pts.length > 1) {          // run length + what it will cost
       const last = pts[pts.length - 1];
       const [lx, ly] = toScreen(last.cx, last.cy);
-      const label = `×${pts.length}` + (def.cost ? `  ${(pts.length * def.cost).toLocaleString()}⛏` : "");
+      const label = `×${pts.length}` + (def.cost ? `  ${(pts.length * def.cost).toLocaleString()}${COST_UNIT}` : "");
       ctx.font = `700 ${13 * uiScale}px sans-serif`;
       const pad = 6 * uiScale, tw = ctx.measureText(label).width;
       const bx = lx + 14 * uiScale, by = ly - 12 * uiScale;
@@ -970,7 +978,7 @@ function drawPiece(p, hasIssue) {
   const def = byId[p.type]; if (!def) return;
   const rel = viewLevel === null ? 0 : (p.level || 0) - viewLevel;
   // the storey you're on reads solid; the ones below show through as an underlay
-  const alpha = rel === 0 ? 1 : (rel < 0 ? 0.34 : 0.2);
+  const alpha = rel === 0 ? 1 : (rel < 0 ? 0.62 : 0.48);
   drawRect(pieceRect(p), def, {
     selected: selection.has(p.id),
     hovered: hoverId === p.id,
@@ -1012,7 +1020,8 @@ function drawRect(r, def, opt) {
   ctx.rotate(r.rot);
   ctx.globalAlpha = (opt.ghost ? 0.55 : 1) * fade;
   ctx.fillStyle = shade(base, opt.level ? 18 * Math.min(opt.level,3) : 0);
-  ctx.strokeStyle = opt.issue ? "#d05038" : (opt.selected ? "#d9a521" : (opt.hovered ? "#d8d6c4" : shade(base, -25)));
+  ctx.strokeStyle = opt.issue ? "#d05038" : (opt.selected ? "#d9a521" : (opt.hovered ? "#d8d6c4"
+    : shade(base, opt.onThisLevel === false ? 50 : -25)));   // storeys you are not on read by their edge
   ctx.lineWidth = (opt.selected || opt.issue ? 2.5 : 1.5) * uiScale;
   roundRect(-w/2, -h/2, w, h, Math.min(4, z*0.15));
   ctx.fill(); ctx.stroke();
@@ -1214,12 +1223,11 @@ function updateRightPanel() {
   /* Supplies travel as pallets, and a vehicle carries a whole number of them —
      so the figure that actually matters is trips, not raw supply count. */
   const log = catalog.logistics || {};
-  const pallet = Math.max(1, +document.getElementById("palletSize").value || 40);
+  const pallet = Math.max(1, +document.getElementById("palletSize").value || 1900);
   const pallets = supplies ? Math.ceil(supplies / pallet) : 0;
   document.getElementById("palletsNeeded").textContent = pallets.toLocaleString();
   document.getElementById("palletCash").textContent =
     "$" + (pallets * (log.palletCash || 400)).toLocaleString();
-  document.getElementById("palletFlag").style.display = log.palletConfirmed ? "none" : "";
   const vehicles = log.vehicles && log.vehicles.length
     ? log.vehicles : [{ name: "Truck", pallets: 2 }, { name: "Helicopter", pallets: 1 }];
   document.getElementById("vehicleRuns").innerHTML = pallets
@@ -1241,12 +1249,12 @@ function updateRightPanel() {
     fill.style.width = Math.min(100, ratio * 100) + "%";
     if (supplies <= stock) {
       fill.style.background = ratio > 0.85 ? "var(--accent)" : "var(--accent2)";
-      btext.innerHTML = `<span style="color:var(--accent2)">Fits</span> — ${(stock - supplies).toLocaleString()}⛏ left over`;
+      btext.innerHTML = `<span style="color:var(--accent2)">Fits</span> — ${(stock - supplies).toLocaleString()}${COST_ICON} left over`;
     } else {
       fill.style.background = "var(--danger)";
       const short = supplies - stock;
       const morePallets = Math.ceil(short / pallet);
-      btext.innerHTML = `<span style="color:var(--danger)">${short.toLocaleString()}⛏ short</span> — ${morePallets} more pallet${morePallets > 1 ? "s" : ""}`;
+      btext.innerHTML = `<span style="color:var(--danger)">${short.toLocaleString()}${COST_ICON} short</span> — ${morePallets} more pallet${morePallets > 1 ? "s" : ""}`;
     }
   } else {
     track.style.display = "none";
@@ -1316,9 +1324,7 @@ function updateRightPanel() {
       document.getElementById("szH").value = def.height || 1;
       const szl = document.getElementById("szLabel");
       const shortName = def.isFob ? "FOBs" : def.name.replace(/ \(.*\)/, "") + "s";
-      szl.innerHTML = def.sizeConfirmed === false
-        ? `Footprint &amp; height <span class="unsized" title="Unverified estimate — correct it here">(estimated)</span>`
-        : `Footprint &amp; height`;
+      szl.innerHTML = `Footprint &amp; height`;
       szl.title = "Applies to all " + shortName + " in every design";
       document.getElementById("sizeRows").style.display = "";
       const fr = document.getElementById("fobSizeRow");
@@ -1647,7 +1653,7 @@ document.getElementById("btnTemplates").onclick = () => {
       <div class="body">
         <div class="t">${esc(t.name)}</div>
         <div class="d">${esc(t.desc)}</div>
-        <div class="c">${presetCost(t).toLocaleString()}⛏ · ${t.build().length} pieces</div>
+        <div class="c">${presetCost(t).toLocaleString()}${COST_ICON} · ${t.build().length} pieces</div>
       </div>
       <button data-preset="${i}">Place</button>
     </div>`).join("");
@@ -1875,6 +1881,32 @@ function duplicateDesign(name, d) {
   renderDesigns();
 }
 document.getElementById("btnNew").onclick = () => newDesign(false);
+
+/* Leaving for the rest of the site shouldn't cost you a layout. The work is autosaved
+   into the current slot either way, but a design that was never filed under a name is
+   easy to lose track of, so offer to file it before going. */
+function unsavedWork() {
+  if (!design.pieces.length) return false;
+  if (!currentSavedName) return true;
+  try {
+    const filed = readDesigns()[currentSavedName];
+    return !filed || JSON.stringify(filed.pieces) !== JSON.stringify(design.pieces);
+  } catch (e) { return true; }
+}
+document.getElementById("homeLink").onclick = e => {
+  if (!unsavedWork()) return;                 // nothing at stake — just follow the link
+  e.preventDefault();
+  const href = e.currentTarget.getAttribute("href");
+  const name = (document.getElementById("designName").value || "").trim() || "Untitled";
+  openModal("Save before you go?",
+    `<p style="font-size:12.5px;line-height:1.6">You're leaving the planner for the main site.
+     Save <b>${esc(name)}</b> to your saved designs first?</p>
+     <p style="font-size:11.5px;color:var(--dim);line-height:1.5">Saved designs live in this browser,
+     and this layout is restored automatically next time either way.</p>`,
+    [["Cancel", closeModal],
+     ["Leave without saving", () => { closeModal(); location.href = href; }],
+     ["Save & leave", () => { saveCurrent(); closeModal(); location.href = href; }, "warn"]]);
+};
 async function tryDownload(data, filename, mime) {
   // On the published website, saves go through the viewer's confirmation prompt
   if (window.claude && window.claude.use) {
@@ -2090,7 +2122,7 @@ function renderDesigns() {
       }, 0);
       return `<div class="design-row">
         <span>${open ? '<span style="color:var(--accent2)">● </span>' : ""}${esc(name)}
-          <span style="color:var(--dim)">· ${(d.pieces || []).length} pieces · ${supplies.toLocaleString()}⛏${open ? " · open now" : ""}</span></span>
+          <span style="color:var(--dim)">· ${(d.pieces || []).length} pieces · ${supplies.toLocaleString()}${COST_ICON}${open ? " · open now" : ""}</span></span>
         <span><button data-idx="${i}" data-act="open"${open ? " disabled" : ""}>Open</button>
               <button data-idx="${i}" data-act="copy">Copy</button>
               <button data-idx="${i}" data-act="del" class="warn">Delete</button></span>
@@ -2111,8 +2143,8 @@ document.getElementById("btnDesigns").onclick = () => {
 document.getElementById("btnCatalog").onclick = () => {
   openModal("Catalog Editor",
     `<p style="color:var(--dim);font-size:12px;margin-bottom:8px">
-      Costs and sizes come from Closed Beta 1 footage — items marked <code>"costConfirmed": false</code> or
-      <code>"sizeConfirmed": false</code> are estimates. Edit values here as you verify them in-game.
+      Costs and sizes come from Closed Beta 1 footage. Edit any value here as you verify it in-game —
+      your correction sticks to every piece of that type, in every design.
       Footprints are in Hesco-block units (w × d), heights in blocks.</p>
      <textarea id="catalogTa" spellcheck="false">${JSON.stringify(catalog, null, 2)
        .replace(/&/g, "&amp;").replace(/</g, "&lt;")}</textarea>
@@ -2178,7 +2210,7 @@ document.getElementById("btnHelp").onclick = () => {
     <ul style="font-size:12.5px;line-height:1.6;padding-left:18px;color:var(--text)">
       <li><b>◈ Presets</b> drops in a ready-made build — mortar pit, AA nest, SAM site, anti-climb wall, vehicle gate, raised gun platform. They land selected so you can drag them into place, and everything stays editable.</li>
       <li><b>You have in the FOB</b> — type in your stock and the bar tells you whether the design fits, what's left over, or how many more pallets you need.</li>
-      <li><b>Hauling it there</b> turns the supply total into the thing that actually costs you time: pallets, what they cost at the vendor, and how many trips that is by truck (2 pallets) or helicopter (1). The supply count inside a pallet <b>isn't published by the game</b> — 40 is inferred from the $400 pallet price at $10 a supply, so it's marked with a <span class="unsized">?</span>. Count one in game and correct it here.</li>
+      <li><b>Hauling it there</b> turns the supply total into the thing that actually costs you time: pallets, what they cost at the vendor, and how many trips that is by truck (2 pallets) or helicopter (1). A Build Supply Pallet costs $400 and holds <b>1,900 supplies</b>, which is why buying loose supplies at $10 each is only worth it for topping up. A fresh FOB lands with 1,750 already inside.</li>
       <li><b>Anti-climb</b> counts how much of your cover is only waist height. Those pieces can be vaulted unless something taller is stacked on them, which is the usual way a perimeter gets breached.</li>
       <li><b>⇄ / ⇅ Flip</b> mirrors a selection about its own centre — build one side of a symmetric base, copy it, flip it.</li>
     </ul>
@@ -2190,7 +2222,7 @@ document.getElementById("btnHelp").onclick = () => {
       <li><b>To keep a copy or send it to someone</b>, use <b>⭳ Export</b> — copy the text, or download the file. They load it with <b>⭱ Import</b>. That's also your backup if you ever clear your browser data.</li>
       <li>Sandbag Wall, Barbed Wire, Hedgehog and Recon Tent build <b>without</b> a FOB — everything else must sit inside a FOB's blue build square.</li>
       <li><b>Level badge (L2, L3…)</b> = stacked height, for multi-storey hesco builds. Gates are ground-only; Recon Towers can't stack; nothing builds on top of a Bremer Wall; mortars/AA need open sky.</li>
-      <li>Costs are Build Supplies (⛏). 1 supply = $10 at the vendor. Supply runs assume the pallet size set in the panel.</li>
+      <li>Costs are Build Supplies. 1 supply = $10 at the vendor, or 1,900 in a $400 pallet. A fresh FOB lands with 1,750 already inside.</li>
       <li>Mortar, CIWS and SAM eat <b>Ammo</b> supplies; Refuel Station and Drill Rig eat <b>Fuel</b>; Repair Station eats <b>Mechanical</b>.</li>
     </ul>`,
     [["Close", closeModal]]);

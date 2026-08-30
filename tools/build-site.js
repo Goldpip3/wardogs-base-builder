@@ -336,7 +336,6 @@ td.n{font-family:var(--num);font-variant-numeric:tabular-nums;text-align:right;w
 tr:hover td{background:var(--panel)}
 .tag{font-size:10px;padding:2px 6px;border-radius:4px;background:var(--panel2);color:var(--dim);
 border:1px solid var(--soft)}
-.est{color:var(--bad)}
 .statbar{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));margin:22px 0}
 .statbar div{background:var(--panel);border:1px solid var(--soft);border-radius:9px;padding:14px}
 .statbar b{display:block;font-family:var(--num);font-size:22px;color:var(--accent);
@@ -492,17 +491,17 @@ write("buildables/index.html", page({
     <tbody>${rows.map(b => `<tr>
       <td><strong>${esc(b.name)}</strong></td>
       <td><span class="tag">${b.tier}</span></td>
-      <td class="n">${b.cost}${b.costConfirmed === false ? '<span class="est">?</span>' : ""}</td>
+      <td class="n">${b.cost}</td>
       <td class="n">$${(b.cost * 10).toLocaleString()}</td>
-      <td class="n">${b.footprint.w}×${b.footprint.d}×${b.height}${b.sizeConfirmed === false ? '<span class="est">?</span>' : ""}</td>
+      <td class="n">${b.footprint.w}×${b.footprint.d}×${b.height}</td>
       <td>${b.requiresFob === false ? "No FOB needed. " : ""}${esc((b.desc || "").split(".")[0])}.</td>
     </tr>`).join("")}</tbody>
   </table>
-  <div class="note"><strong>Values marked <span class="est">?</span> are not confirmed.</strong>
-  WARDOGS is in closed beta and BULKHEAD has not published build costs or structure sizes.
-  These were read frame by frame from the in-game radial menu and from play testing. You can
-  correct any of them yourself inside the planner, and the change sticks for every piece of
-  that type. If you know a real value, tell me and I will update it for everyone.</div>
+  <div class="note"><strong>Where these numbers come from.</strong>
+  WARDOGS is in closed beta and BULKHEAD has not published a build table, so every cost and
+  size here was read frame by frame from the in-game radial menu and checked in play testing.
+  You can correct any of them yourself inside the planner, and the change sticks for every
+  piece of that type. If you spot one that is off, tell me and I will update it for everyone.</div>
   <h2>How supplies actually move</h2>
   <p>Structures draw <strong>Build Supplies</strong> from the FOB, not from your pocket.
   Supplies are $10 each, and a Build Supply Pallet is $${catalog.logistics.palletCash}. A truck
