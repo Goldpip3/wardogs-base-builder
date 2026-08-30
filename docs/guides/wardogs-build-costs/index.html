@@ -194,6 +194,15 @@ th.sortable[data-dir="desc"]::after{content:"↓";opacity:1;color:var(--red-hot)
 .cat-card .facts span{color:var(--dim);font-family:var(--ui);margin-right:4px}
 .cat-card p{font-size:12.5px;color:var(--dim);margin-top:8px;line-height:1.45}
 .cat-empty{padding:34px;text-align:center;color:var(--dim);border:1px dashed var(--line2)}
+/* --- account control in the header --- */
+.acct{display:none;align-items:center;gap:8px;font-weight:600;font-size:11px;
+  letter-spacing:.1em;text-transform:uppercase}
+.acct.on{display:inline-flex}
+.acct a{color:var(--dim2)}
+.acct a:hover{color:var(--text)}
+.acct .who{color:var(--text)}
+.acct .sep{color:var(--line2)}
+
 .ad-slot{margin:34px 0;padding:10px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
   text-align:center;overflow:hidden}
 .ad-slot::before{content:"Advertisement";display:block;font-size:9px;font-weight:600;letter-spacing:.18em;
@@ -213,6 +222,51 @@ ul,ol{padding-left:22px}li{margin:6px 0}
 }
 </style>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7658713831499963" crossorigin="anonymous"></script>
+<script>
+(function(){
+var API="https://wardogs-votes.wardogsbuilder.workers.dev";
+var KEY="wardogs.token";
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+try{
+  var m=(location.hash||"").match(/[#&]token=([A-Za-z0-9_.-]+)/);
+  if(m){ localStorage.setItem(KEY,m[1]);
+         history.replaceState(null,"",location.pathname+location.search); }
+}catch(e){}
+window.wardogsAuth={
+  key:KEY,
+  token:function(){ try{ return localStorage.getItem(KEY); }catch(e){ return null; } },
+  headers:function(){ var h={"Content-Type":"application/json"}, t=this.token();
+                      if(t) h["Authorization"]="Bearer "+t; return h; },
+  signInUrl:function(back){ return API+"/auth/start?return="+
+    encodeURIComponent(back||(location.origin+location.pathname)); },
+  signOut:function(){ try{ localStorage.removeItem(KEY); }catch(e){} location.reload(); },
+  me:null,
+  ready:null
+};
+var A=window.wardogsAuth;
+A.ready=fetch(API+"/me",{headers:A.headers()})
+  .then(function(r){return r.json();})
+  .then(function(j){
+    A.me=j;
+    // a token the worker will not accept is not worth keeping
+    if(j.loginEnabled && A.token() && !j.user){ try{localStorage.removeItem(KEY);}catch(e){} }
+    var el=document.getElementById("acct");
+    if(el && j.loginEnabled){
+      el.className="acct on";
+      el.innerHTML = j.user
+        ? '<a href="/account/" class="who">'+esc(j.user.name)+'</a>'+
+          '<span class="sep">/</span><a href="#" data-signout>Sign out</a>'
+        : '<a href="'+A.signInUrl()+'">Sign in</a>';
+    }
+    return j;
+  })
+  .catch(function(){ A.me={loginEnabled:false,needs:{},user:null}; return A.me; });
+document.addEventListener("click",function(e){
+  if(e.target.closest("[data-signout]")){ e.preventDefault(); A.signOut(); }
+});
+})();
+</script>
 </head>
 <body>
 <header class="site"><div class="wrap">
@@ -225,6 +279,7 @@ ul,ol{padding-left:22px}li{margin:6px 0}
     <a href="/guides/">Guides</a>
     <a href="/feedback/">Feedback</a>
     <a href="/planner/" class="cta">Planner</a>
+    <span id="acct" class="acct"></span>
   </nav>
 </div></header>
 <section><div class="wrap" style="max-width:760px">

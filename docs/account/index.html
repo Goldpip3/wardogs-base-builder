@@ -3,15 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>WARDOGS Base Designs, built and rated by players</title>
-<meta name="description" content="Player-built WARDOGS FOB designs, ranked by vote. Every one opens straight in the planner, fully editable, with its real Build Supply cost and supply runs worked out.">
-<link rel="canonical" href="https://www.wardogsbuilder.com/designs/">
+<title>Your account</title>
+<meta name="description" content="Your saved WARDOGS base designs.">
+<link rel="canonical" href="https://www.wardogsbuilder.com/account/">
+<meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#12140d">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="WARDOGS Base Builder">
-<meta property="og:title" content="WARDOGS Base Designs, built and rated by players">
-<meta property="og:description" content="Player-built WARDOGS FOB designs, ranked by vote. Every one opens straight in the planner, fully editable, with its real Build Supply cost and supply runs worked out.">
-<meta property="og:url" content="https://www.wardogsbuilder.com/designs/">
+<meta property="og:title" content="Your account">
+<meta property="og:description" content="Your saved WARDOGS base designs.">
+<meta property="og:url" content="https://www.wardogsbuilder.com/account/">
 <meta property="og:image" content="https://www.wardogsbuilder.com/preview.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://www.wardogsbuilder.com/preview.png">
@@ -282,251 +283,71 @@ document.addEventListener("click",function(e){
     <span id="acct" class="acct"></span>
   </nav>
 </div></header>
-<section><div class="wrap">
-  <span class="eyebrow">Community</span>
-  <h1>Base designs</h1>
-  <p class="lede">Builds submitted by players, ranked by whoever found them useful.
-  Every one opens in the planner, fully editable.</p>
-
-  <div id="designList" style="margin-top:34px">
-    <div class="empty">
-          <h3>Nothing here yet</h3>
-          <p>This list is built by players. Make something in the planner, hit Share,
-          and paste the link below. The whole design travels inside the URL, so there is
-          nothing to upload.</p>
-        </div>
-  </div>
-
-  
-  <h2 class="display" style="margin-top:60px">Submit a build</h2>
-  <p class="lede" style="font-size:17px">Paste the link from <strong>Share</strong> in the
-  planner. The whole design travels inside it, so there is no file to upload.</p>
-  <form class="form" id="submitForm">
-    <div class="field">
-      <label for="sCode">Share link</label>
-      <input id="sCode" required placeholder="https://www.wardogsbuilder.com/planner/#d=...">
-      <div class="hint">Open your design, hit Share, copy the link, paste it here.</div>
-    </div>
-    <div class="field">
-      <label for="sName">Name it</label>
-      <input id="sName" required maxlength="60" placeholder="Anti-climb perimeter">
-    </div>
-    <div class="field">
-      <label for="sAuthor">Your name</label>
-      <input id="sAuthor" maxlength="32" placeholder="anonymous">
-    </div>
-    <div class="field">
-      <label for="sNote">What is it for</label>
-      <textarea id="sNote" maxlength="300" placeholder="One or two lines on what it is good at."></textarea>
-    </div>
-    <div><button class="btn primary" type="submit">Submit</button></div>
-    <div class="msg" id="submitMsg" style="display:none"></div>
-  </form>
-  <p style="font-size:13px;color:var(--dim);margin-top:20px">
-  Submissions are read before they go up, which usually takes a few hours. Nothing is
-  published automatically.</p>
-</div></section><script>
+<section><div class="wrap" style="max-width:860px">
+  <span class="eyebrow">Account</span>
+  <h1>Your designs</h1>
+  <p class="lede">Everything you have saved from the planner. These live against your
+  Discord account, so they follow you to another browser or machine.</p>
+  <div id="acctBody" style="margin-top:34px">Checking...</div>
+</div></section>
+<script>
 (function(){
 var API="https://wardogs-votes.wardogsbuilder.workers.dev";
-var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){
-  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});};
-var ago=function(ms){
-  var s=Math.max(1,(Date.now()-ms)/1000);
-  var u=[[86400*365,"y"],[86400*30,"mo"],[86400,"d"],[3600,"h"],[60,"m"]];
-  for(var i=0;i<u.length;i++) if(s>=u[i][0]) return Math.floor(s/u[i][0])+u[i][1]+" ago";
-  return "just now";
-};
-/* Sign-in state. The worker hands the token back in the URL fragment after Discord, and
-   it lives in localStorage from then on. A fragment never reaches a server, so the token
-   is not sitting in anybody's access log. */
-var TOKEN=null, ME=null;
-try{
-  var m=(location.hash||"").match(/[#&]token=([A-Za-z0-9_.-]+)/);
-  if(m){ TOKEN=m[1]; localStorage.setItem("wardogs.token",TOKEN);
-         history.replaceState(null,"",location.pathname+location.search); }
-  else TOKEN=localStorage.getItem("wardogs.token");
-}catch(e){}
-
-var authHeaders=function(){
-  var h={"Content-Type":"application/json"};
-  if(TOKEN) h["Authorization"]="Bearer "+TOKEN;
-  return h;
-};
-var post=function(path,body){
-  return fetch(API+path,{method:"POST",headers:authHeaders(),
-    body:JSON.stringify(body)}).then(function(r){
-      return r.json().then(function(j){ if(!r.ok){ var e=new Error(j.error||"That did not work."); e.needsLogin=j.needsLogin; throw e; } return j; });
-    });
-};
-var signInUrl=function(){
-  return API+"/auth/start?return="+encodeURIComponent(location.origin+location.pathname);
-};
-var signOut=function(){
-  TOKEN=null; ME=null;
-  try{ localStorage.removeItem("wardogs.token"); }catch(e){}
-  location.reload();
-};
-/* Draws the sign-in strip above a form, or nothing at all if that form does not need an
-   account. Returns whether the form should be usable. */
-function authStrip(el,which){
-  if(!ME||!ME.loginEnabled||!ME.needs[which]){
-    if(ME&&ME.user) el.innerHTML='<div class="msg good">Signed in as <b>'+esc(ME.user.name)+
-      '</b>. <a href="#" data-signout>Sign out</a></div>';
-    return true;
+var A=window.wardogsAuth, box=document.getElementById("acctBody");
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+A.ready.then(function(me){
+  if(!me.loginEnabled){ box.innerHTML='<div class="empty"><h3>Accounts are not live</h3></div>'; return; }
+  if(!me.user){
+    box.innerHTML='<div class="empty"><h3>Not signed in</h3>'+
+      '<p>Sign in and anything you save from the planner shows up here.</p>'+
+      '<a class="btn primary" href="'+A.signInUrl(location.origin+"/account/")+'">Sign in with Discord</a></div>';
+    return;
   }
-  if(ME.user){
-    el.innerHTML='<div class="msg good">Signed in as <b>'+esc(ME.user.name)+
-      '</b>. <a href="#" data-signout>Sign out</a></div>';
-    return true;
-  }
-  el.innerHTML='<div class="msg"><b>Sign in with Discord to post.</b> It keeps bots out, '+
-    'and it is how you get credited. Nothing is read except your username.<br>'+
-    '<a class="btn sm" style="margin-top:12px" href="'+signInUrl()+'">Sign in with Discord</a></div>';
-  return false;
-}
-document.addEventListener("click",function(e){
-  var a=e.target.closest("[data-signout]");
-  if(a){ e.preventDefault(); signOut(); }
+  load();
 });
-var meReady=fetch(API+"/me",{headers:authHeaders()})
-  .then(function(r){return r.json();})
-  .then(function(j){ ME=j; if(j.loginEnabled&&TOKEN&&!j.user){ try{localStorage.removeItem("wardogs.token");}catch(e){} TOKEN=null; } return j; })
-  .catch(function(){ ME={loginEnabled:false,needs:{},user:null}; });
-
-/* ---- submit ---- */
-var form=document.getElementById("submitForm");
-if(form){
-  var strip=document.createElement("div");
-  form.parentNode.insertBefore(strip,form);
-  meReady.then(function(){
-    var allowed=authStrip(strip,"submit");
-    form.querySelectorAll("input,textarea,button").forEach(function(el){ el.disabled=!allowed; });
-    // a signed-in submission is credited to the account, so stop asking for a name
-    if(allowed&&ME&&ME.user){
-      var f=document.getElementById("sAuthor");
-      if(f&&f.closest(".field")) f.closest(".field").style.display="none";
-    }
-  });
-}
-if(form) form.addEventListener("submit",function(e){
-  e.preventDefault();
-  var out=document.getElementById("submitMsg");
-  // people paste the whole link; the design is the bit after #d=
-  var raw=(document.getElementById("sCode").value||"").trim();
-  var m=raw.match(/[#&]d=([A-Za-z0-9_-]+)/);
-  var code=m?m[1]:raw;
-  out.className="msg"; out.textContent="Sending...";
-  post("/submit",{name:document.getElementById("sName").value,
-                  author:document.getElementById("sAuthor").value,
-                  note:document.getElementById("sNote").value,
-                  code:code})
-    .then(function(){
-      form.reset();
-      out.className="msg good";
-      out.textContent="Thanks. It goes up once it has been looked over, usually the same day.";
-    })
-    .catch(function(err){ out.className="msg"; out.textContent=err.message; });
-});
-
-/* ---- the list ---- */
-var list=document.getElementById("designList");
-if(list){
-  fetch(API+"/designs").then(function(r){return r.json();}).then(function(j){
-    var ds=j.designs||[];
-    if(!ds.length) return;                       // keep whatever static state is there
-    list.innerHTML=ds.map(function(d){
-      var score=(d.votes.up||0)-(d.votes.down||0);
-      return '<details class="design"><summary>'+
-        '<div class="card"><h3>'+esc(d.name)+'</h3>'+
-        (d.note?'<p>'+esc(d.note)+'</p>':'')+
-        '<div class="stats"><span>by</span>'+esc(d.author)+
-        '<span>score</span><b data-role="score">'+score+'</b>'+
-        '<span>'+ago(d.submitted)+'</span></div>'+
-        '<div class="vote" data-design="'+esc(d.slug)+'" style="margin-top:14px">'+
-        '<button type="button" data-dir="1" aria-label="Vote up">&#9650;</button>'+
-        '<span class="score" data-role="n">'+score+'</span>'+
-        '<button type="button" data-dir="-1" aria-label="Vote down">&#9660;</button>'+
-        '<a class="btn sm" style="margin-left:14px" href="/planner/#d='+esc(d.code)+'">Open in planner</a>'+
-        '</div></div></summary>'+
-        '<div class="design-open" data-thread="'+esc(d.slug)+'">'+
-        '<h3>Comments</h3><div class="thread" data-role="list"></div>'+
-        '<form class="form" data-role="form" style="margin-top:16px">'+
-        '<div class="field"><label>Your name</label><input maxlength="32" data-role="who" placeholder="anonymous"></div>'+
-        '<div class="field"><label>Comment</label><textarea maxlength="1500" data-role="text" required></textarea></div>'+
-        '<button class="btn sm" type="submit">Post comment</button>'+
-        '<div class="msg" data-role="msg" style="display:none"></div></form></div></details>';
-    }).join("");
-    wireVotes(list);
-    wireThreads(list);
-  }).catch(function(){});
-}
-
-function wireVotes(root){
-  root.querySelectorAll(".vote[data-design]").forEach(function(e){
-    e.addEventListener("click",function(ev){
-      var b=ev.target.closest("button[data-dir]"); if(!b) return;
-      ev.preventDefault();
-      var mine=b.dataset.cast==="1";
-      post("/vote",{id:e.dataset.design,dir:mine?0:+b.dataset.dir}).then(function(t){
-        var n=(t.up||0)-(t.down||0);
-        e.querySelector('[data-role=n]').textContent=n;
-        var card=e.closest(".card"); if(card){
-          var s=card.querySelector('[data-role=score]'); if(s) s.textContent=n; }
-        e.querySelectorAll("button").forEach(function(x){x.dataset.cast="";});
-        if(t.you) b.dataset.cast="1";
-      }).catch(function(){});
-    });
-  });
-}
-
-function wireThreads(root){
-  root.querySelectorAll("details.design").forEach(function(det){
-    var box=det.querySelector("[data-thread]"); if(!box) return;
-    var slug=box.dataset.thread, loaded=false;
-    var listEl=box.querySelector("[data-role=list]");
-    var render=function(cs){
-      listEl.innerHTML=cs.length
-        ? cs.map(function(c){
-            return '<div class="cmt"><span class="who">'+esc(c.author)+
-              '<span class="when">'+ago(c.at)+'</span></span><p>'+esc(c.text)+'</p></div>';
-          }).join("")
-        : '<div class="cmt"><p>No comments yet.</p></div>';
-    };
-    det.addEventListener("toggle",function(){
-      if(!det.open||loaded) return;
-      loaded=true;
-      fetch(API+"/comments?design="+encodeURIComponent(slug))
-        .then(function(r){return r.json();}).then(function(j){render(j.comments||[]);})
-        .catch(function(){});
-    });
-    // same sign-in strip above every comment box
-    var cform=box.querySelector("[data-role=form]");
-    var cstrip=document.createElement("div");
-    cform.parentNode.insertBefore(cstrip,cform);
-    meReady.then(function(){
-      var allowed=authStrip(cstrip,"comment");
-      cform.querySelectorAll("input,textarea,button").forEach(function(el){ el.disabled=!allowed; });
-      if(allowed&&ME&&ME.user){
-        var who=box.querySelector("[data-role=who]");
-        if(who&&who.closest(".field")) who.closest(".field").style.display="none";
+function load(){
+  fetch(API+"/mine",{headers:A.headers()})
+    .then(function(r){return r.json();})
+    .then(function(j){
+      var ds=j.designs||[];
+      if(!ds.length){
+        box.innerHTML='<div class="empty"><h3>Nothing saved yet</h3>'+
+          '<p>Open a design in the planner, press <strong>Designs</strong>, then '+
+          '<strong>Save this design online</strong>.</p>'+
+          '<a class="btn primary" href="/planner/">Open the planner</a></div>';
+        return;
       }
-    });
-    cform.addEventListener("submit",function(e){
-      e.preventDefault();
-      var msg=box.querySelector("[data-role=msg]");
-      var txt=box.querySelector("[data-role=text]");
-      msg.style.display=""; msg.className="msg"; msg.textContent="Posting...";
-      post("/comment",{design:slug,author:box.querySelector("[data-role=who]").value,text:txt.value})
-        .then(function(){
-          txt.value="";
-          msg.className="msg good"; msg.textContent="Posted.";
-          return fetch(API+"/comments?design="+encodeURIComponent(slug))
-            .then(function(r){return r.json();}).then(function(j){render(j.comments||[]);});
-        })
-        .catch(function(err){ msg.className="msg"; msg.textContent=err.message; });
-    });
-  });
+      box.innerHTML='<div class="grid">'+ds.map(function(d){
+        return '<div class="card"><h3>'+esc(d.name)+'</h3>'+
+          '<div class="stats"><span>saved</span>'+new Date(d.at).toLocaleDateString()+'</div>'+
+          '<div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">'+
+          '<a class="btn sm" href="/planner/#d='+esc(d.code)+'">Open</a>'+
+          '<button class="btn sm" data-copy="'+esc(d.code)+'">Copy link</button>'+
+          '<button class="btn sm" data-del="'+esc(d.name)+'">Delete</button></div></div>';
+      }).join("")+'</div>'+
+      '<p style="margin-top:24px;font-size:13px;color:var(--dim)">'+ds.length+' of '+
+      (j.limit||40)+' slots used.</p>';
+    })
+    .catch(function(){ box.innerHTML='<div class="msg">Could not reach the save service.</div>'; });
 }
+box.addEventListener("click",function(e){
+  var c=e.target.closest("[data-copy]");
+  if(c){
+    var url=location.origin+"/planner/#d="+c.dataset.copy;
+    navigator.clipboard.writeText(url).then(function(){
+      var was=c.textContent; c.textContent="Copied"; setTimeout(function(){c.textContent=was;},1400);
+    }).catch(function(){ prompt("Copy this link",url); });
+    return;
+  }
+  var d=e.target.closest("[data-del]");
+  if(d){
+    if(!confirm('Delete "'+d.dataset.del+'" from your account? The copy in your browser is not touched.')) return;
+    d.disabled=true;
+    fetch(API+"/mine/delete",{method:"POST",headers:A.headers(),
+      body:JSON.stringify({name:d.dataset.del})}).then(load).catch(function(){d.disabled=false;});
+  }
+});
 })();
 </script>
 

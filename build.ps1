@@ -73,6 +73,10 @@ New-Item -ItemType Directory -Force "$proj\docs\fonts" | Out-Null
 Copy-Item "$proj\assets\fonts\*.woff2" "$proj\docs\fonts\" -Force
 
 node (Join-Path $proj "tools/build-site.js")
+# Without this the site generator can throw, leave yesterday's pages on disk, and the
+# checks below still pass because they are inspecting stale output.
+if ($LASTEXITCODE -ne 0) { throw "build-site.js failed - the site was not regenerated." }
+
 node (Join-Path $proj "tools/check-build.js")
 if ($LASTEXITCODE -ne 0) { throw "Build produced a broken page - see the failures above." }
 Write-Host "Built app + docs/planner/ + surrounding site"

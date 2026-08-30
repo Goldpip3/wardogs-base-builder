@@ -46,6 +46,7 @@ function adSlot(which) {
 </div>`;
 }
 
+
 /* ---------- share codes: identical encoding to the planner ---------- */
 function encodeDesign(d) {
   const types = [];
@@ -415,6 +416,15 @@ th.sortable[data-dir="desc"]::after{content:"↓";opacity:1;color:var(--red-hot)
 .cat-card .facts span{color:var(--dim);font-family:var(--ui);margin-right:4px}
 .cat-card p{font-size:12.5px;color:var(--dim);margin-top:8px;line-height:1.45}
 .cat-empty{padding:34px;text-align:center;color:var(--dim);border:1px dashed var(--line2)}
+/* --- account control in the header --- */
+.acct{display:none;align-items:center;gap:8px;font-weight:600;font-size:11px;
+  letter-spacing:.1em;text-transform:uppercase}
+.acct.on{display:inline-flex}
+.acct a{color:var(--dim2)}
+.acct a:hover{color:var(--text)}
+.acct .who{color:var(--text)}
+.acct .sep{color:var(--line2)}
+
 .ad-slot{margin:34px 0;padding:10px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
   text-align:center;overflow:hidden}
 .ad-slot::before{content:"Advertisement";display:block;font-size:9px;font-weight:600;letter-spacing:.18em;
@@ -455,6 +465,7 @@ function page({ title, desc, canonical, body, ogImage = "/preview.png", noindex 
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%2312140d'/><rect x='6' y='14' width='20' height='12' rx='2' fill='%23dcaa26'/><rect x='11' y='8' width='10' height='7' rx='2' fill='%2386ad55'/></svg>">
 <style>${CSS}</style>
 ${adScript}
+${AUTH_SCRIPT}
 </head>
 <body>
 <header class="site"><div class="wrap">
@@ -467,6 +478,7 @@ ${adScript}
     <a href="/guides/">Guides</a>
     <a href="/feedback/">Feedback</a>
     <a href="/planner/" class="cta">Planner</a>
+    <span id="acct" class="acct"></span>
   </nav>
 </div></header>
 ${body}
@@ -550,6 +562,61 @@ function designCard(d) {
 /* The buttons render disabled and say so until a vote service is configured. Showing
    a live-looking score that nothing is counting would be worse than showing none. */
 const VOTE_API = (COMMUNITY.voteApi || "").replace(/\/$/, "");
+
+/* ---------- sign-in, on every page ----------
+   The token comes back from Discord in the URL fragment and lives in localStorage after
+   that. A fragment never reaches a server, so it stays out of access logs. This runs on
+   every page so the header can say who you are wherever you are, and so the token is
+   picked up no matter which page Discord returned you to.
+
+   The character class is spelled out rather than using \\w, because this file is a
+   template literal and an escape written here does not survive into the page. That
+   mistake shipped once and broke sign-in. */
+const AUTH_SCRIPT = !VOTE_API ? "" : `<script>
+(function(){
+var API=${JSON.stringify(VOTE_API)};
+var KEY="wardogs.token";
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+try{
+  var m=(location.hash||"").match(/[#&]token=([A-Za-z0-9_.-]+)/);
+  if(m){ localStorage.setItem(KEY,m[1]);
+         history.replaceState(null,"",location.pathname+location.search); }
+}catch(e){}
+window.wardogsAuth={
+  key:KEY,
+  token:function(){ try{ return localStorage.getItem(KEY); }catch(e){ return null; } },
+  headers:function(){ var h={"Content-Type":"application/json"}, t=this.token();
+                      if(t) h["Authorization"]="Bearer "+t; return h; },
+  signInUrl:function(back){ return API+"/auth/start?return="+
+    encodeURIComponent(back||(location.origin+location.pathname)); },
+  signOut:function(){ try{ localStorage.removeItem(KEY); }catch(e){} location.reload(); },
+  me:null,
+  ready:null
+};
+var A=window.wardogsAuth;
+A.ready=fetch(API+"/me",{headers:A.headers()})
+  .then(function(r){return r.json();})
+  .then(function(j){
+    A.me=j;
+    // a token the worker will not accept is not worth keeping
+    if(j.loginEnabled && A.token() && !j.user){ try{localStorage.removeItem(KEY);}catch(e){} }
+    var el=document.getElementById("acct");
+    if(el && j.loginEnabled){
+      el.className="acct on";
+      el.innerHTML = j.user
+        ? '<a href="/account/" class="who">'+esc(j.user.name)+'</a>'+
+          '<span class="sep">/</span><a href="#" data-signout>Sign out</a>'
+        : '<a href="'+A.signInUrl()+'">Sign in</a>';
+    }
+    return j;
+  })
+  .catch(function(){ A.me={loginEnabled:false,needs:{},user:null}; return A.me; });
+document.addEventListener("click",function(e){
+  if(e.target.closest("[data-signout]")){ e.preventDefault(); A.signOut(); }
+});
+})();
+</script>`;
 function voteWidget(slug) {
   const off = VOTE_API ? "" : " disabled title=\"Voting opens once the vote service is live\"";
   return `<div class="vote" data-design="${esc(slug)}">
@@ -1419,6 +1486,85 @@ f.addEventListener("submit",function(e){
 });
 })();
 </script>` : ""}`,
+}));
+
+
+/* ---------- account ----------
+   What a signed-in player has saved, in one place. Designs live against the account
+   rather than in a browser, so this is where they are visible from any machine. Not in
+   the sitemap: there is nothing here for anyone who is not signed in. */
+if (VOTE_API) write("account/index.html", page({
+  title: "Your account",
+  desc: "Your saved WARDOGS base designs.",
+  canonical: "/account/",
+  noindex: true,
+  body: `<section><div class="wrap" style="max-width:860px">
+  <span class="eyebrow">Account</span>
+  <h1>Your designs</h1>
+  <p class="lede">Everything you have saved from the planner. These live against your
+  Discord account, so they follow you to another browser or machine.</p>
+  <div id="acctBody" style="margin-top:34px">Checking...</div>
+</div></section>
+<script>
+(function(){
+var API=${JSON.stringify(VOTE_API)};
+var A=window.wardogsAuth, box=document.getElementById("acctBody");
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+A.ready.then(function(me){
+  if(!me.loginEnabled){ box.innerHTML='<div class="empty"><h3>Accounts are not live</h3></div>'; return; }
+  if(!me.user){
+    box.innerHTML='<div class="empty"><h3>Not signed in</h3>'+
+      '<p>Sign in and anything you save from the planner shows up here.</p>'+
+      '<a class="btn primary" href="'+A.signInUrl(location.origin+"/account/")+'">Sign in with Discord</a></div>';
+    return;
+  }
+  load();
+});
+function load(){
+  fetch(API+"/mine",{headers:A.headers()})
+    .then(function(r){return r.json();})
+    .then(function(j){
+      var ds=j.designs||[];
+      if(!ds.length){
+        box.innerHTML='<div class="empty"><h3>Nothing saved yet</h3>'+
+          '<p>Open a design in the planner, press <strong>Designs</strong>, then '+
+          '<strong>Save this design online</strong>.</p>'+
+          '<a class="btn primary" href="/planner/">Open the planner</a></div>';
+        return;
+      }
+      box.innerHTML='<div class="grid">'+ds.map(function(d){
+        return '<div class="card"><h3>'+esc(d.name)+'</h3>'+
+          '<div class="stats"><span>saved</span>'+new Date(d.at).toLocaleDateString()+'</div>'+
+          '<div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">'+
+          '<a class="btn sm" href="/planner/#d='+esc(d.code)+'">Open</a>'+
+          '<button class="btn sm" data-copy="'+esc(d.code)+'">Copy link</button>'+
+          '<button class="btn sm" data-del="'+esc(d.name)+'">Delete</button></div></div>';
+      }).join("")+'</div>'+
+      '<p style="margin-top:24px;font-size:13px;color:var(--dim)">'+ds.length+' of '+
+      (j.limit||40)+' slots used.</p>';
+    })
+    .catch(function(){ box.innerHTML='<div class="msg">Could not reach the save service.</div>'; });
+}
+box.addEventListener("click",function(e){
+  var c=e.target.closest("[data-copy]");
+  if(c){
+    var url=location.origin+"/planner/#d="+c.dataset.copy;
+    navigator.clipboard.writeText(url).then(function(){
+      var was=c.textContent; c.textContent="Copied"; setTimeout(function(){c.textContent=was;},1400);
+    }).catch(function(){ prompt("Copy this link",url); });
+    return;
+  }
+  var d=e.target.closest("[data-del]");
+  if(d){
+    if(!confirm('Delete "'+d.dataset.del+'" from your account? The copy in your browser is not touched.')) return;
+    d.disabled=true;
+    fetch(API+"/mine/delete",{method:"POST",headers:A.headers(),
+      body:JSON.stringify({name:d.dataset.del})}).then(load).catch(function(){d.disabled=false;});
+  }
+});
+})();
+</script>`,
 }));
 
 const urls = ["/", "/planner/", "/designs/", "/buildables/", "/armory/", "/loadouts/", "/vehicles/", "/guides/", "/feedback/", "/privacy/"]
