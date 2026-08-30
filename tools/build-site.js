@@ -441,11 +441,29 @@ ${adSlot("leaderboard") ? `<div class="wrap">${adSlot("leaderboard")}</div>` : "
 </html>`;
 }
 
+const written = new Set();
 const write = (rel, html) => {
   const full = path.join(DOCS, rel);
   fs.mkdirSync(path.dirname(full), { recursive: true });
   fs.writeFileSync(full, html);
+  written.add(rel.replace(/\\/g, "/"));
 };
+
+/* A design that gets pulled from community.json has to stop being a page. Without this
+   the old file just sits there, still reachable, still indexed, quietly contradicting
+   the list that no longer mentions it. Only design pages are swept - everything else
+   under docs/ is either generated every run or does not belong to this script. */
+function sweepDesignPages() {
+  const dir = path.join(DOCS, "designs");
+  if (!fs.existsSync(dir)) return;
+  for (const slug of fs.readdirSync(dir)) {
+    const sub = path.join(dir, slug);
+    if (!fs.statSync(sub).isDirectory()) continue;
+    if (written.has(`designs/${slug}/index.html`)) continue;
+    fs.rmSync(sub, { recursive: true, force: true });
+    console.log("  removed stale design page: " + slug);
+  }
+}
 
 /* ---------- pages ---------- */
 /* A submitted design arrives as a share code, so decode it back into pieces before
@@ -829,6 +847,8 @@ write("sitemap.xml",
   `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
   urls.map(u => `  <url><loc>${SITE}${u}</loc></url>`).join("\n") + `\n</urlset>\n`);
 write("robots.txt", `User-agent: *\nAllow: /\n\nSitemap: ${SITE}/sitemap.xml\n`);
+
+sweepDesignPages();
 
 console.log(`site: ${urls.length} pages`);
 for (const d of withStats)
