@@ -8,6 +8,7 @@ index and a card disagree, **fix the card** and then fix this.
 | Changing | Open | The thing people miss |
 |---|---|---|
 | a cost, size or stacking rule | [buildables-catalog](../objects/data/buildables-catalog.md) | It is inlined into both planners. A browser holding an old copy keeps the old number until the update chip fires. |
+| a firing table or a platform envelope | [artillery-data](../objects/data/artillery-data.md) | Three sources disagree about the mortar's range. The file carries the argument rather than hiding it, so do not quietly pick a side in code. |
 | damage, prices, vehicles | [derived-data](../objects/data/derived-data.md), [derive-data](../processes/derive-data.md) | Do not edit the JSON. Edit the tool and re-run it, or the next build overwrites you. |
 | the planner's drawing or rules | [planner-app](../objects/planner/planner-app.md) | Five suites read the **built** file, so they see nothing until you rebuild. |
 | the share URL format | [share-code](../objects/planner/share-code.md) | Two encoders, one format. Change both in the same commit, and every link ever published breaks unless the decoder still reads `v: 1`. |

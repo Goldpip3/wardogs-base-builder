@@ -4,7 +4,7 @@
 module.exports = ctx => {
   const { fs, path, DOCS, SITE, ADS, adsOn, GUIDES, page, write, written, withStats } = ctx;
 
-const urls = ctx.urls = ["/", "/planner/", "/designs/", "/buildables/", "/armory/", "/ballistics/", "/loadouts/", "/vehicles/", "/guides/", "/feedback/", "/privacy/"]
+const urls = ctx.urls = ["/", "/planner/", "/designs/", "/buildables/", "/armory/", "/ballistics/", "/artillery/", "/loadouts/", "/vehicles/", "/guides/", "/feedback/", "/privacy/"]
   .concat(withStats.map(d => `/designs/${d.slug}/`))
   .concat(GUIDES.map(g => `/guides/${g.slug}/`));
 write("sitemap.xml",

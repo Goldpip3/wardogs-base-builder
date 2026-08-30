@@ -1,0 +1,112 @@
+{
+ "_note": "Indirect fire. The mortar firing table is a community measurement, not a published one, and it is the most contested number in WARDOGS artillery. Every figure here says where it came from and how much to trust it. Nothing is invented to fill a gap: the SPH-2 ships with no elevation table because no complete one exists.",
+ "checkedOn": "2026-08-30",
+ "gameVersion": "closed beta 1, 21 Aug 2026",
+
+ "grid": {
+  "unitMetres": 100,
+  "extent": 163.84,
+  "playableX": [23.35, 133.6],
+  "playableY": [19.34, 129.65],
+  "note": "The game's own X/Y. One unit is 100 m, so 0.01 is a metre. Y counts north."
+ },
+
+ "platforms": [
+  {
+   "id": "l81-mortar",
+   "name": "L81 Mortar",
+   "buildableId": "l81-mortar",
+   "kind": "You build it",
+   "calibre": "81mm",
+   "arcs": ["high"],
+   "minRange": 110,
+   "maxRange": 700,
+   "moa": 50,
+   "reloadSeconds": 6.5,
+   "damage": 120,
+   "blastRadius": 10,
+   "roundName": "81mm",
+   "roundCost": 60,
+   "confidence": "measured",
+   "table": [
+    { "mils": 290, "dist": 700 },
+    { "mils": 340, "dist": 650 },
+    { "mils": 390, "dist": 600 },
+    { "mils": 440, "dist": 550 },
+    { "mils": 490, "dist": 500 },
+    { "mils": 540, "dist": 450 },
+    { "mils": 590, "dist": 400 },
+    { "mils": 640, "dist": 350 },
+    { "mils": 690, "dist": 300 },
+    { "mils": 700, "dist": 290 },
+    { "mils": 750, "dist": 240 },
+    { "mils": 800, "dist": 187 },
+    { "mils": 850, "dist": 132 },
+    { "mils": 900, "dist": 110 }
+   ],
+   "step": 50,
+   "notes": [
+    "One trajectory. The barrel will not come down past a steep angle, so past the elevation that throws furthest every extra mil lands the shell shorter, and there is a dead circle around the gun that cannot be hit from that position at all. Move the mortar rather than keep dialling.",
+    "The table is monotonic and, from 290 to 690 mil, exactly one metre lost per mil gained. That regularity may be real or may be two measured endpoints with the middle interpolated. It is a starting point; range the first shell."
+   ]
+  },
+  {
+   "id": "sph-2",
+   "name": "SPH-2",
+   "buildableId": null,
+   "kind": "Vehicle, $8,000",
+   "calibre": "155mm",
+   "arcs": ["low", "high"],
+   "minRange": 780,
+   "maxRange": 2629,
+   "lowArcFrom": 1181,
+   "minElevationMil": 20,
+   "maxElevationMil": 1390,
+   "moa": 10,
+   "reloadSeconds": 27,
+   "damage": 450,
+   "blastRadius": 20,
+   "effectiveRadius": 7.5,
+   "roundName": "155mm HE Shell",
+   "roundCost": 60,
+   "confidence": "envelope only",
+   "table": null,
+   "notes": [
+    "Two trajectories. The low arc reaches from 1181 m to maximum range and arrives sooner; below that the high arc is the only one that reaches at all.",
+    "Past about 2625 m the arc turns over and the table goes flat: a metre of extra range costs a great deal of elevation, and two different elevations both land. Do not fight for the last hundred metres, move the gun.",
+    "The tagged expensive 155mm is a different projectile, a fraction of the mass and drag, and would need its own table. Whether the SPH-2 can load it is unsettled."
+   ]
+  }
+ ],
+
+ "caveats": [
+  "The firing table is flat ground. It assumes the gun and the target sit at the same height, and the terrain is a river valley with ridges. A shot from the valley floor onto high ground falls short of this; a shot down off a ridge carries past.",
+  "Grouping is an angle, so the error grows with range. A mortar at the far end of its reach puts shells across about ten metres whatever you dial, which is why the first round is a ranging round and not the shot.",
+  "What the grouping angle bounds is not stated anywhere: a radius, a full width or a typical spread. Read the number as the scale of the error, not a guarantee."
+ ],
+
+ "sources": [
+  {
+   "name": "djzet/wardogs-calc",
+   "url": "https://github.com/djzet/wardogs-calc",
+   "gives": "the mortar firing table, MIT licensed",
+   "licence": "MIT"
+  },
+  {
+   "name": "wardogshub.gg artillery calculator",
+   "url": "https://wardogshub.gg/artillery-calculator/",
+   "gives": "the grid, both envelopes, grouping in MOA, the arc crossover"
+  },
+  {
+   "name": "wardogs.zone artillery calculator",
+   "url": "https://wardogs.zone/calculators/artillery",
+   "gives": "reload, damage and blast radius for both platforms"
+  }
+ ],
+
+ "dispute": {
+  "what": "the L81 Mortar's maximum range",
+  "detail": "Three independent community calculators put it between roughly 680 and 700 m: 110 to 700 m, 132 to 684 m, and about 120 to 700 m. One publishes 3.1 km for the same weapon. Nothing is official either way, but three measurements agreeing to within a few percent against one outlier is not a coin flip, so this site uses the short figure and says why.",
+  "resolvedBy": "Early Access, 10 September 2026"
+ }
+}

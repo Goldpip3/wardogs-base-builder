@@ -9,6 +9,7 @@ One line each. Open the card, not this file, to act.
 | [buildables-catalog](data/buildables-catalog.md) | `data/buildables.json`, 20 buildables | verified 2026-08-30 |
 | [derived-data](data/derived-data.md) | `data/ballistics.json`, `data/armory.json` | verified 2026-08-30 |
 | [build-config](data/build-config.md) | `data/community.json`, `data/ads.json` | verified 2026-08-30 |
+| [artillery-data](data/artillery-data.md) | `data/artillery.json`, one firing table | verified 2026-08-30 |
 
 ## planner: I want to change the tool
 

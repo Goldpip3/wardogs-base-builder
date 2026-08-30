@@ -19,6 +19,7 @@ for (const name of [
   "designs",
   "guides",
   "ballistics",
+  "artillery",
   "holding",
   "armory",
   "community",

@@ -102,6 +102,7 @@ function pit(weapon, cx, cy, radius = 3) {
 const COMMUNITY = JSON.parse(fs.readFileSync(path.join(ROOT, "data/community.json"), "utf8"));
 const BALLISTICS = JSON.parse(fs.readFileSync(path.join(ROOT, "data/ballistics.json"), "utf8"));
 const ARMORY = JSON.parse(fs.readFileSync(path.join(ROOT, "data/armory.json"), "utf8"));
+const ARTILLERY = JSON.parse(fs.readFileSync(path.join(ROOT, "data/artillery.json"), "utf8"));
 const DESIGNS = (COMMUNITY.designs || []).filter(d => d.slug && d.code);
 
 /* ---------- stats, computed the same way the planner does ---------- */
@@ -215,7 +216,7 @@ const VOTE_API = (COMMUNITY.voteApi || "").replace(/\/$/, "");
     fs, path, ROOT, DOCS, SITE, catalog, byId, esc,
     ADS, adsOn, adScript, adSlot,
     encodeDesign, P, run, ring, pit,
-    COMMUNITY, BALLISTICS, ARMORY, DESIGNS, stats, GUIDES,
+    COMMUNITY, BALLISTICS, ARMORY, ARTILLERY, DESIGNS, stats, GUIDES,
     CSS, write, written, sweepDesignPages,
     decodeShared, withStats, designCard, VOTE_API,
   };

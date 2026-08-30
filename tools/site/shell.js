@@ -33,6 +33,7 @@ ${AUTH_SCRIPT}
     <a href="/buildables/">Buildables</a>
     <a href="/armory/">Armory</a>
     <a href="/ballistics/">Ballistics</a>
+    <a href="/artillery/">Artillery</a>
     <a href="/loadouts/">Loadouts</a>
     <a href="/vehicles/">Vehicles</a>
     <a href="/guides/">Guides</a>
@@ -49,7 +50,7 @@ ${adSlot("leaderboard") ? `<div class="wrap">${adSlot("leaderboard")}</div>` : "
   imagery belong to their respective owners.</span>
   <a href="/planner/">Planner</a><a href="/designs/">Designs</a>
   <a href="/buildables/">Buildables</a><a href="/armory/">Armory</a>
-  <a href="/ballistics/">Ballistics</a>
+  <a href="/ballistics/">Ballistics</a><a href="/artillery/">Artillery</a>
   <a href="/loadouts/">Loadouts</a><a href="/vehicles/">Vehicles</a><a href="/guides/">Guides</a>
   <a href="/feedback/">Feedback</a>
   <a href="/privacy/">Privacy</a>
