@@ -13,9 +13,9 @@
   },
   "logistics": {
     "palletCash": 400,
-    "suppliesPerPallet": 40,
-    "palletConfirmed": false,
-    "note": "Build Supply Pallet is confirmed at $400 and 4x2 inventory slots. The supply count inside it is NOT published; 40 is inferred from the $10-per-supply vendor price. Correct it in the app if you count the real figure.",
+    "suppliesPerPallet": 1900,
+    "palletConfirmed": true,
+    "note": "Build Supply Pallet is $400 and 4x2 inventory slots, and holds 1900 build supplies. Buying loose supplies at $10 each is only for topping up - the pallet is the way to actually stock a FOB.",
     "vehicles": [
       { "name": "Truck", "pallets": 2 },
       { "name": "Helicopter", "pallets": 1 }
@@ -54,7 +54,7 @@
     { "id": "gate", "role": "entry",           "name": "Gate",                  "tier": "medium", "page": 2, "cost": 52,   "costConfirmed": true,  "requiresFob": true,  "footprint": { "w": 4, "d": 1 }, "height": 2, "sizeConfirmed": true,  "desc": "Large armored gate for friendly vehicle access, team-only. Swings through; must be placed on the ground.", "icon": "gate.svg", "tags": ["access", "vehicle", "ground-only"] },
     { "id": "barbed-wire", "role": "denial",    "name": "Barbed Wire",           "tier": "small",  "page": 1, "cost": 5,    "costConfirmed": true,  "requiresFob": false, "footprint": { "w": 2, "d": 1 }, "height": 1, "sizeConfirmed": true,  "desc": "Slows and injures enemy infantry. Does not require a FOB.", "icon": "barbed-wire.svg", "tags": ["area-denial"] },
     { "id": "hedgehog", "role": "denial",       "name": "Hedgehog",              "tier": "small",  "page": 1, "cost": 14,   "costConfirmed": true,  "requiresFob": false, "footprint": { "w": 1, "d": 1 }, "height": 1, "sizeConfirmed": false, "desc": "Anti-vehicle barrier used to block or channel enemy vehicles. Does not require a FOB.", "icon": "hedgehog.svg", "tags": ["area-denial", "anti-vehicle"] },
-    { "id": "recon-tent", "role": "support",     "name": "Recon Tent",            "tier": "small",  "page": 1, "cost": 5,    "costConfirmed": true,  "requiresFob": false, "footprint": { "w": 2, "d": 2 }, "height": 1, "sizeConfirmed": false, "desc": "Concealed recon position that hides occupants from infrared vision. Does not require a FOB.", "icon": "recon-tent.svg", "tags": ["stealth"] },
+    { "id": "recon-tent", "role": "support",     "name": "Recon Tent",            "tier": "small",  "page": 1, "cost": 5,    "costConfirmed": true,  "requiresFob": false, "footprint": { "w": 2, "d": 1 }, "height": 1, "sizeConfirmed": true,  "desc": "Concealed recon position that hides occupants from infrared vision. Does not require a FOB.", "icon": "recon-tent.svg", "tags": ["stealth"] },
     { "id": "builders-radio", "role": "support", "name": "Builder's Radio",       "tier": "small",  "page": 1, "cost": 13,   "costConfirmed": false, "requiresFob": true,  "footprint": { "w": 2, "d": 1 }, "height": 1, "sizeConfirmed": false, "desc": "Plays music around your FOB, a place to get some R&R.", "icon": "builders-radio.svg", "tags": ["utility"] },
     { "id": "loudspeaker", "role": "support",    "name": "Loudspeaker",           "tier": "medium", "page": 2, "cost": 61,   "costConfirmed": true,  "requiresFob": true,  "footprint": { "w": 2, "d": 2 }, "height": 5, "sizeConfirmed": true,  "desc": "Climbable loudspeaker tower that lets you project your voice over long distances.", "icon": "loudspeaker.svg", "tags": ["utility", "climbable"] },
     { "id": "bunker", "role": "cover",         "name": "Bunker",                "tier": "large",  "page": 2, "cost": 61,   "costConfirmed": true,  "requiresFob": true,  "footprint": { "w": 4, "d": 4 }, "height": 5, "sizeConfirmed": true,  "desc": "Offers protected firing positions and partial shelter from indirect fire.", "icon": "bunker.svg", "tags": ["shelter", "firing-position"] },
