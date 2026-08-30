@@ -85,13 +85,15 @@ module.exports = ctx => {
     title: "WARDOGS Artillery Calculator: L81 Mortar and SPH-2",
     desc: "Interactive map calculator for WARDOGS indirect fire. Place your gun and your target on Bakurani or Ozeti and get bearing, range, elevation for both arcs and spread, with range rings, the firing tables and where every number came from.",
     canonical: "/artillery/",
-    body: '<section style="padding-top:14px"><div class="wrap">' +
+    body: '<section style="padding:0">' +
 
-      /* The tool loads, not an article about the tool. It opens framed on the control
-         zone, because that is the only ground the match is fought over. Everything
-         below is reference for whoever scrolls. */
+      /* The tool loads, not an article about the tool, and it sits outside the wrap so it
+         gets the whole width of the screen rather than the 1180px a column of prose wants.
+         It opens framed on the control zone, because that is the only ground the match is
+         fought over. Everything below is reference for whoever scrolls. */
       mapApp.html +
 
+      '<div class="wrap" style="padding-top:20px">' +
       '<p class="fine" style="margin:0 0 10px">One coordinate unit is ' + A.grid.unitMetres +
       " m, so 0.01 is a metre. Y counts north. Azimuth: 0&deg; north, 90&deg; east." +
       " The link in your address bar carries the whole picture, so copy it to hand a" +

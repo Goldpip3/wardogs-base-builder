@@ -215,9 +215,16 @@ function zoneNote(){
 var TILE={}, TILEBAD={};
 function tileBox(){
  return map.tiles.bounds||{minX:0,maxX:map.extent,minY:0,maxY:map.extent};}
+/* Two things decide how sharp the terrain looks, and both were wrong.
+   Rounding picked a level whose tiles could be up to 1.4x coarser than the screen, so the
+   imagery was upscaled about half the time: ceil never gives back fewer pixels than are
+   being drawn. And cam.k is in CSS pixels while the canvas is rendered at device pixels,
+   so on any 2x display every tile was stretched to twice its size before it was drawn.
+   Multiplying by the ratio is the whole difference between crisp and soft on a laptop. */
 function tileZoomFor(){
  var t=map.tiles, tb=tileBox();
- var z=Math.round(Math.log((tb.maxX-tb.minX)*cam.k/t.tileSize)/Math.LN2);
+ var dpr=window.devicePixelRatio||1;
+ var z=Math.ceil(Math.log((tb.maxX-tb.minX)*cam.k*dpr/t.tileSize)/Math.LN2);
  return Math.max(t.minZoom,Math.min(t.maxZoom,z));}
 function getTile(z,x,y){
  var key=map.id+":"+z+":"+x+":"+y;
