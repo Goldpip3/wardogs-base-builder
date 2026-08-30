@@ -13,7 +13,7 @@ module.exports = ctx => {
 <link rel="canonical" href="${SITE}${canonical}">${noindex ? '\n<meta name="robots" content="noindex,nofollow">' : ""}
 <meta name="theme-color" content="#12140d">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="WARDOGS Base Builder">
+<meta property="og:site_name" content="WARDOGS Builder">
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(desc)}">
 <meta property="og:url" content="${SITE}${canonical}">
@@ -27,7 +27,7 @@ ${AUTH_SCRIPT}
 </head>
 <body>
 <header class="site"><div class="wrap">
-  <a href="/" class="brand">WARDOGS <span>Base Builder</span></a>
+  <a href="/" class="brand">WARDOGS <span>Builder</span></a>
   <nav class="site">
     <a href="/designs/">Designs</a>
     <a href="/buildables/">Buildables</a>

@@ -454,9 +454,20 @@ function readHash(){
 var drag=null;
 function hit(p,sx,sy){if(!p)return false;
  var dx=w2sX(p.x)-sx,dy=w2sY(p.y)-sy;return dx*dx+dy*dy<144;}
+/* The middle button belongs to the browser, which reads it as autoscroll: the pointer turns
+   into the four way arrow, the page starts creeping down, and the map the user was working
+   in scrolls out from under them. Panning is the left button only, and the middle button is
+   swallowed on the canvas so the browser never starts that gesture in the first place. */
+canvas.addEventListener("mousedown",function(e){if(e.button===1)e.preventDefault();});
+canvas.addEventListener("auxclick",function(e){if(e.button===1)e.preventDefault();});
 canvas.addEventListener("pointerdown",function(e){
+ if(e.button!==0)return;
  var r=canvas.getBoundingClientRect(),sx=e.clientX-r.left,sy=e.clientY-r.top;
- canvas.setPointerCapture(e.pointerId);
+ /* Capture keeps a drag alive when the pointer leaves the canvas, which is worth having
+    and not worth losing the drag over: it throws if the id is not an active pointer, and
+    an exception here would abort before the drag is even set, killing pan and both
+    markers. */
+ try{canvas.setPointerCapture(e.pointerId);}catch(err){}
  if(hit(gun,sx,sy))drag={what:"gun"};
  else if(hit(tgt,sx,sy))drag={what:"tgt"};
  else drag={what:"pan",sx:sx,sy:sy,cx:cam.x,cy:cam.y,moved:false};});

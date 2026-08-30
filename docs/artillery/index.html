@@ -8,7 +8,7 @@
 <link rel="canonical" href="https://www.wardogsbuilder.com/artillery/">
 <meta name="theme-color" content="#12140d">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="WARDOGS Base Builder">
+<meta property="og:site_name" content="WARDOGS Builder">
 <meta property="og:title" content="WARDOGS Artillery Calculator: L81 Mortar and SPH-2">
 <meta property="og:description" content="Interactive map calculator for WARDOGS indirect fire. Place your gun and your target on Bakurani or Ozeti and get bearing, range, elevation for both arcs and spread, with range rings, the firing tables and where every number came from.">
 <meta property="og:url" content="https://www.wardogsbuilder.com/artillery/">
@@ -422,7 +422,7 @@ document.addEventListener("click",function(e){
 </head>
 <body>
 <header class="site"><div class="wrap">
-  <a href="/" class="brand">WARDOGS <span>Base Builder</span></a>
+  <a href="/" class="brand">WARDOGS <span>Builder</span></a>
   <nav class="site">
     <a href="/designs/">Designs</a>
     <a href="/buildables/">Buildables</a>
@@ -775,9 +775,20 @@ function readHash(){
 var drag=null;
 function hit(p,sx,sy){if(!p)return false;
  var dx=w2sX(p.x)-sx,dy=w2sY(p.y)-sy;return dx*dx+dy*dy<144;}
+/* The middle button belongs to the browser, which reads it as autoscroll: the pointer turns
+   into the four way arrow, the page starts creeping down, and the map the user was working
+   in scrolls out from under them. Panning is the left button only, and the middle button is
+   swallowed on the canvas so the browser never starts that gesture in the first place. */
+canvas.addEventListener("mousedown",function(e){if(e.button===1)e.preventDefault();});
+canvas.addEventListener("auxclick",function(e){if(e.button===1)e.preventDefault();});
 canvas.addEventListener("pointerdown",function(e){
+ if(e.button!==0)return;
  var r=canvas.getBoundingClientRect(),sx=e.clientX-r.left,sy=e.clientY-r.top;
- canvas.setPointerCapture(e.pointerId);
+ /* Capture keeps a drag alive when the pointer leaves the canvas, which is worth having
+    and not worth losing the drag over: it throws if the id is not an active pointer, and
+    an exception here would abort before the drag is even set, killing pan and both
+    markers. */
+ try{canvas.setPointerCapture(e.pointerId);}catch(err){}
  if(hit(gun,sx,sy))drag={what:"gun"};
  else if(hit(tgt,sx,sy))drag={what:"tgt"};
  else drag={what:"pan",sx:sx,sy:sy,cx:cam.x,cy:cam.y,moved:false};});

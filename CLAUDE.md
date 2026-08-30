@@ -1,4 +1,4 @@
-# WARDOGS Base Builder
+# WARDOGS Builder
 
 A fan-made FOB planner and reference for WARDOGS, live at www.wardogsbuilder.com. One
 offline HTML planner, a generated static site around it, and one Cloudflare Worker.

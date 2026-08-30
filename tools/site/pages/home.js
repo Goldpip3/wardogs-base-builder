@@ -7,7 +7,7 @@ module.exports = ctx => {
 
 // --- home ---
 write("index.html", page({
-  title: "WARDOGS Base Builder: plan your FOB before the match",
+  title: "WARDOGS Builder: plan your FOB before the match",
   desc: "Free WARDOGS base planner and reference. Lay out walls, gates and gun pits and see the Build Supply cost, then look up artillery firing solutions, round penetration and damage, vendor prices, loadouts and vehicles.",
   canonical: "/",
   body: `${FORWARD_SHARED}

@@ -1,4 +1,4 @@
-# WARDOGS Base Builder
+# WARDOGS Builder
 
 A free, fan-made FOB planner and reference for [WARDOGS](https://store.steampowered.com/).
 Lay out your base between matches, see what it costs in Build Supplies before you haul a

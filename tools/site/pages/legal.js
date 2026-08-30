@@ -9,7 +9,7 @@ module.exports = ctx => {
    written to be true of this site specifically rather than pasted from a generator:
    the planner genuinely stores nothing server-side, and that is worth saying plainly. */
 write("privacy/index.html", page({
-  title: "Privacy - WARDOGS Base Builder",
+  title: "Privacy - WARDOGS Builder",
   desc: "What this site stores, what it does not, and what the advertising and vote services see.",
   canonical: "/privacy/",
   body: `<section><div class="wrap" style="max-width:760px">
