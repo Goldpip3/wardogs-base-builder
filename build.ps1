@@ -22,7 +22,7 @@ if (Test-Path "$proj\release\og-1200x630.png") { Copy-Item "$proj\release\og-120
 # Custom domain. Leave EMPTY until the domain's DNS actually resolves — claiming a
 # domain with no records makes Pages redirect the working github.io URL into a dead
 # end, which takes the site offline. Fill it in once the DNS records are live.
-$customDomain = ""
+$customDomain = "www.wardogsbuilder.com"
 if ($customDomain) { [IO.File]::WriteAllText("$proj\docs\CNAME", $customDomain) }
 elseif (Test-Path "$proj\docs\CNAME") { Remove-Item "$proj\docs\CNAME" -Force }
 
