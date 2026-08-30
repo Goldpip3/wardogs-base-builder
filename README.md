@@ -48,7 +48,8 @@ powershell -File build.ps1
 
 Which produces:
 - `WardogsBaseBuilder.html` — the standalone app
-- `dist/index.html` — the same file, ready to drop on any static host
+- `docs/index.html` — the same file, ready to drop on any static host
 - `src/artifact.html` — a variant for publishing as a Claude Artifact
 
 Edit `data/buildables.json` to change costs, sizes or which hammer tier builds what.
+

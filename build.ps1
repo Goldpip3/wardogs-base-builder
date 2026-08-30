@@ -14,8 +14,9 @@ $out = $tpl.Replace('/*__CATALOG__*/', $catalog).Replace('/*__ICONS__*/', "{$ico
 $art = $out -replace '(?s)^.*?<title>', '<title>' -replace '</head>\s*<body>', '' -replace '</body>\s*</html>\s*$', ''
 [IO.File]::WriteAllText("$proj\src\artifact.html", $art)
 
-# dist/index.html — drop this folder on any static host (GitHub Pages, Netlify, itch.io)
-New-Item -ItemType Directory -Force "$proj\dist" | Out-Null
-[IO.File]::WriteAllText("$proj\dist\index.html", $out)
+# docs/index.html — what GitHub Pages serves (Pages only allows / or /docs).
+# Also works as-is on Netlify, itch.io or any other static host.
+New-Item -ItemType Directory -Force "$proj\docs" | Out-Null
+[IO.File]::WriteAllText("$proj\docs\index.html", $out)
 
-Write-Host "Built WardogsBaseBuilder.html + src/artifact.html + dist/index.html"
+Write-Host "Built WardogsBaseBuilder.html + src/artifact.html + docs/index.html"
