@@ -12,7 +12,7 @@
  * lives in tools/site/artillery-map.js; this file is the page around it.
  */
 module.exports = ctx => {
-  const { esc, page, write, ARTILLERY, byId } = ctx;
+  const { esc, page, write, ARTILLERY, byId, adSlot } = ctx;
   const A = ARTILLERY;
   const mapApp = require("../artillery-map")(ctx);
 
@@ -25,22 +25,29 @@ module.exports = ctx => {
   const spreadAt = (dist, moa) => dist * (moa / 60) * Math.PI / 180;
 
   const platformCard = p => {
+    /* A third entry is a note, set under the figure rather than beside it. Numeric cells
+       are nowrap on purpose across the site, so a sentence parked in one runs straight out
+       of the card and gets clipped. The figure stays in the cell; the sentence goes below. */
     const rows = [
       ["Range", num(p.minRange) + " to " + num(p.maxRange) + " m"],
       ["Arcs", p.arcs.length > 1 ? "Low and high" : "High only"],
       ["Reload", p.reloadSeconds + " s"],
-      ["Shell", p.damage + " damage, " + p.blastRadius + " m blast"],
-      ["Grouping", p.moa + " MOA, so " + spreadAt(p.maxRange, p.moa).toFixed(1) +
-        " m across at maximum range"],
-      ["Round", esc(p.roundName) + ", $" + num(p.roundCost) + " each"],
+      ["Shell", p.damage + " damage", p.blastRadius + " m blast radius"],
+      ["Grouping", p.moa + " MOA",
+        spreadAt(p.maxRange, p.moa).toFixed(1) + " m across at maximum range"],
+      ["Round", "$" + num(p.roundCost) + " each", esc(p.roundName)],
     ];
     if (p.lowArcFrom) rows.splice(2, 0, ["Low arc from", num(p.lowArcFrom) + " m"]);
     return '<div class="card" style="text-align:left">' +
       "<h3>" + esc(p.name) + '</h3><p class="fine" style="margin:0 0 12px">' +
       esc(p.kind) + " &middot; " + esc(p.calibre) + "</p>" +
-      "<table style=\"margin:0\"><tbody>" +
+      "<table style=\"margin:0;width:100%;table-layout:fixed\"><tbody>" +
       rows.map(function (r) {
-        return "<tr><td>" + r[0] + '</td><td class="n">' + r[1] + "</td></tr>";
+        return "<tr><td>" + r[0] + '</td><td class="n">' + r[1] +
+          /* the cell is nowrap so the figure never breaks; the note has to opt back out
+             of that or it runs off the card exactly like the sentence it replaced */
+          (r[2] ? '<span class="fine" style="display:block;white-space:normal">' +
+            r[2] + "</span>" : "") + "</td></tr>";
       }).join("") +
       "</tbody></table>" +
       p.notes.map(function (n) {
@@ -107,8 +114,15 @@ module.exports = ctx => {
       " what to dial on each arc that reaches, and how wide the shells will land.</p>" +
 
       '<h2 style="margin-top:52px">The platforms</h2>' +
-      '<div class="grid" style="margin-top:18px">' +
+      /* The shared .grid is auto-fill at 270px, which lays four tracks across a 1180px
+         wrap and then leaves two of them empty, because there are only ever two
+         platforms. Worse, each card then holds a stat table wider than the track, so the
+         values were clipped. These two want half the width each. */
+      '<div class="grid" style="margin-top:18px;' +
+      'grid-template-columns:repeat(auto-fit,minmax(420px,1fr))">' +
       A.platforms.map(platformCard).join("") + "</div>" +
+
+      adSlot("inArticle") +
 
       '<h2 style="margin-top:52px">What this means for a base</h2>' +
       "<p>A mortar in your FOB is not a way to defend your FOB. Its minimum range is " +

@@ -34,16 +34,22 @@ const adsOn = !!(ADS.publisherId || "").trim();
 const adScript = adsOn
   ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${esc(ADS.publisherId)}" crossorigin="anonymous"></script>`
   : "";
-/* The two slots are different AdSense unit types and want different markup.
-   The leaderboard is a responsive display unit; the in-article one is AdSense's
-   fluid "in-article" format, which sizes itself to the text it sits in and reads
-   as part of the page rather than as a banner. Getting the format attributes wrong
-   is silent: the unit simply never fills. */
+/* Not every slot is the same AdSense unit type, and each wants its own markup. The
+   leaderboard and the artillery one are responsive display units; the in-article one is
+   AdSense's fluid "in-article" format, which sizes itself to the text it sits in and reads
+   as part of the page rather than as a banner. Getting the format attributes wrong is
+   silent: the unit simply never fills. A name with no entry here is silent too, which is
+   why a slot with an id and no placement fails the build. */
 const AD_FORMATS = {
   leaderboard: { minHeight: 90, style: "display:block",
     attrs: `data-ad-format="auto" data-full-width-responsive="true"` },
   inArticle:   { minHeight: 280, style: "display:block;text-align:center",
     attrs: `data-ad-layout="in-article" data-ad-format="fluid"` },
+  /* The artillery map's control column is 290px less its padding, so this is the same
+     narrow-column case as the planner's panel: a responsive display unit, not the fluid
+     in-article one, which wants the width of a paragraph to look right. */
+  artillery:   { minHeight: 250, style: "display:block",
+    attrs: `data-ad-format="auto" data-full-width-responsive="true"` },
 };
 function adSlot(which) {
   const slot = (ADS.slots || {})[which] || "";

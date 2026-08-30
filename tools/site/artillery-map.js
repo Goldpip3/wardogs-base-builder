@@ -16,7 +16,7 @@
  */
 
 module.exports = ctx => {
-  const { esc, ARTILLERY, ARTILLERY_MAPS } = ctx;
+  const { esc, ARTILLERY, ARTILLERY_MAPS, adSlot } = ctx;
   const A = ARTILLERY;
 
   const platforms = A.platforms.map(p => ({
@@ -31,6 +31,11 @@ module.exports = ctx => {
     towers: m.towers, spawns: m.spawns, tiles: m.tiles || null,
     zone: m.controlZone || null,
   }));
+
+  /* Empty string when no slot id is configured, and then nothing at all is emitted: no
+     wrapper, no reserved height, no gap at the foot of the column. */
+  const sideAdUnit = adSlot("artillery");
+  const sideAd = sideAdUnit ? '<div class="amap-ad">' + sideAdUnit + "</div>" : "";
 
   const barBtn = (id, label) =>
     '<button class="amap-btn" id="' + id + '">' + label + "</button>";
@@ -81,13 +86,24 @@ module.exports = ctx => {
     '<label>Target Y<input id="tgty" type="number" step="0.01"></label>' +
     "</div>" +
 
+    /* The gestures belong beside the inputs they describe, and above the solution rather
+       than under it. They used to be pinned to the foot of the column by margin-top:auto,
+       which read fine on arrival and then fell off the bottom the moment a solution was
+       computed: the solution block roughly triples and the zone note grows with it, so the
+       one thing a first-time visitor needed was the first thing to scroll out of reach. */
+    '<p class="fine" style="margin:0 0 4px">Left click places, drag moves a marker, scroll' +
+    " zooms, drag the map to pan. Solid ring is maximum range, dashed is the dead zone" +
+    " inside minimum range.</p>" +
+
     '<div id="sol" class="amap-sol"></div>' +
 
     '<div class="amap-note" id="zoneNote"></div>' +
 
-    '<p class="fine" style="margin:auto 0 0">Left click places, drag moves a marker, scroll' +
-    " zooms, drag the map to pan. Solid ring is maximum range, dashed is the dead zone" +
-    " inside minimum range.</p>" +
+    /* The foot of the column, and margin-top:auto rather than a fixed position, so it takes
+       the slack that is there on arrival and is simply pushed down once a solution fills the
+       column. That is the right way round: the impression happens on load, before anyone has
+       placed a marker, and the tool reclaims the space exactly when it starts needing it. */
+    sideAd +
     "</aside>" +
 
     '<div class="amap-stage" id="amap-stage"><canvas id="amap-canvas"></canvas></div>' +

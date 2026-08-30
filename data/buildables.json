@@ -471,7 +471,7 @@
       "height": 2,
       "sizeConfirmed": true,
       "desc": "Reloadable launch station for long-range, explosive anti-armor UAVs. Buy units with cash and Mechanical supplies. Holds one active UAV at a time.",
-      "icon": "stingray.svg",
+      "icon": "stingray.webp",
       "tags": [
         "emplacement",
         "needs-sky",

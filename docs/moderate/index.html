@@ -349,6 +349,11 @@ ul,ol{padding-left:22px}li{margin:6px 0}
 .amap-side input{width:100%;margin-top:4px;padding:8px;background:var(--panel2);
   color:var(--text);border:1px solid var(--line2);font-family:var(--num)}
 .amap-sol,.amap-note{border:1px solid var(--line);background:var(--panel2);padding:14px}
+/* The sidebar ad takes the slack at the foot of the column. The shared .ad-slot rule carries
+   34px of vertical margin, which is right between paragraphs of an article and far too much
+   in a 290px control column, so it is trimmed here rather than loosened everywhere. */
+.amap-ad{margin:auto 0 0}
+.amap-ad .ad-slot{margin:14px 0 0}
 /* the panel is narrow and the dial note is a sentence, so the table has to wrap inside it
    rather than push a scrollbar under the whole sidebar */
 .amap-sol table{width:100%;table-layout:fixed}

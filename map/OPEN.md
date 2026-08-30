@@ -64,14 +64,6 @@ the tools exist so that it is a data job rather than a rebuild.
 | the planner | `buildRadiusUnits: 100` is `radiusConfirmed: false`, which is what blocks range rings on the plan | `data/buildables.json` |
 | ongoing supplies | how much Ammo, Fuel or Mechanical a single reload draws is not published anywhere, so the planner counts the emplacements that will keep drawing and states no figure. One reload of a mortar, watched, closes it | `data/buildables.json` `mechanics.supplies`, and the Ongoing Supplies panel |
 
-## Two icons are still hand drawn
-
-The FOB and the Drill Rig moved onto the game's own art on 2026-08-30. **Sandbag Wall** and
-**Stingray** are the last two still on hand-drawn SVGs from before the art was available.
-Drop a render into `assets/icons/` and point the catalog at it; `tools/check-build.js`
-now fails the build if the catalog names an icon that is not there, or if the planner names
-one the catalog does not.
-
 ## Needs a decision, not a discovery
 
 - **Ko-fi handle.** `support.url` in `data/buildables.json` is unset, so the tip button does

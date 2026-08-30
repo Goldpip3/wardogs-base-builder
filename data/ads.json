@@ -5,7 +5,8 @@
   "slots": {
     "leaderboard": "6283709418",
     "inArticle": "4970627748",
-    "planner": "6502823960"
+    "planner": "6502823960",
+    "artillery": ""
   },
-  "_comment": "Advertising config, kept out of buildables.json because that file is inlined wholesale into the downloadable planner and an advertising identity has no business in a file people keep on a disk. Three slots. 'leaderboard' and 'inArticle' are placed by tools/site/context.js and need a matching entry in its AD_FORMATS table. 'planner' is different: it is injected by build.ps1 into the hosted planner only, at the foot of the right panel, and the downloadable build gets an empty string in its place. Clearing publisherId removes all of it."
+  "_comment": "Advertising config, kept out of buildables.json because that file is inlined wholesale into the downloadable planner and an advertising identity has no business in a file people keep on a disk. Four slots. 'leaderboard' and 'inArticle' are placed by tools/site/context.js and need a matching entry in its AD_FORMATS table. 'artillery' is placed by tools/site/artillery-map.js at the foot of the map's control column and needs an AD_FORMATS entry too. 'planner' is the odd one: it is injected by build.ps1 into the hosted planner only, at the foot of the right panel, and the downloadable build gets an empty string in its place. Clearing publisherId removes all of it."
 }
