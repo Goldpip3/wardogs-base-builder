@@ -2842,7 +2842,7 @@ function cloudSignInUrl() {
 
 (function pickUpToken() {
   if (!CLOUD_API) return;
-  const m = (location.hash || "").match(/[#&]token=([\w.-]+)/);
+  const m = (location.hash || "").match(/[#&]token=([A-Za-z0-9_.-]+)/);
   if (!m) return;
   try { localStorage.setItem(LS_TOKEN, m[1]); } catch (e) {}
   history.replaceState(null, "", location.pathname + location.search);

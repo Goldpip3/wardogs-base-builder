@@ -581,7 +581,7 @@ var ago=function(ms){
    is not sitting in anybody's access log. */
 var TOKEN=null, ME=null;
 try{
-  var m=(location.hash||"").match(/[#&]token=([\w.-]+)/);
+  var m=(location.hash||"").match(/[#&]token=([A-Za-z0-9_.-]+)/);
   if(m){ TOKEN=m[1]; localStorage.setItem("wardogs.token",TOKEN);
          history.replaceState(null,"",location.pathname+location.search); }
   else TOKEN=localStorage.getItem("wardogs.token");

@@ -1031,7 +1031,7 @@ const LS_CATALOG = "wardogs.catalog";
    completely offline: with this empty, none of the cloud code below is ever reachable
    and the app makes no network call of any kind. */
 const CLOUD_API = "https://wardogs-votes.wardogsbuilder.workers.dev";
-const BUILD_STAMP = "20260830-073316";
+const BUILD_STAMP = "20260830-074100";
 const LS_TOKEN = "wardogs.token";
 
 const LS_DESIGNS = "wardogs.designs";
@@ -2842,7 +2842,7 @@ function cloudSignInUrl() {
 
 (function pickUpToken() {
   if (!CLOUD_API) return;
-  const m = (location.hash || "").match(/[#&]token=([\w.-]+)/);
+  const m = (location.hash || "").match(/[#&]token=([A-Za-z0-9_.-]+)/);
   if (!m) return;
   try { localStorage.setItem(LS_TOKEN, m[1]); } catch (e) {}
   history.replaceState(null, "", location.pathname + location.search);

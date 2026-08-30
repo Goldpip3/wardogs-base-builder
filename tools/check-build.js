@@ -80,6 +80,37 @@ check(missingIcons.length === 0,
   }
 }
 
+// -- 3d. regex escapes survived the template literals they were written in --
+// A `\w` written inside a JS template literal is just `w` by the time it reaches the
+// page, so /[\w.-]+/ shipped as /[w.-]+/ and silently matched almost nothing. It broke
+// sign-in for a day and looked like a Discord problem. Any class that mentions a bare
+// shorthand letter without its backslash is almost certainly this bug.
+{
+  const pages = [];
+  (function walk(d) {
+    for (const f of fs.readdirSync(d)) {
+      const p = path.join(d, f);
+      if (fs.statSync(p).isDirectory()) walk(p);
+      else if (f.endsWith(".html")) pages.push(p);
+    }
+  })(path.join(proj, "docs"));
+
+  // A class like [w.-] or [d-] is a mangled [\w.-] or [\d-]. A real class wanting a
+  // literal w would not put it alone beside punctuation.
+  const mangled = /\[\^?[wdsWDS][.\-][^\]]{0,10}\]|\[\^?[^\]]{0,10}[.\-][wdsWDS]\]/;
+  const bad = [];
+  for (const p of pages) {
+    const s = fs.readFileSync(p, "utf8");
+    for (const m of s.matchAll(/\[\^?[^\]\n]{1,24}\]/g)) {
+      // `[...set]` is spread syntax, not a character class
+      if (m[0].includes("...") || m[0].includes("\\")) continue;
+      if (mangled.test(m[0])) bad.push(path.relative(proj, p) + "  " + m[0]);
+    }
+  }
+  check(bad.length === 0, "no regex escapes were eaten by a template literal",
+    [...new Set(bad)].slice(0, 3).join(" | "));
+}
+
 // -- 4. nothing reaches the network: offline is the whole promise --
 const remote = [...app.matchAll(/(?:src|href)="(https?:\/\/[^"]+)"/g)]
   .map(m => m[1])
