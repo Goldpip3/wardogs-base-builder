@@ -413,7 +413,7 @@
       <div class="rp-row"><label>Vendor cash (@$10)</label><span class="val" id="costCash">$0</span></div>
       <div class="rp-row"><label>+ FOB item</label><span class="val" id="costFob">—</span></div>
       <div class="rp-row"><label>Hammer needed</label><span class="val" id="hammerNeeded">—</span></div>
-      <div class="rp-row" style="margin-top:7px"><label>You have in the FOB</label><input type="number" id="supplyStock" value="1750" min="0" style="width:72px" title="Build supplies stocked. A fresh FOB lands with 1,750 already inside."></div>
+      <div class="rp-row" style="margin-top:7px"><label>You have in the FOB</label><input type="number" id="supplyStock" min="0" style="width:72px" title="Build supplies stocked. A fresh FOB lands with 1,750 already inside."></div>
       <div class="budget-track" id="budgetTrack" style="display:none"><div class="budget-fill" id="budgetFill"></div></div>
       <div id="budgetText" style="font-size:11.5px;margin-top:4px"></div>
       <div id="costBreakdown" style="margin-top:8px"></div>
@@ -423,7 +423,7 @@
       <h3>Hauling it there</h3>
       <div class="rp-row">
         <label>Supplies per pallet</label>
-        <input type="number" id="palletSize" value="1900" min="1" style="width:62px">
+        <input type="number" id="palletSize" min="1" style="width:62px">
       </div>
       <div class="rp-row"><label>Pallets needed</label><span class="val" id="palletsNeeded">0</span></div>
       <div class="rp-row"><label>Pallet cost</label><span class="val" id="palletCash">$0</span></div>
@@ -1043,6 +1043,12 @@ const LS_DESIGNS = "wardogs.designs";
 const LS_CURRENT = "wardogs.current";
 
 let catalog = loadCatalog();
+
+/* The two supply figures the panel starts from live in the catalog, not in the markup.
+   They have been corrected three times from in-game counts, and every time they were
+   typed into the HTML as well one of the two got missed. */
+const PALLET_DEFAULT = (catalog.logistics && catalog.logistics.suppliesPerPallet) || 1800;
+const FOB_STOCK_DEFAULT = (catalog.fob && catalog.fob.startingSupplies) || 0;
 let byId = {};
 function indexCatalog() { byId = {}; for (const b of catalog.buildables) byId[b.id] = b; byId["__fob__"] = fobDef(); }
 function fobDef() {
@@ -1851,7 +1857,7 @@ function updateRightPanel() {
   /* Supplies travel as pallets, and a vehicle carries a whole number of them —
      so the figure that actually matters is trips, not raw supply count. */
   const log = catalog.logistics || {};
-  const pallet = Math.max(1, +document.getElementById("palletSize").value || 1900);
+  const pallet = Math.max(1, +document.getElementById("palletSize").value || PALLET_DEFAULT);
   const pallets = supplies ? Math.ceil(supplies / pallet) : 0;
   document.getElementById("palletsNeeded").textContent = pallets.toLocaleString();
   document.getElementById("palletCash").textContent =
@@ -2851,7 +2857,7 @@ document.getElementById("btnHelp").onclick = () => {
       <li>Sandbag Wall, Barbed Wire, Hedgehog and Recon Tent build <b>without</b> a FOB — everything else must sit inside a FOB's blue build square.</li>
       <li><b>Level badge (L2, L3…)</b> = stacked height, for multi-storey hesco builds. Gates are ground-only; Recon Towers can't stack; nothing builds on top of a Bremer Wall; mortars/AA need open sky.</li>
       <li>Costs are Build Supplies. 1 supply = $10 at the vendor, or 1,900 in a $400 pallet. A fresh FOB lands with 1,750 already inside.</li>
-      <li>Mortar, CIWS and SAM eat <b>Ammo</b> supplies; Refuel Station and Drill Rig eat <b>Fuel</b>; Repair Station eats <b>Mechanical</b>.</li>
+      <li>Mortar, CIWS and SAM eat <b>Ammo</b> supplies; the Drill Rig eats <b>Fuel</b>. They keep drawing after they are built, so a base is not finished when the last wall goes up.</li>
     </ul>`,
     [["Close", closeModal]]);
 };
@@ -2887,6 +2893,10 @@ if (!loadFromHash()) loadCurrent();
 renderSupport();
 renderLegend();
 renderPalette();
+document.getElementById("palletSize").value = PALLET_DEFAULT;
+document.getElementById("supplyStock").value = FOB_STOCK_DEFAULT;
+document.getElementById("supplyStock").title =
+  "Build supplies stocked. A fresh FOB lands with " + FOB_STOCK_DEFAULT.toLocaleString() + " already inside.";
 initUiScale();
 setViewLevel(null);
 resize();

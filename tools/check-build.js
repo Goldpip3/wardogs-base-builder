@@ -63,5 +63,28 @@ check(remote.length === 0, "no external resource loads", remote.slice(0, 3).join
 // -- 5. the estimate question marks the user asked us to drop are gone --
 check(!/[>\s]\?<\/span>/.test(app), "no leftover '?' estimate badges");
 
+// -- 6. figures the user has corrected must not be hardcoded in the markup --
+// Pallet size and FOB starting stock have each been corrected several times; twice the
+// catalog was updated and a duplicate in the HTML was not, and the app shipped the old
+// number anyway. They are only allowed to come from the catalog now.
+{
+  const stale = [];
+  if (/id="palletSize"[^>]*value=/.test(app)) stale.push("palletSize has a hardcoded value");
+  if (/id="supplyStock"[^>]*value=/.test(app)) stale.push("supplyStock has a hardcoded value");
+  check(stale.length === 0, "supply figures come from the catalog, not the markup", stale.join("; "));
+
+  const pallet = catalog.logistics && catalog.logistics.suppliesPerPallet;
+  const stock = catalog.fob && catalog.fob.startingSupplies;
+  check(app.includes('"suppliesPerPallet": ' + pallet), "catalog pallet size (" + pallet + ") is inlined");
+  check(app.includes('"startingSupplies": ' + stock), "catalog FOB stock (" + stock + ") is inlined");
+}
+
+// -- 7. nothing removed from the catalog is still named in the prose --
+{
+  const gone = ["Refuel Station", "Repair Station"]
+    .filter(n => !catalog.buildables.some(b => b.name === n) && app.includes(n));
+  check(gone.length === 0, "removed buildables are not still mentioned", gone.join(", "));
+}
+
 console.log(fail ? `\n${fail} structural check(s) failed` : "\nbuild looks structurally sound");
 process.exit(fail ? 1 : 0);
