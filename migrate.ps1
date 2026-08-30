@@ -30,19 +30,25 @@ if ($user -eq "Goldpip3" -and -not $AllowSameAccount) {
 }
 Write-Host "Publishing as: $user" -ForegroundColor Cyan
 
-$pagesUrl = "https://$($user.ToLower()).github.io/$RepoName/"
+# A custom domain outlives any account move, so leave the baked-in URLs alone
+# when one is claimed. Only rewrite them if the site still lives on github.io.
+$customDomain = if (Test-Path "docs\CNAME") { (Get-Content "docs\CNAME" -Raw).Trim() } else { "" }
+if ($customDomain) {
+  $pagesUrl = "https://$customDomain/"
+  Write-Host "Custom domain in use: $customDomain (URLs left as they are)" -ForegroundColor Cyan
+} else {
+  $pagesUrl = "https://$($user.ToLower()).github.io/$RepoName/"
+  $tpl = "src\app-template.html"
+  $t = [IO.File]::ReadAllText($tpl)
+  $t = [regex]::Replace($t, 'https://[a-z0-9\-]+\.github\.io/[a-z0-9\-]+/', $pagesUrl)
+  [IO.File]::WriteAllText($tpl, $t)
 
-# --- point the page metadata at the new address --------------------------
-$tpl = "src\app-template.html"
-$t = [IO.File]::ReadAllText($tpl)
-$t = [regex]::Replace($t, 'https://[a-z0-9\-]+\.github\.io/[a-z0-9\-]+/', $pagesUrl)
-[IO.File]::WriteAllText($tpl, $t)
-
-$readme = "README.md"
-if (Test-Path $readme) {
-  $r = [IO.File]::ReadAllText($readme)
-  $r = [regex]::Replace($r, 'https://[a-z0-9\-]+\.github\.io/[a-z0-9\-]+/', $pagesUrl)
-  [IO.File]::WriteAllText($readme, $r)
+  $readme = "README.md"
+  if (Test-Path $readme) {
+    $r = [IO.File]::ReadAllText($readme)
+    $r = [regex]::Replace($r, 'https://[a-z0-9\-]+\.github\.io/[a-z0-9\-]+/', $pagesUrl)
+    [IO.File]::WriteAllText($readme, $r)
+  }
 }
 
 & ".\build.ps1"
