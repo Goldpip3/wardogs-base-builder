@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>WARDOGS Base Designs - built and rated by the community</title>
+<title>WARDOGS Base Designs, built and rated by players</title>
 <meta name="description" content="Player-built WARDOGS FOB designs, ranked by vote. Every one opens straight in the planner, fully editable, with its real Build Supply cost and supply runs worked out.">
 <link rel="canonical" href="https://www.wardogsbuilder.com/designs/">
 <meta name="theme-color" content="#12140d">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="WARDOGS Base Builder">
-<meta property="og:title" content="WARDOGS Base Designs - built and rated by the community">
+<meta property="og:title" content="WARDOGS Base Designs, built and rated by players">
 <meta property="og:description" content="Player-built WARDOGS FOB designs, ranked by vote. Every one opens straight in the planner, fully editable, with its real Build Supply cost and supply runs worked out.">
 <meta property="og:url" content="https://www.wardogsbuilder.com/designs/">
 <meta property="og:image" content="https://www.wardogsbuilder.com/preview.png">
@@ -146,6 +146,25 @@ tbody tr:hover td{background:var(--panel)}
 .vote button[data-cast="1"]{border-color:var(--red);color:var(--red-hot)}
 .vote .score{font-family:var(--num);font-size:13px;color:var(--text);min-width:2ch;text-align:center}
 
+/* --- submit form and comment threads --- */
+.form{display:grid;gap:14px;max-width:620px;margin-top:26px}
+.field label{display:block;font-weight:600;font-size:11px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--dim);margin-bottom:6px}
+.field input,.field textarea{width:100%;background:var(--panel);color:var(--text);
+  border:1px solid var(--line2);padding:11px 13px;font-family:var(--ui);font-size:15px}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--red)}
+.field textarea{resize:vertical;min-height:76px}
+.field .hint{font-size:12px;color:var(--dim);margin-top:6px}
+.msg{padding:12px 14px;border-left:2px solid var(--red);background:var(--panel);font-size:14px}
+.msg.good{border-color:var(--good)}
+.thread{margin-top:20px;display:grid;gap:1px;background:var(--line);border:1px solid var(--line)}
+.cmt{background:var(--panel);padding:14px 16px}
+.cmt .who{font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--text)}
+.cmt .when{font-size:11px;color:var(--dim);margin-left:8px;text-transform:none;letter-spacing:0}
+.cmt p{margin-top:6px;font-size:14px;color:var(--dim2);white-space:pre-wrap;overflow-wrap:anywhere}
+.design-open{background:var(--panel2);padding:22px 24px;border:1px solid var(--line);border-top:0}
+details.design summary{cursor:pointer;list-style:none}
+details.design summary::-webkit-details-marker{display:none}
 .ad-slot{margin:34px 0;padding:10px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
   text-align:center;overflow:hidden}
 .ad-slot::before{content:"Advertisement";display:block;font-size:9px;font-weight:600;letter-spacing:.18em;
@@ -183,14 +202,21 @@ ul,ol{padding-left:22px}li{margin:6px 0}
   <h1>Base designs</h1>
   <p class="lede">Builds submitted by players, ranked by whoever found them useful.
   Every one opens in the planner, fully editable.</p>
-  <div class="empty" style="margin-top:34px">
-        <h3>No designs yet</h3>
-        <p>This list is player-built, and nobody has submitted anything yet.
-        Build something in the planner, hit <strong>Share</strong>, and send the link -
-        the whole design travels inside the URL, so there is nothing to upload.</p>
-        <a class="btn primary" href="https://github.com/Goldpip3/wardogs-base-builder/issues/new?labels=design&amp;title=Design%3A+&amp;body=Paste+your+share+link+from+the+planner+below%2C+plus+a+sentence+on+what+the+build+is+for.%0A%0AShare+link%3A+%0AWhat+it+is+for%3A+%0AYour+name+%28how+you+want+to+be+credited%29%3A+">Submit a design</a>
-      </div>
+
+  <div id="designList" style="margin-top:34px">
+    <div class="empty">
+          <h3>Nothing here yet</h3>
+          <p>This list is built by players. Make something in the planner, hit Share,
+          and paste the link below. It takes about ten seconds and there is no account
+          to make.</p>
+        </div>
+  </div>
+
   
+  <div class="note" style="margin-top:40px"><strong>Submissions are not open yet.</strong>
+  The service that stores designs and votes is not live. Until it is, send a share link
+  through <a href="https://github.com/Goldpip3/wardogs-base-builder/issues">GitHub</a>
+  and it will be added by hand.</div>
 </div></section>
 
 <footer class="site"><div class="wrap">

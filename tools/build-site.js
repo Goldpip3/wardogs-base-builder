@@ -367,6 +367,25 @@ tbody tr:hover td{background:var(--panel)}
 .vote button[data-cast="1"]{border-color:var(--red);color:var(--red-hot)}
 .vote .score{font-family:var(--num);font-size:13px;color:var(--text);min-width:2ch;text-align:center}
 
+/* --- submit form and comment threads --- */
+.form{display:grid;gap:14px;max-width:620px;margin-top:26px}
+.field label{display:block;font-weight:600;font-size:11px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--dim);margin-bottom:6px}
+.field input,.field textarea{width:100%;background:var(--panel);color:var(--text);
+  border:1px solid var(--line2);padding:11px 13px;font-family:var(--ui);font-size:15px}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--red)}
+.field textarea{resize:vertical;min-height:76px}
+.field .hint{font-size:12px;color:var(--dim);margin-top:6px}
+.msg{padding:12px 14px;border-left:2px solid var(--red);background:var(--panel);font-size:14px}
+.msg.good{border-color:var(--good)}
+.thread{margin-top:20px;display:grid;gap:1px;background:var(--line);border:1px solid var(--line)}
+.cmt{background:var(--panel);padding:14px 16px}
+.cmt .who{font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--text)}
+.cmt .when{font-size:11px;color:var(--dim);margin-left:8px;text-transform:none;letter-spacing:0}
+.cmt p{margin-top:6px;font-size:14px;color:var(--dim2);white-space:pre-wrap;overflow-wrap:anywhere}
+.design-open{background:var(--panel2);padding:22px 24px;border:1px solid var(--line);border-top:0}
+details.design summary{cursor:pointer;list-style:none}
+details.design summary::-webkit-details-marker{display:none}
 .ad-slot{margin:34px 0;padding:10px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
   text-align:center;overflow:hidden}
 .ad-slot::before{content:"Advertisement";display:block;font-size:9px;font-weight:600;letter-spacing:.18em;
@@ -386,7 +405,7 @@ ul,ol{padding-left:22px}li{margin:6px 0}
 }
 `;
 
-function page({ title, desc, canonical, body, ogImage = "/preview.png" }) {
+function page({ title, desc, canonical, body, ogImage = "/preview.png", noindex = false }) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -394,7 +413,7 @@ function page({ title, desc, canonical, body, ogImage = "/preview.png" }) {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(desc)}">
-<link rel="canonical" href="${SITE}${canonical}">
+<link rel="canonical" href="${SITE}${canonical}">${noindex ? '\n<meta name="robots" content="noindex,nofollow">' : ""}
 <meta name="theme-color" content="#12140d">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="WARDOGS Base Builder">
@@ -512,38 +531,140 @@ function voteWidget(slug) {
 
 // Scores are fetched rather than baked, so a page cached for a week still shows the
 // current ranking. Failure is silent and leaves the neutral dash in place.
-const VOTE_SCRIPT = !VOTE_API ? "" : `<script>
+
+/* Everything community-shaped runs against the worker. With no API configured the page
+   keeps its static empty state and none of this is emitted, so the site never shows
+   controls that cannot do anything. */
+const COMMUNITY_SCRIPT = !VOTE_API ? "" : `<script>
 (function(){
-  var API=${JSON.stringify(VOTE_API)};
-  var els=[].slice.call(document.querySelectorAll(".vote[data-design]"));
-  if(!els.length)return;
-  var ids=els.map(function(e){return e.dataset.design});
-  function paint(e,t){
-    var s=e.querySelector('[data-role=score]');
-    s.textContent=(t.up||0)-(t.down||0);
-    if(t.you)e.querySelectorAll("button").forEach(function(b){
-      b.dataset.cast=(+b.dataset.dir===t.you)?"1":"";});
-  }
-  fetch(API+"/votes?ids="+encodeURIComponent(ids.join(",")))
-    .then(function(r){return r.json()})
-    .then(function(all){els.forEach(function(e){if(all[e.dataset.design])paint(e,all[e.dataset.design])})})
-    .catch(function(){});
-  els.forEach(function(e){
+var API=${JSON.stringify(VOTE_API)};
+var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});};
+var ago=function(ms){
+  var s=Math.max(1,(Date.now()-ms)/1000);
+  var u=[[86400*365,"y"],[86400*30,"mo"],[86400,"d"],[3600,"h"],[60,"m"]];
+  for(var i=0;i<u.length;i++) if(s>=u[i][0]) return Math.floor(s/u[i][0])+u[i][1]+" ago";
+  return "just now";
+};
+var post=function(path,body){
+  return fetch(API+path,{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(body)}).then(function(r){
+      return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||"That did not work."); return j; });
+    });
+};
+
+/* ---- submit ---- */
+var form=document.getElementById("submitForm");
+if(form) form.addEventListener("submit",function(e){
+  e.preventDefault();
+  var out=document.getElementById("submitMsg");
+  // people paste the whole link; the design is the bit after #d=
+  var raw=(document.getElementById("sCode").value||"").trim();
+  var m=raw.match(/[#&]d=([A-Za-z0-9_-]+)/);
+  var code=m?m[1]:raw;
+  out.className="msg"; out.textContent="Sending...";
+  post("/submit",{name:document.getElementById("sName").value,
+                  author:document.getElementById("sAuthor").value,
+                  note:document.getElementById("sNote").value,
+                  code:code})
+    .then(function(){
+      form.reset();
+      out.className="msg good";
+      out.textContent="Thanks. It goes up once it has been looked over, usually the same day.";
+    })
+    .catch(function(err){ out.className="msg"; out.textContent=err.message; });
+});
+
+/* ---- the list ---- */
+var list=document.getElementById("designList");
+if(list){
+  fetch(API+"/designs").then(function(r){return r.json();}).then(function(j){
+    var ds=j.designs||[];
+    if(!ds.length) return;                       // keep whatever static state is there
+    list.innerHTML=ds.map(function(d){
+      var score=(d.votes.up||0)-(d.votes.down||0);
+      return '<details class="design"><summary>'+
+        '<div class="card"><h3>'+esc(d.name)+'</h3>'+
+        (d.note?'<p>'+esc(d.note)+'</p>':'')+
+        '<div class="stats"><span>by</span>'+esc(d.author)+
+        '<span>score</span><b data-role="score">'+score+'</b>'+
+        '<span>'+ago(d.submitted)+'</span></div>'+
+        '<div class="vote" data-design="'+esc(d.slug)+'" style="margin-top:14px">'+
+        '<button type="button" data-dir="1" aria-label="Vote up">&#9650;</button>'+
+        '<span class="score" data-role="n">'+score+'</span>'+
+        '<button type="button" data-dir="-1" aria-label="Vote down">&#9660;</button>'+
+        '<a class="btn sm" style="margin-left:14px" href="/planner/#d='+esc(d.code)+'">Open in planner</a>'+
+        '</div></div></summary>'+
+        '<div class="design-open" data-thread="'+esc(d.slug)+'">'+
+        '<h3>Comments</h3><div class="thread" data-role="list"></div>'+
+        '<form class="form" data-role="form" style="margin-top:16px">'+
+        '<div class="field"><label>Your name</label><input maxlength="32" data-role="who" placeholder="anonymous"></div>'+
+        '<div class="field"><label>Comment</label><textarea maxlength="1500" data-role="text" required></textarea></div>'+
+        '<button class="btn sm" type="submit">Post comment</button>'+
+        '<div class="msg" data-role="msg" style="display:none"></div></form></div></details>';
+    }).join("");
+    wireVotes(list);
+    wireThreads(list);
+  }).catch(function(){});
+}
+
+function wireVotes(root){
+  root.querySelectorAll(".vote[data-design]").forEach(function(e){
     e.addEventListener("click",function(ev){
-      var b=ev.target.closest("button[data-dir]");if(!b)return;
+      var b=ev.target.closest("button[data-dir]"); if(!b) return;
+      ev.preventDefault();
       var mine=b.dataset.cast==="1";
-      b.blur();
-      fetch(API+"/vote",{method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({id:e.dataset.design,dir:mine?0:+b.dataset.dir})})
-        .then(function(r){return r.json()})
-        .then(function(t){
-          e.querySelectorAll("button").forEach(function(x){x.dataset.cast=""});
-          paint(e,t);
-        }).catch(function(){});
+      post("/vote",{id:e.dataset.design,dir:mine?0:+b.dataset.dir}).then(function(t){
+        var n=(t.up||0)-(t.down||0);
+        e.querySelector('[data-role=n]').textContent=n;
+        var card=e.closest(".card"); if(card){
+          var s=card.querySelector('[data-role=score]'); if(s) s.textContent=n; }
+        e.querySelectorAll("button").forEach(function(x){x.dataset.cast="";});
+        if(t.you) b.dataset.cast="1";
+      }).catch(function(){});
     });
   });
+}
+
+function wireThreads(root){
+  root.querySelectorAll("details.design").forEach(function(det){
+    var box=det.querySelector("[data-thread]"); if(!box) return;
+    var slug=box.dataset.thread, loaded=false;
+    var listEl=box.querySelector("[data-role=list]");
+    var render=function(cs){
+      listEl.innerHTML=cs.length
+        ? cs.map(function(c){
+            return '<div class="cmt"><span class="who">'+esc(c.author)+
+              '<span class="when">'+ago(c.at)+'</span></span><p>'+esc(c.text)+'</p></div>';
+          }).join("")
+        : '<div class="cmt"><p>No comments yet.</p></div>';
+    };
+    det.addEventListener("toggle",function(){
+      if(!det.open||loaded) return;
+      loaded=true;
+      fetch(API+"/comments?design="+encodeURIComponent(slug))
+        .then(function(r){return r.json();}).then(function(j){render(j.comments||[]);})
+        .catch(function(){});
+    });
+    box.querySelector("[data-role=form]").addEventListener("submit",function(e){
+      e.preventDefault();
+      var msg=box.querySelector("[data-role=msg]");
+      var txt=box.querySelector("[data-role=text]");
+      msg.style.display=""; msg.className="msg"; msg.textContent="Posting...";
+      post("/comment",{design:slug,author:box.querySelector("[data-role=who]").value,text:txt.value})
+        .then(function(){
+          txt.value="";
+          msg.className="msg good"; msg.textContent="Posted.";
+          return fetch(API+"/comments?design="+encodeURIComponent(slug))
+            .then(function(r){return r.json();}).then(function(j){render(j.comments||[]);});
+        })
+        .catch(function(err){ msg.className="msg"; msg.textContent=err.message; });
+    });
+  });
+}
 })();
 </script>`;
+
 
 // Designs shared before the planner moved to /planner/ carry their code in the root
 // URL's hash. Forward those rather than dropping somebody on a marketing page.
@@ -551,7 +672,6 @@ const FORWARD_SHARED = `<script>
 (function(){var m=(location.hash||"").match(/[#&]d=([A-Za-z0-9\\-_]+)/);
 if(m)location.replace("/planner/#d="+m[1]);})();
 </script>`;
-
 
 /* Order is by submission date until a vote service exists; after that the client
    re-sorts on the fetched scores. Baking a stale ranking into a cached page would be
@@ -588,7 +708,7 @@ write("index.html", page({
         <p>This list is built by players, not by me. Make something in the planner, hit
         Share, and send the link. The whole design travels inside the URL, so there is
         nothing to upload and no account to make.</p>
-        <a class="btn primary" href="${esc(COMMUNITY.submitUrl)}">Submit the first design</a>
+        <a class="btn primary" href="/designs/">Submit the first design</a>
       </div>`}
 </div></section>
 
@@ -668,7 +788,7 @@ write("buildables/index.html", page({
 
 // --- designs index + detail pages ---
 write("designs/index.html", page({
-  title: "WARDOGS Base Designs - built and rated by the community",
+  title: "WARDOGS Base Designs, built and rated by players",
   desc: "Player-built WARDOGS FOB designs, ranked by vote. Every one opens straight in the planner, fully editable, with its real Build Supply cost and supply runs worked out.",
   canonical: "/designs/",
   body: `<section><div class="wrap">
@@ -676,17 +796,51 @@ write("designs/index.html", page({
   <h1>Base designs</h1>
   <p class="lede">Builds submitted by players, ranked by whoever found them useful.
   Every one opens in the planner, fully editable.</p>
-  ${withStats.length
-    ? `<div class="grid" style="margin-top:34px">${ranked.map(designCard).join("")}</div>`
-    : `<div class="empty" style="margin-top:34px">
-        <h3>No designs yet</h3>
-        <p>This list is player-built, and nobody has submitted anything yet.
-        Build something in the planner, hit <strong>Share</strong>, and send the link -
-        the whole design travels inside the URL, so there is nothing to upload.</p>
-        <a class="btn primary" href="${esc(COMMUNITY.submitUrl)}">Submit a design</a>
-      </div>`}
-  ${withStats.length ? `<p style="margin-top:34px"><a class="btn" href="${esc(COMMUNITY.submitUrl)}">Submit your build</a></p>` : ""}
-</div></section>${VOTE_SCRIPT}`,
+
+  <div id="designList" style="margin-top:34px">
+    ${withStats.length
+      ? `<div class="grid">${ranked.map(designCard).join("")}</div>`
+      : `<div class="empty">
+          <h3>Nothing here yet</h3>
+          <p>This list is built by players. Make something in the planner, hit Share,
+          and paste the link below. It takes about ten seconds and there is no account
+          to make.</p>
+        </div>`}
+  </div>
+
+  ${VOTE_API ? `
+  <h2 class="display" style="margin-top:60px">Submit a build</h2>
+  <p class="lede" style="font-size:17px">Paste the link from <strong>Share</strong> in the
+  planner. The whole design travels inside it, so there is no file to upload.</p>
+  <form class="form" id="submitForm">
+    <div class="field">
+      <label for="sCode">Share link</label>
+      <input id="sCode" required placeholder="https://www.wardogsbuilder.com/planner/#d=...">
+      <div class="hint">Open your design, hit Share, copy the link, paste it here.</div>
+    </div>
+    <div class="field">
+      <label for="sName">Name it</label>
+      <input id="sName" required maxlength="60" placeholder="Anti-climb perimeter">
+    </div>
+    <div class="field">
+      <label for="sAuthor">Your name</label>
+      <input id="sAuthor" maxlength="32" placeholder="anonymous">
+    </div>
+    <div class="field">
+      <label for="sNote">What is it for</label>
+      <textarea id="sNote" maxlength="300" placeholder="One or two lines on what it is good at."></textarea>
+    </div>
+    <div><button class="btn primary" type="submit">Submit</button></div>
+    <div class="msg" id="submitMsg" style="display:none"></div>
+  </form>
+  <p style="font-size:13px;color:var(--dim);margin-top:20px">
+  Submissions are read before they go up, which usually takes a few hours. Nothing is
+  published automatically.</p>` : `
+  <div class="note" style="margin-top:40px"><strong>Submissions are not open yet.</strong>
+  The service that stores designs and votes is not live. Until it is, send a share link
+  through <a href="https://github.com/Goldpip3/wardogs-base-builder/issues">GitHub</a>
+  and it will be added by hand.</div>`}
+</div></section>${COMMUNITY_SCRIPT}`,
 }));
 
 
@@ -833,6 +987,78 @@ for (const c of COMING_SOON) {
 </div></section>`,
   }));
 }
+
+
+/* ---------- moderation ----------
+   Not linked from anywhere, not in the sitemap, and noindex. It holds no secret itself:
+   the admin token is typed in and kept in this browser only, and the worker is what
+   actually checks it. Losing this page to a stranger gives them nothing. */
+if (VOTE_API) write("moderate/index.html", page({
+  title: "Moderate",
+  desc: "Review submitted designs.",
+  canonical: "/moderate/",
+  noindex: true,
+  body: `<section><div class="wrap" style="max-width:860px">
+  <h1>Moderate</h1>
+  <p class="lede">Submitted designs wait here until you approve them.</p>
+  <div class="field" style="max-width:420px;margin:26px 0">
+    <label for="tok">Admin token</label>
+    <input id="tok" type="password" placeholder="the ADMIN_TOKEN secret">
+    <div class="hint">Kept in this browser only. Never sent anywhere but your own worker.</div>
+  </div>
+  <div><button class="btn" id="load">Load queue</button></div>
+  <div id="out" style="margin-top:30px"></div>
+</div></section>
+<script>
+(function(){
+var API=${JSON.stringify(VOTE_API)};
+var tokEl=document.getElementById("tok"), out=document.getElementById("out");
+try{ tokEl.value=localStorage.getItem("wardogs.admin")||""; }catch(e){}
+var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});};
+
+function call(path,opts){
+  opts=opts||{};
+  opts.headers=Object.assign({"Content-Type":"application/json",
+    "X-Admin-Token":tokEl.value},opts.headers||{});
+  return fetch(API+path,opts).then(function(r){
+    return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||("HTTP "+r.status)); return j; });
+  });
+}
+function render(ds){
+  if(!ds.length){ out.innerHTML='<div class="empty"><h3>Queue is empty</h3><p>Nothing waiting.</p></div>'; return; }
+  out.innerHTML=ds.map(function(d){
+    return '<div class="card" style="border:1px solid var(--line);margin-bottom:1px">'+
+      '<h3>'+esc(d.name)+'</h3>'+
+      '<p>'+esc(d.note||"(no description)")+'</p>'+
+      '<div class="stats"><span>by</span>'+esc(d.author)+'<span>slug</span>'+esc(d.slug)+'</div>'+
+      '<div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">'+
+      '<a class="btn sm" target="_blank" rel="noopener" href="/planner/#d='+esc(d.code)+'">Open it first</a>'+
+      '<button class="btn sm" data-act="approve" data-slug="'+esc(d.slug)+'">Approve</button>'+
+      '<button class="btn sm" data-act="reject" data-slug="'+esc(d.slug)+'">Reject</button>'+
+      '<button class="btn sm" data-act="delete" data-slug="'+esc(d.slug)+'">Delete</button>'+
+      '</div></div>';
+  }).join("");
+}
+function load(){
+  out.textContent="Loading...";
+  try{ localStorage.setItem("wardogs.admin",tokEl.value); }catch(e){}
+  call("/admin/pending").then(function(j){ render(j.designs||[]); })
+    .catch(function(e){ out.innerHTML='<div class="msg">'+esc(e.message)+'</div>'; });
+}
+document.getElementById("load").addEventListener("click",load);
+out.addEventListener("click",function(ev){
+  var b=ev.target.closest("button[data-act]"); if(!b) return;
+  if(b.dataset.act==="delete" && !confirm("Delete this permanently?")) return;
+  b.disabled=true;
+  call("/admin/design",{method:"POST",
+    body:JSON.stringify({slug:b.dataset.slug,action:b.dataset.act})})
+    .then(load).catch(function(e){ b.disabled=false; alert(e.message); });
+});
+if(tokEl.value) load();
+})();
+</script>`,
+}));
 
 const urls = ["/", "/planner/", "/designs/", "/buildables/", "/armory/", "/loadouts/", "/vehicles/", "/guides/", "/privacy/"]
   .concat(withStats.map(d => `/designs/${d.slug}/`))

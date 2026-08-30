@@ -1080,11 +1080,16 @@ function drawRect(r, def, opt) {
     ctx.translate(sx, sy);
     // A ten-block run does not need its name ten times. Inside a run only the ends and
     // whatever you are pointing at speak up.
+    // A piece with a neighbour on both sides is in the middle of a run, and a run says
+    // its name once at each end. Selecting the run must not undo that: the selection is
+    // already drawn as an outline round the whole thing, so repeating the name on all
+    // thirteen blocks tells you nothing you cannot already see. Only hovering one
+    // specific block makes it speak up.
     const midRun = (opt.seams & 3) === 3 || (opt.seams & 12) === 12;
-    const showLabel = opt.selected || opt.hovered || def.isFob ||
-      (Math.min(r.w, r.h) >= 2 && !midRun);
+    const showLabel = opt.hovered || def.isFob ||
+      (!midRun && (opt.selected || Math.min(r.w, r.h) >= 2));
     ctx.font = "600 " + Math.max(9*uiScale, Math.min(11*uiScale, z*0.4)) + "px sans-serif";
-    ctx.textAlign = "center"; ctx.fillStyle = "#d8d6c4dd";
+    ctx.textAlign = "center"; ctx.fillStyle = "#fff7eadd";
     const short = def.isFob ? "FOB" : def.name.replace(/ \(.*\)/, "").split(" ").slice(0,2).join(" ");
     if (showLabel) ctx.fillText(short, 0, Math.max(r.w, r.h) * z / 2 + 12 * uiScale);
     // badges above the piece: which storey it's on, and how many blocks tall it is
@@ -1092,8 +1097,8 @@ function drawRect(r, def, opt) {
     if (opt.level > 0) badges.push("L" + (opt.level + 1));
     if ((def.height || 1) > 1) badges.push("▲" + def.height);
     // Same rule as the label: a run states its height at the ends, not on every block.
-    if (badges.length && (!midRun || opt.selected || opt.hovered)) {
-      ctx.fillStyle = "#d9a521"; ctx.font = `700 ${10*uiScale}px sans-serif`;
+    if (badges.length && (!midRun || opt.hovered)) {
+      ctx.fillStyle = "#ff5b47"; ctx.font = `700 ${10*uiScale}px sans-serif`;
       ctx.fillText(badges.join(" "), 0, -Math.max(r.w, r.h) * z / 2 - 4 * uiScale);
     }
     if (opt.note) {
