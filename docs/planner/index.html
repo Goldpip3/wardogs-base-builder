@@ -1092,7 +1092,7 @@ const LS_CATALOG = "wardogs.catalog";
    completely offline: with this empty, none of the cloud code below is ever reachable
    and the app makes no network call of any kind. */
 const CLOUD_API = "https://wardogs-votes.wardogsbuilder.workers.dev";
-const BUILD_STAMP = "20260831-011000";
+const BUILD_STAMP = "20260831-011603";
 const LS_TOKEN = "wardogs.token";
 
 const LS_DESIGNS = "wardogs.designs";
@@ -1336,6 +1336,23 @@ function alignSelection() {
 }
 function snapVal(v) { return snap ? Math.round(v * 2) / 2 : Math.round(v * 100) / 100; }
 function rotStep() { return snap ? 90 : 15; }
+
+/* Snap follows the piece, not the world.
+   Quantising a turned piece to the world half-cell grid is what broke diagonal walls. A 1x1
+   block turned forty five degrees has to step 0.707 along each axis to sit edge to edge, and
+   0.707 is not on a half-cell grid, so every block landed about an eighth of a cell short or
+   long and the wall came out ragged. Snapping in the piece's own frame puts every piece of
+   one rotation on one lattice, so they meet. Square-on pieces are unaffected: at 0, 90, 180
+   and 270 the rotated lattice is the world lattice. */
+function snapPoint(x, y, rotDeg) {
+  if (!snap) return { x: Math.round(x * 100) / 100, y: Math.round(y * 100) / 100 };
+  const off = (((rotDeg || 0) % 90) + 90) % 90;
+  if (!off) return { x: snapVal(x), y: snapVal(y) };
+  const a = (off * Math.PI) / 180, c = Math.cos(a), s = Math.sin(a);
+  const u = Math.round((x * c + y * s) * 2) / 2;
+  const v = Math.round((y * c - x * s) * 2) / 2;
+  return { x: u * c - v * s, y: u * s + v * c };
+}
 
 /* Drag-to-stamp: lay a continuous run of one buildable (walls, wire, hedgehogs…).
    Spacing is the piece's own extent along the drag axis, so segments sit edge to edge. */
@@ -2763,8 +2780,8 @@ canvas.addEventListener("mousedown", e => {
   if (e.button === 2) { if (placing) stopPlacing(); return; }
   if (e.button !== 0) return;
   if (placing) {                                   // click = one piece, drag = a whole run
-    const sx = snapVal(wx), sy = snapVal(wy);
-    dragging = { mode: "stamp", x0: sx, y0: sy, x1: sx, y1: sy };
+    const s0 = snapPoint(wx, wy, ghost.rot);
+    dragging = { mode: "stamp", x0: s0.x, y0: s0.y, x1: s0.x, y1: s0.y };
     return;
   }
 
@@ -2804,8 +2821,9 @@ canvas.addEventListener("mousemove", e => {
   lastPointer.x = wx; lastPointer.y = wy;          // paste target
   document.getElementById("sbCoords").textContent = `${wx.toFixed(1)}, ${wy.toFixed(1)}`;
   if (placing) {
-    if (dragging && dragging.mode === "stamp") { dragging.x1 = snapVal(wx); dragging.y1 = snapVal(wy); }
-    else { ghost.cx = snapVal(wx); ghost.cy = snapVal(wy); updateHint(); }
+    const sp = snapPoint(wx, wy, ghost.rot);
+    if (dragging && dragging.mode === "stamp") { dragging.x1 = sp.x; dragging.y1 = sp.y; }
+    else { ghost.cx = sp.x; ghost.cy = sp.y; updateHint(); }
     draw(); return;
   }
   if (dragging) {
@@ -2817,7 +2835,10 @@ canvas.addEventListener("mousemove", e => {
       const dx = wx - dragging.wx, dy = wy - dragging.wy;
       if (!dragging.moved && Math.hypot(dx, dy) * view.zoom > 4) { dragging.moved = true; pushUndo(); }
       if (dragging.moved) {
-        for (const o of dragging.orig) { o.p.x = snapVal(o.x + dx); o.p.y = snapVal(o.y + dy); }
+        for (const o of dragging.orig) {
+          const s = snapPoint(o.x + dx, o.y + dy, o.p.rot);
+          o.p.x = s.x; o.p.y = s.y;
+        }
         invalidateIssues();
         updateRightPanel(); draw();
       }
@@ -3141,9 +3162,9 @@ function pasteClipboard() {
   pushUndo();
   const ids = [];
   for (const c of clipboard) {
+    const ps = snapPoint(lastPointer.x + c.dx, lastPointer.y + c.dy, c.rot);
     const np = { id: design.nextId++, type: c.type,
-                 x: snapVal(lastPointer.x + c.dx), y: snapVal(lastPointer.y + c.dy),
-                 rot: c.rot, level: c.level };
+                 x: ps.x, y: ps.y, rot: c.rot, level: c.level };
     if (c.note) np.note = c.note;
     if (c.zone) np.zone = c.zone;
     design.pieces.push(np); ids.push(np.id);

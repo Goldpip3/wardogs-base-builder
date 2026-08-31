@@ -121,5 +121,64 @@ for (const [label, rot, dir] of [
     "a click with no drag is still exactly one piece where you clicked");
 }
 
+/* --- and the snap that quantises where a click lands ---
+ *
+ * The run spacing above was right and diagonal walls still came out ragged, because every
+ * click was rounded to the world half-cell grid before the run ever saw it. A 1x1 turned
+ * forty five degrees needs 0.707 steps to meet its neighbour and 0.707 is not on that grid,
+ * so each block sat about an eighth of a cell out. That is the gap that was reported.
+ */
+const sbSnap = { console, Math, snap: true };
+vm.createContext(sbSnap);
+vm.runInContext(lift("snapVal") + "\n" + lift("snapPoint"), sbSnap);
+const snapAt = (x, y, rot) =>
+  vm.runInContext("snapPoint(" + x + "," + y + "," + rot + ")", sbSnap);
+
+/* square-on placement must be untouched: the rotated lattice is the world lattice there */
+{
+  let worst = 0;
+  for (const rot of [0, 90, 180, 270])
+    for (const v of [0, 0.2, 0.49, 0.51, 1.3, -2.7, 7.9]) {
+      const s = snapAt(v, v + 0.3, rot);
+      worst = Math.max(worst,
+        Math.abs(s.x - Math.round(v * 2) / 2),
+        Math.abs(s.y - Math.round((v + 0.3) * 2) / 2));
+    }
+  check(worst < 1e-9, "a square-on piece snaps exactly where it always did", "off by " + worst);
+}
+
+/* a turned piece lands on a lattice its own neighbours share */
+{
+  const step = Math.SQRT1_2;                       // 1x1 at 45 degrees, centre to centre
+  const jitter = [0, 0.14, -0.13, 0.09, -0.16, 0.11, -0.07, 0.15];
+  let worstNew = 0, worstOld = 0;
+  for (let i = 0; i < jitter.length; i++) {
+    const wx = i * step + jitter[i], wy = i * step - jitter[i];
+    const s = snapAt(wx, wy, 45);
+    worstNew = Math.max(worstNew, Math.hypot(s.x - i * step, s.y - i * step));
+    worstOld = Math.max(worstOld,
+      Math.hypot(Math.round(wx * 2) / 2 - i * step, Math.round(wy * 2) / 2 - i * step));
+  }
+  check(worstNew < 1e-9,
+    "a hand-placed 45 degree block lands exactly on the line its neighbours are on",
+    "off by " + worstNew.toFixed(4));
+  check(worstOld > 0.1,
+    "and this check would have caught the bug: the world grid put it " +
+    worstOld.toFixed(2) + " of a cell out");
+}
+
+/* the whole reported wall: eight clicks down a diagonal, no gap anywhere */
+{
+  const step = Math.SQRT1_2, pts = [];
+  for (let i = 0; i < 8; i++)
+    pts.push(snapAt(i * step + (i % 3 - 1) * 0.12, i * step + (i % 2 ? 0.1 : -0.1), 45));
+  let worst = 0;
+  for (let i = 1; i < pts.length; i++)
+    worst = Math.max(worst,
+      Math.abs(Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y) - 1));
+  check(worst < 1e-9, "eight blocks clicked down a diagonal make one wall with no gaps",
+    "worst gap " + worst.toFixed(4));
+}
+
 console.log("\n" + pass + " passed, " + fail + " failed");
 process.exit(fail ? 1 : 0);

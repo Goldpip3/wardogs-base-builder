@@ -61,7 +61,9 @@ check(ysAfter === "6,0", `vertical flip mirrors positions (got ${ysAfter})`);
 vm.runInContext(`
   var clipboard = null, lastPointer = {x:0,y:0}, savedFlashTimer=null;
   var document = { getElementById: () => null };
-  function snapVal(v){ return Math.round(v*2)/2; }
+  var snap = true;
+  ${lift("snapVal")}
+  ${lift("snapPoint")}
   function flashStatus(){}
   ${lift("copySelection")}
   ${lift("pasteClipboard")}
