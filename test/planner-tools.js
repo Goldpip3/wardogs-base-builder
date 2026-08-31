@@ -279,5 +279,36 @@ check(/function drawNow\(\)\s*\{\s*syncEmptyState\(\);/.test(src),
 check(!/emptyState"\)\.style\.display/.test(src.replace(lift("syncEmptyState"), "")),
   "and nothing else sets it behind the draw's back");
 
+// ---------- what the design arrives before ----------
+/* Two bugs that only showed up once a third thing was read off the design.
+ *
+ * A chosen chip in a .seg strip was near-black ink on a transparent ground. `.seg button`
+ * sets a transparent background and is written after the shared `button.active` rule at the
+ * same specificity, so it won, and the filled state kept the filled state's ink without the
+ * fill. The storey strip had been drawing "All" as an empty box for as long as it has
+ * existed and nobody read it as a bug, because a blank chip looks like a gap.
+ */
+{
+  // the stylesheet, not the script: this test file reads only the script into src
+  const css = html.slice(0, html.indexOf("</style>") + 8);
+  check(css.indexOf(".seg button.active") > css.indexOf(".seg button {"),
+    "the filled state for a strip chip is restated after the rule that was beating it");
+  check(/\.seg button\.active\s*\{[^}]*background:/.test(css),
+    "and it sets its own background, so a chosen chip is filled rather than blank");
+}
+
+/* Coming back to a saved base drew the base and left every figure beside it at zero. The
+   restore is reached from a promise, so it lands after startup has already worked
+   everything out from the empty design nobody was looking at.
+*/
+{
+  const fn = lift("loadCurrent");
+  check(/afterChange\(/.test(fn),
+    "restoring the last design recomputes what is read off it, rather than leaving the " +
+    "panel showing an empty base next to a full one");
+  check(/afterChange\(false\)/.test(fn),
+    "and does it without saving, because nothing changed by being reopened");
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

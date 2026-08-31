@@ -85,6 +85,15 @@
     border-left: 1px solid var(--border-soft); font-size: 11.5px;
   }
   .seg button:first-child { border-left: 0; }
+  /* .seg button sets a transparent background and is written after the shared
+     button.active rule at the same specificity, so it won every time: the chosen chip kept
+     the filled state's near-black ink and lost the fill behind it, and read as an empty box.
+     That is why the storey strip has shown a blank where "All" should be. Restated here at a
+     specificity that wins, so the filled state is filled. */
+  .seg button.active {
+    background: var(--accent); color: var(--accent-ink);
+    border-color: var(--accent); font-weight: 600;
+  }
   .seg button .n {
     font-family: var(--num); font-size: 10px; color: var(--dim);
     font-variant-numeric: tabular-nums;
@@ -2942,6 +2951,12 @@ function loadCurrent() {
       design = JSON.parse(s);
       document.getElementById("designName").value = design.name || "New FOB";
       currentSavedName = design.name || null;
+      /* Everything read off the design is worked out at startup, and this runs after that:
+         it is reached from a promise, so the cost, the storey strip and the crew all had
+         already been built from the empty design nobody was looking at. Coming back to a
+         base showed the base on the plan with a build cost of zero beside it. Recompute,
+         without saving, since nothing has changed. */
+      afterChange(false);
     }
   } catch(e) {}
 }

@@ -38,6 +38,41 @@ Reload came out of the panel. Nothing about it changes with where the gun or the
 so it was reference material sitting in a readout, and it is still on the platform card
 below where the rest of the reference lives.
 
+### How many players it takes to hold the base
+
+The one figure on a plan nobody can measure. Everything else here is read off the game or
+worked out from it; this is the person who built the base saying who it is for. Three
+buckets, 1 to 2, 3 to 5, 6 to 10, in `data/buildables.json` under `crewSizes` like every
+other figure, so the planner and the community list read one list rather than each spelling
+it out. The planner asks in the panel, under **Who holds it**, and refuses to submit a design
+without an answer, because the list shows it against every entry and a blank there is worse
+than the question.
+
+**It rides inside the share code rather than beside it in the submission record.** One copy
+of the answer, and it survives a base being passed on as a link, saved, exported and opened
+somewhere else. The head of both format versions is JSON, so the key is simply absent from
+every code written before this and old readers ignore a new one; the alphabet does not
+change, which is the part that would have made it a worker deploy. A value that is not one
+of the three is dropped rather than kept, so a hand-edited code cannot put text on a page
+that has no label for it. Both encoders changed together, as that card demands, and
+`test/crew.js` checks the round trip in both formats, that an old link still opens with no
+crew on it, and that the refusal to submit comes before the call rather than after it.
+
+### Two bugs it surfaced on the way
+
+**A chosen chip in a strip was invisible.** `.seg button` sets a transparent background and
+is written after the shared `button.active` rule at the same specificity, so it won: the
+filled state kept the filled state's near-black ink and lost the fill behind it. The storey
+strip had been drawing "All" as an empty box for as long as it has existed, and nobody read
+it as a bug because a blank chip looks like a gap. Restated at a specificity that wins.
+
+**Reopening a saved base showed the base with a build cost of zero.** `loadCurrent` is
+reached from a promise, so it lands after startup has already worked every figure out from
+the empty design nobody was looking at: the plan drew, and the cost, the storey strip and the
+crew beside it all described nothing. It recomputes now, without saving, since nothing
+changed by being reopened. Same shape as the "Plan your FOB" bug: something read off the
+design, refreshed only on the path where the design is edited.
+
 ### The designs page stops spending space on nothing
 
 Three things on one page, all of them the same mistake in different clothes: a layout built
