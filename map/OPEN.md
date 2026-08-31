@@ -3,36 +3,31 @@
 A catalog, like everything else in this map. It points; the detail lives with the thing it
 is about. If this file and a card disagree, the card is right.
 
-Last swept 2026-08-30, end of the session that shipped short share links, the account
-control in the planner toolbar and one-button submission.
+Last swept 2026-08-31, end of the session that fixed diagonal runs, group rotation, the
+toolbar and Ctrl+V.
 
-## The community loop works. It has never been finished by hand.
+## The community loop is open, and one deploy from having anything in it
 
-Submitting from the planner, saving online and signing in all work end to end, verified
-against the live worker. Three real submissions are sitting in KV right now with
-`status: pending`, one of them a genuine base:
+Nothing queues. A submission publishes the moment it is made; three reports hide it, and
+[/moderate/](https://www.wardogsbuilder.com/moderate/) is a complaints desk rather than a
+queue. Ranking is score over age, tuned in `test/ranking.js` against the two complaints that
+pull against each other.
 
-```
-design:new-fob-qv11    pending    AVGVSTVS    391 char v2 code
-design:new-fob-bbrz    pending
-design:new-fob-2-7he8  pending
-```
+**`/designs/` still reads empty, and one deploy fixes it.** Three real submissions were
+left stranded in the old `pending` state when the queue was removed, and removing the queue
+also removed the only page that could have let them out. `/designs` now lists what is not
+hidden rather than what was once approved, which frees them and cannot strand anything
+again. That change is committed and **not deployed**: the worker ships only with wrangler.
 
-**Nobody has ever approved one.** The next step is a person at [/moderate/](https://www.wardogsbuilder.com/moderate/)
-with the `ADMIN_TOKEN`, approving or deleting those three. Approval is enough on its own:
-`/designs/` fetches the list from the worker at runtime, so no rebuild and no push. Until
-that happens the voting half of this site has never actually run with real data, and two of
-those three are probably test submissions to delete rather than keep.
+    wrangler deploy --config "<repo>workerwrangler.toml"
 
-**One decision is waiting on the owner.** Their own submissions queue up behind their own
-approval, which is right for strangers and pointless for the one person who runs the site.
-Making a submission from the owner's Discord id publish immediately was offered and not yet
-answered.
+Until that runs, the voting half of the site has never held real data. Two of those three
+are probably test submissions to delete once they are visible.
 
 A warning that cost an evening, now on the worker card too: `wrangler kv` reads a **local
 emulated store** unless you pass `--remote`. Without it the namespace looks empty. Those
-three pending designs were reported as "nothing ever reached storage" on the strength of a
-listing that was reading nothing at all.
+three designs were reported as "nothing ever reached storage" on the strength of a listing
+that was reading nothing at all.
 
 ## Start here if you are picking artillery back up
 

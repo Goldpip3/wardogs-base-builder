@@ -28,11 +28,10 @@ node test/run.js               # the suites on their own, about half a second
 
 `build.ps1` fails on any broken check. That is intended: nothing ships past it.
 
-Two deploys, and they are separate. `git push` publishes the site; the worker ships only
-with wrangler and the owner runs it. Command, and the cmd.exe gotcha that has bitten a
-handover once: [map/processes/deploy.md](map/processes/deploy.md).
+Two deploys, separate: `git push` publishes the site, the worker ships only with wrangler
+and the owner runs it. Command and the cmd.exe trap: [deploy.md](map/processes/deploy.md).
 
-## Six things that catch people
+## Seven things that catch people
 
 1. **`docs/` is generated.** Every file under it is overwritten. Edit the generator.
 2. **The planner ships twice** from one source, and the downloadable copy must have no
@@ -42,10 +41,12 @@ handover once: [map/processes/deploy.md](map/processes/deploy.md).
 5. **`wrangler kv` reads a local emulated store unless you pass `--remote`.** Without it the
    real namespace looks empty and you will diagnose a bug that is not there. That cost a
    whole diagnosis once: submissions were landing correctly the entire time.
-
 6. **The share format lives in four places**, not two, and one of them is the worker.
    [share-code.md](map/objects/planner/share-code.md) has the list; miss one and saves fail
    silently, which they did for a day.
+7. **A push takes ten minutes to reach a browser.** GitHub Pages sends the planner with
+   `max-age=600`, so a fix can look unfixed to whoever asked for it. Check the live
+   `build.txt` against `docs/build.txt` before believing a bug report on a fresh deploy.
 
 ## Working style
 
