@@ -38,6 +38,121 @@ module.exports = ctx => {
   const withSlots = A.items.map(function (it) {
     return it.cat === "attachments" ? Object.assign({}, it, { slot: slotOf(it.name) }) : it;
   });
+  const byCat = function (id) { return withSlots.filter(function (i) { return i.cat === id; }); };
+
+  /* ---------- what is actually known about one item ----------
+     The catalogue carries a name, a price and an icon. Everything else worth saying is in
+     data/ballistics.json under a different key, so this is the join, done once here rather
+     than in the three places that want it.
+
+     Every join is by exact name and every one of them lands: 28 figured weapons, the 6 that
+     are named as unfigurable, 8 armour pieces and 30 ammunition items, checked in
+     tools/check-build.js rather than assumed. That is 72 of 331. The other 259 get a price
+     and their category and are told plainly that nothing else is published, because the
+     alternative is a panel of empty rows that reads like missing data rather than like
+     absent data. A vehicle has no published figures at all and says so. */
+  const wStat = {}, wUnfigured = {}, aStat = {}, ammoStat = {};
+  BALLISTICS.weapons.forEach(function (w) { wStat[w.name] = w; });
+  (BALLISTICS.unfiguredWeapons || []).forEach(function (w) { wUnfigured[w.name] = w; });
+  BALLISTICS.armour.forEach(function (a) {
+    (a.vendor || []).forEach(function (n) { aStat[n] = a; });
+  });
+  BALLISTICS.calibres.forEach(function (c) {
+    Object.keys(c.vendor || {}).forEach(function (roundId) {
+      const round = BALLISTICS.rounds.find(function (r) { return r.id === roundId; });
+      ammoStat[c.vendor[roundId]] = { cal: c, round: round };
+    });
+  });
+
+  const ARMOUR_TIERS = ["Level 1", "Level 2", "Level 3", "Level 4"];
+  const isAir = function (n) { return /AH-6|MH-6|UH-1|Havoc/.test(n); };
+
+  /* The two weapon lists spell a calibre differently and only one of them is readable.
+     A figured weapon stores the id, so an M4 carries "556" and a Kar98 carries "762x54";
+     an unfigured one stores the label already, "7.62x51mm". Printing the id straight put
+     "556" on the panel where the rest of the site says "5.56mm". Ids resolve, labels pass
+     through, and an unfigured weapon with no calibre at all keeps the row off the panel
+     rather than showing a blank one. */
+  const calName = function (c) {
+    if (!c) return "";
+    const hit = BALLISTICS.calibres.find(function (x) { return x.id === c; });
+    return hit ? hit.name : c;
+  };
+
+  /* One row is a label and a value. The value is already formatted here so the client
+     script only ever prints strings and cannot round a number a second time. */
+  const detailOf = function (it) {
+    const rows = [], notes = [];
+    const w = wStat[it.name], u = wUnfigured[it.name];
+    const a = aStat[it.name], am = ammoStat[it.name];
+
+    if (w) {
+      rows.push(["Class", w.class], ["Calibre", calName(w.calibre)]);
+      if (w.rpm) rows.push(["Rate of fire", w.rpm + " rpm"]);
+      if (w.torso) rows.push(["Torso damage", w.torso + " per shot"]);
+      if (w.range) rows.push(["Effective range", w.range[0] + " to " + w.range[1] + " m"]);
+      notes.push({ kind: "link", text: "Full damage by armour tier and hit zone", href: "/ballistics/" });
+    } else if (u) {
+      rows.push(["Kind", u.kind]);
+      if (u.calibre) rows.push(["Calibre", calName(u.calibre)]);
+      notes.push({ kind: "gap", text: u.why });
+    }
+
+    if (a) {
+      rows.push(["Protects", a.covers.join(", ")]);
+      rows.push(["Tiers", ARMOUR_TIERS.length + ", Level 1 to Level 4"]);
+      if (a.note) notes.push({ kind: "note", text: a.note });
+    }
+
+    if (am) {
+      const c = am.cal, r = am.round;
+      if (c.damage) rows.push(["Base damage", String(c.damage)]);
+      if (c.pellets) rows.push(["Pellets", c.pellets + " at " + c.perPellet + " each"]);
+      if (c.velocity) rows.push(["Muzzle velocity", c.velocity[0] + " to " + c.velocity[1] + " m/s"]);
+      if (c.mass) rows.push(["Mass", c.mass + " g"]);
+      if (r && r.blocks) {
+        /* The stored figure is the percentage armour takes, so what gets through is the
+           complement. Printing the stored number straight would say a hollow point is at
+           its best against a level 4 vest, which is the exact opposite of true. */
+        rows.push(["Gets through L1 armour", (100 - r.blocks[0]).toFixed(1) + "%"]);
+        rows.push(["Gets through L4 armour", (100 - r.blocks[3]).toFixed(1) + "%"]);
+      }
+      if (r && r.note) notes.push({ kind: "note", text: r.note });
+      notes.push({ kind: "link", text: "Compare every load in the damage calculator", href: "/ballistics/" });
+    }
+
+    if (it.cat === "vehicles") {
+      rows.push(["Type", isAir(it.name) ? "Air" : "Ground"]);
+      notes.push({ kind: "gap", ref: "vehicle" });
+    }
+
+    /* The slot is the one figure on this panel that was not transcribed from anywhere. The
+       source carries no compatibility field, so slotOf reads it off the name, and a panel
+       that printed it in the same type as a measured muzzle velocity would be passing a
+       reading off as a record. It says which it is. */
+    if (it.cat === "attachments" && it.slot && it.slot !== "other") {
+      rows.push(["Slot", it.slot]);
+      notes.push({ kind: "gap", ref: "slot" });
+    }
+
+    if (!rows.length) notes.push({ kind: "gap", ref: "none" });
+    return { rows: rows, notes: notes };
+  };
+
+  /* Two of these notes are true of whole categories rather than of one item, so they are
+     stored once and referenced. Inlining them per item was 259 copies of the same sentence
+     and 40 KB of it, which is the thing that had just been taken off the buildables page. */
+  const SHARED_NOTES = {
+    none: "The vendor database gives this one a price and nothing else. No stats are " +
+      "published for it, so none are shown.",
+    vehicle: "No handling, armour or fuel figures are published for vehicles, so none are " +
+      "given here. Fuel and repair are not in the public database either: a fuel can is " +
+      money(150) + " and a fuel supply pallet is " + money(400) + ", which is as close as " +
+      "anyone can honestly get until launch.",
+    slot: "The slot is read off the name rather than taken from the database, which " +
+      "publishes no compatibility field. It is right for everything named for what it is " +
+      "and is a guess for anything that is not.",
+  };
 
   /* What an attachment fits, where the source says so. It does not carry a compatibility
      field, so the only honest signal is the label, and the label is often explicit: 36 of
@@ -135,19 +250,26 @@ module.exports = ctx => {
   const catName = function (id) {
     return (A.categories.find(function (c) { return c.id === id; }) || {}).name || id;
   };
-  const itemAttrs = function (it) {
-    return ' data-item="1" data-cat="' + it.cat + '" data-name="' + esc(it.name.toLowerCase()) +
+  /* Every item is indexed, so the dialog is opened by position rather than by name. Names
+     carry quotes and ampersands and would have to survive an attribute and a JSON string on
+     the way to the lookup; an integer does not. */
+  const itemAttrs = function (it, i) {
+    return ' data-item="' + i + '" data-cat="' + it.cat + '" data-name="' + esc(it.name.toLowerCase()) +
       '" data-price="' + (it.price === null ? -1 : it.price) + '"';
   };
-  const rows = withSlots.map(function (it) {
-    return "<tr" + itemAttrs(it) + ">" +
+  /* A card and a row are both the control that opens the detail, so both have to be
+     reachable from the keyboard and announce that they do something. A div with a click
+     handler is neither. */
+  const openAttrs = ' role="button" tabindex="0"';
+  const rows = withSlots.map(function (it, i) {
+    return "<tr" + itemAttrs(it, i) + openAttrs + ">" +
       "<td><b>" + esc(it.name) + "</b></td>" +
       "<td>" + esc(catName(it.cat)) +
         (it.slot && it.slot !== "other" ? ' <span class="fine">' + it.slot + "</span>" : "") + "</td>" +
       '<td class="n">' + priceCell(it) + "</td></tr>";
   }).join("");
-  const cards = withSlots.map(function (it) {
-    return '<div class="acard"' + itemAttrs(it) + ">" +
+  const cards = withSlots.map(function (it, i) {
+    return '<div class="acard"' + itemAttrs(it, i) + openAttrs + ">" +
       '<span class="acard-art">' +
       (it.icon ? '<img src="/game-icons/' + it.icon + '.png" alt="" width="64" height="64" loading="lazy">' : "") +
       "</span>" +
@@ -156,6 +278,22 @@ module.exports = ctx => {
         (it.slot && it.slot !== "other" ? " &middot; " + it.slot : "") + "</span></span>" +
       '<span class="acard-price">' + priceCell(it) + "</span></div>";
   }).join("");
+
+  /* The payload the dialog reads, parallel to the two lists above and in the same order.
+     Only what the markup does not already carry: the art at full size, the price as it
+     should read, and the joined stats. */
+  const DETAIL = withSlots.map(function (it) {
+    const d = detailOf(it);
+    return {
+      n: it.name,
+      c: catName(it.cat),
+      p: it.price === null ? null : it.price,
+      per: it.per > 1 ? it.per : 0,
+      i: it.icon || "",
+      r: d.rows,
+      o: d.notes,
+    };
+  });
 
   write("armory/index.html", page({
     title: "WARDOGS Armory: every item and what it costs",
@@ -210,9 +348,43 @@ module.exports = ctx => {
           '<p class="cat-empty" id="catEmpty" hidden>Nothing matches that.</p>' +
         "</div>" +
       "</div>" +
+
+      /* A native dialog, so Escape, the backdrop and the focus trap are the browser's job
+         rather than three more things to get wrong. It is empty in the markup and filled on
+         open: 331 detail panels in the HTML would be most of the page, and only one is ever
+         on screen. */
+      '<dialog id="detail" class="idlg" aria-labelledby="dlgName">' +
+        '<button type="button" class="idlg-x" data-dlg-close aria-label="Close">Close</button>' +
+        '<div class="idlg-head">' +
+          '<span class="idlg-art"><img id="dlgArt" alt="" hidden></span>' +
+          '<div><span class="idlg-cat" id="dlgCat"></span>' +
+          '<h2 id="dlgName"></h2>' +
+          '<p class="idlg-price" id="dlgPrice"></p></div>' +
+        "</div>" +
+        '<dl class="idlg-stats" id="dlgStats"></dl>' +
+        '<div class="idlg-notes" id="dlgNotes"></div>' +
+      "</dialog>" +
+
       '<p style="margin-top:34px"><a class="btn primary" href="/ballistics/">Damage calculator</a> ' +
       '<a class="btn" href="/loadouts/">Price up a loadout</a></p>' +
       adSlot("inArticle") +
+
+      /* The vehicles page used to say these three things and nothing else that was not
+         already a row in the table above, so it was folded in here rather than kept alive
+         as a page that repeated the catalogue. */
+      '<h2 style="margin-top:44px">Vehicles, and what is not known about them</h2>' +
+      '<p>Filter the rail to <strong>Vehicles</strong> for all ' + byCat("vehicles").length +
+      ", ground and air together, or to <strong>Mounted</strong> for the " +
+      byCat("mounted").length + " weapons that sit on top of them and on your emplacements." +
+      " Most mounted weapons have no vendor price of their own because they arrive attached" +
+      " to something. Open any of them for the ground or air split.</p>" +
+      "<p>A Havoc is " + Math.round(
+        (A.items.find(function (i) { return i.name === "Havoc"; }) || { price: 18000 }).price /
+        (A.items.find(function (i) { return i.name === "Bobcat"; }) || { price: 500 }).price) +
+      " Bobcats, which is the sort of thing worth knowing before you drive it into a Gepard.</p>" +
+      '<p class="fine">Fuel and repair costs are not in the public database yet. A fuel can' +
+      " is " + money(150) + " and a fuel supply pallet is " + money(400) +
+      ", which is as close as anyone can honestly get until launch.</p>" +
       "</div></section>" +
       '<script>(function(){' +
       'var grid=document.getElementById("catGrid"),tblBox=document.getElementById("catTable");' +
@@ -270,6 +442,87 @@ module.exports = ctx => {
       '  apply();return;}});' +
       'document.getElementById("q").addEventListener("input",function(e){' +
       ' q=e.target.value.toLowerCase().trim();apply();});' +
+
+      /* ---------- the detail dialog ----------
+         Everything below builds DOM nodes rather than assigning innerHTML. Item names carry
+         quotes and ampersands, the notes carry apostrophes, and this string crosses two
+         layers of quoting on its way into the page; textContent cannot be broken by any of
+         that, and an escape has been eaten on this route twice before. */
+      'var D=' + JSON.stringify(DETAIL).replace(/</g, "\\u003c") + ';' +
+      'var GAP=' + JSON.stringify(SHARED_NOTES).replace(/</g, "\\u003c") + ';' +
+      'var dlg=document.getElementById("detail"),opener=null;' +
+      'function gid(id){return document.getElementById(id);}' +
+      'function cash(n){return "$"+n.toLocaleString("en-US");}' +
+      'function priceText(d){' +
+      ' if(d.p===null)return "Price not confirmed";' +
+      ' if(d.p===0)return "Free";' +
+      /* A pack price is the number on the shelf and the number you compare with is the one
+         per round, so both are given. It divides exactly on all 46 packs in this catalogue,
+         and is rounded to the cent rather than trusted to be whole in case that changes. */
+      ' if(d.per>1)return cash(d.p)+" for a pack of "+d.per+"  ("+cash(+(d.p/d.per).toFixed(2))+" each)";' +
+      ' return cash(d.p);}' +
+      'function fill(i){' +
+      ' var d=D[i];if(!d)return false;' +
+      ' gid("dlgCat").textContent=d.c;' +
+      ' gid("dlgName").textContent=d.n;' +
+      ' gid("dlgPrice").textContent=priceText(d);' +
+      ' var art=gid("dlgArt");' +
+      ' if(d.i){art.src="/game-icons/"+d.i+".png";art.alt="";art.hidden=false;}' +
+      ' else{art.removeAttribute("src");art.hidden=true;}' +
+      ' var dl=gid("dlgStats");dl.textContent="";' +
+      ' d.r.forEach(function(row){' +
+      '  var dt=document.createElement("dt");dt.textContent=row[0];' +
+      '  var dd=document.createElement("dd");dd.textContent=row[1];' +
+      '  dl.appendChild(dt);dl.appendChild(dd);});' +
+      ' dl.hidden=!d.r.length;' +
+      ' var nb=gid("dlgNotes");nb.textContent="";' +
+      ' d.o.forEach(function(n){' +
+      '  var p=document.createElement("p");' +
+      '  if(n.kind==="link"){var a=document.createElement("a");a.href=n.href;' +
+      '   a.textContent=n.text;p.className="idlg-more";p.appendChild(a);}' +
+      '  else{p.className=n.kind==="gap"?"idlg-gap":"idlg-note";' +
+      '   p.textContent=n.ref?GAP[n.ref]:n.text;}' +
+      '  nb.appendChild(p);});' +
+      ' return true;}' +
+      /* Closing is done here rather than left to the element, because one half of what
+         <dialog> is supposed to give you for free was measured not working.
+
+         What was actually observed, in the browser this was built against: showModal opens
+         the panel and moves focus into it, and close() closes it, but the close event never
+         fires. That was checked on its own, calling showModal and close from a script with
+         a listener attached and nothing else involved: zero events. So the focus restore
+         cannot hang off that event alone, and shut() does it directly.
+
+         Escape was not testable in that browser at all, because it delivers no key events
+         to the page, so nothing is claimed about it either way. It gets an explicit handler
+         for the same reason: an engine where it works loses nothing, since closing twice is
+         a no-op, and an engine where it does not is otherwise a panel with no way out but
+         the button.
+
+         Focus goes back to the card you opened. Without that, closing drops you at the top
+         of the document and a 331 item grid has lost your place. */
+      'function shut(){if(!dlg.open)return;dlg.close();' +
+      ' if(opener&&opener.isConnected)opener.focus();opener=null;}' +
+      'function openItem(i,from){if(!fill(i))return;opener=from||null;dlg.showModal();}' +
+      'dlg.addEventListener("close",function(){' +
+      ' if(opener&&opener.isConnected)opener.focus();opener=null;});' +
+      /* A click landing on the dialog element itself is a click on the backdrop: the panel
+         is padded, so its own content never reports as the target. */
+      'dlg.addEventListener("click",function(e){' +
+      ' if(e.target===dlg||e.target.closest("[data-dlg-close]"))shut();});' +
+      'document.addEventListener("keydown",function(e){' +
+      ' if(e.key==="Escape"&&dlg.open){e.preventDefault();shut();}});' +
+      'document.addEventListener("click",function(e){' +
+      ' var t=e.target;if(!t||!t.closest||t.closest("#detail"))return;' +
+      ' var it=t.closest("[data-item]");' +
+      ' if(it)openItem(+it.getAttribute("data-item"),it);});' +
+      'document.addEventListener("keydown",function(e){' +
+      ' if(e.key!=="Enter"&&e.key!==" ")return;' +
+      ' var t=e.target;if(!t||!t.closest)return;' +
+      ' var it=t.closest("[data-item]");if(!it)return;' +
+      /* Space scrolls the page by default, which would have moved the grid underneath the
+         dialog that just opened over it. */
+      ' e.preventDefault();openItem(+it.getAttribute("data-item"),it);});' +
       'apply();' +
       '}());<\/script>',
   }));
@@ -300,7 +553,6 @@ module.exports = ctx => {
       '<span class="vcard-art"></span>' +
       '<span class="vcard-name">' + esc(label) + "</span></button>";
   };
-  const byCat = function (id) { return withSlots.filter(function (i) { return i.cat === id; }); };
   const attSlot = function (s) {
     return byCat("attachments").filter(function (i) { return i.slot === s; });
   };
@@ -708,43 +960,33 @@ module.exports = ctx => {
       '}());<\/script>',
   }));
 
-  /* ---------- vehicles ---------- */
-  const isAir = function (n) {
-    return /AH-6|MH-6|UH-1|Havoc/.test(n);
-  };
-  const vehRows = function (list) {
-    return list.map(function (v) {
-      return "<tr><td><b>" + esc(v.name) + "</b></td><td class=n>" + priceCell(v) + "</td></tr>";
-    }).join("");
-  };
-  const veh = byCat("vehicles");
-  const air = veh.filter(function (v) { return isAir(v.name); });
-  const ground = veh.filter(function (v) { return !isAir(v.name); });
+  /* ---------- /vehicles/, which is now a doorway rather than a page ----------
+     It listed the vehicles category and the mounted category in two tables, split ground
+     from air, and carried one note about fuel. The armory holds all four of those now: the
+     rail filters to either category, the detail panel gives the ground or air split per
+     vehicle, and the note is on the armory page. A second page repeating the catalogue was
+     the reason it read as thin.
 
+     Deleting the URL was the other option and is the wrong one. GitHub Pages cannot serve a
+     301, so a removed page is a 404 for everyone holding the link and for anything that
+     indexed it, permanently and with no way to say where it went. A zero-delay meta refresh
+     is the redirect a static host can do; the canonical points at the armory so the ranking
+     consolidates there, and noindex keeps this stub itself out of the index and out of the
+     sitemap check. The prose is for the person who arrives with JavaScript off and gets no
+     refresh at all: they still get a working link rather than a blank page. */
   write("vehicles/index.html", page({
-    title: "WARDOGS Vehicles: ground, air and what they cost",
-    desc: "Every WARDOGS ground and air vehicle with its vendor price, plus the mounted weapons that go on them.",
-    canonical: "/vehicles/",
+    title: "WARDOGS Vehicles: now in the Armory",
+    desc: "Every WARDOGS ground and air vehicle, with its vendor price, now lives in the Armory alongside the rest of the catalogue.",
+    canonical: "/armory/",
+    noindex: true,
+    head: '<meta http-equiv="refresh" content="0; url=/armory/">',
     body: '<section><div class="wrap">' +
-      '<span class="eyebrow">Vendor prices, checked ' + esc(A.checkedOn) + '</span>' +
-      "<h1>Vehicles</h1>" +
-      '<p class="lede">What each one costs to put on the field. A Havoc is thirty-six Bobcats,' +
-      " which is the sort of thing worth knowing before you drive it into a Gepard.</p>" +
-      '<h2 style="margin-top:36px">Ground</h2>' +
-      '<table><thead><tr><th>Vehicle</th><th class="n">Price</th></tr></thead><tbody>' +
-      vehRows(ground) + "</tbody></table>" +
-      '<h2 style="margin-top:44px">Air</h2>' +
-      '<table><thead><tr><th>Aircraft</th><th class="n">Price</th></tr></thead><tbody>' +
-      vehRows(air) + "</tbody></table>" +
-      '<h2 style="margin-top:44px">Mounted weapons</h2>' +
-      "<p>What sits on top of them, and on your emplacements. Most of these have no vendor" +
-      " price of their own because they arrive attached to something.</p>" +
-      '<table><thead><tr><th>Weapon</th><th class="n">Price</th></tr></thead><tbody>' +
-      vehRows(byCat("mounted")) + "</tbody></table>" +
-      '<p class="fine" style="margin-top:26px">Fuel and repair costs are not in the public' +
-      " database yet. A fuel can is " + money(150) + " and a fuel supply pallet is " + money(400) +
-      ", which is as close as anyone can honestly get until launch.</p>" +
-      '<p style="margin-top:34px"><a class="btn" href="/planner/">Open the planner</a></p>' +
+      '<span class="eyebrow">Moved</span>' +
+      "<h1>Vehicles moved to the Armory</h1>" +
+      '<p class="lede">All ' + byCat("vehicles").length + " vehicles and the " +
+      byCat("mounted").length + " mounted weapons are in the Armory now, priced beside" +
+      " everything else and with the ground or air split on each one.</p>" +
+      '<p><a class="btn primary" href="/armory/">Go to the Armory</a></p>' +
       "</div></section>",
   }));
 }

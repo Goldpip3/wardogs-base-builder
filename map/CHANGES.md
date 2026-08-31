@@ -8,6 +8,62 @@ Newest first. One entry per decision, not per commit.
 
 ## 2026-08-31
 
+### The armory holds the vehicles, and every item opens
+
+**Clicking an item now opens a panel** with its art at full size and whatever is actually
+known about it. The art was always there and always shown at 64 px; the files are 512 px
+square, so this is the first place on the site that shows an item properly.
+
+The stats are a join, not new data. `data/ballistics.json` already held them under different
+keys, so the panel reads across: a figured weapon gets class, calibre, rate of fire, torso
+damage and effective range; one of the six that cannot be figured gets its kind and the
+published reason nobody can figure it; a round gets base damage, muzzle velocity, mass and
+what gets through level 1 and level 4 armour; armour gets what it covers. **72 items of 331
+have real stats. The other 259 are told plainly that nothing is published**, rather than
+shown a panel of empty rows, which reads like missing data rather than absent data.
+
+Three things a later reader should not undo:
+
+- **The stored armour figure is what armour takes, and the panel prints what gets through.**
+  Printing `blocks` straight would say a hollow point is at its best against a level 4 vest,
+  which is the exact opposite of true.
+- **The two weapon lists spell a calibre differently.** A figured weapon stores the id, so an
+  M4 carries `556`; an unfigured one stores the label, `7.62x51mm`. The panel resolves ids
+  and passes labels through, or it prints "556" where the rest of the site says "5.56mm".
+- **The attachment slot is the one figure here that was never transcribed.** `slotOf` reads
+  it off the name because the source publishes no compatibility field, so the panel says so.
+  In the same type as a measured muzzle velocity it would be a reading passed off as a record.
+
+The joins have no foreign key between the two files, so a rename on either side would stop
+them landing silently, leaving a page that still builds and still looks right with the stats
+quietly gone. `tools/check-build.js` asserts all four joins by exact count, plus that every
+calibre id resolves and that all 331 items carry an opener in both views.
+
+**On `<dialog>`, and what was measured rather than assumed.** It is a native dialog for the
+backdrop and the focus trap. Its `close` event never fires in the browser this was built
+against, checked on its own with nothing else involved, so the focus restore cannot hang off
+that event and `shut()` does it directly. Escape could not be tested there at all, because
+that browser delivers no key events to the page; nothing is claimed about it, and it gets an
+explicit handler anyway. Closing twice is a no-op, so an engine that implements both loses
+nothing.
+
+**The vehicles page is now a doorway, and the tab is gone.** It listed two categories of this
+same catalogue in two tables, split ground from air, and carried one note about fuel. The
+armory does all four now. `/vehicles/` itself is a zero-delay meta refresh to `/armory/`,
+canonical pointed there and `noindex` on it, because GitHub Pages cannot send a 301 and a
+deleted page is a permanent 404 for everyone holding the link. The build fails if that
+refresh tag goes missing, which would leave a page that says "moved" and does not move.
+
+Weight was checked rather than assumed: the detail payload is 61 KB of JSON, and the whole
+page is **45 KB gzipped**, which is what GitHub Pages actually serves. No trimming was worth
+the complexity at that number.
+
+**Every nav link is boxed now**, which is the owner's call. The two tools were boxed and the
+references were plain; the owner reads the box as finished rather than as primary, and these
+are finished. The consequence, written down because the code cannot say it: a box on
+everything marks nothing, so `.nav-gap` is the only thing still ranking the tools above the
+references.
+
 ### The buildables page uses the armory's rail, and serves its icons as files
 
 Two problems in one page, and both had already been solved elsewhere.

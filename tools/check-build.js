@@ -333,6 +333,62 @@ check(!mojibake, "no mojibake from a codepage mismatch",
     "the buildables page serves its icons as files, not base64");
 }
 
+/* -- 3f. the armory detail panel: the joins that feed it --
+   The panel is the only place a stat is shown next to the item it belongs to, and it gets
+   there by joining data/ballistics.json to data/armory.json on the item name. Two files, two
+   editors, no foreign key between them: rename a weapon on either side and the join silently
+   stops landing, the panel quietly loses its stats, and the page still builds and still looks
+   right. That is the whole failure mode, so the join is asserted rather than trusted.
+
+   These are exact counts on purpose. "Most of them match" is the state this is meant to
+   catch. */
+{
+  const armory = JSON.parse(fs.readFileSync(path.join(proj, "data/armory.json"), "utf8"));
+  const ball = JSON.parse(fs.readFileSync(path.join(proj, "data/ballistics.json"), "utf8"));
+  const names = new Set(armory.items.map(i => i.name));
+
+  const orphan = (label, list) => {
+    const missing = list.filter(n => !names.has(n));
+    check(missing.length === 0, "every " + label + " joins an armory item by name",
+      missing.slice(0, 3).join(" | "));
+  };
+  orphan("figured weapon", ball.weapons.map(w => w.name));
+  orphan("unfigurable weapon", (ball.unfiguredWeapons || []).map(w => w.name));
+  orphan("armour piece", ball.armour.flatMap(a => a.vendor || []));
+  orphan("priced round", ball.calibres.flatMap(c => Object.values(c.vendor || {})));
+
+  /* A figured weapon stores a calibre id and the panel prints the calibre's name, so an id
+     with no entry would print raw: "556" where the site says "5.56mm". */
+  const calIds = new Set(ball.calibres.map(c => c.id));
+  const strayCal = ball.weapons.map(w => w.calibre).filter(c => c && !calIds.has(c));
+  check(strayCal.length === 0, "every weapon calibre id resolves to a calibre",
+    [...new Set(strayCal)].join(", "));
+
+  const armoryPage = fs.readFileSync(path.join(proj, "docs/armory/index.html"), "utf8");
+  check(/<dialog id="detail"/.test(armoryPage), "the armory ships the item detail dialog");
+  /* Every card and row has to carry the index the dialog opens by. One that does not is a
+     dead item: it looks clickable and does nothing. */
+  const openers = (armoryPage.match(/data-item="\d+"/g) || []).length;
+  check(openers === armory.items.length * 2,
+    "every item opens a detail panel from both the grid and the table",
+    openers + " openers for " + armory.items.length + " items, expected " +
+      armory.items.length * 2);
+
+  /* The vehicles page became a doorway. GitHub Pages cannot send a 301, so the meta refresh
+     is the redirect, and losing it turns the URL into a page that says "moved" and does not
+     move. It is also the reason the stub must stay out of the index: two URLs claiming the
+     same content is the thing canonical and noindex are here to prevent. */
+  const stub = fs.readFileSync(path.join(proj, "docs/vehicles/index.html"), "utf8");
+  check(/http-equiv="refresh" content="0; url=\/armory\/"/.test(stub),
+    "the vehicles URL still redirects to the armory");
+  check(/rel="canonical" href="[^"]*\/armory\/"/.test(stub),
+    "the vehicles stub points its canonical at the armory");
+  check(/content="noindex/.test(stub), "the vehicles stub is not indexable");
+  const sitemapXml = fs.readFileSync(path.join(proj, "docs/sitemap.xml"), "utf8");
+  check(!sitemapXml.includes("/vehicles/</loc>"),
+    "the vehicles stub is not advertised in the sitemap");
+}
+
 /* -- 4. nothing reaches the network: offline is the whole promise --
    Read the downloadable file, not the hosted one. The two were interchangeable for this
    purpose until the hosted copy started loading an ad script. Had this stayed pointed at

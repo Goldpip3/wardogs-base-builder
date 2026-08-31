@@ -79,12 +79,15 @@ write("index.html", page({
     <a href="/artillery/"><h3>Artillery</h3><p>Bearing, range and elevation from the map
       coordinates the game gives. Both SPH-2 arcs are given where both reach, and a solution
       can be shared as a link.</p></a>
-    <a href="/armory/"><h3>Armory</h3><p>${nPrices} weapons, attachments, rounds and armour
-      pieces, each with its vendor price.</p></a>
+    ${/* The vehicles card pointed at a page that listed two categories of this same
+          catalogue, so it is one card now rather than two. Vehicles are named here because
+          somebody looking for them needs to be told where they went, and this grid is where
+          they used to look. */""}
+    <a href="/armory/"><h3>Armory</h3><p>All ${nPrices} items with their vendor price, vehicles
+      and mounted weapons included. Open any of them for its art, and for the stats where
+      any are published.</p></a>
     <a href="/loadouts/"><h3>Loadouts</h3><p>The cost of a full kit, and what one death takes
       off it.</p></a>
-    <a href="/vehicles/"><h3>Vehicles</h3><p>Ground and air vehicles, the cost to field each
-      one, and the weapons they mount.</p></a>
   </div>
 </div></section>
 

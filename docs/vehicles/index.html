@@ -4,15 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<title>WARDOGS Vehicles: ground, air and what they cost</title>
-<meta name="description" content="Every WARDOGS ground and air vehicle with its vendor price, plus the mounted weapons that go on them.">
-<link rel="canonical" href="https://www.wardogsbuilder.com/vehicles/">
+<title>WARDOGS Vehicles: now in the Armory</title>
+<meta name="description" content="Every WARDOGS ground and air vehicle, with its vendor price, now lives in the Armory alongside the rest of the catalogue.">
+<link rel="canonical" href="https://www.wardogsbuilder.com/armory/">
+<meta name="robots" content="noindex,nofollow">
+<meta http-equiv="refresh" content="0; url=/armory/">
 <meta name="theme-color" content="#12140d">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="WARDOGS Builder">
-<meta property="og:title" content="WARDOGS Vehicles: ground, air and what they cost">
-<meta property="og:description" content="Every WARDOGS ground and air vehicle with its vendor price, plus the mounted weapons that go on them.">
-<meta property="og:url" content="https://www.wardogsbuilder.com/vehicles/">
+<meta property="og:title" content="WARDOGS Vehicles: now in the Armory">
+<meta property="og:description" content="Every WARDOGS ground and air vehicle, with its vendor price, now lives in the Armory alongside the rest of the catalogue.">
+<meta property="og:url" content="https://www.wardogsbuilder.com/armory/">
 <meta property="og:image" content="https://www.wardogsbuilder.com/preview.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://www.wardogsbuilder.com/preview.png">
@@ -363,6 +365,65 @@ th.sortable[data-dir="desc"]::after{content:"↓";opacity:1;color:var(--yellow)}
 .acard-price{flex:0 0 auto;font-family:var(--num);font-size:13px;color:var(--text);
   font-variant-numeric:tabular-nums;text-align:right}
 .cat-empty{padding:34px;text-align:center;color:var(--dim);border:1px dashed var(--line2)}
+/* --- the item detail dialog ---
+   A native <dialog>, so Escape, the focus trap and the backdrop are the browser's. The
+   catalogue's own art is 512px square where the card shows it at 64, so the panel is the
+   first place on the site that shows an item properly rather than as a thumbnail. --- */
+/* margin:auto is what centres a modal dialog, and the reset at the top of this file sets
+   margin:0 on everything, dialog included. Without it back the panel sits in the top left
+   corner of the viewport, which is exactly where it went. */
+.idlg{background:var(--panel);color:var(--text);border:1px solid var(--line2);padding:0;
+  margin:auto;width:min(560px,calc(100vw - 32px));max-height:calc(100vh - 64px);
+  /* Only ever scrolls down. overflow:auto on both axes drew a horizontal track under a
+     panel that measured no horizontal overflow at all, and there is nothing here that
+     should ever scroll sideways: every child is block level inside a fixed width. */
+  overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain}
+.idlg::backdrop{background:rgba(0,0,0,.72)}
+.idlg-x{position:absolute;top:12px;right:12px;background:transparent;border:1px solid var(--line2);
+  color:var(--dim2);cursor:pointer;font-family:var(--ui);font-weight:600;font-size:10px;
+  letter-spacing:.14em;text-transform:uppercase;padding:6px 10px}
+.idlg-x:hover{border-color:var(--text);color:var(--text)}
+.idlg-head{display:flex;gap:18px;align-items:flex-start;padding:24px 24px 18px;
+  border-bottom:1px solid var(--line)}
+.idlg-art{flex:0 0 auto;width:132px;height:132px;background:var(--bg);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center}
+.idlg-art img{max-width:120px;max-height:120px;object-fit:contain}
+.idlg-art img[hidden]{display:none}
+.idlg-cat{display:block;font-weight:600;font-size:10px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--dim)}
+.idlg h2{font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:0;
+  text-transform:uppercase;margin:7px 0 0;line-height:1.15}
+.idlg-price{font-family:var(--num);font-size:15px;color:var(--yellow);margin-top:9px;
+  font-variant-numeric:tabular-nums}
+/* Two columns so a label and its figure sit on one line and the figures stack into a
+   column you can read down. A definition list rather than a table because this is one
+   item's properties, not a comparison. */
+.idlg-stats{display:grid;grid-template-columns:auto 1fr;gap:1px;background:var(--line);
+  border-bottom:1px solid var(--line);margin:0}
+.idlg-stats[hidden]{display:none}
+.idlg-stats dt{background:var(--panel);padding:10px 14px 10px 24px;font-weight:600;font-size:10px;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--dim);white-space:nowrap}
+.idlg-stats dd{background:var(--panel);padding:10px 24px 10px 14px;margin:0;font-family:var(--num);
+  font-size:13.5px;color:var(--text);font-variant-numeric:tabular-nums;text-align:right}
+.idlg-notes{padding:18px 24px 24px}
+.idlg-notes p{font-size:13px;line-height:1.5;color:var(--dim);margin:0 0 11px}
+.idlg-notes p:last-child{margin-bottom:0}
+/* An absent figure is not a missing one, and the difference is the whole editorial line of
+   this site. A gap gets the yellow edge so it reads as something the page is telling you
+   rather than as a caption nobody wrote. */
+.idlg-gap{border-left:2px solid var(--yellow);padding-left:12px}
+.idlg-more a{color:var(--text);text-decoration:underline;text-underline-offset:3px}
+.idlg-more a:hover{color:var(--yellow)}
+.acard[role="button"],tr[data-item]{cursor:pointer}
+.acard[role="button"]:focus-visible,tr[data-item]:focus-visible{outline:2px solid var(--yellow);
+  outline-offset:-2px}
+@media(max-width:560px){
+  /* Stacked, the art is the full width of the panel and the close button was sitting on
+     top of its frame. The extra top padding is the button's own row. */
+  .idlg-head{flex-direction:column;gap:14px;padding-top:56px}
+  .idlg-art{width:100%;height:150px}
+  .idlg-art img{max-width:140px;max-height:140px}
+}
 /* --- account control in the header --- */
 .acct{display:none;align-items:center;gap:8px;font-weight:600;font-size:11px;white-space:nowrap;
   letter-spacing:.1em;text-transform:uppercase}
@@ -860,20 +921,19 @@ document.addEventListener("click",function(e){
 <header class="site"><div class="wrap">
   <a href="/" class="brand">WARDOGS <span>Builder</span></a>
   <nav class="site">
+    
     <a href="/planner/" class="cta">Planner</a>
     <a href="/artillery/" class="cta">Artillery</a>
     <span class="nav-gap"></span>
-    <a href="/designs/">Designs</a>
-    
-    <a href="/armory/">Armory</a>
-    <a href="/ballistics/">Damage</a>
-    <a href="/loadouts/">Loadouts</a>
-    <a href="/vehicles/">Vehicles</a>
-    <a href="/feedback/">Feedback</a>
+    <a href="/designs/" class="cta">Designs</a>
+    <a href="/armory/" class="cta">Armory</a>
+    <a href="/ballistics/" class="cta">Damage</a>
+    <a href="/loadouts/" class="cta">Loadouts</a>
+    <a href="/feedback/" class="cta">Feedback</a>
     <span id="acct" class="acct"></span>
   </nav>
 </div></header>
-<section><div class="wrap"><span class="eyebrow">Vendor prices, checked 2026-08-30</span><h1>Vehicles</h1><p class="lede">What each one costs to put on the field. A Havoc is thirty-six Bobcats, which is the sort of thing worth knowing before you drive it into a Gepard.</p><h2 style="margin-top:36px">Ground</h2><table><thead><tr><th>Vehicle</th><th class="n">Price</th></tr></thead><tbody><tr><td><b>Bobcat</b></td><td class=n>$500</td></tr><tr><td><b>Dune Buggy</b></td><td class=n>$1,500</td></tr><tr><td><b>Flakpanzer Gepard</b></td><td class=n>$10,000</td></tr><tr><td><b>Humvee</b></td><td class=n>$3,000</td></tr><tr><td><b>Humvee [M249]</b></td><td class=n>$3,750</td></tr><tr><td><b>Humvee [Minigun]</b></td><td class=n>$4,500</td></tr><tr><td><b>Kodiak</b></td><td class=n>$2,500</td></tr><tr><td><b>Kodiak [M249]</b></td><td class=n>$3,750</td></tr><tr><td><b>Kodiak [Pickup]</b></td><td class=n>$3,000</td></tr><tr><td><b>L2A6</b></td><td class=n>$14,000</td></tr><tr><td><b>M113 APC SV</b></td><td class=n><span class="fine">not confirmed</span></td></tr><tr><td><b>SPH-2</b></td><td class=n>$8,000</td></tr><tr><td><b>Ural Defender</b></td><td class=n>$6,000</td></tr><tr><td><b>Ural Defender [M249]</b></td><td class=n>$6,750</td></tr></tbody></table><h2 style="margin-top:44px">Air</h2><table><thead><tr><th>Aircraft</th><th class="n">Price</th></tr></thead><tbody><tr><td><b>AH-6M [Miniguns]</b></td><td class=n>$7,000</td></tr><tr><td><b>AH-6R [Rockets]</b></td><td class=n>$12,500</td></tr><tr><td><b>Havoc</b></td><td class=n>$18,000</td></tr><tr><td><b>MH-6</b></td><td class=n>$6,250</td></tr><tr><td><b>UH-1Y</b></td><td class=n>$7,400</td></tr><tr><td><b>UH-1Y [Miniguns]</b></td><td class=n>$8,000</td></tr></tbody></table><h2 style="margin-top:44px">Mounted weapons</h2><p>What sits on top of them, and on your emplacements. Most of these have no vendor price of their own because they arrive attached to something.</p><table><thead><tr><th>Weapon</th><th class="n">Price</th></tr></thead><tbody><tr><td><b>2A42 Autocannon</b></td><td class=n><span class="fine">not confirmed</span></td></tr><tr><td><b>B-13 Rocket Pods</b></td><td class=n><span class="fine">not confirmed</span></td></tr><tr><td><b>Duel 35mm Oerlikon GDF Cannons</b></td><td class=n><span class="fine">not confirmed</span></td></tr><tr><td><b>Flares</b></td><td class=n>$750</td></tr><tr><td><b>L52 Cannon</b></td><td class=n><span class="fine">not confirmed</span></td></tr><tr><td><b>L55A1 Cannon</b></td><td class=n><span class="fine">not confirmed</span></td></tr><tr><td><b>L81 Mortar</b></td><td class=n><span class="fine">not confirmed</span></td></tr><tr><td><b>M134D Minigun</b></td><td class=n><span class="fine">not confirmed</span></td></tr><tr><td><b>M249 Machine Gun</b></td><td class=n><span class="fine">not confirmed</span></td></tr><tr><td><b>MG3A1 Coaxial Gun</b></td><td class=n><span class="fine">not confirmed</span></td></tr><tr><td><b>Stingray</b></td><td class=n><span class="fine">not confirmed</span></td></tr><tr><td><b>Talon 9K-SAM</b></td><td class=n><span class="fine">not confirmed</span></td></tr><tr><td><b>Vanguard CIWS</b></td><td class=n><span class="fine">not confirmed</span></td></tr></tbody></table><p class="fine" style="margin-top:26px">Fuel and repair costs are not in the public database yet. A fuel can is $150 and a fuel supply pallet is $400, which is as close as anyone can honestly get until launch.</p><p style="margin-top:34px"><a class="btn" href="/planner/">Open the planner</a></p></div></section>
+<section><div class="wrap"><span class="eyebrow">Moved</span><h1>Vehicles moved to the Armory</h1><p class="lede">All 20 vehicles and the 13 mounted weapons are in the Armory now, priced beside everything else and with the ground or air split on each one.</p><p><a class="btn primary" href="/armory/">Go to the Armory</a></p></div></section>
 <div class="wrap"><div class="ad-slot" style="min-height:90px">
   <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-7658713831499963"
        data-ad-slot="6283709418" data-ad-format="auto" data-full-width-responsive="true"></ins>
@@ -886,7 +946,7 @@ document.addEventListener("click",function(e){
   <a href="/planner/">Planner</a><a href="/designs/">Designs</a>
   <a href="/buildables/">Buildables</a><a href="/armory/">Armory</a>
   <a href="/ballistics/">Damage</a><a href="/artillery/">Artillery</a>
-  <a href="/loadouts/">Loadouts</a><a href="/vehicles/">Vehicles</a>
+  <a href="/loadouts/">Loadouts</a>
   <a href="/feedback/">Feedback</a>
   <a href="/privacy/">Privacy</a>
 </div></footer>

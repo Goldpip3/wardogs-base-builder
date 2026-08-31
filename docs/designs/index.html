@@ -363,6 +363,65 @@ th.sortable[data-dir="desc"]::after{content:"↓";opacity:1;color:var(--yellow)}
 .acard-price{flex:0 0 auto;font-family:var(--num);font-size:13px;color:var(--text);
   font-variant-numeric:tabular-nums;text-align:right}
 .cat-empty{padding:34px;text-align:center;color:var(--dim);border:1px dashed var(--line2)}
+/* --- the item detail dialog ---
+   A native <dialog>, so Escape, the focus trap and the backdrop are the browser's. The
+   catalogue's own art is 512px square where the card shows it at 64, so the panel is the
+   first place on the site that shows an item properly rather than as a thumbnail. --- */
+/* margin:auto is what centres a modal dialog, and the reset at the top of this file sets
+   margin:0 on everything, dialog included. Without it back the panel sits in the top left
+   corner of the viewport, which is exactly where it went. */
+.idlg{background:var(--panel);color:var(--text);border:1px solid var(--line2);padding:0;
+  margin:auto;width:min(560px,calc(100vw - 32px));max-height:calc(100vh - 64px);
+  /* Only ever scrolls down. overflow:auto on both axes drew a horizontal track under a
+     panel that measured no horizontal overflow at all, and there is nothing here that
+     should ever scroll sideways: every child is block level inside a fixed width. */
+  overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain}
+.idlg::backdrop{background:rgba(0,0,0,.72)}
+.idlg-x{position:absolute;top:12px;right:12px;background:transparent;border:1px solid var(--line2);
+  color:var(--dim2);cursor:pointer;font-family:var(--ui);font-weight:600;font-size:10px;
+  letter-spacing:.14em;text-transform:uppercase;padding:6px 10px}
+.idlg-x:hover{border-color:var(--text);color:var(--text)}
+.idlg-head{display:flex;gap:18px;align-items:flex-start;padding:24px 24px 18px;
+  border-bottom:1px solid var(--line)}
+.idlg-art{flex:0 0 auto;width:132px;height:132px;background:var(--bg);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center}
+.idlg-art img{max-width:120px;max-height:120px;object-fit:contain}
+.idlg-art img[hidden]{display:none}
+.idlg-cat{display:block;font-weight:600;font-size:10px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--dim)}
+.idlg h2{font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:0;
+  text-transform:uppercase;margin:7px 0 0;line-height:1.15}
+.idlg-price{font-family:var(--num);font-size:15px;color:var(--yellow);margin-top:9px;
+  font-variant-numeric:tabular-nums}
+/* Two columns so a label and its figure sit on one line and the figures stack into a
+   column you can read down. A definition list rather than a table because this is one
+   item's properties, not a comparison. */
+.idlg-stats{display:grid;grid-template-columns:auto 1fr;gap:1px;background:var(--line);
+  border-bottom:1px solid var(--line);margin:0}
+.idlg-stats[hidden]{display:none}
+.idlg-stats dt{background:var(--panel);padding:10px 14px 10px 24px;font-weight:600;font-size:10px;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--dim);white-space:nowrap}
+.idlg-stats dd{background:var(--panel);padding:10px 24px 10px 14px;margin:0;font-family:var(--num);
+  font-size:13.5px;color:var(--text);font-variant-numeric:tabular-nums;text-align:right}
+.idlg-notes{padding:18px 24px 24px}
+.idlg-notes p{font-size:13px;line-height:1.5;color:var(--dim);margin:0 0 11px}
+.idlg-notes p:last-child{margin-bottom:0}
+/* An absent figure is not a missing one, and the difference is the whole editorial line of
+   this site. A gap gets the yellow edge so it reads as something the page is telling you
+   rather than as a caption nobody wrote. */
+.idlg-gap{border-left:2px solid var(--yellow);padding-left:12px}
+.idlg-more a{color:var(--text);text-decoration:underline;text-underline-offset:3px}
+.idlg-more a:hover{color:var(--yellow)}
+.acard[role="button"],tr[data-item]{cursor:pointer}
+.acard[role="button"]:focus-visible,tr[data-item]:focus-visible{outline:2px solid var(--yellow);
+  outline-offset:-2px}
+@media(max-width:560px){
+  /* Stacked, the art is the full width of the panel and the close button was sitting on
+     top of its frame. The extra top padding is the button's own row. */
+  .idlg-head{flex-direction:column;gap:14px;padding-top:56px}
+  .idlg-art{width:100%;height:150px}
+  .idlg-art img{max-width:140px;max-height:140px}
+}
 /* --- account control in the header --- */
 .acct{display:none;align-items:center;gap:8px;font-weight:600;font-size:11px;white-space:nowrap;
   letter-spacing:.1em;text-transform:uppercase}
@@ -860,16 +919,15 @@ document.addEventListener("click",function(e){
 <header class="site"><div class="wrap">
   <a href="/" class="brand">WARDOGS <span>Builder</span></a>
   <nav class="site">
+    
     <a href="/planner/" class="cta">Planner</a>
     <a href="/artillery/" class="cta">Artillery</a>
     <span class="nav-gap"></span>
-    <a href="/designs/">Designs</a>
-    
-    <a href="/armory/">Armory</a>
-    <a href="/ballistics/">Damage</a>
-    <a href="/loadouts/">Loadouts</a>
-    <a href="/vehicles/">Vehicles</a>
-    <a href="/feedback/">Feedback</a>
+    <a href="/designs/" class="cta">Designs</a>
+    <a href="/armory/" class="cta">Armory</a>
+    <a href="/ballistics/" class="cta">Damage</a>
+    <a href="/loadouts/" class="cta">Loadouts</a>
+    <a href="/feedback/" class="cta">Feedback</a>
     <span id="acct" class="acct"></span>
   </nav>
 </div></header>
@@ -1508,7 +1566,7 @@ function wireThreads(root){
   <a href="/planner/">Planner</a><a href="/designs/">Designs</a>
   <a href="/buildables/">Buildables</a><a href="/armory/">Armory</a>
   <a href="/ballistics/">Damage</a><a href="/artillery/">Artillery</a>
-  <a href="/loadouts/">Loadouts</a><a href="/vehicles/">Vehicles</a>
+  <a href="/loadouts/">Loadouts</a>
   <a href="/feedback/">Feedback</a>
   <a href="/privacy/">Privacy</a>
 </div></footer>
