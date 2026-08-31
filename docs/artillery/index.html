@@ -483,9 +483,38 @@ tr[data-on="1"] td{background:var(--panel2);color:var(--text)}
    screen of nothing. The box still reads as a box at 64. */
 @media(max-width:599px){.vslot-art{height:64px;padding:20px 8px 4px}
   .vslot-art img{max-height:44px}}
-.vslot select{width:100%;background:var(--panel2);color:var(--text);border:0;
-  border-top:1px solid var(--line2);padding:9px 10px;font-family:var(--ui);font-size:12.5px}
-.vslot[data-on="1"] select{background:var(--panel2);color:var(--text)}
+/* the name bar is the button that opens the shelf, so the whole card is the control */
+.vslot-btn{display:block;width:100%;text-align:left;background:var(--panel2);color:var(--text);
+  border:0;border-top:1px solid var(--line2);padding:9px 10px;cursor:pointer;
+  font-family:var(--ui);font-size:12.5px}
+.vslot-btn::after{content:"";float:right;width:0;height:0;margin:6px 2px 0 0;
+  border:4px solid transparent;border-top-color:var(--dim)}
+.vslot-btn:hover{background:var(--line);color:var(--text)}
+.vslot-btn[aria-expanded="true"]{background:var(--yellow);color:var(--bg)}
+.vslot-btn[aria-expanded="true"]::after{border-top-color:var(--bg)}
+
+/* the shelf: the items for one slot, open under the row they belong to */
+.vpicker{border:1px solid var(--yellow);background:var(--bg);margin:14px 0 0;padding:14px}
+.vpicker-head{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--yellow);margin:0 0 12px}
+.vpicker-x{background:transparent;border:1px solid var(--line2);color:var(--dim2);
+  cursor:pointer;font-family:var(--ui);font-weight:600;font-size:10px;letter-spacing:.12em;
+  text-transform:uppercase;padding:5px 10px}
+.vpicker-x:hover{border-color:var(--text);color:var(--text)}
+.vcard-none .vcard-art{min-height:52px}
+.vend-hint{font-size:10px;letter-spacing:.1em;color:var(--dim)}
+
+/* how many magazines, as buttons rather than a spinner nobody can hit on a phone */
+.vstep{display:flex;align-items:stretch;border:1px solid var(--line2);background:var(--bg)}
+.vstep input{flex:1;min-width:0;background:transparent;color:var(--text);border:0;
+  padding:9px 4px;font-family:var(--num);font-size:16px;text-align:center;
+  -moz-appearance:textfield;appearance:textfield}
+.vstep input::-webkit-outer-spin-button,.vstep input::-webkit-inner-spin-button{
+  -webkit-appearance:none;margin:0}
+.vstep-b{flex:0 0 auto;width:38px;background:var(--panel2);color:var(--text);border:0;
+  cursor:pointer;font-family:var(--ui);font-size:16px;line-height:1}
+.vstep-b:hover{background:var(--yellow);color:var(--bg)}
 
 /* mag plus round equals a loaded magazine, the way the vendor spells it out */
 .veq{display:grid;gap:10px;align-items:end;margin-top:22px;
@@ -511,6 +540,10 @@ tr[data-on="1"] td{background:var(--panel2);color:var(--text)}
 .vcard{position:relative;border:1px solid var(--line2);background:var(--bg);cursor:pointer;
   display:flex;flex-direction:column;align-items:center;gap:8px;padding:26px 8px 0;
   font-family:var(--ui);color:var(--dim2);text-align:center}
+/* display:flex beats the hidden attribute's UA display:none, so a filtered-out round stayed
+   on the shelf while the script believed it had put it away. Any element this file gives an
+   explicit display to has to say what hidden means for it. */
+.vcard[hidden]{display:none}
 .vcard:hover{border-color:var(--line2);color:var(--text)}
 .vcard[aria-pressed="true"]{border-color:var(--yellow)}
 .vcard-tag{position:absolute;top:5px;right:5px;background:var(--good);color:var(--bg);

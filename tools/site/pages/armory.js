@@ -127,15 +127,31 @@ module.exports = ctx => {
       '}());<\/script>',
   }));
 
-  /* ---------- loadouts: what one death costs ---------- */
-  const opts = function (list, blank) {
-    return '<option value="">' + blank + "</option>" + list.map(function (it) {
-      return '<option value="' + esc(it.name) + '" data-price="' + (it.price === null ? 0 : it.price) +
-        '"' + (it.price === null ? " data-unknown=1" : "") +
-        (it.icon ? ' data-icon="' + it.icon + '"' : "") + ">" + esc(it.name) +
-        (it.price === null ? " (price unknown)" : it.price === 0 ? " (free)" : " " + money(it.price)) +
-        "</option>";
-    }).join("");
+  /* ---------- loadouts: what one death costs ----------
+     You pick by clicking the thing you want, the way the vendor works. A dropdown hides
+     every option until you open it and shows them as a list of words, which for a shelf of
+     items that all have a picture is the wrong control: you cannot see what you are buying
+     and you cannot compare two of them side by side. */
+  const vcard = function (it, slotId) {
+    return '<button type="button" class="vcard" data-pick="' + slotId + '"' +
+      ' data-name="' + esc(it.name) + '"' +
+      ' data-price="' + (it.price === null ? 0 : it.price) + '"' +
+      (it.price === null ? ' data-unknown="1"' : "") +
+      (it.icon ? ' data-icon="' + it.icon + '"' : "") +
+      (it.per ? ' data-per="' + it.per + '"' : "") +
+      ' aria-pressed="false">' +
+      '<span class="vcard-tag">' +
+        (it.price === null ? "no price" : it.price === 0 ? "free" : money(it.price)) + "</span>" +
+      '<span class="vcard-art">' +
+      (it.icon ? '<img src="/game-icons/' + it.icon + '.png" alt="" width="52" height="52" loading="lazy">' : "") +
+      "</span>" +
+      '<span class="vcard-name">' + esc(it.name) + "</span></button>";
+  };
+  const noneCard = function (slotId, label) {
+    return '<button type="button" class="vcard vcard-none" data-pick="' + slotId + '"' +
+      ' data-name="" data-price="0" aria-pressed="true">' +
+      '<span class="vcard-art"></span>' +
+      '<span class="vcard-name">' + esc(label) + "</span></button>";
   };
   const byCat = function (id) { return withSlots.filter(function (i) { return i.cat === id; }); };
   const attSlot = function (s) {
@@ -145,16 +161,26 @@ module.exports = ctx => {
     return list.filter(function (i) { return i.name.toLowerCase().indexOf(s) >= 0; });
   };
 
-  /* A vendor slot: the art box with its price tag, the role label, and the picker as the
-     name bar under it. Shaped after the equipment slots the game shows you at the vendor,
-     with the select doing the job the game gives to a grid of cards. */
-  const slot = function (id, label, list, blank) {
-    return '<div class="vslot" id="' + id + '-slot">' +
+  /* A vendor slot: the art box with its price tag, and a button that opens the shelf for
+     that slot underneath. Shaped after the equipment slots the game shows you. */
+  const slot = function (id, label, blank) {
+    return '<div class="vslot" id="' + id + '-slot" data-on="0">' +
       '<span class="vslot-role">' + esc(label) + "</span>" +
       '<span class="vslot-tag" id="' + id + '-tag" hidden></span>' +
       '<span class="vslot-art"><img id="' + id + '-icon" alt="" width="72" height="72" hidden></span>' +
-      '<select id="' + id + '" aria-label="' + esc(label) + '">' + opts(list, blank) + "</select>" +
+      '<button type="button" class="vslot-btn" data-open="' + id + '"' +
+      ' aria-expanded="false" aria-controls="' + id + '-grid">' +
+      '<span id="' + id + '-name" data-blank="' + esc(blank) + '">' + esc(blank) + "</span></button>" +
       "</div>";
+  };
+  /* The shelf itself, one per slot, closed until its slot is clicked. Rendered into the
+     page rather than built on demand so the whole catalogue is in the HTML either way. */
+  const picker = function (id, label, list, blank) {
+    return '<div class="vpicker" id="' + id + '-grid" hidden>' +
+      '<p class="vpicker-head">' + esc(label) +
+      '<button type="button" class="vpicker-x" data-close="' + id + '">Close</button></p>' +
+      '<div class="vgrid">' + noneCard(id, blank) +
+      list.map(function (it) { return vcard(it, id); }).join("") + "</div></div>";
   };
 
   write("loadouts/index.html", page({
@@ -185,12 +211,12 @@ module.exports = ctx => {
         '<div class="vend-main">' +
 
           '<div class="vend-panel" data-panel="equipment">' +
-            '<p class="vend-head">Equipment slots</p>' +
+            '<p class="vend-head">Equipment slots<span class="vend-hint">Click a slot to open the shelf</span></p>' +
             '<div class="vslots">' +
-              slot("w", "Primary", byCat("weapons"), "No weapon") +
-              slot("opt", "Optic", attSlot("optic"), "None") +
-              slot("muz", "Muzzle", attSlot("muzzle"), "None") +
-              slot("grip", "Grip or bipod", attSlot("grip"), "None") +
+              slot("w", "Primary", "No weapon") +
+              slot("opt", "Optic", "None") +
+              slot("muz", "Muzzle", "None") +
+              slot("grip", "Grip or bipod", "None") +
             "</div>" +
             /* The game builds a loaded magazine in front of you: pick the mag, pick the
                round, and it shows you what you end up with. The sum was always here, it
@@ -198,23 +224,21 @@ module.exports = ctx => {
             '<div class="veq">' +
               '<div class="veq-step">' +
                 '<span class="veq-note">Step 1 // magazine</span>' +
-                slot("mag", "Magazine", attSlot("magazine"), "None") +
+                slot("mag", "Magazine", "None") +
               "</div>" +
               '<span class="veq-op" aria-hidden="true">+</span>' +
               '<div class="veq-step">' +
                 '<span class="veq-note">Step 2 // round</span>' +
-                '<div class="vslot" id="ammo-slot">' +
-                  '<span class="vslot-role">Ammunition</span>' +
-                  '<span class="vslot-tag" id="ammo-tag" hidden></span>' +
-                  '<span class="vslot-art"><img id="ammo-icon" alt="" width="72" height="72" hidden></span>' +
-                  '<select id="ammo" aria-label="Ammunition"></select>' +
-                "</div>" +
+                slot("ammo", "Ammunition", "None") +
               "</div>" +
               '<span class="veq-op" aria-hidden="true">&times;</span>' +
               '<div class="veq-step veq-qty">' +
                 '<span class="veq-note">Step 3 // how many</span>' +
-                '<label class="vqty"><input id="mags" type="number" min="0" max="20" value="3">' +
-                "<span>magazines</span></label>" +
+                '<div class="vstep"><button type="button" class="vstep-b" data-mags="-1"' +
+                ' aria-label="One magazine fewer">&minus;</button>' +
+                '<input id="mags" type="number" min="0" max="20" value="3" aria-label="Magazines">' +
+                '<button type="button" class="vstep-b" data-mags="1"' +
+                ' aria-label="One magazine more">+</button></div>' +
               "</div>" +
               '<span class="veq-op" aria-hidden="true">=</span>' +
               '<div class="veq-step">' +
@@ -222,19 +246,31 @@ module.exports = ctx => {
                 '<div class="vready" id="ready">Nothing loaded</div>' +
               "</div>" +
             "</div>" +
+            picker("w", "Primary weapon", byCat("weapons"), "No weapon") +
+            picker("opt", "Optic", attSlot("optic"), "None") +
+            picker("muz", "Muzzle", attSlot("muzzle"), "None") +
+            picker("grip", "Grip or bipod", attSlot("grip"), "None") +
+            picker("mag", "Magazine", attSlot("magazine"), "None") +
+            picker("ammo", "Ammunition", byCat("ammunition").filter(function (i) {
+              return i.price !== null;
+            }), "None") +
           "</div>" +
 
           '<div class="vend-panel" data-panel="gear" hidden>' +
-            '<p class="vend-head">Gear</p>' +
+            '<p class="vend-head">Gear<span class="vend-hint">Click a slot to open the shelf</span></p>' +
             '<div class="vslots">' +
-              slot("hel", "Helmet", nameHas(byCat("armour"), "helmet").concat(nameHas(byCat("armour"), "headwear")), "Bare head") +
-              slot("arm", "Body armour", byCat("armour").filter(function (i) {
-                const n = i.name.toLowerCase();
-                return n.indexOf("helmet") < 0 && n.indexOf("headwear") < 0;
-              }), "No armour") +
-              slot("bag", "Backpack", nameHas(byCat("storage"), "backpack"), "None") +
-              slot("vest", "Rig", nameHas(byCat("storage"), "tac vest").concat(nameHas(byCat("storage"), "pouch")), "None") +
+              slot("hel", "Helmet", "Bare head") +
+              slot("arm", "Body armour", "No armour") +
+              slot("bag", "Backpack", "None") +
+              slot("vest", "Rig", "None") +
             "</div>" +
+            picker("hel", "Helmet", nameHas(byCat("armour"), "helmet").concat(nameHas(byCat("armour"), "headwear")), "Bare head") +
+            picker("arm", "Body armour", byCat("armour").filter(function (i) {
+              const n = i.name.toLowerCase();
+              return n.indexOf("helmet") < 0 && n.indexOf("headwear") < 0;
+            }), "No armour") +
+            picker("bag", "Backpack", nameHas(byCat("storage"), "backpack"), "None") +
+            picker("vest", "Rig", nameHas(byCat("storage"), "tac vest").concat(nameHas(byCat("storage"), "pouch")), "None") +
           "</div>" +
 
           '<div class="vend-panel" data-panel="items" hidden>' +
@@ -277,11 +313,6 @@ module.exports = ctx => {
       "</div></section>" +
 
       '<script>(function(){' +
-      'var AMMO=' + JSON.stringify(byCat("ammunition").map(function (i) {
-        const a = { name: i.name, price: i.price, per: i.per };
-        if (i.icon) a.icon = i.icon;
-        return a;
-      })) + ';' +
       'var CAL=' + JSON.stringify(byCat("weapons").reduce(function (m, w) {
         if (w.calibre) m[w.name] = w.calibre; return m;
       }, {})) + ';' +
@@ -295,70 +326,87 @@ module.exports = ctx => {
         });
         return out;
       }())) + ';' +
-      'var sel=["w","mag","opt","muz","grip","hel","arm","bag","vest"];' +
-      'var extras={};' +
+      'var SLOTS=["w","opt","muz","grip","mag","ammo","hel","arm","bag","vest"];' +
+      'var extras={},chosen={},openSlot=null;' +
       'function el(id){return document.getElementById(id);}' +
-      'function priceOf(id){' +
-      ' var s=el(id),o=s.options[s.selectedIndex];' +
-      ' if(!o||!o.value)return {p:0,unknown:false};' +
-      ' return {p:+o.getAttribute("data-price")||0,unknown:!!o.getAttribute("data-unknown")};}' +
-      'function fillAmmo(){' +
-      ' var w=el("w").value,cal=CAL[w],s=el("ammo"),keep=s.value;' +
-      ' var list=AMMO.filter(function(a){' +
-      '  return a.price!==null&&(!cal||a.name.indexOf(cal)===0);});' +
-      ' if(!list.length)list=AMMO.filter(function(a){return a.price!==null;});' +
-      /* Built with DOM calls rather than an innerHTML string. Option markup needs a quote
-         inside a quote inside a quote by the time it has crossed this file's template
-         literal, and that is exactly the nesting that has shipped broken twice. */
-      ' s.textContent="";' +
-      ' var none=document.createElement("option");' +
-      ' none.value="";none.textContent="None";s.appendChild(none);' +
-      ' list.forEach(function(a){' +
-      '  var o=document.createElement("option");' +
-      '  o.value=a.name;' +
-      '  o.setAttribute("data-price",a.price);' +
-      '  o.setAttribute("data-per",a.per);' +
-      '  if(a.icon)o.setAttribute("data-icon",a.icon);' +
-      '  o.textContent=a.name+" $"+a.price+" / "+a.per;' +
-      '  s.appendChild(o);});' +
-      ' if(keep)s.value=keep;}' +
       'function money(n){return "$"+n.toLocaleString("en-US");}' +
-      /* A slot carries three states at once: the art, the price tag and whether it reads as
-         filled. They are set together so a slot can never show one and not the others. */
-      'function setIcon(id){' +
-      ' var s=el(id),o=s.options[s.selectedIndex],ic=el(id+"-icon");' +
-      ' var slug=o&&o.getAttribute("data-icon");' +
-      ' if(slug){ic.src="/game-icons/"+slug+".png";ic.hidden=false;}' +
-      ' else{ic.hidden=true;ic.removeAttribute("src");}' +
-      ' var tag=el(id+"-tag"),box=el(id+"-slot"),on=!!(o&&o.value);' +
-      ' if(box)box.setAttribute("data-on",on?"1":"0");' +
-      ' if(tag){' +
-      '  if(on&&!o.getAttribute("data-unknown")){' +
-      '   tag.textContent=money(+o.getAttribute("data-price")||0);tag.hidden=false;}' +
-      '  else if(on){tag.textContent="no price";tag.hidden=false;}' +
-      '  else tag.hidden=true;}}' +
+      'function attr(c,a){return c?c.getAttribute(a):null;}' +
+      'function nameOf(id){return chosen[id]?attr(chosen[id],"data-name"):"";}' +
+
+      /* One shelf open at a time. Two open at once and the slots they belong to are off
+         the top of the screen, which is how a picker stops looking like it belongs to
+         anything. */
+      'function closePicker(){' +
+      ' if(!openSlot)return;' +
+      ' var g=el(openSlot+"-grid");if(g)g.hidden=true;' +
+      ' var b=document.querySelector("[data-open="+openSlot+"]");' +
+      ' if(b)b.setAttribute("aria-expanded","false");' +
+      ' openSlot=null;}' +
+      'function openPicker(id){' +
+      ' var was=openSlot;closePicker();' +
+      ' if(was===id)return;' +
+      ' var g=el(id+"-grid");if(!g)return;' +
+      ' g.hidden=false;openSlot=id;' +
+      ' var b=document.querySelector("[data-open="+id+"]");' +
+      ' if(b)b.setAttribute("aria-expanded","true");' +
+      ' var f=g.querySelector(".vcard:not([hidden])");if(f)f.focus();}' +
+
+      /* A slot carries the art, the price tag, the name and whether it reads as filled.
+         They are set together so a slot can never show one and not the others. */
+      'function setSlot(id,card){' +
+      ' var pick=card&&attr(card,"data-name")?card:null;' +
+      ' chosen[id]=pick;' +
+      ' var grid=el(id+"-grid");' +
+      ' if(grid)Array.prototype.forEach.call(grid.querySelectorAll(".vcard"),function(c){' +
+      '  var on=pick?c===pick:c.className.indexOf("vcard-none")>=0;' +
+      '  c.setAttribute("aria-pressed",on?"true":"false");});' +
+      ' var box=el(id+"-slot"),tag=el(id+"-tag"),ic=el(id+"-icon"),nm=el(id+"-name");' +
+      ' box.setAttribute("data-on",pick?"1":"0");' +
+      ' nm.textContent=pick?attr(pick,"data-name"):nm.getAttribute("data-blank");' +
+      ' if(pick){' +
+      '  var slug=attr(pick,"data-icon");' +
+      '  if(slug){ic.src="/game-icons/"+slug+".png";ic.hidden=false;}' +
+      '  else{ic.hidden=true;ic.removeAttribute("src");}' +
+      '  tag.textContent=attr(pick,"data-unknown")?"no price":money(+attr(pick,"data-price")||0);' +
+      '  tag.hidden=false;}' +
+      ' else{ic.hidden=true;ic.removeAttribute("src");tag.hidden=true;}}' +
+
+      /* The shelf only shows rounds the chosen weapon can chamber, which is the filtering
+         the old dropdown did when it was rebuilt on every weapon change. A weapon whose
+         calibre is not in the chart gets the whole shelf rather than an empty one. */
+      'function filterAmmo(){' +
+      ' var grid=el("ammo-grid");if(!grid)return;' +
+      ' var cal=CAL[nameOf("w")],any=false;' +
+      ' var cards=grid.querySelectorAll(".vcard");' +
+      ' Array.prototype.forEach.call(cards,function(c){' +
+      '  if(c.className.indexOf("vcard-none")>=0){c.hidden=false;return;}' +
+      '  var ok=!cal||attr(c,"data-name").indexOf(cal)===0;' +
+      '  c.hidden=!ok;if(ok)any=true;});' +
+      ' if(!any)Array.prototype.forEach.call(cards,function(c){c.hidden=false;});' +
+      ' if(chosen.ammo&&chosen.ammo.hidden)setSlot("ammo",null);}' +
+
       'function ammoCost(){' +
-      ' var s=el("ammo"),o=s.options[s.selectedIndex];' +
-      ' if(!o||!o.value)return {cost:0,rounds:0};' +
-      ' var per=+o.getAttribute("data-per")||1,price=+o.getAttribute("data-price")||0;' +
-      ' var size=MAGSIZE[el("mag").value]||30;' +
+      ' var c=chosen.ammo;if(!c)return{cost:0,rounds:0};' +
+      ' var per=+attr(c,"data-per")||1,price=+attr(c,"data-price")||0;' +
+      ' var size=MAGSIZE[nameOf("mag")]||30;' +
       ' var rounds=size*(+el("mags").value||0);' +
       /* You buy rounds in packs, so a part pack still costs a whole one. */
       ' return {cost:Math.ceil(rounds/per)*price,rounds:rounds};}' +
+
       /* The kit listed back to you, the way the vendor shows what is going in the bag. */
       'function fillPack(){' +
       ' var ul=el("pack");ul.textContent="";var n=0;' +
-      ' sel.concat(["ammo"]).forEach(function(id){' +
-      '  var s=el(id),o=s.options[s.selectedIndex];' +
-      '  if(!o||!o.value)return;' +
+      ' SLOTS.forEach(function(id){' +
+      '  var c=chosen[id];if(!c)return;' +
       '  n++;' +
       '  var li=document.createElement("li");' +
-      '  var slug=o.getAttribute("data-icon");' +
+      '  var slug=attr(c,"data-icon");' +
       '  if(slug){var im=document.createElement("img");im.src="/game-icons/"+slug+".png";' +
       '   im.alt="";im.width=26;im.height=26;li.appendChild(im);}' +
-      '  var nm=document.createElement("span");nm.textContent=o.value;li.appendChild(nm);' +
+      '  var nm=document.createElement("span");nm.textContent=attr(c,"data-name");' +
+      '  li.appendChild(nm);' +
       '  var pr=document.createElement("b");' +
-      '  pr.textContent=o.getAttribute("data-unknown")?"?":money(+o.getAttribute("data-price")||0);' +
+      '  pr.textContent=attr(c,"data-unknown")?"?":money(+attr(c,"data-price")||0);' +
       '  li.appendChild(pr);ul.appendChild(li);});' +
       ' Object.keys(extras).forEach(function(k){' +
       '  n++;' +
@@ -371,15 +419,17 @@ module.exports = ctx => {
       '  var pr=document.createElement("b");pr.textContent=money(extras[k]);' +
       '  li.appendChild(pr);ul.appendChild(li);});' +
       ' el("packcount").textContent=n?n+(n>1?" items":" item"):"Empty";}' +
+
       'function render(){' +
       ' var total=0,unknown=0,parts=[];' +
-      ' sel.forEach(function(id){var r=priceOf(id);total+=r.p;if(r.unknown)unknown++;});' +
+      ' SLOTS.forEach(function(id){' +
+      '  if(id==="ammo")return;' +
+      '  var c=chosen[id];if(!c)return;' +
+      '  total+=+attr(c,"data-price")||0;if(attr(c,"data-unknown"))unknown++;});' +
       ' var a=ammoCost();total+=a.cost;' +
       ' Object.keys(extras).forEach(function(k){total+=extras[k];});' +
       ' el("total").textContent=money(total);' +
-      ' el("ready").textContent=a.rounds' +
-      '  ?a.rounds+" rounds loaded, "+money(a.cost)' +
-      '  :"Nothing loaded";' +
+      ' el("ready").textContent=a.rounds?a.rounds+" rounds loaded, "+money(a.cost):"Nothing loaded";' +
       ' el("ready").setAttribute("data-on",a.rounds?"1":"0");' +
       ' if(a.rounds)parts.push(a.rounds+" rounds for "+money(a.cost));' +
       ' var ne=Object.keys(extras).length;' +
@@ -389,27 +439,39 @@ module.exports = ctx => {
       '  unknown+" item"+(unknown>1?"s have":" has")+" no confirmed price yet and counts as zero."' +
       '  :"";' +
       ' fillPack();}' +
-      'sel.forEach(function(id){el(id).addEventListener("change",function(){' +
-      ' if(id==="w"){fillAmmo();setIcon("ammo");}setIcon(id);render();});});' +
-      'el("ammo").addEventListener("change",function(){setIcon("ammo");render();});' +
+
+      /* One listener for the whole vendor. Every control says what it is in an attribute,
+         so adding a slot or an item is markup and nothing here has to learn about it. */
+      'document.addEventListener("click",function(e){' +
+      ' var t=e.target;if(!t||!t.closest)return;' +
+      ' var o=t.closest("[data-open]");' +
+      ' if(o){openPicker(o.getAttribute("data-open"));return;}' +
+      ' if(t.closest("[data-close]")){closePicker();return;}' +
+      ' var p=t.closest("[data-pick]");' +
+      ' if(p){var id=p.getAttribute("data-pick");' +
+      '  setSlot(id,p);if(id==="w")filterAmmo();' +
+      '  closePicker();render();return;}' +
+      ' var x=t.closest("[data-extra]");' +
+      ' if(x){var k=x.getAttribute("data-extra");' +
+      '  if(extras[k]!==undefined){delete extras[k];x.setAttribute("aria-pressed","false");}' +
+      '  else{extras[k]=+x.getAttribute("data-price");x.setAttribute("aria-pressed","true");}' +
+      '  render();return;}' +
+      ' var m=t.closest("[data-mags]");' +
+      ' if(m){var i=el("mags");' +
+      '  i.value=Math.max(0,Math.min(20,(+i.value||0)+(+m.getAttribute("data-mags"))));' +
+      '  render();return;}' +
+      ' var tab=t.closest(".vend-tab");' +
+      ' if(tab){var want=tab.getAttribute("data-tab");closePicker();' +
+      '  Array.prototype.forEach.call(document.querySelectorAll(".vend-tab"),function(b){' +
+      '   b.setAttribute("aria-selected",b===tab?"true":"false");});' +
+      '  Array.prototype.forEach.call(document.querySelectorAll("[data-panel]"),function(pn){' +
+      '   pn.hidden=pn.getAttribute("data-panel")!==want;});}});' +
+      'document.addEventListener("keydown",function(e){' +
+      ' if(e.key==="Escape"&&openSlot){var b=document.querySelector("[data-open="+openSlot+"]");' +
+      '  closePicker();if(b)b.focus();}});' +
       'el("mags").addEventListener("input",render);' +
-      'Array.prototype.forEach.call(document.querySelectorAll("[data-extra]"),function(b){' +
-      ' b.addEventListener("click",function(){' +
-      '  var k=b.getAttribute("data-extra");' +
-      '  if(extras[k]!==undefined){delete extras[k];b.setAttribute("aria-pressed","false");}' +
-      '  else{extras[k]=+b.getAttribute("data-price");b.setAttribute("aria-pressed","true");}' +
-      '  render();});});' +
-      /* The vendor's tabs. Every panel is in the page already, so the content is there for
-         a reader with no script and for anything indexing it; the tabs only choose which
-         one is on screen. */
-      'Array.prototype.forEach.call(document.querySelectorAll(".vend-tab"),function(t){' +
-      ' t.addEventListener("click",function(){' +
-      '  var want=t.getAttribute("data-tab");' +
-      '  Array.prototype.forEach.call(document.querySelectorAll(".vend-tab"),function(o){' +
-      '   o.setAttribute("aria-selected",o===t?"true":"false");});' +
-      '  Array.prototype.forEach.call(document.querySelectorAll("[data-panel]"),function(p){' +
-      '   p.hidden=p.getAttribute("data-panel")!==want;});});});' +
-      'fillAmmo();sel.concat(["ammo"]).forEach(setIcon);render();' +
+      'SLOTS.forEach(function(id){setSlot(id,null);});' +
+      'filterAmmo();render();' +
       '}());<\/script>',
   }));
 
