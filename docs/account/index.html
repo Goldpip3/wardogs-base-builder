@@ -18,14 +18,17 @@
 <meta name="twitter:image" content="https://www.wardogsbuilder.com/preview.png">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%2312140d'/><rect x='6' y='14' width='20' height='12' rx='2' fill='%23dcaa26'/><rect x='11' y='8' width='10' height='7' rx='2' fill='%2386ad55'/></svg>">
 <style>
-/* Design language lifted from bulkhead.com/games/wardogs: #0c0c0c ground, #fff7ea
-   cream, Inter Black for display, Barlow for everything else, and square corners on
-   absolutely everything.
-   The accent is ours rather than theirs. Their #c00b0b measures 3.07 on this ground,
-   under AA, so it never worked as the colour that carries a number. Yellow does that
-   job at 12.43 and matches the game's own sunset key art. Red keeps what it earns:
-   the two nav outlines, and anything that means danger. */
-@font-face{font-family:Inter;src:url(/fonts/inter-900.woff2)format("woff2");font-weight:900;font-display:swap}
+/* Ground, cream and Barlow are lifted from bulkhead.com/games/wardogs, along with
+   square corners on absolutely everything. Two things here are ours.
+   The accent: their #c00b0b measures 3.07 on this ground, under AA, so it never
+   worked as the colour that carries a number. Yellow does that job at 12.43 and
+   matches the game's own sunset key art. Red keeps what it earns: the two nav
+   outlines, and anything that means danger.
+   The display face: bulkhead.com sets headings in Inter, but the game's own wordmark
+   is squared, flat-apexed and wide, and Inter is none of those. Chakra Petch is the
+   closest open face to the logo's character. It is not the logo, which is drawn
+   lettering, so the ceiling here is close rather than same. */
+@font-face{font-family:"Chakra Petch";src:url(/fonts/chakrapetch-700.woff2)format("woff2");font-weight:700;font-display:swap}
 @font-face{font-family:Barlow;src:url(/fonts/barlow-400.woff2)format("woff2");font-weight:400;font-display:swap}
 @font-face{font-family:Barlow;src:url(/fonts/barlow-600.woff2)format("woff2");font-weight:600;font-display:swap}
 
@@ -37,7 +40,7 @@
      Contrast on --bg, measured: 16.2, 13.6, 12.4, 8.7, 5.1, 1.2. */
   --y-100:#ffe9a3;--y-300:#ffd23f;--yellow:#ffc61a;--y-600:#d9a521;--y-700:#a87a14;--y-950:#2a2210;
   --red:#c00b0b;--red-hot:#f30000;--good:#86ad55;--bad:#d4553a;
-  --display:Inter,"Arial Black",system-ui,sans-serif;
+  --display:"Chakra Petch","Arial Narrow",system-ui,sans-serif;
   --ui:Barlow,"Segoe UI",system-ui,-apple-system,sans-serif;
   --num:"Cascadia Mono",Consolas,ui-monospace,monospace;
 }
@@ -48,13 +51,15 @@ a{color:var(--text);text-decoration:none}
 a:hover{color:var(--yellow)}
 .wrap{max-width:1180px;margin:0 auto;padding:0 28px}
 
-/* --- display type: huge, black weight, tight, always uppercase --- */
-h1,h2.display{font-family:var(--display);font-weight:900;text-transform:uppercase;
-  letter-spacing:-.03em;line-height:.92;text-wrap:balance}
+/* --- display type: huge, squared, always uppercase ---
+   Chakra Petch tops out at 700, and its squared bowls already sit tight, so the negative
+   tracking that Inter Black needed would close the counters up here. Zero, not minus. */
+h1,h2.display{font-family:var(--display);font-weight:700;text-transform:uppercase;
+  letter-spacing:0;line-height:.95;text-wrap:balance}
 h1{font-size:clamp(38px,7vw,84px);margin:0 0 18px}
 h2{font-family:var(--ui);font-weight:400;text-transform:uppercase;letter-spacing:.08em;
   font-size:clamp(24px,3vw,38px);margin:0 0 16px;text-wrap:balance}
-h2.display{font-size:clamp(30px,5vw,56px);letter-spacing:-.025em}
+h2.display{font-size:clamp(30px,5vw,56px);letter-spacing:0}
 h3{font-family:var(--ui);font-weight:600;text-transform:uppercase;letter-spacing:.1em;
   font-size:14px;margin:0 0 8px}
 p,li{color:var(--dim2)}
@@ -67,7 +72,7 @@ p,li{color:var(--dim2)}
 header.site{border-bottom:1px solid var(--line);background:rgba(12,12,12,.92);
   backdrop-filter:blur(8px);position:sticky;top:0;z-index:20}
 header.site .wrap{display:flex;align-items:center;gap:28px;min-height:74px}
-.brand{font-family:var(--display);font-weight:900;letter-spacing:-.02em;font-size:22px;
+.brand{font-family:var(--display);font-weight:700;letter-spacing:.01em;font-size:22px;
   text-transform:uppercase;line-height:1;display:flex;align-items:baseline;gap:8px}
 .brand span{font-family:var(--ui);font-weight:600;font-size:10px;letter-spacing:.18em;
   color:var(--dim);text-transform:uppercase}
@@ -130,8 +135,8 @@ section+section{border-top:1px solid var(--line)}
   grid-template-columns:repeat(auto-fill,minmax(270px,1fr))}
 .card{background:var(--panel);padding:24px;display:block;position:relative;transition:background .15s}
 .card:hover{background:var(--panel2);color:var(--text)}
-.card h3{color:var(--text);font-family:var(--display);font-weight:900;font-size:19px;
-  letter-spacing:-.01em;text-transform:uppercase;margin-bottom:8px}
+.card h3{color:var(--text);font-family:var(--display);font-weight:700;font-size:19px;
+  letter-spacing:0;text-transform:uppercase;margin-bottom:8px}
 .card p{font-size:14px;color:var(--dim);line-height:1.5}
 .card .stats{display:flex;gap:18px;margin-top:18px;font-family:var(--num);font-size:12px;
   color:var(--text);font-variant-numeric:tabular-nums;flex-wrap:wrap}
@@ -168,7 +173,7 @@ section+section{border-top:1px solid var(--line)}
    reads as a list ending, where an unfilled panel grid reads as a hole. --- */
 .features{display:grid;grid-template-columns:1fr;column-gap:44px;margin-top:20px}
 .features > *{display:block;border-top:1px solid var(--line2);padding:20px 0 22px}
-.features h3{font-family:var(--display);font-weight:900;font-size:18px;letter-spacing:-.01em;
+.features h3{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:0;
   text-transform:uppercase;margin-bottom:9px}
 .features p{font-size:14px;color:var(--dim);line-height:1.55;max-width:40ch}
 .features a:hover{color:var(--yellow)}
@@ -190,8 +195,8 @@ tbody tr:hover td{background:var(--panel)}
 .statbar{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);
   grid-template-columns:repeat(auto-fit,minmax(140px,1fr));margin:26px 0}
 .statbar div{background:var(--panel);padding:20px}
-.statbar b{display:block;font-family:var(--display);font-weight:900;font-size:30px;color:var(--text);
-  font-variant-numeric:tabular-nums;line-height:1;letter-spacing:-.02em}
+.statbar b{display:block;font-family:var(--display);font-weight:700;font-size:30px;color:var(--text);
+  font-variant-numeric:tabular-nums;line-height:1;letter-spacing:0}
 .statbar span{font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;
   color:var(--dim);margin-top:8px;display:block}
 
@@ -201,7 +206,7 @@ tbody tr:hover td{background:var(--panel)}
 
 /* --- empty / coming-soon states --- */
 .empty{border:1px dashed var(--line2);padding:clamp(32px,5vw,56px);text-align:center}
-.empty h3{font-family:var(--display);font-weight:900;font-size:22px;letter-spacing:-.01em;
+.empty h3{font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:0;
   color:var(--text);margin-bottom:10px}
 .empty p{max-width:52ch;margin:0 auto 22px}
 .wip{display:inline-block;font-weight:600;font-size:10px;letter-spacing:.16em;text-transform:uppercase;
@@ -273,7 +278,7 @@ th.sortable[data-dir="desc"]::after{content:"↓";opacity:1;color:var(--yellow)}
   grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
 .cat-card{background:var(--panel);padding:18px;display:flex;gap:14px;align-items:flex-start}
 .cat-card img{width:52px;height:52px;object-fit:contain;flex:0 0 auto}
-.cat-card h3{font-family:var(--display);font-weight:900;font-size:15px;letter-spacing:-.01em;
+.cat-card h3{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:0;
   text-transform:uppercase;color:var(--text);margin-bottom:6px}
 .cat-card .facts{font-family:var(--num);font-size:12px;color:var(--text);
   font-variant-numeric:tabular-nums}
@@ -348,8 +353,8 @@ svg.body .bz[data-on="1"]{stroke:var(--text);stroke-width:2.5}
 .calc-out .hero{border-bottom:1px solid var(--line);padding:0 0 12px;margin:0 0 12px}
 .calc-out .hero:nth-child(2),.calc-out .hero:nth-child(3){display:inline-block;width:48%;
   vertical-align:top;border-bottom:0}
-.calc-out .hero b{display:block;font-family:var(--display);font-weight:900;font-size:40px;
-  line-height:1;letter-spacing:-.02em;color:var(--text);font-variant-numeric:tabular-nums}
+.calc-out .hero b{display:block;font-family:var(--display);font-weight:700;font-size:40px;
+  line-height:1;letter-spacing:0;color:var(--text);font-variant-numeric:tabular-nums}
 .calc-out .hero:nth-child(2) b,.calc-out .hero:nth-child(3) b{font-size:26px}
 .calc-out .hero span{display:block;font-size:10px;font-weight:600;letter-spacing:.16em;
   text-transform:uppercase;color:var(--dim);margin-top:7px}
@@ -445,6 +450,18 @@ ul,ol{padding-left:22px}li{margin:6px 0}
 .amap-ad .ad-slot{margin:14px 0 0}
 /* the panel is narrow and the dial note is a sentence, so the table has to wrap inside it
    rather than push a scrollbar under the whole sidebar */
+/* Hover, tap or tab a label in the solution and it explains its own number. The column is
+   290px and clips horizontally, so the panel is narrower than that and hangs off the left
+   edge of the label rather than being centred on it. :focus-within carries the tap on a
+   phone, where there is no hover to have. */
+.amap-why{position:relative;cursor:help;border-bottom:1px dotted var(--line2)}
+.amap-why:hover,.amap-why:focus{color:var(--text);outline:none}
+.amap-tip{display:none;position:absolute;left:0;top:calc(100% + 7px);z-index:30;width:236px;
+  padding:10px 11px;background:var(--panel);border:1px solid var(--line2);color:var(--dim);
+  font-family:var(--ui);font-size:11px;line-height:1.55;text-transform:none;
+  letter-spacing:0;font-weight:400;box-shadow:0 10px 26px rgba(0,0,0,.55)}
+.amap-why:hover .amap-tip,.amap-why:focus .amap-tip,.amap-why:focus-within .amap-tip{
+  display:block}
 .amap-sol table{width:100%;table-layout:fixed}
 .amap-sol td{white-space:normal;word-break:break-word;padding:6px 0;vertical-align:top}
 .amap-sol td:first-child{width:38%;color:var(--dim)}

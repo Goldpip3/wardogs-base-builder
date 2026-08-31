@@ -22,17 +22,19 @@ Get-ChildItem "$proj\assets\icons\*" -Include *.webp, *.svg, *.png | ForEach-Obj
 $iconsJson = ($iconMap.GetEnumerator() | Sort-Object Name | ForEach-Object { '"{0}":"{1}"' -f $_.Key, $_.Value }) -join ","
 
 # The site loads these fonts as files, but the planner has to work with no network at
-# all, so they are baked in as data URIs. Latin subsets, ~26 KB for all three.
+# all, so they are baked in as data URIs. Latin subsets, ~25 KB for all three.
 $faces = @(
-  @{ file = "inter-900.woff2";  family = "Inter";  weight = 900 },
-  @{ file = "barlow-400.woff2"; family = "Barlow"; weight = 400 },
-  @{ file = "barlow-600.woff2"; family = "Barlow"; weight = 600 }
+  @{ file = "chakrapetch-700.woff2"; family = "Chakra Petch"; weight = 700 },
+  @{ file = "barlow-400.woff2";      family = "Barlow";       weight = 400 },
+  @{ file = "barlow-600.woff2";      family = "Barlow";       weight = 600 }
 )
 $fontCss = ($faces | ForEach-Object {
   $p = "$proj\assets\fonts\$($_.file)"
   if (Test-Path $p) {
     $b64 = [Convert]::ToBase64String([IO.File]::ReadAllBytes($p))
-    "@font-face{font-family:$($_.family);src:url(data:font/woff2;base64,$b64)format('woff2');font-weight:$($_.weight);font-display:swap}"
+    # The family name is quoted: "Chakra Petch" has a space in it, and an unquoted
+    # multi-word family is invalid CSS that browsers drop silently.
+    "@font-face{font-family:`"$($_.family)`";src:url(data:font/woff2;base64,$b64)format('woff2');font-weight:$($_.weight);font-display:swap}"
   }
 }) -join "`n  "
 

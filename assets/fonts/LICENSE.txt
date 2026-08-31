@@ -1,11 +1,14 @@
-Inter and Barlow are used under the SIL Open Font License 1.1.
+Chakra Petch and Barlow are used under the SIL Open Font License 1.1.
 
-  Inter    - Copyright (c) 2016 The Inter Project Authors
-             https://github.com/rsms/inter
-  Barlow   - Copyright 2017 The Barlow Project Authors
-             https://github.com/jpt/barlow
+  Chakra Petch - Copyright (c) 2019 Cadson Demak
+                 https://github.com/cadsondemak/Chakra-Petch
+  Barlow       - Copyright 2017 The Barlow Project Authors
+                 https://github.com/jpt/barlow
 
 Full licence: https://scripts.sil.org/OFL
 
 These are Latin-subset woff2 files, embedded as base64 in the planner so it keeps
 working with no network. The site pages load the same files from /fonts/.
+
+Inter was the display face until 2026-08-31 and was dropped when the display face
+became Chakra Petch. Nothing loads inter-900.woff2 any more.
