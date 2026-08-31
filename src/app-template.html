@@ -669,6 +669,22 @@ const ROLE_LABEL = {
   antivehicle:"Anti-vehicle",
   denial:"Area denial", support:"Support & logistics", objective:"Objective", fob:"FOB"
 };
+/* A fault and a way in are different things, and they were drawn 5.5 apart in Lab, which
+   is close enough that nobody could tell them apart on a plan. A fault is now the danger
+   colour, which is what it always meant, and the two ways in own a warm pair of their own:
+   34.9 from the fault and 33.5 from each other.
+
+   One pair stays close and is worth knowing about: the vehicle dash is 13.9 from the hesco
+   gold it is usually drawn on, which is the commonest case there is. It was already that
+   before any of this and is not made worse by it, but it is the next thing to fix here, and
+   the 21 this comment used to claim was not measured against the palette as it now stands.
+
+   They live here rather than as literals at each call site because they were literals at
+   each call site, and the legend under the plan had already drifted off them: the foot
+   count was drawn in --danger and the vehicle count in --accent, so neither number matched
+   the dash sitting next to it. One constant each, canvas and legend both. */
+const ISSUE_COLOR = "#f30000";                              // same value as --danger
+const CLIMB_COLOR = { foot: "#ff7a1a", vehicle: "#e2a33a" };
 const pieceColor = SHARED.pieceColor;
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
@@ -1349,7 +1365,7 @@ function draw3DNow() {
        the shape. */
     const mask = keepWhole ? 0 : ((seams.get(b.p.id) || {}).mask || 0);
     ctx.lineWidth = keepWhole ? 2 : 1;
-    ctx.strokeStyle = bad ? "#f04a2e" : sel ? "#fff7ea" : shade(base, -74);
+    ctx.strokeStyle = bad ? ISSUE_COLOR : sel ? "#fff7ea" : shade(base, -74);
     ctx.beginPath();
     f.sides.forEach(sd => {
       if (keepWhole) { traceFace(sd.quad); return; }
@@ -1369,7 +1385,7 @@ function draw3DNow() {
     // the same climb marking the plan uses, so the two views cannot disagree
     const how = climb.get(b.p.id);
     if (how === "foot" || how === "vehicle") {
-      ctx.strokeStyle = how === "foot" ? "#f0503a" : "#e2a33a";
+      ctx.strokeStyle = CLIMB_COLOR[how === "foot" ? "foot" : "vehicle"];
       ctx.lineWidth = 2; ctx.setLineDash([5, 4]);
       ctx.beginPath();
       const TOP_EDGE_BIT2 = [8, 1, 4, 2];
@@ -1698,7 +1714,7 @@ function drawRect(r, def, opt) {
   /* Each storey is a clear step lighter than the one under it. The old ramp moved ten
      points and stopped at the third storey, so L3, L4 and L5 all came out the same. */
   ctx.fillStyle = shade(base, -62 + 13 * Math.min(opt.level || 0, 5));
-  ctx.strokeStyle = opt.issue ? "#f04a2e" : (opt.selected ? "#ffc61a" : (opt.hovered ? "#fff7ea"
+  ctx.strokeStyle = opt.issue ? ISSUE_COLOR : (opt.selected ? "#ffc61a" : (opt.hovered ? "#fff7ea"
     : (opt.onThisLevel === false ? shade(base, -20) : base)));
   ctx.lineWidth = (opt.selected || opt.issue ? 2.5 : 1.6) * uiScale;
   const seams = localSeams(opt.seams || 0, r.rot);
@@ -1734,7 +1750,7 @@ function drawRect(r, def, opt) {
   if (!opt.ghost && (opt.climb === "foot" || opt.climb === "vehicle") && Math.min(w, h) > 6) {
     const seams = localSeams(opt.seams || 0, r.rot);
     const inset = Math.max(2, Math.min(4, z * 0.09)) * uiScale;
-    ctx.strokeStyle = opt.climb === "foot" ? "#f0503a" : "#e2a33a";
+    ctx.strokeStyle = CLIMB_COLOR[opt.climb === "foot" ? "foot" : "vehicle"];
     ctx.lineWidth = 1.8 * uiScale;
     ctx.setLineDash([5 * uiScale, 4 * uiScale]);
     const l = -w/2 + inset, rr = w/2 - inset, tp = -h/2 + inset, bt = h/2 - inset;
@@ -2445,9 +2461,9 @@ function updateRightPanel() {
     `<span>${inner}</span><span class="jump-go">Show me</span></div>`;
   const climbParts = [];
   if (vaultable) climbParts.push(walk("foot",
-    `${dash("#f0503a")}<span style="color:var(--danger)">${vaultable}</span> section${vaultable>1?"s":""} vaultable on foot`));
+    `${dash(CLIMB_COLOR.foot)}<span style="color:${CLIMB_COLOR.foot}">${vaultable}</span> section${vaultable>1?"s":""} vaultable on foot`));
   if (truckable) climbParts.push(walk("vehicle",
-    `${dash("#e2a33a")}<span style="color:var(--accent)">${truckable}</span> section${truckable>1?"s":""} a vehicle gets you over`));
+    `${dash(CLIMB_COLOR.vehicle)}<span style="color:${CLIMB_COLOR.vehicle}">${truckable}</span> section${truckable>1?"s":""} a vehicle gets you over`));
   if (secure) climbParts.push(
     `<div><span style="color:var(--accent2)">${secure}</span> section${secure>1?"s":""} secure</div>`);
   climbEl.innerHTML = !climbParts.length
