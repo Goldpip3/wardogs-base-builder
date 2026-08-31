@@ -101,6 +101,11 @@ elseif (Test-Path "$proj\docs\CNAME") { Remove-Item "$proj\docs\CNAME" -Force }
 New-Item -ItemType Directory -Force "$proj\docs\fonts" | Out-Null
 Copy-Item "$proj\assets\fonts\*.woff2" "$proj\docs\fonts\" -Force
 
+# The front page hero loop. The site only, never the planner: the downloadable planner has
+# to work with no network at all, so it gets no video and no poster.
+New-Item -ItemType Directory -Force "$proj\docs\video" | Out-Null
+Copy-Item "$proj\assets\video\*" "$proj\docs\video\" -Force
+
 node (Join-Path $proj "tools/build-site.js")
 # Without this the site generator can throw, leave yesterday's pages on disk, and the
 # checks below still pass because they are inspecting stale output.

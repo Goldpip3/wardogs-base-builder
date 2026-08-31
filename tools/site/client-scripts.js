@@ -255,7 +255,10 @@ if(list){
     if(!ds.length) return;                       // keep whatever static state is there
     allDesigns=ds;
     var tabs=document.createElement("div");
-    tabs.className="chips";
+    /* "sorts" so these three sit at the width of three words. The plain chips row is a
+       filter bar built to span its column next to a search box, and three tabs wearing it
+       drew a grey band most of the way across the page with nothing in it. */
+    tabs.className="chips sorts";
     tabs.style.margin="0 0 18px";
     tabs.innerHTML=["hot","new","top"].map(function(k){
       return '<button class="chip" data-sort="'+k+'" aria-pressed="'+(k==="hot")+'">'+

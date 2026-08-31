@@ -26,33 +26,19 @@ write("designs/index.html", page({
   </div>
 
   ${VOTE_API ? `
+  <!-- This used to be a form: copy a link out of the planner, come back here, paste it,
+       type the name again. The planner has a Submit button now, which knows the design and
+       the name already, so the form asked for things it would have had to be told twice.
+       What is left is the one instruction and the way there. The line about submissions
+       being read first came off with it: it had stopped being true when the queue was
+       removed, and a page promising a review nobody performs is worse than a plain one. -->
   <h2 class="display" style="margin-top:60px">Submit a build</h2>
-  <p class="lede" style="font-size:17px">Paste the link from <strong>Share</strong> in the
-  planner. The whole design travels inside it, so there is no file to upload.</p>
-  <form class="form" id="submitForm">
-    <div class="field">
-      <label for="sCode">Share link</label>
-      <input id="sCode" required placeholder="https://www.wardogsbuilder.com/planner/#d=...">
-      <div class="hint">Open your design, hit Share, copy the link, paste it here.</div>
-    </div>
-    <div class="field">
-      <label for="sName">Name it</label>
-      <input id="sName" required maxlength="60" placeholder="Anti-climb perimeter">
-    </div>
-    <div class="field">
-      <label for="sAuthor">Your name</label>
-      <input id="sAuthor" maxlength="32" placeholder="anonymous">
-    </div>
-    <div class="field">
-      <label for="sNote">What is it for</label>
-      <textarea id="sNote" maxlength="300" placeholder="One or two lines on what it is good at."></textarea>
-    </div>
-    <div><button class="btn primary" type="submit">Submit</button></div>
-    <div class="msg" id="submitMsg" style="display:none"></div>
-  </form>
-  <p style="font-size:13px;color:var(--dim);margin-top:20px">
-  Submissions are read before they go up, which usually takes a few hours. Nothing is
-  published automatically.</p>` : `
+  <p class="lede" style="font-size:17px">From the planner, not from here. Open your design,
+  sign in, and press <strong>&#9733; Submit for voting</strong>. It goes up straight away,
+  and you can take it down again whenever you like.</p>
+  <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:28px">
+    <a class="btn primary" href="/planner/">Open the planner</a>
+  </div>` : `
   <div class="note" style="margin-top:40px"><strong>Submissions are briefly closed.</strong>
   The service that stores designs is not answering, so the form is hidden rather than
   taking builds it would drop. Try again shortly.</div>`}

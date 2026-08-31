@@ -11,7 +11,14 @@ write("index.html", page({
   desc: "Free WARDOGS base planner and reference. Lay out walls, gates and gun pits and see the Build Supply cost, then look up artillery firing solutions, round penetration and damage, vendor prices, loadouts and vehicles.",
   canonical: "/",
   body: `${FORWARD_SHARED}
-<section class="hero"><div class="wrap">
+<section class="hero has-video">
+  <video class="hero-video" autoplay muted loop playsinline preload="metadata"
+    poster="/video/wardogs-hero-poster.jpg" aria-hidden="true" tabindex="-1">
+    <source src="/video/wardogs-hero.webm" type="video/webm">
+    <source src="/video/wardogs-hero.mp4" type="video/mp4">
+  </video>
+  <div class="hero-scrim"></div>
+  <div class="wrap">
   <h1>Plan the FOB,<br>then look up the numbers</h1>
   <p class="lede">A fan-made planner and reference for WARDOGS. The base builder is the part
   being worked on now: lay the whole FOB out first, down to the last hesco block, and you get

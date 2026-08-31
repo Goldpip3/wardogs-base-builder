@@ -90,6 +90,27 @@ nav.site a.cta:hover{background:var(--red);border-color:var(--red);color:#fff}
 .hero .actions{display:flex;gap:14px;margin-top:32px;flex-wrap:wrap}
 .hero-rule{height:1px;background:linear-gradient(90deg,var(--red),transparent);margin-top:40px}
 
+/* --- the hero loop ---
+   Gameplay behind the headline. The poster is a background on the section rather than only
+   the video's own poster attribute, so the still is what shows wherever the video does not
+   play: reduced motion, a narrow screen, a browser that refuses to autoplay. The scrim is
+   two gradients, heaviest on the left where the text sits and along the top edge, which is
+   where the recording carries its money counter. Text keeps its contrast against the scrim,
+   not against whatever frame happens to be under it. --- */
+.hero.has-video{background:var(--bg) url(/video/wardogs-hero-poster.jpg) center/cover no-repeat}
+.hero .hero-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  z-index:0;pointer-events:none;border:0;
+  /* Knocked back in the pixels rather than only under the scrim. Full-saturation gameplay
+     next to the cream and the yellow makes both look like a different site. */
+  filter:saturate(.62) contrast(1.06) brightness(.68)}
+.hero .hero-scrim{position:absolute;inset:0;z-index:1;pointer-events:none;background:
+  linear-gradient(90deg,rgba(12,12,12,.96) 0%,rgba(12,12,12,.84) 42%,rgba(12,12,12,.34) 72%,rgba(12,12,12,.58) 100%),
+  linear-gradient(180deg,rgba(12,12,12,.72) 0%,rgba(12,12,12,0) 26%,rgba(12,12,12,0) 58%,var(--bg) 100%)}
+.hero.has-video .wrap{position:relative;z-index:2}
+/* No motion, and no 2.5 MB on a phone: the poster carries the page on its own. */
+@media(prefers-reduced-motion:reduce){.hero .hero-video{display:none}}
+@media(max-width:760px){.hero .hero-video{display:none}}
+
 section{padding:clamp(44px,6vw,76px) 0}
 section+section{border-top:1px solid var(--line)}
 .section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;
@@ -113,8 +134,26 @@ section+section{border-top:1px solid var(--line)}
    size none of those can be read, and each one turns something you take in at a glance into
    something you have to study. The canvas sits on a darker ground than the card so a plan
    reads as a plan rather than as a graphic bleeding off the panel. --- */
-.card .thumb{display:block;height:150px;margin:-24px -24px 18px;
+/* 190 rather than 150: most bases are nearer square than the card is, so a shorter
+   strip letterboxed them into a band with black either side. */
+.card .thumb{display:block;height:190px;margin:-24px -24px 18px;
   width:calc(100% + 48px);background:var(--bg);border-bottom:1px solid var(--line)}
+
+/* --- the community list is not a table ---
+   The shared grid draws its hairlines by showing its own background through a 1px gap, which
+   is right for a dense table of buildables where every cell is filled. A list of designs is
+   rarely a full rectangle, and with one design in it that trick drew a large grey panel
+   beside the card: an empty cell reading as a missing thing rather than as space. Here the
+   cards carry their own edges and the gaps are just the page. --- */
+/* Rows rather than a fixed set of columns, so what is there is centred instead of being
+   left hanging against the left edge with the rest of the row empty. A grid always draws its
+   full width of tracks, which with one design meant one card and three columns of nothing.
+   A max width keeps that single card from growing into a poster. */
+#designList .grid{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;
+  gap:16px;background:none;border:0}
+#designList .grid > *{flex:1 1 280px;max-width:380px;min-width:0}
+#designList .grid > *{border:1px solid var(--line)}
+#designList .card{border:0}
 
 /* --- feature list: prose in columns rather than panels. A row that does not fill
    reads as a list ending, where an unfilled panel grid reads as a hole. --- */
@@ -201,6 +240,11 @@ details.design summary::-webkit-details-marker{display:none}
 /* --- catalogue: chips, search, grid and table --- */
 .cat-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:28px 0 6px}
 .chips{display:flex;flex-wrap:wrap;gap:1px;background:var(--line);border:1px solid var(--line)}
+/* A filter bar spans its column because it sits next to a search box that wants the rest of
+   the width. Three sort tabs have nothing to sit next to, so a full width band left a grey
+   stripe across the page with three words at one end of it. These are the width of what is
+   in them. */
+.chips.sorts{display:inline-flex;flex-wrap:nowrap;width:auto}
 .chip{background:var(--panel);color:var(--dim2);border:0;cursor:pointer;font-family:var(--ui);
   font-weight:600;font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:9px 13px}
 .chip:hover{background:var(--panel2);color:var(--text)}
@@ -349,7 +393,10 @@ tr[data-on="1"] td{background:var(--panel2);color:var(--text)}
 ul,ol{padding-left:22px}li{margin:6px 0}
 @media(max-width:760px){
   header.site .wrap{flex-wrap:wrap;padding-top:14px;padding-bottom:14px;gap:14px}
-  nav.site{margin-left:0;gap:18px;width:100%;flex-wrap:wrap}
+  /* flex:none matters: flex-basis:0 from the desktop rule beats width:100% inside a flex
+     row, which left the nav as a tall column beside the brand instead of a wrapped block
+     under it. */
+  nav.site{flex:none;margin-left:0;gap:18px;width:100%;flex-wrap:wrap}
   .nav-gap{display:none}
   .grid{grid-template-columns:1fr}
 }

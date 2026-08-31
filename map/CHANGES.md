@@ -8,6 +8,33 @@ Newest first. One entry per decision, not per commit.
 
 ## 2026-08-31
 
+### The designs page stops spending space on nothing
+
+Three things on one page, all of them the same mistake in different clothes: a layout built
+for a full rectangle, used for a list that is usually not one.
+
+The sort tabs wore the filter bar's styling. That bar spans its column because on the armory
+and buildables pages it sits next to a search box which wants the rest of the width. Three
+tabs have nothing to sit next to, so it drew a grey band most of the way across the page
+with three words at one end. `.chips.sorts` is the width of what is in it.
+
+The card grid drew its hairlines by showing its own background through a one pixel gap,
+which is right for a dense table where every cell is filled and wrong for a list of designs.
+With one design in it, the empty track beside the card rendered as a large grey panel: an
+empty cell reading as a missing thing rather than as space. The list is rows now, centred,
+with the cards carrying their own edges, so one design sits in the middle of the page and
+four fill a row and centre what is left over.
+
+And the submit form was the old way of doing it. The planner has a Submit button that knows
+the design and its name already, so the form asked for a share link, a name and an author it
+would have had to be told twice. It is one instruction and a way to the planner now. The
+line under it promising that "submissions are read before they go up" came off with it: that
+stopped being true when the queue was removed, and a page promising a review nobody performs
+is worse than a page that promises nothing.
+
+The thumbnail also grew from 150px to 190px. Most bases are nearer square than a card is, so
+the shorter strip letterboxed them into a band with black either side.
+
 ### The community list shows the base, and one decoder now serves both sides
 
 A list of names told you nothing about the thing you were choosing between, and a base is a
