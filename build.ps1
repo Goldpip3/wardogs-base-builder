@@ -109,6 +109,13 @@ Copy-Item "$proj\assets\fonts\*.woff2" "$proj\docs\fonts\" -Force
 New-Item -ItemType Directory -Force "$proj\docs\video" | Out-Null
 Copy-Item "$proj\assets\video\*" "$proj\docs\video\" -Force
 
+# The buildable icons, as files, for the site. The planner inlines this same folder as data
+# URIs a few lines up because it has to open with no network; the site has one, and base64
+# in the markup cost the buildables page 600 KB of icons that its default view never
+# painted. Files here, data URIs there, one source folder feeding both.
+New-Item -ItemType Directory -Force "$proj\docs\build-icons" | Out-Null
+Copy-Item "$proj\assets\icons\*.webp" "$proj\docs\build-icons\" -Force
+
 node (Join-Path $proj "tools/build-site.js")
 # Without this the site generator can throw, leave yesterday's pages on disk, and the
 # checks below still pass because they are inspecting stale output.

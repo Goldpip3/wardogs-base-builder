@@ -294,6 +294,43 @@ check(!mojibake, "no mojibake from a codepage mismatch",
   /* The icons are the site's business only. The downloadable planner naming one would be
      a network fetch, and the offline promise is the whole point of that file. */
   check(!download.includes("/game-icons/"), "the downloadable planner never references game icons");
+
+  /* -- buildable icons: the same join, one folder over --
+     assets/icons/ feeds two consumers that must not be confused. build.ps1 inlines it into
+     the planner as data URIs, because that file opens with no network; it also copies it to
+     docs/build-icons/ for the site, which has one. The buildables page used to inline it
+     too and shipped 585 KB of art its default view never painted. Now that it names files,
+     a renamed icon in data/buildables.json is a broken picture instead of a missing key,
+     so every reference is held against the folder. */
+  const buildIconDir = path.join(proj, "docs/build-icons");
+  const buildIcons = new Set(fs.existsSync(buildIconDir)
+    ? fs.readdirSync(buildIconDir).filter(f => f.endsWith(".webp")) : []);
+  const cat = JSON.parse(fs.readFileSync(path.join(proj, "data/buildables.json"), "utf8"));
+
+  const badBuild = cat.buildables.filter(b => b.icon && !buildIcons.has(b.icon))
+    .map(b => b.name + " -> " + b.icon);
+  check(badBuild.length === 0, "every buildable icon has its file in docs/build-icons",
+    badBuild.slice(0, 3).join(" | "));
+
+  const badBuildRef = [];
+  for (const p of pages) {
+    const s = fs.readFileSync(p, "utf8");
+    for (const m of s.matchAll(/\/build-icons\/([A-Za-z0-9_.-]+\.webp)/g)) {
+      if (!buildIcons.has(m[1])) badBuildRef.push(path.relative(proj, p) + "  " + m[1]);
+    }
+  }
+  check(badBuildRef.length === 0, "every /build-icons/ reference in the site points at a real file",
+    [...new Set(badBuildRef)].slice(0, 3).join(" | "));
+
+  check(!download.includes("/build-icons/"),
+    "the downloadable planner never references buildable icons by URL");
+
+  /* The point of the change was weight. The page inlined every icon and hid them behind a
+     view you had to ask for; if base64 creeps back in, this says so while it is still one
+     commit rather than after the page is heavy again. */
+  const buildablesPage = fs.readFileSync(path.join(proj, "docs/buildables/index.html"), "utf8");
+  check(!/src="data:image/.test(buildablesPage),
+    "the buildables page serves its icons as files, not base64");
 }
 
 /* -- 4. nothing reaches the network: offline is the whole promise --

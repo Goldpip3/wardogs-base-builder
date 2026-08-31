@@ -44,7 +44,12 @@ ${AUTH_SCRIPT}
     <a href="/artillery/" class="cta">Artillery</a>
     <span class="nav-gap"></span>
     <a href="/designs/">Designs</a>
-    <a href="/buildables/">Buildables</a>
+    ${/* Buildables is deliberately not here. Nine links was too many to scan, and the build
+          costs are the one reference you meet inside the planner anyway, priced as you
+          place a piece. The page is not gone and must not be: /buildables/ is an indexed
+          URL against a real query, GitHub Pages cannot serve a redirect, and test/site.js
+          holds the home page to still linking it. It is reached from the home page grid
+          and from the footer. Removing those is removing the page. */""}
     <a href="/armory/">Armory</a>
     <a href="/ballistics/">Damage</a>
     <a href="/loadouts/">Loadouts</a>

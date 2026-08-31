@@ -42,6 +42,15 @@ names one by URL, and the buildables page carries no `src="data:image` at all. T
 one exists because re-inlining is the tempting thing to do next time somebody wants a row
 and its picture to arrive together, and it is how the weight came back.
 
+**It also came out of the top nav**, which is a separate decision from the two above and was
+the owner's call against the argument written here first. Nine links was too many to scan,
+and the build costs are the one reference you meet inside the planner anyway, priced as you
+place a piece. What matters for anyone tidying later: the page is not gone and must not be.
+`/buildables/` is an indexed URL against a real query, GitHub Pages cannot serve a redirect
+so a deletion is permanent, and it is now reached from exactly two places, the home page
+grid and the footer. `test/site.js:74` holds the home page to linking it. Removing those
+links is removing the page, whatever the sitemap still says.
+
 ### The worker refuses to run on a secret anybody could read
 
 The session signing key and the identity salt both ended in `|| "wardogs"`. That string is

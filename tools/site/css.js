@@ -309,8 +309,17 @@ th.sortable::after{content:"";opacity:.35;margin-left:6px}
 th.sortable[data-dir="asc"]::after{content:"↑";opacity:1;color:var(--yellow)}
 th.sortable[data-dir="desc"]::after{content:"↓";opacity:1;color:var(--yellow)}
 .cat-grid{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);
-  grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+  grid-template-columns:repeat(auto-fill,minmax(230px,1fr));margin-top:18px}
+.cat-grid[hidden]{display:none}
+/* A grid column is min-width:auto by default, so the widest cell sets the floor and the
+   buildables table, which carries a sentence of description, pushed the rail off the page
+   rather than scrolling. The column is allowed to be narrower than its contents and the
+   table scrolls inside it. */
+.cat-main{min-width:0}
+.cat-tablebox{overflow-x:auto}
 .cat-card{background:var(--panel);padding:18px;display:flex;gap:14px;align-items:flex-start}
+.cat-card[hidden]{display:none}
+.cat-card:hover{background:var(--panel2)}
 .cat-card img{width:52px;height:52px;object-fit:contain;flex:0 0 auto}
 .cat-card h3{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:0;
   text-transform:uppercase;color:var(--text);margin-bottom:6px}
