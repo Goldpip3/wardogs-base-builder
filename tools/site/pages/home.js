@@ -53,10 +53,13 @@ write("index.html", page({
   <div class="hero-scrim"></div>
   <div class="wrap">
   <span class="eyebrow">Fan-made reference for WARDOGS</span>
-  <h1>Every WARDOGS<br>system, worked out</h1>
+  ${/* No hard break. It was splitting a four word heading into two fixed lines, and with
+        "worked out" gone the line it was breaking no longer exists. Left to wrap, the
+        heading breaks where the column actually ends instead of where it used to. */""}
+  <h1>Every WARDOGS system</h1>
   <p class="lede">Build costs, damage by armour tier and hit zone, artillery firing solutions,
   ${nPrices} vendor prices, loadouts, vehicles and both maps, with a planner that lays out a
-  whole FOB and totals the supply run before anything is built.</p>
+  whole FOB and totals the supply run.</p>
   <p class="lede sub">One catalogue underneath all of it, so the armory, the damage calculator
   and the planner cannot quote different numbers for the same round.</p>
   <div class="actions">
