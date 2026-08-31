@@ -585,9 +585,56 @@ if(form) form.addEventListener("submit",function(e){
 /* ---- the list ---- */
 var list=document.getElementById("designList");
 if(list){
+  /* Ranking by raw score ranks by age: a design posted today starts at nothing and can
+     never catch one that has been collecting votes for a month, however much better it is.
+     Dividing by age fixes that, but the usual exponent of 1.5 overcorrects and buries good
+     old work: a month-old design with sixty votes came out below a two-minute-old one with
+     a single vote, which is the same complaint from the other end.
+
+     0.7 with a twelve hour grace was picked by trying them against realistic cases rather
+     than by taste. It gives a gradient instead of a cliff: liked-and-recent on top,
+     liked-and-old still mid-table, unproven new things low, disliked last. A one-day-old
+     design needs about eight net votes to top a month-old sixty-vote favourite, and an
+     hour-old one needs four. The grace period is what stops a single first vote spiking
+     something to the top for an hour.
+
+     New exists because of the other half of the problem: under any ranking, a design with
+     no votes is invisible, so it never gets a first vote and never can. New is where a
+     first vote comes from. */
+  var RANK = {
+    hot: function(d){
+      var age=(Date.now()-d.submitted)/3600000;
+      return ((d.votes.up||0)-(d.votes.down||0)) / Math.pow(age+12, 0.7);
+    },
+    top: function(d){ return (d.votes.up||0)-(d.votes.down||0); },
+    "new": function(d){ return d.submitted; }
+  };
+  var sortBy="hot", allDesigns=[];
+
   fetch(API+"/designs").then(function(r){return r.json();}).then(function(j){
     var ds=j.designs||[];
     if(!ds.length) return;                       // keep whatever static state is there
+    allDesigns=ds;
+    var tabs=document.createElement("div");
+    tabs.className="chips";
+    tabs.style.margin="0 0 18px";
+    tabs.innerHTML=["hot","new","top"].map(function(k){
+      return '<button class="chip" data-sort="'+k+'" aria-pressed="'+(k==="hot")+'">'+
+        (k==="hot"?"Hot":k==="new"?"New":"Top")+'</button>';
+    }).join("");
+    list.parentNode.insertBefore(tabs,list);
+    tabs.addEventListener("click",function(ev){
+      var b=ev.target.closest("button[data-sort]"); if(!b) return;
+      sortBy=b.dataset.sort;
+      tabs.querySelectorAll("button").forEach(function(o){
+        o.setAttribute("aria-pressed", String(o===b)); });
+      render();
+    });
+    render();
+  }).catch(function(){});
+
+  function render(){
+    var ds=allDesigns.slice().sort(function(a,b){ return RANK[sortBy](b)-RANK[sortBy](a); });
     list.innerHTML=ds.map(function(d){
       var score=(d.votes.up||0)-(d.votes.down||0);
       return '<details class="design"><summary>'+
@@ -601,6 +648,9 @@ if(list){
         '<span class="score" data-role="n">'+score+'</span>'+
         '<button type="button" data-dir="-1" aria-label="Vote down">&#9660;</button>'+
         '<a class="btn sm" style="margin-left:14px" href="/planner/#d='+esc(d.code)+'">Open in planner</a>'+
+        '<button type="button" class="btn sm" data-report="'+esc(d.slug)+'" '+
+          'style="margin-left:8px;opacity:.6" '+
+          'title="Report this for a name or content that should not be here">Report</button>'+
         '</div></div></summary>'+
         '<div class="design-open" data-thread="'+esc(d.slug)+'">'+
         '<h3>Comments</h3><div class="thread" data-role="list"></div>'+
@@ -612,7 +662,27 @@ if(list){
     }).join("");
     wireVotes(list);
     wireThreads(list);
-  }).catch(function(){});
+    wireReports(list);
+  }
+}
+
+/* Reporting is the other half of publishing straight away. Three reports and a design takes
+   itself off the list until a person looks, which is reversible; nothing here deletes. */
+function wireReports(root){
+  root.querySelectorAll("[data-report]").forEach(function(b){
+    b.addEventListener("click",function(ev){
+      ev.preventDefault();
+      if(b.disabled) return;
+      if(!window.confirm("Report this design? It hides once a few people have.")) return;
+      b.disabled=true; b.textContent="Reporting...";
+      post("/report",{id:b.dataset.report}).then(function(t){
+        b.textContent=t.already?"Already reported":(t.hidden?"Hidden":"Reported");
+      }).catch(function(err){
+        b.disabled=false; b.textContent="Report";
+        alert(err && err.message ? err.message : "That did not go through.");
+      });
+    });
+  });
 }
 
 function wireVotes(root){
@@ -628,7 +698,20 @@ function wireVotes(root){
           var s=card.querySelector('[data-role=score]'); if(s) s.textContent=n; }
         e.querySelectorAll("button").forEach(function(x){x.dataset.cast="";});
         if(t.you) b.dataset.cast="1";
-      }).catch(function(){});
+      }).catch(function(err){
+        /* This used to swallow the error, so a vote that did not count looked exactly like
+           a vote that did: the arrow moved and nothing happened. The free tier allows a
+           thousand writes a day and a vote costs two of them, so running out is a real
+           thing that will happen on a busy day, and it should say so rather than leave
+           somebody clicking. */
+        var n=e.querySelector('[data-role=n]');
+        if(n){
+          var was=n.textContent;
+          n.textContent="!";
+          n.title=(err && err.message) ? err.message : "That vote did not go through.";
+          setTimeout(function(){ n.textContent=was; n.title=""; },2500);
+        }
+      });
     });
   });
 }

@@ -15,7 +15,9 @@ if (VOTE_API) write("moderate/index.html", page({
   noindex: true,
   body: `<section><div class="wrap" style="max-width:860px">
   <h1>Moderate</h1>
-  <p class="lede">Submitted designs wait here until you approve them.</p>
+  <p class="lede">Designs publish the moment they are submitted. This is where the ones
+  somebody reported end up, so you are reviewing complaints rather than being the queue
+  everybody waits on.</p>
   <div class="field" style="max-width:420px;margin:26px 0">
     <label for="tok">Admin token</label>
     <input id="tok" type="password" placeholder="the ADMIN_TOKEN secret">
@@ -45,16 +47,19 @@ function call(path,opts){
   });
 }
 function render(ds){
-  if(!ds.length){ out.innerHTML='<div class="empty"><h3>Queue is empty</h3><p>Nothing waiting.</p></div>'; return; }
+  if(!ds.length){ out.innerHTML='<div class="empty"><h3>Nothing reported</h3>'+
+    '<p>Designs publish as soon as they are submitted. Anything the community reports '+
+    'three times hides itself and turns up here.</p></div>'; return; }
   out.innerHTML=ds.map(function(d){
     return '<div class="card" style="border:1px solid var(--line);margin-bottom:1px">'+
       '<h3>'+esc(d.name)+'</h3>'+
       '<p>'+esc(d.note||"(no description)")+'</p>'+
-      '<div class="stats"><span>by</span>'+esc(d.author)+'<span>slug</span>'+esc(d.slug)+'</div>'+
+      '<div class="stats"><span>by</span>'+esc(d.author)+
+      '<span>reports</span><b>'+(d.reports||0)+'</b>'+
+      '<span>status</span>'+esc(d.status||"published")+'</div>'+
       '<div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">'+
       '<a class="btn sm" target="_blank" rel="noopener" href="/planner/#d='+esc(d.code)+'">Open it first</a>'+
-      '<button class="btn sm" data-act="approve" data-slug="'+esc(d.slug)+'">Approve</button>'+
-      '<button class="btn sm" data-act="reject" data-slug="'+esc(d.slug)+'">Reject</button>'+
+      '<button class="btn sm" data-act="restore" data-slug="'+esc(d.slug)+'">Put it back</button>'+
       '<button class="btn sm" data-act="delete" data-slug="'+esc(d.slug)+'">Delete</button>'+
       '</div></div>';
   }).join("");
@@ -62,7 +67,9 @@ function render(ds){
 function load(){
   out.textContent="Loading...";
   try{ localStorage.setItem("wardogs.admin",tokEl.value); }catch(e){}
-  call("/admin/pending").then(function(j){ render(j.designs||[]); })
+  /* Reported, not pending. Nothing queues any more: a design is live the moment it is
+     submitted, and this page is where the ones somebody objected to end up. */
+  call("/admin/reported").then(function(j){ render(j.designs||[]); })
     .catch(function(e){ out.innerHTML='<div class="msg">'+esc(e.message)+'</div>'; });
 }
 document.getElementById("load").addEventListener("click",load);

@@ -47,7 +47,7 @@ env = { VOTES: fakeKV(), VOTE_SALT: "s", ADMIN_TOKEN: "secret" };
 
 let r = await call("POST", "/submit", { body: { name: "My Base", author: "colom", code: CODE } });
 let j = await jsonOf(r);
-check(r.status === 200 && j.ok && j.status === "pending", "a submission is accepted as pending");
+check(r.status === 200 && j.ok && j.status === "published", "a submission goes live on arrival");
 const slug = j.slug;
 check(/^my-base-[a-z0-9]{4}$/.test(slug), "slug is derived from the name", slug);
 
@@ -57,17 +57,42 @@ check((await call("POST", "/submit", { body: { name: "x", code: CODE } })).statu
   "a too-short name is rejected");
 
 j = await jsonOf(await call("GET", "/designs"));
-check(j.designs.length === 0, "a pending design is NOT public");
+check(j.designs.length === 1 && j.designs[0].slug === slug,
+  "and is on the public list immediately, with nobody in the way");
+
+/* --- reporting ---
+   The community takes something down, rather than one person having to let everything up.
+   A report hides and never deletes, because hiding is reversible and the owner is the one
+   who decides whether it stays hidden. */
+console.log("\n--- reporting ---");
+for (let i = 0; i < 2; i++)
+  await call("POST", "/report", { body: { id: slug }, ip: "3.3.3." + i });
+j = await jsonOf(await call("GET", "/designs"));
+check(j.designs.length === 1, "two reports is not enough to hide anything");
+
+let rep = await jsonOf(await call("POST", "/report", { body: { id: slug }, ip: "3.3.3.9" }));
+check(rep.hidden === true, "the third report hides it");
+j = await jsonOf(await call("GET", "/designs"));
+check(j.designs.length === 0, "and it leaves the public list");
+
+rep = await jsonOf(await call("POST", "/report", { body: { id: slug }, ip: "3.3.3.9" }));
+check(rep.already === true, "the same reporter cannot report twice");
+
+j = await jsonOf(await call("GET", "/admin/reported", { token: "secret" }));
+check(j.designs.length === 1 && j.designs[0].reports === 3,
+  "the owner can see what was reported, and the count that hid it");
+
+await call("POST", "/admin/design", { body: { slug, action: "restore" }, token: "secret" });
+j = await jsonOf(await call("GET", "/designs"));
+check(j.designs.length === 1, "the owner can put it back");
+j = await jsonOf(await call("GET", "/admin/reported", { token: "secret" }));
+check(j.designs.length === 0,
+  "and restoring clears the count, or the next single report hides it again");
 
 console.log("\n--- moderation ---");
 check((await call("GET", "/admin/pending")).status === 401, "admin needs the token");
-check((await call("GET", "/admin/pending", { token: "wrong" })).status === 401, "a wrong token is refused");
-j = await jsonOf(await call("GET", "/admin/pending", { token: "secret" }));
-check(j.designs.length === 1 && j.designs[0].slug === slug, "the owner can see what is pending");
-
-await call("POST", "/admin/design", { body: { slug, action: "approve" }, token: "secret" });
+check((await call("GET", "/admin/reported", { token: "wrong" })).status === 401, "a wrong token is refused");
 j = await jsonOf(await call("GET", "/designs"));
-check(j.designs.length === 1 && j.designs[0].slug === slug, "once approved it is public");
 check(j.designs[0].votes.up === 0 && j.designs[0].votes.down === 0, "it starts with no score");
 
 console.log("\n--- voting ---");
@@ -186,12 +211,10 @@ check(j.user === null, "a token signed with the wrong secret is not signed in");
 r = await callAs(good, "POST", "/submit", { name: "Signed Base", author: "typed-in-name", code: CODE });
 j = await jsonOf(r);
 check(r.status === 200, "submitting works once signed in");
-const filed = (await jsonOf(await call("GET", "/admin/pending", { token: "secret" })))
-  .designs.find(d => d.slug === j.slug);
+// straight onto the public list now, so that is where to look for it
+const filed = (await jsonOf(await call("GET", "/designs"))).designs.find(d => d.slug === j.slug);
 check(filed.author === "Tester", "the account name is used, not what was typed in the form");
 check(filed.by === "42", "and the record says which account sent it");
-
-await call("POST", "/admin/design", { body: { slug: j.slug, action: "approve" }, token: "secret" });
 check((await call("POST", "/comment", { body: { design: j.slug, text: "signed out" } })).status === 401,
   "commenting signed out is refused");
 check((await callAs(good, "POST", "/comment", { design: j.slug, text: "signed in" })).status === 200,

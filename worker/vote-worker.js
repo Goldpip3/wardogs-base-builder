@@ -58,6 +58,11 @@ const LIMITS = {
   feedbackPerHour: 6,
   savedPerUser: 40,
   savesPerHour: 60,
+  /* Reports needed before a design takes itself off the list. Low on purpose: the cost of
+     hiding a good design for a few hours is a annoyed builder, and the cost of leaving a bad
+     name up is an advertising account. It can always be put back. */
+  reportsToHide: 3,
+  reportsPerDay: 10,
 };
 
 /* Which actions need somebody to be signed in with Discord.
@@ -328,7 +333,11 @@ export default {
 
     // GET /designs -> approved designs, newest first, with their scores
     if (request.method === "GET" && path === "/designs") {
-      const designs = await listDesigns(env, "approved");
+      /* "approved" is what the old moderated flow called a live design, and records from
+         then still carry it. Both mean visible; neither is going to be rewritten in place
+         just to tidy the vocabulary. */
+      const designs = (await listDesigns(env, null))
+        .filter(d => d.status === "published" || d.status === "approved");
       const votes = await tallies(env, designs.map(d => d.slug));
       designs.forEach(d => { d.votes = votes[d.slug]; });
       designs.sort((a, b) =>
@@ -360,10 +369,14 @@ export default {
 
       const stamp = Date.now();
       const slug = slugify(name, stamp);
-      const record = { slug, name, author, note, code, submitted: stamp, status: "pending",
-                       by: who ? who.id : null };
+      /* Published on arrival, not queued. A queue makes one person the bottleneck on
+         everybody else's work, and the thing being published is a base layout, which cannot
+         say anything. The free text is the name, and that is what reporting covers. Sign-in
+         and the five-a-day cap are what stop this being a firehose. */
+      const record = { slug, name, author, note, code, submitted: stamp, status: "published",
+                       by: who ? who.id : null, reports: 0 };
       await env.VOTES.put("design:" + slug, JSON.stringify(record));
-      return json({ ok: true, slug, status: "pending" }, origin);
+      return json({ ok: true, slug, status: "published" }, origin);
     }
 
     /* ---------------- a signed-in player's own saved designs ----------------
@@ -440,6 +453,33 @@ export default {
     }
 
     // POST /vote {id, dir} where dir is 1, -1, or 0 to take it back
+    /* Reporting is how the community takes something down without waiting for one person
+       to wake up. It is deliberately the same identity as a vote, a salted hash of the
+       address and the design, so one browser reports once and the count means something.
+       At LIMITS.reportsToHide the design hides itself and waits for a human. Hiding is
+       reversible and deleting is not, which is why this only ever hides. */
+    if (request.method === "POST" && path === "/report") {
+      const { id } = body;
+      if (!okSlug(id)) return json({ error: "bad request" }, origin, 400);
+
+      const rk = "rate:rep:" + await hash(env, ipOf(request));
+      if (await overLimit(env, rk, LIMITS.reportsPerDay, 86400))
+        return json({ error: "You have reported a few already today." }, origin, 429);
+
+      const seen = "rp:" + await hash(env, ipOf(request), id);
+      if (await env.VOTES.get(seen)) return json({ ok: true, already: true }, origin);
+
+      const raw = await env.VOTES.get("design:" + id);
+      if (!raw) return json({ error: "not found" }, origin, 404);
+      const d = JSON.parse(raw);
+      d.reports = (d.reports || 0) + 1;
+      if (d.reports >= LIMITS.reportsToHide && d.status !== "hidden") d.status = "hidden";
+
+      await env.VOTES.put("design:" + id, JSON.stringify(d));
+      await env.VOTES.put(seen, "1", { expirationTtl: 60 * 60 * 24 * 365 });
+      return json({ ok: true, hidden: d.status === "hidden" }, origin);
+    }
+
     if (request.method === "POST" && path === "/vote") {
       const { id, dir } = body;
       if (!okSlug(id) || ![1, -1, 0].includes(dir))
@@ -551,6 +591,11 @@ export default {
     if (path.startsWith("/admin")) {
       if (!admin()) return json({ error: "not authorised" }, origin, 401);
 
+      if (request.method === "GET" && path === "/admin/reported")
+        return json({ designs: (await listDesigns(env, null))
+          .filter(d => d.status === "hidden" || (d.reports || 0) > 0)
+          .sort((a, b) => (b.reports || 0) - (a.reports || 0)) }, origin);
+
       if (request.method === "GET" && path === "/admin/pending")
         return json({ designs: await listDesigns(env, "pending") }, origin);
 
@@ -564,10 +609,13 @@ export default {
           await env.VOTES.delete("d:" + slug);
           return json({ ok: true, deleted: slug }, origin);
         }
-        if (action !== "approve" && action !== "reject")
+        if (!["approve", "reject", "restore"].includes(action))
           return json({ error: "bad action" }, origin, 400);
         const d = JSON.parse(raw);
-        d.status = action === "approve" ? "approved" : "rejected";
+        /* Restore puts a reported design back and clears the count with it, otherwise the
+           next single report hides it again and the decision never sticks. */
+        if (action === "restore") { d.status = "published"; d.reports = 0; }
+        else d.status = action === "approve" ? "published" : "rejected";
         await env.VOTES.put("design:" + slug, JSON.stringify(d));
         return json({ ok: true, slug, status: d.status }, origin);
       }

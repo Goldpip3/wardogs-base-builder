@@ -3771,8 +3771,9 @@ async function loadCloudSection() {
   };
   /* Submitting used to mean: press Share, copy a link, leave the planner, find the site,
      paste it into a form. Five steps and a different tab to do the thing the planner
-     already has everything for. It is one button now; the design goes up pending, and the
-     owner still approves it before anyone sees it. */
+     already has everything for. It is one button now, and it goes straight onto the list:
+     a queue makes one person the bottleneck on everybody else's work, and a base layout
+     cannot say anything. Reporting is what takes something down. */
   document.getElementById("cloudShare").onclick = async () => {
     const msg = document.getElementById("cloudMsg");
     const name = (document.getElementById("designName").value || "").trim();
@@ -3783,7 +3784,7 @@ async function loadCloudSection() {
     msg.textContent = "Submitting...";
     try {
       await cloudCall("/submit", { name, code: await encodeDesignShort(design) });
-      msg.innerHTML = `<span style="color:var(--accent2)">Submitted. It goes on the Designs page once it is approved, and people can vote on it there.</span>`;
+      msg.innerHTML = `<span style="color:var(--accent2)">It is up. It is on the Designs page now and people can vote on it.</span>`;
     } catch (e) { msg.innerHTML = `<span style="color:var(--danger)">${esc(e.message)}</span>`; }
   };
   document.getElementById("cloudSave").onclick = async () => {
