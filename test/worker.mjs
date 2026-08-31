@@ -339,6 +339,56 @@ check(await startsAt("https://www.wardogsbuilder.com/designs/") ===
     "a callback state the worker did not sign is not followed", where);
 }
 
+/* And the other half of that, which is the half easy to forget to write.
+   Proving a check refuses bad input says nothing about whether it accepts good input, and a
+   readState that rejected everything would look exactly like this file passing: sign-in would
+   still succeed, because a callback that cannot read its state falls back to the site root, so
+   the only symptom would be everybody landing on the homepage instead of the page they signed
+   in from. No assertion above would have moved. Take a state this worker really did mint and
+   send it back the way Discord would. Without a code the callback redirects to the return
+   address it recovered, which is the round trip made visible. */
+{
+  const from = "https://www.wardogsbuilder.com/designs/some-base-a1b2/";
+  const started = await worker.fetch(new Request(
+    "https://votes.example.dev/auth/start?return=" + encodeURIComponent(from),
+    { headers: { Origin: ORIGIN } }), env);
+  const minted = new URL(started.headers.get("Location")).searchParams.get("state");
+
+  const came = await worker.fetch(new Request(
+    "https://votes.example.dev/auth/callback?state=" + encodeURIComponent(minted),
+    { headers: { Origin: ORIGIN } }), env);
+  const where = came.headers.get("Location") || "";
+  check(where === from + "#login=cancelled",
+    "a state this worker did mint survives the trip out to Discord and back", where);
+}
+
+/* Whether the signature on the state is read at all.
+   The forged-state check above passes with signature verification deleted outright, because
+   the address it forges is off-site and safeReturn tidies that away on the way out no matter
+   what readState decided. So it is a test of safeReturn wearing a state test's name, and the
+   signature was covered by nothing. Forge one whose return address is a perfectly ordinary
+   page on this site, so safeReturn is content with it, and sign it with the wrong key: now the
+   signature is the only thing left that can turn it away, and the destination says whether it
+   did. */
+{
+  const inside = "https://www.wardogsbuilder.com/designs/chosen-by-somebody-else/";
+  const payload = b64u(enc.encode(JSON.stringify({ back: inside, n: "x" })));
+  const wrongKey = await crypto.subtle.importKey("raw", enc.encode("not-the-secret"),
+    { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const badlySigned = payload + "."
+    + b64u(await crypto.subtle.sign("HMAC", wrongKey, enc.encode(payload)));
+
+  const came = await worker.fetch(new Request(
+    "https://votes.example.dev/auth/callback?state=" + encodeURIComponent(badlySigned),
+    { headers: { Origin: ORIGIN } }), env);
+  const where = came.headers.get("Location") || "";
+  /* Matched on the path rather than the whole string: Response.redirect normalises a bare
+     origin to add the trailing slash, so an exact compare against ORIGIN fails on code that is
+     behaving perfectly. Whether the attacker's chosen page is where you land is the question. */
+  check(where.startsWith(ORIGIN) && !where.includes("chosen-by-somebody-else"),
+    "a state signed with the wrong key is refused, not just tidied up by safeReturn", where);
+}
+
 r = await call("OPTIONS", "/comment");
 check((r.headers.get("Access-Control-Allow-Headers") || "").includes("Authorization"),
   "CORS lets the Authorization header through");
