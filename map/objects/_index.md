@@ -25,6 +25,7 @@ One line each. Open the card, not this file, to act.
 |---|---|---|
 | [site-context](site/site-context.md) | `tools/site/context.js` | verified 2026-08-30 |
 | [page-module](site/page-module.md) | `tools/site/pages/*.js`, 10 of them | verified 2026-08-30 |
+| [artillery-map](site/artillery-map.md) | `tools/site/artillery-map.js`, the map tool | verified 2026-08-30 |
 
 ## service: I want to change something with a server
 

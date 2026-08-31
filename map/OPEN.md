@@ -55,6 +55,15 @@ All six now need somebody with the game open, not more research. The largest is 
 onto high ground falls short of what the page says. One coefficient per platform would fix
 most of it. Second largest: nobody has fired a row of the transcribed SPH-2 tables.
 
+Two more things on that page are measured rather than read, and both are one glance in game
+from being settled. **The control zone radius is 500 m because three Bakurani zones and one
+Ozeti zone measured 500 to 550 m off another site's rendering**, so it ships `confirmed:
+false`; the 2x2 km figure the press material repeats matches nothing drawn on either map.
+And **Ozeti draws four towers because four is all any source has**, against five on
+Bakurani; a fifth is expected and drops straight into `data/artillery-maps.json`.
+The tool itself is carded at [objects/site/artillery-map.md](objects/site/artillery-map.md),
+which is worth reading before touching its client script.
+
 The designed next step, blocked until the plan-cell-to-metre scale is confirmed: place a
 plan's footprint on the artillery map, so a design's own mortar gets its reach drawn over
 real terrain. That is the join between the planner and this page, and it is one confirmed

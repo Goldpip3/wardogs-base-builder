@@ -31,15 +31,16 @@ stores game units, metres divided by 100, so the page never converts.
 
 ## Terrain imagery
 
-Both maps ship it, under `docs/maps/tiles/<id>/`. 1,365 tiles each, zoom 0 to 5, 32 MB for
-the pair. That is 8192 px across the 16.384 km terrain, so 2 m per pixel: roads, field
-parcels, the river and building footprints all read, which is what somebody needs to place
-themselves. Deeper zooms exist upstream and are not worth the bytes; past `maxZoom` the
-renderer scales the deepest tile rather than fetching more.
+Both maps ship it, under `docs/maps/tiles/<id>/`. 5,461 tiles each, zoom 0 to 6, 107 MB for
+the pair. That is 16,384 px across the 16.384 km terrain, so **one metre per pixel**: roads,
+field parcels, the river and individual building footprints all read, which is what somebody
+needs to place a gun on a specific building. Zoom 7 exists upstream at half a metre and is
+not worth another 100 MB a map; past `maxZoom` the renderer scales the deepest tile rather
+than fetching more.
 
 ```
 "tiles": { "path": "/maps/tiles/bakurani", "tileSize": 256,
-           "minZoom": 0, "maxZoom": 5, "extension": "webp",
+           "minZoom": 0, "maxZoom": 6, "extension": "webp",
            "bounds": { "minX": -0.03, "maxX": 163.81,
                        "minY": -0.01, "maxY": 163.83 } }
 ```
@@ -47,8 +48,13 @@ renderer scales the deepest tile rather than fetching more.
 Zoom Z is a `2^Z` square of tiles spanning `bounds`, row 0 at the north edge, named
 `zoom_<z>/<x>_<y>.<extension>`. **`bounds` is the calibration box and is not the map
 extent**: the capture landed a few metres off the round number, and assuming `0..extent`
-puts the whole layer slightly askew. The renderer picks the zoom whose tile lands nearest
-`tileSize` on screen, so it neither blurs nor fetches detail nobody can see.
+puts the whole layer slightly askew.
+
+**The level is chosen in device pixels, not CSS pixels.** It shipped once in CSS pixels and
+every 2x display drew the map at half resolution, which is most laptops; the level also
+rounds up rather than to nearest, since rounding down hands back fewer pixels than are being
+drawn. Both together are the difference between crisp and soft, and neither is visible on a
+1x monitor, which is why it survived a review.
 
 The imagery is the game's own, on the same fan-use footing as the icons this project
 already ships, and re-encoded to lossy webp at quality 82, roughly a quarter of the
