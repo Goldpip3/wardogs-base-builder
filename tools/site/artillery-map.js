@@ -49,6 +49,20 @@ module.exports = ctx => {
   const barBtn = (id, label) =>
     '<button class="amap-btn" id="' + id + '">' + label + "</button>";
 
+  /* The browser's own number spinner is a different widget on every engine and looks like
+     none of this page on any of them. It is turned off in css.js and these replace it: two
+     buttons that call the input's own stepUp and stepDown, so a click still moves one
+     hundredth of a unit, the same as the arrow keys and the same as the spinner did. */
+  const coord = (id, label) =>
+    "<label>" + label + '<span class="amap-num">' +
+    '<input id="' + id + '" type="number" step="0.01">' +
+    '<span class="amap-spin">' +
+    '<button type="button" class="amap-up" data-for="' + id + '" data-dir="1"' +
+    ' aria-label="' + label + ' up"></button>' +
+    '<button type="button" class="amap-down" data-for="' + id + '" data-dir="-1"' +
+    ' aria-label="' + label + ' down"></button>' +
+    "</span></span></label>";
+
   const html =
     '<div class="amap-app" id="amap">' +
 
@@ -86,13 +100,8 @@ module.exports = ctx => {
     '<button class="amap-btn" id="pick-tgt" aria-pressed="false">Target</button>' +
     "</div>" +
 
-    '<div class="amap-row">' +
-    '<label>Gun X<input id="gunx" type="number" step="0.01"></label>' +
-    '<label>Gun Y<input id="guny" type="number" step="0.01"></label>' +
-    "</div>" +
-    '<div class="amap-row">' +
-    '<label>Target X<input id="tgtx" type="number" step="0.01"></label>' +
-    '<label>Target Y<input id="tgty" type="number" step="0.01"></label>' +
+    '<div class="amap-row">' + coord("gunx", "Gun X") + coord("guny", "Gun Y") + "</div>" +
+    '<div class="amap-row">' + coord("tgtx", "Target X") + coord("tgty", "Target Y") +
     "</div>" +
 
     /* The gestures belong beside the inputs they describe, and above the solution rather
@@ -568,6 +577,13 @@ Array.prototype.forEach.call(document.querySelectorAll("[data-layer]"),function(
   LAYER[k]=!LAYER[k];
   b.setAttribute("aria-pressed",LAYER[k]?"true":"false");
   draw();});});
+/* wired through the input event the coordinate boxes already listen for, so stepping a
+   value takes the same path as typing one */
+Array.prototype.forEach.call(document.querySelectorAll(".amap-spin button"),function(b){
+ b.addEventListener("click",function(){
+  var i=el(b.getAttribute("data-for"));
+  if(b.getAttribute("data-dir")==="1")i.stepUp();else i.stepDown();
+  i.dispatchEvent(new Event("input",{bubbles:true}));});});
 [["gunx","guny","gun"],["tgtx","tgty","tgt"]].forEach(function(io){
  [io[0],io[1]].forEach(function(id){
   el(id).addEventListener("input",function(){

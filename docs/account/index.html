@@ -448,8 +448,30 @@ ul,ol{padding-left:22px}li{margin:6px 0}
 .amap-row{display:flex;gap:8px}
 .amap-side label{flex:1;font-size:11px;color:var(--dim2);text-transform:uppercase;
   letter-spacing:.06em}
-.amap-side input{width:100%;margin-top:4px;padding:8px;background:var(--panel2);
+.amap-side input{width:100%;padding:8px;background:var(--panel2);
   color:var(--text);border:1px solid var(--line2);font-family:var(--num)}
+/* Off with the engine's own spinner: three browsers draw three different widgets and none
+   of them belong to this page. .amap-spin replaces it, calling the same stepUp/stepDown. */
+.amap-side input[type=number]{appearance:textfield;-moz-appearance:textfield}
+.amap-side input[type=number]::-webkit-outer-spin-button,
+.amap-side input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.amap-num{position:relative;display:block;margin-top:4px}
+.amap-num input{padding-right:28px}
+.amap-spin{position:absolute;top:1px;right:1px;bottom:1px;width:22px;display:flex;
+  flex-direction:column;border-left:1px solid var(--line2)}
+.amap-spin button{flex:1;padding:0;background:none;border:0;cursor:pointer;position:relative}
+.amap-spin button+button{border-top:1px solid var(--line2)}
+/* a chevron rather than a glyph: two borders on a small square, turned. It stays sharp at
+   any zoom and takes its colour from the state, which a character cannot do */
+.amap-spin button::before{content:"";position:absolute;left:50%;top:50%;width:5px;height:5px;
+  border-left:1.5px solid var(--dim2);border-top:1.5px solid var(--dim2)}
+.amap-up::before{transform:translate(-50%,-25%) rotate(45deg)}
+.amap-down::before{transform:translate(-50%,-75%) rotate(-135deg)}
+.amap-spin button:hover{background:var(--line2)}
+.amap-spin button:hover::before{border-color:var(--text)}
+.amap-spin button:active{background:var(--yellow)}
+.amap-spin button:active::before{border-color:var(--bg)}
+.amap-spin button:focus-visible{outline:1px solid var(--yellow);outline-offset:-1px}
 .amap-sol,.amap-note{border:1px solid var(--line);background:var(--panel2);padding:14px}
 /* The sidebar ad takes the slack at the foot of the column. The shared .ad-slot rule carries
    34px of vertical margin, which is right between paragraphs of an article and far too much

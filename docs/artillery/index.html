@@ -447,8 +447,30 @@ ul,ol{padding-left:22px}li{margin:6px 0}
 .amap-row{display:flex;gap:8px}
 .amap-side label{flex:1;font-size:11px;color:var(--dim2);text-transform:uppercase;
   letter-spacing:.06em}
-.amap-side input{width:100%;margin-top:4px;padding:8px;background:var(--panel2);
+.amap-side input{width:100%;padding:8px;background:var(--panel2);
   color:var(--text);border:1px solid var(--line2);font-family:var(--num)}
+/* Off with the engine's own spinner: three browsers draw three different widgets and none
+   of them belong to this page. .amap-spin replaces it, calling the same stepUp/stepDown. */
+.amap-side input[type=number]{appearance:textfield;-moz-appearance:textfield}
+.amap-side input[type=number]::-webkit-outer-spin-button,
+.amap-side input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.amap-num{position:relative;display:block;margin-top:4px}
+.amap-num input{padding-right:28px}
+.amap-spin{position:absolute;top:1px;right:1px;bottom:1px;width:22px;display:flex;
+  flex-direction:column;border-left:1px solid var(--line2)}
+.amap-spin button{flex:1;padding:0;background:none;border:0;cursor:pointer;position:relative}
+.amap-spin button+button{border-top:1px solid var(--line2)}
+/* a chevron rather than a glyph: two borders on a small square, turned. It stays sharp at
+   any zoom and takes its colour from the state, which a character cannot do */
+.amap-spin button::before{content:"";position:absolute;left:50%;top:50%;width:5px;height:5px;
+  border-left:1.5px solid var(--dim2);border-top:1.5px solid var(--dim2)}
+.amap-up::before{transform:translate(-50%,-25%) rotate(45deg)}
+.amap-down::before{transform:translate(-50%,-75%) rotate(-135deg)}
+.amap-spin button:hover{background:var(--line2)}
+.amap-spin button:hover::before{border-color:var(--text)}
+.amap-spin button:active{background:var(--yellow)}
+.amap-spin button:active::before{border-color:var(--bg)}
+.amap-spin button:focus-visible{outline:1px solid var(--yellow);outline-offset:-1px}
 .amap-sol,.amap-note{border:1px solid var(--line);background:var(--panel2);padding:14px}
 /* The sidebar ad takes the slack at the foot of the column. The shared .ad-slot rule carries
    34px of vertical margin, which is right between paragraphs of an article and far too much
@@ -570,7 +592,7 @@ document.addEventListener("click",function(e){
     <span id="acct" class="acct"></span>
   </nav>
 </div></header>
-<section style="padding:0"><div class="amap-app" id="amap"><div class="amap-bar"><div class="chips"><button class="chip" data-map="bakurani" aria-pressed="true">Bakurani</button><button class="chip" data-map="ozeti" aria-pressed="false">Ozeti</button></div><div class="chips"><button class="chip" data-plat="l81-mortar" aria-pressed="true">L81 Mortar</button><button class="chip" data-plat="sph-2" aria-pressed="false">SPH-2</button></div><span class="amap-sep"></span><button class="amap-btn" id="amap-fit">Fit</button><button class="amap-btn" id="amap-zone">Control zone</button><button class="amap-btn" id="amap-swap">Swap</button><button class="amap-btn" id="amap-reset">Reset</button><button class="amap-btn" id="amap-share">Copy link</button><span class="amap-sep"></span><span class="amap-layers"><button class="amap-lay" data-layer="terrain" aria-pressed="true">Terrain</button><button class="amap-lay" data-layer="grid" aria-pressed="true">Grid</button><button class="amap-lay" data-layer="zone" aria-pressed="true">Zone</button><button class="amap-lay" data-layer="towers" aria-pressed="true">Towers</button><button class="amap-lay" data-layer="spawns" aria-pressed="true">Spawns</button></span></div><div class="amap-body"><aside class="amap-side"><div class="amap-pick"><button class="amap-btn" id="pick-gun" aria-pressed="true">Artillery</button><button class="amap-btn" id="pick-tgt" aria-pressed="false">Target</button></div><div class="amap-row"><label>Gun X<input id="gunx" type="number" step="0.01"></label><label>Gun Y<input id="guny" type="number" step="0.01"></label></div><div class="amap-row"><label>Target X<input id="tgtx" type="number" step="0.01"></label><label>Target Y<input id="tgty" type="number" step="0.01"></label></div><p class="fine" style="margin:0 0 4px">Left click places, drag moves a marker, scroll zooms, drag the map to pan. Solid ring is maximum range, dashed is the dead zone inside minimum range.</p><div id="sol" class="amap-sol"></div><div class="amap-note" id="zoneNote"></div><div class="amap-ad"><div class="ad-slot" style="min-height:150px">
+<section style="padding:0"><div class="amap-app" id="amap"><div class="amap-bar"><div class="chips"><button class="chip" data-map="bakurani" aria-pressed="true">Bakurani</button><button class="chip" data-map="ozeti" aria-pressed="false">Ozeti</button></div><div class="chips"><button class="chip" data-plat="l81-mortar" aria-pressed="true">L81 Mortar</button><button class="chip" data-plat="sph-2" aria-pressed="false">SPH-2</button></div><span class="amap-sep"></span><button class="amap-btn" id="amap-fit">Fit</button><button class="amap-btn" id="amap-zone">Control zone</button><button class="amap-btn" id="amap-swap">Swap</button><button class="amap-btn" id="amap-reset">Reset</button><button class="amap-btn" id="amap-share">Copy link</button><span class="amap-sep"></span><span class="amap-layers"><button class="amap-lay" data-layer="terrain" aria-pressed="true">Terrain</button><button class="amap-lay" data-layer="grid" aria-pressed="true">Grid</button><button class="amap-lay" data-layer="zone" aria-pressed="true">Zone</button><button class="amap-lay" data-layer="towers" aria-pressed="true">Towers</button><button class="amap-lay" data-layer="spawns" aria-pressed="true">Spawns</button></span></div><div class="amap-body"><aside class="amap-side"><div class="amap-pick"><button class="amap-btn" id="pick-gun" aria-pressed="true">Artillery</button><button class="amap-btn" id="pick-tgt" aria-pressed="false">Target</button></div><div class="amap-row"><label>Gun X<span class="amap-num"><input id="gunx" type="number" step="0.01"><span class="amap-spin"><button type="button" class="amap-up" data-for="gunx" data-dir="1" aria-label="Gun X up"></button><button type="button" class="amap-down" data-for="gunx" data-dir="-1" aria-label="Gun X down"></button></span></span></label><label>Gun Y<span class="amap-num"><input id="guny" type="number" step="0.01"><span class="amap-spin"><button type="button" class="amap-up" data-for="guny" data-dir="1" aria-label="Gun Y up"></button><button type="button" class="amap-down" data-for="guny" data-dir="-1" aria-label="Gun Y down"></button></span></span></label></div><div class="amap-row"><label>Target X<span class="amap-num"><input id="tgtx" type="number" step="0.01"><span class="amap-spin"><button type="button" class="amap-up" data-for="tgtx" data-dir="1" aria-label="Target X up"></button><button type="button" class="amap-down" data-for="tgtx" data-dir="-1" aria-label="Target X down"></button></span></span></label><label>Target Y<span class="amap-num"><input id="tgty" type="number" step="0.01"><span class="amap-spin"><button type="button" class="amap-up" data-for="tgty" data-dir="1" aria-label="Target Y up"></button><button type="button" class="amap-down" data-for="tgty" data-dir="-1" aria-label="Target Y down"></button></span></span></label></div><p class="fine" style="margin:0 0 4px">Left click places, drag moves a marker, scroll zooms, drag the map to pan. Solid ring is maximum range, dashed is the dead zone inside minimum range.</p><div id="sol" class="amap-sol"></div><div class="amap-note" id="zoneNote"></div><div class="amap-ad"><div class="ad-slot" style="min-height:150px">
   <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-7658713831499963"
        data-ad-slot="1475175210" data-ad-format="auto" data-full-width-responsive="true"></ins>
   <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
@@ -1014,6 +1036,13 @@ Array.prototype.forEach.call(document.querySelectorAll("[data-layer]"),function(
   LAYER[k]=!LAYER[k];
   b.setAttribute("aria-pressed",LAYER[k]?"true":"false");
   draw();});});
+/* wired through the input event the coordinate boxes already listen for, so stepping a
+   value takes the same path as typing one */
+Array.prototype.forEach.call(document.querySelectorAll(".amap-spin button"),function(b){
+ b.addEventListener("click",function(){
+  var i=el(b.getAttribute("data-for"));
+  if(b.getAttribute("data-dir")==="1")i.stepUp();else i.stepDown();
+  i.dispatchEvent(new Event("input",{bubbles:true}));});});
 [["gunx","guny","gun"],["tgtx","tgty","tgt"]].forEach(function(io){
  [io[0],io[1]].forEach(function(id){
   el(id).addEventListener("input",function(){
