@@ -1092,7 +1092,7 @@ const LS_CATALOG = "wardogs.catalog";
    completely offline: with this empty, none of the cloud code below is ever reachable
    and the app makes no network call of any kind. */
 const CLOUD_API = "https://wardogs-votes.wardogsbuilder.workers.dev";
-const BUILD_STAMP = "20260831-011603";
+const BUILD_STAMP = "20260831-012152";
 const LS_TOKEN = "wardogs.token";
 
 const LS_DESIGNS = "wardogs.designs";
@@ -1352,6 +1352,42 @@ function snapPoint(x, y, rotDeg) {
   const u = Math.round((x * c + y * s) * 2) / 2;
   const v = Math.round((y * c - x * s) * 2) / 2;
   return { x: u * c - v * s, y: u * s + v * c };
+}
+
+/* A turned piece clicks onto the wall it is joining.
+   Snapping in the piece's own frame gets the spacing along a diagonal right, but the
+   sideways axis is still on half cells, and half a cell sideways is invisible on a diagonal
+   until the wall is built and comes out as a staircase. So when the piece being placed is
+   turned off square, measure from the nearest piece of the same kind and angle and step by
+   that piece's own footprint. The wall then follows the line it started on. Square-on
+   placement is left exactly as it was: it snaps to a grid you can see, and does not need
+   this. */
+function snapPlace(x, y, rotDeg, type) {
+  const base = snapPoint(x, y, rotDeg);
+  const rot = (((rotDeg || 0) % 360) + 360) % 360;
+  const def = byId[type];
+  if (!snap || !def || rot % 90 === 0) return base;
+
+  const w = def.footprint.w, d = def.footprint.d;
+  const reach = Math.max(w, d) * 2.5;
+  let near = null, nearest = reach;
+  for (const p of design.pieces) {
+    if (p.type !== type) continue;
+    if (((((p.rot || 0) % 360) + 360) % 360) !== rot) continue;
+    const dist = Math.hypot(p.x - x, p.y - y);
+    if (dist < nearest) { nearest = dist; near = p; }
+  }
+  if (!near) return base;
+
+  const a = (rot * Math.PI) / 180, c = Math.cos(a), s = Math.sin(a);
+  const dx = x - near.x, dy = y - near.y;
+  const u = Math.round((dx * c + dy * s) / w) * w;
+  /* Sideways is sticky. A wall wants to carry on the line it is on, so leaving that line
+     has to be meant: three quarters of a block off it, not the half a block that plain
+     rounding would ask for. Without this a hand that wobbles ten pixels lays a staircase. */
+  const vRaw = (dy * c - dx * s) / d;
+  const v = (Math.abs(vRaw) < 0.75 ? 0 : Math.round(vRaw)) * d;
+  return { x: near.x + u * c - v * s, y: near.y + u * s + v * c };
 }
 
 /* Drag-to-stamp: lay a continuous run of one buildable (walls, wire, hedgehogs…).
@@ -2780,7 +2816,7 @@ canvas.addEventListener("mousedown", e => {
   if (e.button === 2) { if (placing) stopPlacing(); return; }
   if (e.button !== 0) return;
   if (placing) {                                   // click = one piece, drag = a whole run
-    const s0 = snapPoint(wx, wy, ghost.rot);
+    const s0 = snapPlace(wx, wy, ghost.rot, placing);
     dragging = { mode: "stamp", x0: s0.x, y0: s0.y, x1: s0.x, y1: s0.y };
     return;
   }
@@ -2821,7 +2857,7 @@ canvas.addEventListener("mousemove", e => {
   lastPointer.x = wx; lastPointer.y = wy;          // paste target
   document.getElementById("sbCoords").textContent = `${wx.toFixed(1)}, ${wy.toFixed(1)}`;
   if (placing) {
-    const sp = snapPoint(wx, wy, ghost.rot);
+    const sp = snapPlace(wx, wy, ghost.rot, placing);
     if (dragging && dragging.mode === "stamp") { dragging.x1 = sp.x; dragging.y1 = sp.y; }
     else { ghost.cx = sp.x; ghost.cy = sp.y; updateHint(); }
     draw(); return;
@@ -2835,10 +2871,13 @@ canvas.addEventListener("mousemove", e => {
       const dx = wx - dragging.wx, dy = wy - dragging.wy;
       if (!dragging.moved && Math.hypot(dx, dy) * view.zoom > 4) { dragging.moved = true; pushUndo(); }
       if (dragging.moved) {
-        for (const o of dragging.orig) {
-          const s = snapPoint(o.x + dx, o.y + dy, o.p.rot);
-          o.p.x = s.x; o.p.y = s.y;
-        }
+        /* Snap the move once, from the piece the drag started on, and shift everything by
+           that. Snapping each piece on its own lets a selection shear apart, which a wall
+           built on a diagonal notices immediately. */
+        const a = dragging.orig[0];
+        const s = snapPoint(a.x + dx, a.y + dy, a.p.rot);
+        const sdx = s.x - a.x, sdy = s.y - a.y;
+        for (const o of dragging.orig) { o.p.x = o.x + sdx; o.p.y = o.y + sdy; }
         invalidateIssues();
         updateRightPanel(); draw();
       }
