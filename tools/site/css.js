@@ -2,8 +2,12 @@
    that almost never change while the pages around them do. */
 module.exports = `
 /* Design language lifted from bulkhead.com/games/wardogs: #0c0c0c ground, #fff7ea
-   cream, #c00b0b red, Inter Black for display, Barlow for everything else, and
-   square corners on absolutely everything. */
+   cream, Inter Black for display, Barlow for everything else, and square corners on
+   absolutely everything.
+   The accent is ours rather than theirs. Their #c00b0b measures 3.07 on this ground,
+   under AA, so it never worked as the colour that carries a number. Yellow does that
+   job at 12.43 and matches the game's own sunset key art. Red keeps what it earns:
+   the two nav outlines, and anything that means danger. */
 @font-face{font-family:Inter;src:url(/fonts/inter-900.woff2)format("woff2");font-weight:900;font-display:swap}
 @font-face{font-family:Barlow;src:url(/fonts/barlow-400.woff2)format("woff2");font-weight:400;font-display:swap}
 @font-face{font-family:Barlow;src:url(/fonts/barlow-600.woff2)format("woff2");font-weight:600;font-display:swap}
@@ -11,6 +15,10 @@ module.exports = `
 :root{
   --bg:#0c0c0c;--panel:#111;--panel2:#161616;--line:#242424;--line2:#333;
   --text:#fff7ea;--dim:rgba(255,247,234,.44);--dim2:rgba(255,247,234,.66);
+  --white:#fff;
+  /* One hue, held near 45deg so no step reads green or orange against its neighbour.
+     Contrast on --bg, measured: 16.2, 13.6, 12.4, 8.7, 5.1, 1.2. */
+  --y-100:#ffe9a3;--y-300:#ffd23f;--yellow:#ffc61a;--y-600:#d9a521;--y-700:#a87a14;--y-950:#2a2210;
   --red:#c00b0b;--red-hot:#f30000;--good:#86ad55;--bad:#d4553a;
   --display:Inter,"Arial Black",system-ui,sans-serif;
   --ui:Barlow,"Segoe UI",system-ui,-apple-system,sans-serif;
@@ -20,7 +28,7 @@ module.exports = `
 body{background:var(--bg);color:var(--text);font-family:var(--ui);font-size:16px;line-height:1.6;
   -webkit-font-smoothing:antialiased}
 a{color:var(--text);text-decoration:none}
-a:hover{color:var(--red-hot)}
+a:hover{color:var(--yellow)}
 .wrap{max-width:1180px;margin:0 auto;padding:0 28px}
 
 /* --- display type: huge, black weight, tight, always uppercase --- */
@@ -36,7 +44,7 @@ p,li{color:var(--dim2)}
 .lede{font-size:clamp(17px,1.6vw,21px);color:var(--text);max-width:56ch;line-height:1.45}
 .lede.sub{font-size:clamp(15px,1.2vw,17px);color:var(--dim2);margin-top:16px;max-width:60ch}
 .eyebrow{font-weight:600;text-transform:uppercase;letter-spacing:.16em;font-size:12px;
-  color:var(--red-hot);margin-bottom:14px;display:block}
+  color:var(--yellow);margin-bottom:14px;display:block}
 
 /* --- header --- */
 header.site{border-bottom:1px solid var(--line);background:rgba(12,12,12,.92);
@@ -64,15 +72,15 @@ nav.site a.cta:hover{background:var(--red);border-color:var(--red);color:#fff}
   border:1px solid var(--text);color:var(--text);background:transparent;font-family:var(--ui);
   font-weight:600;text-transform:uppercase;letter-spacing:.14em;font-size:13px;cursor:pointer}
 .btn:hover{background:var(--text);color:var(--bg)}
-.btn.primary{border-color:var(--red);background:var(--red);color:#fff}
-.btn.primary:hover{background:var(--red-hot);border-color:var(--red-hot);color:#fff}
+.btn.primary{border-color:var(--yellow);background:var(--yellow);color:var(--bg)}
+.btn.primary:hover{background:var(--y-300);border-color:var(--y-300);color:var(--bg)}
 .btn.sm{height:38px;padding:0 16px;font-size:11px}
 
 /* --- hero --- */
 .hero{padding:clamp(56px,9vw,120px) 0 clamp(40px,6vw,72px);border-bottom:1px solid var(--line);
   position:relative;overflow:hidden}
 .hero .actions{display:flex;gap:14px;margin-top:32px;flex-wrap:wrap}
-.hero-rule{height:1px;background:linear-gradient(90deg,var(--red),transparent);margin-top:40px}
+.hero-rule{height:1px;background:linear-gradient(90deg,var(--yellow),transparent);margin-top:40px}
 
 /* --- the hero loop ---
    Gameplay behind the headline. The poster is a background on the section rather than only
@@ -146,7 +154,7 @@ section+section{border-top:1px solid var(--line)}
 .features h3{font-family:var(--display);font-weight:900;font-size:18px;letter-spacing:-.01em;
   text-transform:uppercase;margin-bottom:9px}
 .features p{font-size:14px;color:var(--dim);line-height:1.55;max-width:40ch}
-.features a:hover{color:var(--red-hot)}
+.features a:hover{color:var(--yellow)}
 @media(min-width:640px){.features{grid-template-columns:1fr 1fr}}
 @media(min-width:1000px){.features{grid-template-columns:repeat(3,1fr)}}
 
@@ -170,7 +178,7 @@ tbody tr:hover td{background:var(--panel)}
 .statbar span{font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;
   color:var(--dim);margin-top:8px;display:block}
 
-.note{background:var(--panel);border-left:2px solid var(--red);padding:18px 20px;margin:24px 0;
+.note{background:var(--panel);border-left:2px solid var(--yellow);padding:18px 20px;margin:24px 0;
   font-size:14px;color:var(--dim2)}
 .note strong{color:var(--text)}
 
@@ -199,7 +207,7 @@ tbody tr:hover td{background:var(--panel)}
   padding:5px 10px;font-variant-numeric:tabular-nums}
 .vote button:hover:not(:disabled){border-color:var(--text);color:var(--text)}
 .vote button:disabled{opacity:.45;cursor:default}
-.vote button[data-cast="1"]{border-color:var(--red);color:var(--red-hot)}
+.vote button[data-cast="1"]{border-color:var(--yellow);color:var(--yellow)}
 .vote .score{font-family:var(--num);font-size:13px;color:var(--text);min-width:2ch;text-align:center}
 
 /* --- submit form and comment threads --- */
@@ -208,7 +216,7 @@ tbody tr:hover td{background:var(--panel)}
   text-transform:uppercase;color:var(--dim);margin-bottom:6px}
 .field input,.field textarea{width:100%;background:var(--panel);color:var(--text);
   border:1px solid var(--line2);padding:11px 13px;font-family:var(--ui);font-size:15px}
-.field input:focus,.field textarea:focus{outline:none;border-color:var(--red)}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--yellow)}
 .field textarea{resize:vertical;min-height:76px}
 .field .hint{font-size:12px;color:var(--dim);margin-top:6px}
 .msg{padding:12px 14px;border-left:2px solid var(--red);background:var(--panel);font-size:14px}
@@ -232,18 +240,18 @@ details.design summary::-webkit-details-marker{display:none}
 .chip{background:var(--panel);color:var(--dim2);border:0;cursor:pointer;font-family:var(--ui);
   font-weight:600;font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:9px 13px}
 .chip:hover{background:var(--panel2);color:var(--text)}
-.chip[aria-pressed="true"]{background:var(--red);color:#fff}
+.chip[aria-pressed="true"]{background:var(--yellow);color:var(--bg)}
 .chip small{opacity:.65;margin-left:6px;font-size:10px}
 .cat-search{flex:1 1 210px;min-width:180px;background:var(--panel);color:var(--text);
   border:1px solid var(--line2);padding:10px 13px;font-family:var(--ui);font-size:14px}
-.cat-search:focus{outline:none;border-color:var(--red)}
+.cat-search:focus{outline:none;border-color:var(--yellow)}
 .view-toggle{display:flex;gap:1px;background:var(--line);border:1px solid var(--line)}
 .cat-count{font-size:12px;color:var(--dim);margin:4px 0 16px}
 th.sortable{cursor:pointer;user-select:none;white-space:nowrap}
 th.sortable:hover{color:var(--text)}
 th.sortable::after{content:"";opacity:.35;margin-left:6px}
-th.sortable[data-dir="asc"]::after{content:"↑";opacity:1;color:var(--red-hot)}
-th.sortable[data-dir="desc"]::after{content:"↓";opacity:1;color:var(--red-hot)}
+th.sortable[data-dir="asc"]::after{content:"↑";opacity:1;color:var(--yellow)}
+th.sortable[data-dir="desc"]::after{content:"↓";opacity:1;color:var(--yellow)}
 .cat-grid{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);
   grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
 .cat-card{background:var(--panel);padding:18px;display:flex;gap:14px;align-items:flex-start}
@@ -317,7 +325,7 @@ svg.body .bz[data-on="1"]{stroke:var(--text);stroke-width:2.5}
   text-transform:uppercase;color:var(--dim)}
 .ctl select{flex:1 1 200px;background:var(--panel2);color:var(--text);border:1px solid var(--line2);
   padding:9px 11px;font-family:var(--ui);font-size:14px}
-.ctl input[type=range]{flex:1 1 150px;accent-color:var(--red);background:transparent}
+.ctl input[type=range]{flex:1 1 150px;accent-color:var(--yellow);background:transparent}
 .ctl .n{font-family:var(--num);font-size:13px;color:var(--text)}
 .chip-note{align-self:center;padding:0 0 0 11px;background:var(--panel)}
 .calc-out .hero{border-bottom:1px solid var(--line);padding:0 0 12px;margin:0 0 12px}
@@ -400,7 +408,7 @@ ul,ol{padding-left:22px}li{margin:6px 0}
   letter-spacing:.08em;padding:7px 12px}
 .amap-lay{border:0;padding:7px 10px}
 .amap-btn:hover,.amap-lay:hover{color:var(--text);background:var(--line)}
-.amap-btn[aria-pressed="true"]{background:var(--red);border-color:var(--red);color:#fff}
+.amap-btn[aria-pressed="true"]{background:var(--yellow);border-color:var(--yellow);color:var(--bg)}
 .amap-lay[aria-pressed="true"]{background:var(--line2);color:var(--text)}
 .amap-body{flex:1;display:grid;grid-template-columns:290px 1fr;min-height:0}
 .amap-side{border-right:1px solid var(--line);padding:14px;display:flex;
