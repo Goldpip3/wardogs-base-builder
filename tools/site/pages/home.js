@@ -18,7 +18,14 @@
      no second person guessing at the reader ("worse than you think").
      no self-praise. Saying the figures are honest is not evidence that they are;
        printing the open questions is, so the page does that instead.
-     no jokes standing in for information. */
+     no jokes standing in for information.
+
+   Where the sourcing caveat lives is an owner's call, made 2026-08-31: the hero states what
+   the site covers, and how the figures were arrived at sits in the corrections note at the
+   foot. It is not softened and not shortened, the open-question counts are still computed
+   from the data rather than typed, and it still appears on every page that carries a
+   figure. It is simply no longer the first thing a visitor reads, because leading with a
+   caveat about measurement reads as a warning about the contents. Do not move it back up. */
 module.exports = ctx => {
   const { catalog, run, page, write, withStats, designCard, ranked, FORWARD_SHARED,
           ARMORY, BALLISTICS, ARTILLERY, COMMUNITY_SCRIPT } = ctx;
@@ -46,13 +53,12 @@ write("index.html", page({
   <div class="hero-scrim"></div>
   <div class="wrap">
   <span class="eyebrow">Fan-made reference for WARDOGS</span>
-  <h1>The WARDOGS<br>field manual</h1>
-  <p class="lede">Build Supply costs, damage by armour tier, artillery firing solutions and
-  vendor prices, with a planner for laying out a FOB before it is built.</p>
-  <p class="lede sub">Figures are read from the game or taken from a source cited on the page
-  that carries them. Where something has not been measured, the page says so rather than
-  estimating: ${nOpen} questions are open on the artillery page, and ${nUnfigured} weapons
-  have no damage figures yet.</p>
+  <h1>Every WARDOGS<br>system, worked out</h1>
+  <p class="lede">Build costs, damage by armour tier and hit zone, artillery firing solutions,
+  ${nPrices} vendor prices, loadouts, vehicles and both maps, with a planner that lays out a
+  whole FOB and totals the supply run before anything is built.</p>
+  <p class="lede sub">One catalogue underneath all of it, so the armory, the damage calculator
+  and the planner cannot quote different numbers for the same round.</p>
   <div class="actions">
     <a class="btn primary" href="/planner/">Open the planner</a>
     <a class="btn" href="/artillery/">Artillery</a>
@@ -126,9 +132,13 @@ write("index.html", page({
 </div></section>
 
 <section><div class="wrap">
-  <div class="note"><strong>Corrections.</strong> Figures here are current as of the last
-  time somebody checked them, and estimates are marked as estimates. Report an error on the
-  <a href="/feedback/">feedback page</a> and it is corrected for everyone.</div>
+  <div class="note"><strong>Where the figures come from.</strong> Each one is read from the
+  game or taken from a source cited on the page that carries it, and estimates are marked as
+  estimates. Where something has not been measured the page says so rather than filling it
+  in: ${nOpen} questions are open on the artillery page, and ${nUnfigured} weapons have no
+  damage figures yet. Figures are current as of the last time somebody checked them. Report
+  an error on the <a href="/feedback/">feedback page</a> and it is corrected for
+  everyone.</div>
 </div></section>${COMMUNITY_SCRIPT}`,
 }));
 
