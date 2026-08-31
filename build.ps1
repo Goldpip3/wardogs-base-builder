@@ -9,6 +9,11 @@ $utf8 = [Text.UTF8Encoding]::new($false)
 $tpl = [IO.File]::ReadAllText("$proj\src\app-template.html", $utf8)
 $catalog = [IO.File]::ReadAllText("$proj\data\buildables.json", $utf8).Trim()
 
+# One decoder and one palette for the whole project. The share format has two encoders that
+# drifted apart once, so a second decoder was not going to be written for the community list.
+# This file is inlined here and again by tools/site/context.js; neither side keeps a copy.
+$shared = [IO.File]::ReadAllText("$proj\src\shared\design-view.js", $utf8)
+
 $iconMap = @{}
 Get-ChildItem "$proj\assets\icons\*" -Include *.webp, *.svg, *.png | ForEach-Object {
   $mime = switch ($_.Extension) { ".webp" {"image/webp"} ".svg" {"image/svg+xml"} ".png" {"image/png"} }
@@ -31,7 +36,7 @@ $fontCss = ($faces | ForEach-Object {
   }
 }) -join "`n  "
 
-$out = $tpl.Replace('/*__CATALOG__*/', $catalog).Replace('/*__ICONS__*/', "{$iconsJson}").Replace('/*__FONTS__*/', $fontCss)
+$out = $tpl.Replace('/*__SHARED__*/', $shared).Replace('/*__CATALOG__*/', $catalog).Replace('/*__ICONS__*/', "{$iconsJson}").Replace('/*__FONTS__*/', $fontCss)
 
 # Two builds of the same app, differing only in whether saving online exists.
 #

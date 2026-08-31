@@ -20,13 +20,21 @@ const byId = {};
 for (const b of catalog.buildables) byId[b.id] = b;
 byId["__fob__"] = { id: "__fob__", name: "FOB", isFob: true };
 
-const sb = { console, byId, JSON, Math, Array, Object, String, Uint8Array,
-             TextEncoder, TextDecoder,
+const sb = { console, byId, JSON, Math, Array, Object, String, Uint8Array, Error,
+             TextEncoder, TextDecoder, Response, DecompressionStream, Promise,
              btoa: s => Buffer.from(s, "binary").toString("base64"),
              atob: s => Buffer.from(s, "base64").toString("binary") };
 vm.createContext(sb);
-vm.runInContext([lift("b64urlEncode"), lift("b64urlDecode"),
-                 lift("encodeDesign"), lift("decodeDesign")].join("\n"), sb);
+vm.runInContext([lift("b64urlEncode"), lift("encodeDesign")].join("\n"), sb);
+/* the one decoder, from the file that holds it */
+vm.runInContext(fs.readFileSync(PROJ + "src/shared/design-view.js", "utf8"), sb);
+/* Every check below is written against a synchronous decode, which is what v1 is. The
+   shared entry point is async because only v2 has to inflate, so the v1 half is called
+   directly rather than turning forty assertions into promises. */
+vm.runInContext(
+  "var decodeDesign = function(c){" +
+  "  return WardogsDesignView.decodeV1(c, function(t){ return !!byId[t]; });" +
+  "};", sb);
 
 let pass = 0, fail = 0;
 const check = (ok, label) => { console.log((ok ? "PASS  " : "FAIL  ") + label); ok ? pass++ : fail++; };
@@ -173,19 +181,24 @@ async function crossing() {
                 btoa: x => Buffer.from(x, "binary").toString("base64"),
                 atob: x => Buffer.from(x, "base64").toString("binary") };
   vm.createContext(psb);
-  vm.runInContext([lift("b64urlEncode"), lift("b64urlDecode"),
-                   lift("encodeDesign"), lift("decodeDesign"),
-                   lift("putVarint"), lift("varintReader"),
-                   lift("packDesign"), lift("unpackDesign"),
-                   lift("bytesToB64url"), lift("b64urlToBytes"),
+  /* Only the encoding half is lifted out of the app now. Decoding is one implementation in
+     src/shared/design-view.js, loaded here as the file it is, so this crossing checks what
+     it always meant to check: that what the planner writes, the shared reader reads. */
+  vm.runInContext([lift("b64urlEncode"), lift("encodeDesign"),
+                   lift("putVarint"), lift("packDesign"),
+                   lift("bytesToB64url"),
                    /* lift() anchors on "function name(", which sits inside
                       "async function name(", so the async keyword is left behind and every
                       await in the body becomes a syntax error. Put it back. */
                    "async " + lift("squeeze"),
-                   "async " + lift("encodeDesignShort"),
-                   "async " + lift("decodeDesignAny")].join("\n") +
-    "\nconst zig = n => (n < 0 ? -n * 2 - 1 : n * 2);" +
-    "\nconst unzig = v => (v & 1 ? -(v + 1) / 2 : v / 2);", psb);
+                   "async " + lift("encodeDesignShort")].join("\n") +
+    "\nconst zig = n => (n < 0 ? -n * 2 - 1 : n * 2);", psb);
+  vm.runInContext(fs.readFileSync(PROJ + "src/shared/design-view.js", "utf8"), psb);
+  vm.runInContext(
+    // var, not const: only var reaches the sandbox object the test calls through
+    "var known = t => !!byId[t];" +
+    "var decodeDesignAny = c => WardogsDesignView.decode(c, known);" +
+    "var decodeDesign = c => WardogsDesignView.decodeV1(c, known);", psb);
 
   const d = { name: "Crossing", pieces: [
     { type: "__fob__", x: 0, y: 0, rot: 0, level: 0, zone: 120 },

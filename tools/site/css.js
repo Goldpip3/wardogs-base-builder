@@ -47,7 +47,9 @@ header.site .wrap{display:flex;align-items:center;gap:28px;min-height:74px}
 .brand span{font-family:var(--ui);font-weight:600;font-size:10px;letter-spacing:.18em;
   color:var(--dim);text-transform:uppercase}
 .brand:hover{color:var(--text)}
-nav.site{display:flex;align-items:center;gap:26px;margin-left:auto}
+/* the two tools sit hard left next to the brand, everything else is pushed right by the gap */
+nav.site{display:flex;align-items:center;gap:26px;flex:1}
+.nav-gap{flex:1}
 nav.site a{font-weight:600;text-transform:uppercase;letter-spacing:.12em;font-size:12px;color:var(--dim2)}
 nav.site a:hover{color:var(--text)}
 nav.site a[aria-current]{color:var(--text)}
@@ -88,6 +90,15 @@ section+section{border-top:1px solid var(--line)}
 .card .stats{display:flex;gap:18px;margin-top:18px;font-family:var(--num);font-size:12px;
   color:var(--text);font-variant-numeric:tabular-nums;flex-wrap:wrap}
 .card .stats span{color:var(--dim);font-family:var(--ui)}
+
+/* --- the base itself, at the top of its own card ---
+   A community list of names tells you nothing about the thing you are choosing between, and
+   a base is a shape. Colour and footprint only: no names, no height badges, no grid. At this
+   size none of those can be read, and each one turns something you take in at a glance into
+   something you have to study. The canvas sits on a darker ground than the card so a plan
+   reads as a plan rather than as a graphic bleeding off the panel. --- */
+.card .thumb{display:block;height:150px;margin:-24px -24px 18px;
+  width:calc(100% + 48px);background:var(--bg);border-bottom:1px solid var(--line)}
 
 /* --- feature list: prose in columns rather than panels. A row that does not fill
    reads as a list ending, where an unfilled panel grid reads as a hole. --- */
@@ -134,6 +145,16 @@ tbody tr:hover td{background:var(--panel)}
 
 /* --- community designs --- */
 .vote{display:flex;align-items:center;gap:4px}
+/* In a card this row carries the arrows, the link into the planner and one more button, and
+   a 270px column is not wide enough for all of it in a line. It used to be a single nowrap
+   row with hard margins, so the last button hung outside the card it belonged to. Let it
+   wrap, and let the gap do the spacing instead of per-button margins. */
+.card .vote{flex-wrap:wrap;gap:8px;margin-top:16px}
+.card .vote > *{margin-left:0 !important}
+.card .vote .score{margin-right:4px}
+/* The arrows keep the first line to themselves and the two actions split the next, so a
+   narrow card reads as two deliberate rows rather than as buttons that ran out of room. */
+.card .vote .btn.sm{flex:1 1 42%;padding:0 10px}
 .vote button{display:inline-flex;align-items:center;gap:5px;background:transparent;cursor:pointer;
   border:1px solid var(--line2);color:var(--dim2);font-family:var(--ui);font-weight:600;font-size:12px;
   padding:5px 10px;font-variant-numeric:tabular-nums}
@@ -191,13 +212,25 @@ th.sortable[data-dir="desc"]::after{content:"↓";opacity:1;color:var(--red-hot)
 .cat-card p{font-size:12.5px;color:var(--dim);margin-top:8px;line-height:1.45}
 .cat-empty{padding:34px;text-align:center;color:var(--dim);border:1px dashed var(--line2)}
 /* --- account control in the header --- */
-.acct{display:none;align-items:center;gap:8px;font-weight:600;font-size:11px;
+.acct{display:none;align-items:center;gap:8px;font-weight:600;font-size:11px;white-space:nowrap;
   letter-spacing:.1em;text-transform:uppercase}
 .acct.on{display:inline-flex}
 .acct a{color:var(--dim2)}
 .acct a:hover{color:var(--text)}
-.acct .who{color:var(--text)}
-.acct .sep{color:var(--line2)}
+/* Your name is the control; what you can do with the account opens under it, anchored to
+   the name rather than to the bar so it stays put when the header wraps. */
+.acct{position:relative}
+.acct .who{color:var(--text);background:none;border:0;padding:4px 0;cursor:pointer;
+  font:inherit;letter-spacing:inherit;text-transform:inherit;display:inline-flex;
+  align-items:center;gap:6px}
+.acct .who:hover{color:var(--accent)}
+.acct .caret{font-size:9px;color:var(--dim2)}
+.acct-menu{position:absolute;top:calc(100% + 6px);right:0;z-index:60;display:flex;
+  flex-direction:column;min-width:150px;background:var(--panel);
+  border:1px solid var(--line2);box-shadow:0 8px 22px rgba(0,0,0,.5)}
+.acct-menu[hidden]{display:none}
+.acct-menu a{padding:9px 13px;white-space:nowrap;color:var(--dim2)}
+.acct-menu a:hover{background:var(--panel2);color:var(--text)}
 
 .ad-slot{margin:34px 0;padding:10px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
   text-align:center;overflow:hidden}
@@ -301,6 +334,7 @@ ul,ol{padding-left:22px}li{margin:6px 0}
 @media(max-width:760px){
   header.site .wrap{flex-wrap:wrap;padding-top:14px;padding-bottom:14px;gap:14px}
   nav.site{margin-left:0;gap:18px;width:100%;flex-wrap:wrap}
+  .nav-gap{display:none}
   .grid{grid-template-columns:1fr}
 }
 

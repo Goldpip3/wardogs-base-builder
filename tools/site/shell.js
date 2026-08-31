@@ -29,15 +29,16 @@ ${AUTH_SCRIPT}
 <header class="site"><div class="wrap">
   <a href="/" class="brand">WARDOGS <span>Builder</span></a>
   <nav class="site">
+    <a href="/planner/" class="cta">Planner</a>
+    <a href="/artillery/" class="cta">Artillery</a>
+    <span class="nav-gap"></span>
     <a href="/designs/">Designs</a>
     <a href="/buildables/">Buildables</a>
     <a href="/armory/">Armory</a>
     <a href="/ballistics/">Damage</a>
-    <a href="/artillery/">Artillery</a>
     <a href="/loadouts/">Loadouts</a>
     <a href="/vehicles/">Vehicles</a>
     <a href="/feedback/">Feedback</a>
-    <a href="/planner/" class="cta">Planner</a>
     <span id="acct" class="acct"></span>
   </nav>
 </div></header>

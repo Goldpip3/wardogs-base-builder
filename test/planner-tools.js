@@ -241,5 +241,43 @@ check(!/<kbd>V<\/kbd>/.test(html) && !/3D view \(V\)/.test(html),
   "and nothing still tells the user to press V");
 check(/<kbd>3<\/kbd>/.test(html), "the shortcut list says 3");
 
+// ---------- "Plan your FOB" answers the canvas, not the last edit ----------
+/* It used to be hidden only inside afterChange, which a design arriving at boot never went
+   through. So opening a share link, or coming back to a saved base after a hard refresh,
+   drew the base with the invitation to start one sitting on top of it. Reported twice.
+*/
+vm.runInContext(`
+  var view3d = false;
+  var emptyEl = { style: { display: "" } };
+  document = { getElementById: function(id){ return id === "emptyState" ? emptyEl : null; } };
+  ${lift("syncEmptyState")}
+`, sandbox);
+const emptyState = () => vm.runInContext("syncEmptyState(); emptyEl.style.display", sandbox);
+const withPieces = n => vm.runInContext(
+  `design.pieces = Array.from({length:${n}}, function(_,i){ return {id:i+1,type:"hesco-wall",x:i,y:0,rot:0,level:0}; });`,
+  sandbox);
+
+withPieces(0);
+check(emptyState() === "", "an empty canvas offers the invitation to start");
+withPieces(19);
+check(emptyState() === "none", "a canvas with a base on it does not");
+
+/* the reported case: a design that arrives without anything being edited */
+vm.runInContext(`emptyEl.style.display = "";`, sandbox);   // as the markup ships it
+withPieces(19);
+check(emptyState() === "none",
+  "a design loaded at boot hides it, without waiting for an edit");
+
+withPieces(0);
+vm.runInContext("view3d = true;", sandbox);
+check(emptyState() === "none", "and it never sits over the 3D view");
+vm.runInContext("view3d = false;", sandbox);
+
+/* and the thing that made it possible: drawing owns it, so it cannot lag behind the canvas */
+check(/function drawNow\(\)\s*\{\s*syncEmptyState\(\);/.test(src),
+  "the draw decides it, so it always agrees with what was just drawn");
+check(!/emptyState"\)\.style\.display/.test(src.replace(lift("syncEmptyState"), "")),
+  "and nothing else sets it behind the draw's back");
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

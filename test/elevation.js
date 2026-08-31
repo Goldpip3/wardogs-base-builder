@@ -57,12 +57,15 @@ const sandbox = {
 vm.createContext(sandbox);
 vm.runInContext(
   [lift("pieceRect"), lift("rectCorners"), lift("rectAABB"), lift("shade"),
-   lift("pieceColor"), lift("roundRect"), lift("iconAt"), lift("toScreen"),
+   lift("roundRect"), lift("iconAt"), lift("toScreen"),
    lift("localSeams"), lift("drawRect")].join("\n") +
   "\nvar SEAM_DIR_BIT = [1, 4, 2, 8];" +
   "\nvar view = { x: 0, y: 0, zoom: 24 };" +
-  "\n" + src.match(/const TIER_COLOR = \{[^\n]*\};/)[0] +
-  "\n" + src.match(/const ROLE_COLOR = [\s\S]*?\n\};/)[0] +
+  /* the one palette, read from the file that holds it rather than from a copy in the app */
+  "\n" + fs.readFileSync(ROOT + "/src/shared/design-view.js", "utf8") +
+  "\nvar TIER_COLOR = WardogsDesignView.TIER_COLOR;" +
+  "\nvar ROLE_COLOR = WardogsDesignView.ROLE_COLOR;" +
+  "\nvar pieceColor = WardogsDesignView.pieceColor;" +
   "\nvar iconBitmaps = new Map(); var lastDrawn = 0;", sandbox);
 
 const catalog = JSON.parse(src.match(/const CATALOG_DEFAULT = ([\s\S]*?);\nconst ICONS/)[1]);

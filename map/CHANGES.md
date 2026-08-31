@@ -8,6 +8,50 @@ Newest first. One entry per decision, not per commit.
 
 ## 2026-08-31
 
+### The community list shows the base, and one decoder now serves both sides
+
+A list of names told you nothing about the thing you were choosing between, and a base is a
+shape. Every card carries an overhead picture of its own layout: colour and footprint only,
+no names, no height badges, no storey shading, no grid. At card size none of those can be
+read, and each one turns something you take in at a glance into something you have to study.
+
+Drawing it meant decoding a share code outside the planner. The card for that format says
+the count of places it lives in is the point, and its two encoders had already drifted apart
+once without anybody noticing, so a second decoder was not written.
+`src/shared/design-view.js` is the only one, with the only palette beside it. `build.ps1`
+inlines it into the planner and `tools/site/client-scripts.js` inlines it into the pages;
+neither keeps a copy, and the planner's private decoder and colour tables are deleted rather
+than left unused. The page gets a slim table of footprints and roles rather than the whole
+catalog, because a picture needs nothing else.
+
+Pictures are painted when a card is about to be seen rather than all at once, and a code
+that will not decode leaves no picture instead of a broken frame.
+
+Two things showed up next to it. The dynamic list wrote its cards straight into the
+container while the built-in list wrapped them in a grid, so the moment the worker answered,
+a tidy grid became a column of full width rows. And inside a 270px card the action row was a
+single unwrapped line with hard margins, so its last button hung outside the card it
+belonged to.
+
+`test/thumbnails.js` covers the drawing and the sharing: every piece drawn, nothing written
+on it, the base inside the canvas and filling it, a long base and a tall one both fitting
+without being stretched, and the decoder present in both builds with the planner's old copy
+gone.
+
+### Sign out moved under your name
+
+It was a second link in the header, level with the name and with everything else up there,
+which put the one destructive account action in the busiest row on the page. Your name is a
+control now, and Your designs and Sign out open under it.
+
+### "Plan your FOB" stops sitting on top of your base
+
+The invitation to start a base was hidden only inside `afterChange`, which a design arriving
+at boot never went through. Opening a share link, or coming back after a hard refresh, drew
+the base with the invitation still over it. Reported twice. `drawNow` decides it now, so it
+cannot disagree with what was just drawn, and `test/planner-tools.js` pins that the draw is
+the only thing that sets it.
+
 ### Your own work is yours to take back
 
 Everything published on arrival and nothing could ever be unpublished except by the person

@@ -18,11 +18,19 @@ string has to survive being pasted into a chat message. Roughly a third the char
 the obvious encoding; a 500-piece base still encodes to under 12,000 characters, which
 `test/share-links.js` pins.
 
-**The dangerous part: there are two implementations of one format.** The planner encodes in
-the browser with `btoa`; the site generator encodes in Node with `Buffer`, so a community
-design page can carry a code the planner will read back. Nothing structural keeps them
+**The dangerous part: there are two encoders of one format.** The planner encodes in the
+browser with `btoa`; the site generator encodes in Node with `Buffer`, so a community
+design page can carry a code the planner will read back. Nothing structural keeps those two
 honest, because they cannot share a module: one ships inside a standalone HTML file, the
 other runs at build time.
+
+**Decoding is no longer one of them.** It used to be a third copy waiting to happen: putting
+a picture of each base on the community list needed a decoder outside the planner, and
+writing one would have been a second reader of a format that had already drifted once. So
+`src/shared/design-view.js` is the only decoder, along with the only palette. `build.ps1`
+inlines it into the planner and `tools/site/client-scripts.js` inlines it into the pages;
+neither keeps a copy. `test/thumbnails.js` fails if either loses it, and fails again if the
+planner's private copy ever comes back.
 
 They had already drifted. An unnamed design encoded to a different string on each side,
 latent only because every community design happens to have a name. Found on 2026-08-30 by
@@ -49,7 +57,9 @@ parity checked at the end of `test/share-links.js`.
 
 ## If you change this
 
-- **Hits:** four places, and the count is the point. Both encoders, in the same change. The
+- **Hits:** four places, and the count is the point. Both encoders, in the same change, and
+  the one decoder in `src/shared/design-view.js`, which is inlined twice and read by the
+  planner and by every community card's thumbnail. The
   hash regex in the planner, which matches the code out of the URL and will silently see no
   link at all if the character set grew. The worker's validator, which checks the alphabet
   and rejects anything outside it, **and therefore needs `wrangler deploy`**. Then every

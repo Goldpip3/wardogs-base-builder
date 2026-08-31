@@ -543,6 +543,8 @@
 <script>
 "use strict";
 /* ============ EMBEDDED DATA ============ */
+/*__SHARED__*/
+const SHARED = WardogsDesignView;                  // one decoder, one palette, see src/shared/
 const CATALOG_DEFAULT = /*__CATALOG__*/;
 const ICONS = /*__ICONS__*/;
 /* Build Supplies are shown with the in-game build tool rather than a stand-in glyph. */
@@ -604,33 +606,17 @@ let spaceHeld = false;
 let iconImgs = {};
 
 const TIER_ORDER = { small:1, medium:2, large:3 };
-const TIER_COLOR = { small:"#5d8a4a", medium:"#b08d2a", large:"#b05c3a" };  // fallback for custom entries
+const TIER_COLOR = SHARED.TIER_COLOR;              // fallback for custom entries
 /* Pieces are coloured by what they DO, so a layout reads at a glance. */
-const ROLE_COLOR = {
-  cover:     "#c2a132",  // hesco, sandbag, bremer, bunker, shelters. The fortification family
-  entry:     "#5fa855",  // doors & gates: how your team gets in and out
-  offense:   "#9c5ec4",  // indirect fire at ground targets (mortar)
-  antiair:   "#3f9fb5",  // anti-air emplacements
-  /* Anti-vehicle is its own thing, not a shade of offense. The Stingray launches
-     anti-armour UAVs; the mortar drops shells on ground. They were sharing a role and
-     therefore a colour, and once both carried a render of a tube in a sandbag pit there
-     was nothing left to tell them apart at plan size. Warm counterpart to the anti-air
-     teal, which is the sibling it actually pairs with. */
-  antivehicle: "#e07b39",
-  denial:    "#a55536",  // wire & anti-vehicle obstacles
-  support:   "#6f8593",  // logistics, comms, concealment
-  objective: "#c04f92",  // drill rig. Pulls the Hot Zone
-  fob:       "#4d8fc4"
-};
+/* The palette lives in src/shared/design-view.js, because the community list paints the
+   same pieces the same colours and two tables would have drifted the first time one moved. */
+const ROLE_COLOR = SHARED.ROLE_COLOR;
 const ROLE_LABEL = {
   cover:"Cover & structure", entry:"Entryway", offense:"Offensive fire", antiair:"Anti-air",
   antivehicle:"Anti-vehicle",
   denial:"Area denial", support:"Support & logistics", objective:"Objective", fob:"FOB"
 };
-function pieceColor(def) {
-  if (def.isFob) return ROLE_COLOR.fob;
-  return ROLE_COLOR[def.role] || TIER_COLOR[def.tier] || "#888";
-}
+const pieceColor = SHARED.pieceColor;
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
@@ -1204,7 +1190,19 @@ function draw() {
   drawQueued = true;
   requestAnimationFrame(() => { drawQueued = false; drawNow(); });
 }
+/* "Plan your FOB" is an answer to an empty canvas, so it is tied to the canvas rather than
+   to the act of changing something. It used to be hidden only inside afterChange, which a
+   design arriving at boot never went through: opening a share link or coming back to a saved
+   base after a hard refresh drew the base with the invitation to start one still sitting on
+   top of it. Deciding it here means it cannot disagree with what was just drawn. */
+function syncEmptyState() {
+  const el = document.getElementById("emptyState");
+  if (!el) return;
+  const want = design.pieces.length || view3d ? "none" : "";
+  if (el.style.display !== want) el.style.display = want;
+}
 function drawNow() {
+  syncEmptyState();
   if (view3d) return draw3DNow();
   const W = canvas.clientWidth, H = canvas.clientHeight;
   ctx.clearRect(0, 0, W, H);
@@ -2336,8 +2334,7 @@ function afterChange(save = true) {
   if (viewLevel !== null && !levelsInUse().includes(viewLevel)) viewLevel = null;
   renderLevelStrip();
   updateRightPanel();
-  document.getElementById("emptyState").style.display = design.pieces.length ? "none" : "";
-  draw();
+  draw();                                 // draw decides the empty state, so it cannot lag
 }
 
 /* ============ MOUSE / KEYS ============ */
@@ -3145,12 +3142,6 @@ function b64urlEncode(str) {
   for (const b of bytes) bin += String.fromCharCode(b);
   return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
-function b64urlDecode(s) {
-  const bin = atob(s.replace(/-/g, "+").replace(/_/g, "/"));
-  const bytes = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-  return new TextDecoder().decode(bytes);
-}
 function encodeDesign(d) {
   const types = [];
   const idx = t => { let i = types.indexOf(t); if (i < 0) { i = types.length; types.push(t); } return i; };
@@ -3161,17 +3152,6 @@ function encodeDesign(d) {
     return a;
   });
   return b64urlEncode(JSON.stringify({ v: 1, n: d.name || "Shared design", t: types, p: pieces }));
-}
-function decodeDesign(code) {
-  const o = JSON.parse(b64urlDecode(code));
-  if (!o || o.v !== 1 || !Array.isArray(o.p) || !Array.isArray(o.t)) throw new Error("not a design link");
-  let id = 1;
-  const pieces = o.p.map(a => {
-    const p = { id: id++, type: o.t[a[0]], x: a[1] / 2, y: a[2] / 2, rot: a[3] || 0, level: a[4] || 0 };
-    if (a.length > 5) p.zone = a[5];
-    return p;
-  }).filter(p => p.type && byId[p.type]);
-  return { name: String(o.n || "Shared design").slice(0, 80), pieces, nextId: id };
 }
 /* ---------- v2: the same design, about a tenth of the characters ----------
  *
@@ -3194,15 +3174,6 @@ function putVarint(out, n) {
   out.push(n & 0x7f);
 }
 const zig = n => (n < 0 ? -n * 2 - 1 : n * 2);          // negatives stay short
-const unzig = v => (v & 1 ? -(v + 1) / 2 : v / 2);
-function varintReader(bytes) {
-  let i = 0;
-  return () => {
-    let v = 0, shift = 1, b;
-    do { b = bytes[i++]; v += (b & 0x7f) * shift; shift *= 128; } while (b & 0x80);
-    return v;
-  };
-}
 function packDesign(d) {
   const types = [];
   const idx = t => { let i = types.indexOf(t); if (i < 0) { i = types.length; types.push(t); } return i; };
@@ -3222,29 +3193,6 @@ function packDesign(d) {
   out[0] = head.length & 0xff; out[1] = (head.length >> 8) & 0xff;
   out.set(head, 2); out.set(body, 2 + head.length);
   return out;
-}
-function unpackDesign(bytes) {
-  const headLen = bytes[0] | (bytes[1] << 8);
-  const head = JSON.parse(new TextDecoder().decode(bytes.subarray(2, 2 + headLen)));
-  if (!head || !Array.isArray(head.t)) throw new Error("not a design link");
-  const next = varintReader(bytes.subarray(2 + headLen));
-  const n = next();
-  const ti = [], xs = [], ys = [], rots = [], lvls = [];
-  for (let i = 0; i < n; i++) ti.push(next());
-  let prev = 0; for (let i = 0; i < n; i++) { prev += unzig(next()); xs.push(prev); }
-  prev = 0;     for (let i = 0; i < n; i++) { prev += unzig(next()); ys.push(prev); }
-  for (let i = 0; i < n; i++) rots.push(next());
-  for (let i = 0; i < n; i++) lvls.push(next());
-  let id = 1;
-  const pieces = [];
-  for (let i = 0; i < n; i++) {
-    const type = head.t[ti[i]];
-    const p = { id: id++, type, x: xs[i] / 2, y: ys[i] / 2, rot: rots[i] * 90, level: lvls[i] };
-    if (type === "__fob__") p.zone = next();
-    pieces.push(p);
-  }
-  return { name: String(head.n || "Shared design").slice(0, 80),
-           pieces: pieces.filter(p => p.type && byId[p.type]), nextId: id };
 }
 function bytesToB64url(bytes) {
   let bin = "";
@@ -3271,10 +3219,10 @@ async function encodeDesignShort(d) {
   try { return "~" + bytesToB64url(await squeeze(packDesign(d), "out")); }
   catch (e) { return encodeDesign(d); }
 }
-async function decodeDesignAny(code) {
-  if (code.charAt(0) !== "~") return decodeDesign(code);
-  return unpackDesign(await squeeze(b64urlToBytes(code.slice(1)), "in"));
-}
+/* Decoding is the shared implementation, given this planner's own catalog so a piece the
+   player has edited or added still reads back. Encoding stays here: it is the half the site
+   generator also writes, and test/share-links.js is what keeps those two honest. */
+const decodeDesignAny = code => SHARED.decode(code, t => !!byId[t]);
 async function shareUrl(d) {
   const base = location.origin + location.pathname;
   return base + "#d=" + await encodeDesignShort(d);

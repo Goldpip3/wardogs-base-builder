@@ -63,7 +63,9 @@ header.site .wrap{display:flex;align-items:center;gap:28px;min-height:74px}
 .brand span{font-family:var(--ui);font-weight:600;font-size:10px;letter-spacing:.18em;
   color:var(--dim);text-transform:uppercase}
 .brand:hover{color:var(--text)}
-nav.site{display:flex;align-items:center;gap:26px;margin-left:auto}
+/* the two tools sit hard left next to the brand, everything else is pushed right by the gap */
+nav.site{display:flex;align-items:center;gap:26px;flex:1}
+.nav-gap{flex:1}
 nav.site a{font-weight:600;text-transform:uppercase;letter-spacing:.12em;font-size:12px;color:var(--dim2)}
 nav.site a:hover{color:var(--text)}
 nav.site a[aria-current]{color:var(--text)}
@@ -104,6 +106,15 @@ section+section{border-top:1px solid var(--line)}
 .card .stats{display:flex;gap:18px;margin-top:18px;font-family:var(--num);font-size:12px;
   color:var(--text);font-variant-numeric:tabular-nums;flex-wrap:wrap}
 .card .stats span{color:var(--dim);font-family:var(--ui)}
+
+/* --- the base itself, at the top of its own card ---
+   A community list of names tells you nothing about the thing you are choosing between, and
+   a base is a shape. Colour and footprint only: no names, no height badges, no grid. At this
+   size none of those can be read, and each one turns something you take in at a glance into
+   something you have to study. The canvas sits on a darker ground than the card so a plan
+   reads as a plan rather than as a graphic bleeding off the panel. --- */
+.card .thumb{display:block;height:150px;margin:-24px -24px 18px;
+  width:calc(100% + 48px);background:var(--bg);border-bottom:1px solid var(--line)}
 
 /* --- feature list: prose in columns rather than panels. A row that does not fill
    reads as a list ending, where an unfilled panel grid reads as a hole. --- */
@@ -150,6 +161,16 @@ tbody tr:hover td{background:var(--panel)}
 
 /* --- community designs --- */
 .vote{display:flex;align-items:center;gap:4px}
+/* In a card this row carries the arrows, the link into the planner and one more button, and
+   a 270px column is not wide enough for all of it in a line. It used to be a single nowrap
+   row with hard margins, so the last button hung outside the card it belonged to. Let it
+   wrap, and let the gap do the spacing instead of per-button margins. */
+.card .vote{flex-wrap:wrap;gap:8px;margin-top:16px}
+.card .vote > *{margin-left:0 !important}
+.card .vote .score{margin-right:4px}
+/* The arrows keep the first line to themselves and the two actions split the next, so a
+   narrow card reads as two deliberate rows rather than as buttons that ran out of room. */
+.card .vote .btn.sm{flex:1 1 42%;padding:0 10px}
 .vote button{display:inline-flex;align-items:center;gap:5px;background:transparent;cursor:pointer;
   border:1px solid var(--line2);color:var(--dim2);font-family:var(--ui);font-weight:600;font-size:12px;
   padding:5px 10px;font-variant-numeric:tabular-nums}
@@ -207,13 +228,25 @@ th.sortable[data-dir="desc"]::after{content:"↓";opacity:1;color:var(--red-hot)
 .cat-card p{font-size:12.5px;color:var(--dim);margin-top:8px;line-height:1.45}
 .cat-empty{padding:34px;text-align:center;color:var(--dim);border:1px dashed var(--line2)}
 /* --- account control in the header --- */
-.acct{display:none;align-items:center;gap:8px;font-weight:600;font-size:11px;
+.acct{display:none;align-items:center;gap:8px;font-weight:600;font-size:11px;white-space:nowrap;
   letter-spacing:.1em;text-transform:uppercase}
 .acct.on{display:inline-flex}
 .acct a{color:var(--dim2)}
 .acct a:hover{color:var(--text)}
-.acct .who{color:var(--text)}
-.acct .sep{color:var(--line2)}
+/* Your name is the control; what you can do with the account opens under it, anchored to
+   the name rather than to the bar so it stays put when the header wraps. */
+.acct{position:relative}
+.acct .who{color:var(--text);background:none;border:0;padding:4px 0;cursor:pointer;
+  font:inherit;letter-spacing:inherit;text-transform:inherit;display:inline-flex;
+  align-items:center;gap:6px}
+.acct .who:hover{color:var(--accent)}
+.acct .caret{font-size:9px;color:var(--dim2)}
+.acct-menu{position:absolute;top:calc(100% + 6px);right:0;z-index:60;display:flex;
+  flex-direction:column;min-width:150px;background:var(--panel);
+  border:1px solid var(--line2);box-shadow:0 8px 22px rgba(0,0,0,.5)}
+.acct-menu[hidden]{display:none}
+.acct-menu a{padding:9px 13px;white-space:nowrap;color:var(--dim2)}
+.acct-menu a:hover{background:var(--panel2);color:var(--text)}
 
 .ad-slot{margin:34px 0;padding:10px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
   text-align:center;overflow:hidden}
@@ -317,6 +350,7 @@ ul,ol{padding-left:22px}li{margin:6px 0}
 @media(max-width:760px){
   header.site .wrap{flex-wrap:wrap;padding-top:14px;padding-bottom:14px;gap:14px}
   nav.site{margin-left:0;gap:18px;width:100%;flex-wrap:wrap}
+  .nav-gap{display:none}
   .grid{grid-template-columns:1fr}
 }
 
@@ -406,10 +440,29 @@ A.ready=fetch(API+"/me",{headers:A.headers()})
     var el=document.getElementById("acct");
     if(el && j.loginEnabled){
       el.className="acct on";
+      /* Your name is the control, and what you can do with the account sits under it.
+         Sign out used to be a second link in the header, level with the name and with
+         everything else up there, which put the one destructive account action in the
+         busiest row on the page next to things you press all the time. */
       el.innerHTML = j.user
-        ? '<a href="/account/" class="who">'+esc(j.user.name)+'</a>'+
-          '<span class="sep">/</span><a href="#" data-signout>Sign out</a>'
+        ? '<button type="button" class="who" data-acctmenu aria-expanded="false">'+
+            esc(j.user.name)+'<span class="caret">&#9662;</span></button>'+
+          '<div class="acct-menu" hidden>'+
+            '<a href="/account/">Your designs</a>'+
+            '<a href="#" data-signout>Sign out</a>'+
+          '</div>'
         : '<a href="'+A.signInUrl()+'">Sign in</a>';
+      var btn=el.querySelector("[data-acctmenu]"), menu=el.querySelector(".acct-menu");
+      if(btn){
+        var shut=function(){ menu.hidden=true; btn.setAttribute("aria-expanded","false"); };
+        btn.addEventListener("click",function(ev){
+          ev.stopPropagation();
+          menu.hidden=!menu.hidden;
+          btn.setAttribute("aria-expanded",String(!menu.hidden));
+        });
+        document.addEventListener("click",function(ev){ if(!el.contains(ev.target)) shut(); });
+        document.addEventListener("keydown",function(ev){ if(ev.key==="Escape") shut(); });
+      }
     }
     return j;
   })
@@ -424,15 +477,16 @@ document.addEventListener("click",function(e){
 <header class="site"><div class="wrap">
   <a href="/" class="brand">WARDOGS <span>Builder</span></a>
   <nav class="site">
+    <a href="/planner/" class="cta">Planner</a>
+    <a href="/artillery/" class="cta">Artillery</a>
+    <span class="nav-gap"></span>
     <a href="/designs/">Designs</a>
     <a href="/buildables/">Buildables</a>
     <a href="/armory/">Armory</a>
     <a href="/ballistics/">Damage</a>
-    <a href="/artillery/">Artillery</a>
     <a href="/loadouts/">Loadouts</a>
     <a href="/vehicles/">Vehicles</a>
     <a href="/feedback/">Feedback</a>
-    <a href="/planner/" class="cta">Planner</a>
     <span id="acct" class="acct"></span>
   </nav>
 </div></header>
@@ -479,7 +533,197 @@ document.addEventListener("click",function(e){
   <p style="font-size:13px;color:var(--dim);margin-top:20px">
   Submissions are read before they go up, which usually takes a few hours. Nothing is
   published automatically.</p>
-</div></section><script>
+</div></section><script>/* One decoder, one palette, one overhead drawing, shared by the planner and the site.
+ *
+ * The share format already had two encoders that drifted apart once, and the card for it
+ * says the count of places is the point. Wanting a picture of a base on the community list
+ * meant a decoder outside the planner, and writing a second one would have been a third
+ * implementation of a format with a history of quiet disagreement. So this file is the one
+ * decoder: build.ps1 inlines it into the planner and tools/site/context.js inlines it into
+ * the pages. Neither has a copy of its own.
+ *
+ * Nothing here touches globals. The catalog arrives as a lookup so the planner can pass its
+ * live one, edits and all, and a page can pass the slim table the generator baked in.
+ */
+(function (root) {
+  "use strict";
+
+  /* ---------- the wire format, decode half ---------- */
+
+  function b64urlToBytes(s) {
+    var bin = atob(String(s).replace(/-/g, "+").replace(/_/g, "/"));
+    var out = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+  function b64urlDecode(s) {
+    return new TextDecoder().decode(b64urlToBytes(s));
+  }
+  function varintReader(bytes) {
+    var i = 0;
+    return function () {
+      var v = 0, shift = 1, b;
+      do { b = bytes[i++]; v += (b & 0x7f) * shift; shift *= 128; } while (b & 0x80);
+      return v;
+    };
+  }
+  function unzig(v) { return v & 1 ? -(v + 1) / 2 : v / 2; }
+
+  async function inflate(bytes) {
+    var s = new DecompressionStream("deflate-raw");
+    var w = s.writable.getWriter();
+    w.write(bytes); w.close();
+    return new Uint8Array(await new Response(s.readable).arrayBuffer());
+  }
+
+  /* v1: positional arrays as JSON. Every link shared before the short codes is one of
+     these, so it reads forever. */
+  function decodeV1(code, known) {
+    var o = JSON.parse(b64urlDecode(code));
+    if (!o || o.v !== 1 || !Array.isArray(o.p) || !Array.isArray(o.t))
+      throw new Error("not a design link");
+    var id = 1;
+    var pieces = o.p.map(function (a) {
+      var p = { id: id++, type: o.t[a[0]], x: a[1] / 2, y: a[2] / 2,
+                rot: a[3] || 0, level: a[4] || 0 };
+      if (a.length > 5) p.zone = a[5];
+      return p;
+    }).filter(function (p) { return p.type && known(p.type); });
+    return { name: String(o.n || "Shared design").slice(0, 80), pieces: pieces, nextId: id };
+  }
+
+  /* v2: a JSON head, then column-major varints with the coordinates delta coded, deflated.
+     Roughly a fifteenth of v1, which is what got a base under Discord's message limit. */
+  function unpackDesign(bytes, known) {
+    var headLen = bytes[0] | (bytes[1] << 8);
+    var head = JSON.parse(new TextDecoder().decode(bytes.subarray(2, 2 + headLen)));
+    if (!head || !Array.isArray(head.t)) throw new Error("not a design link");
+    var next = varintReader(bytes.subarray(2 + headLen));
+    var n = next();
+    var ti = [], xs = [], ys = [], rots = [], lvls = [], i, prev;
+    for (i = 0; i < n; i++) ti.push(next());
+    prev = 0; for (i = 0; i < n; i++) { prev += unzig(next()); xs.push(prev); }
+    prev = 0; for (i = 0; i < n; i++) { prev += unzig(next()); ys.push(prev); }
+    for (i = 0; i < n; i++) rots.push(next());
+    for (i = 0; i < n; i++) lvls.push(next());
+    var id = 1, pieces = [];
+    for (i = 0; i < n; i++) {
+      var type = head.t[ti[i]];
+      var p = { id: id++, type: type, x: xs[i] / 2, y: ys[i] / 2,
+                rot: rots[i] * 90, level: lvls[i] };
+      if (type === "__fob__") p.zone = next();
+      pieces.push(p);
+    }
+    return { name: String(head.n || "Shared design").slice(0, 80),
+             pieces: pieces.filter(function (p) { return p.type && known(p.type); }),
+             nextId: id };
+  }
+
+  /* A leading tilde marks v2. It is outside the base64url alphabet on purpose, so telling
+     the two apart never needs a guess. */
+  async function decode(code, known) {
+    known = known || function () { return true; };
+    if (String(code).charAt(0) !== "~") return decodeV1(code, known);
+    return unpackDesign(await inflate(b64urlToBytes(String(code).slice(1))), known);
+  }
+
+  /* ---------- what a piece looks like ---------- */
+
+  var TIER_COLOR = { small: "#5d8a4a", medium: "#b08d2a", large: "#b05c3a" };
+  var ROLE_COLOR = {
+    cover:       "#c2a132",  // hesco, sandbag, bremer, bunker, shelters
+    entry:       "#5fa855",  // doors and gates
+    offense:     "#9c5ec4",  // indirect fire at ground targets
+    antiair:     "#3f9fb5",
+    antivehicle: "#e07b39",  // warm counterpart to the anti-air teal, its real sibling
+    denial:      "#a55536",  // wire and vehicle obstacles
+    support:     "#6f8593",  // logistics, comms, concealment
+    objective:   "#c04f92",
+    fob:         "#4d8fc4"
+  };
+  function pieceColor(def) {
+    if (!def) return "#888";
+    if (def.isFob) return ROLE_COLOR.fob;
+    return ROLE_COLOR[def.role] || TIER_COLOR[def.tier] || "#888";
+  }
+
+  /* ---------- the overhead picture ----------
+     Colour and footprint, nothing else: no names, no height badges, no storey markers, no
+     grid. At the size a list shows it none of those can be read anyway, and every one of
+     them turns a shape you take in at a glance into something you have to study. The point
+     is to recognise the base, not to audit it. */
+  function drawThumb(canvas, pieces, defOf, opts) {
+    opts = opts || {};
+    var pad = opts.pad === undefined ? 6 : opts.pad;
+    var ctx = canvas.getContext("2d");
+    var dpr = opts.dpr || (root.devicePixelRatio || 1);
+    var W = canvas.clientWidth || canvas.width || 320;
+    var H = canvas.clientHeight || canvas.height || 180;
+    canvas.width = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+
+    var drawn = pieces.filter(function (p) { return defOf(p.type); });
+    if (!drawn.length) return false;
+
+    /* Corners rather than centres, so a long wall on the edge is inside the picture and a
+       turned piece is measured by where it actually reaches. */
+    var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    var boxes = drawn.map(function (p) {
+      var def = defOf(p.type);
+      var a = ((p.rot || 0) * Math.PI) / 180;
+      var c = Math.cos(a), s = Math.sin(a);
+      var hw = (def.footprint ? def.footprint.w : 1) / 2;
+      var hd = (def.footprint ? def.footprint.d : 1) / 2;
+      var pts = [[-hw, -hd], [hw, -hd], [hw, hd], [-hw, hd]].map(function (q) {
+        return [p.x + q[0] * c - q[1] * s, p.y + q[0] * s + q[1] * c];
+      });
+      pts.forEach(function (q) {
+        if (q[0] < minX) minX = q[0];
+        if (q[0] > maxX) maxX = q[0];
+        if (q[1] < minY) minY = q[1];
+        if (q[1] > maxY) maxY = q[1];
+      });
+      return { pts: pts, color: pieceColor(def), level: p.level || 0 };
+    });
+
+    var spanX = Math.max(1e-6, maxX - minX), spanY = Math.max(1e-6, maxY - minY);
+    var z = Math.min((W - pad * 2) / spanX, (H - pad * 2) / spanY);
+    var offX = (W - spanX * z) / 2 - minX * z;
+    var offY = (H - spanY * z) / 2 - minY * z;
+
+    /* Ground first, then each storey above it, so a stack covers what it sits on and the
+       shape reads the way it was built. Flat colour throughout: shading an upper storey
+       would be an elevation cue, and this picture deliberately carries none. */
+    boxes.sort(function (a, b) { return a.level - b.level; });
+    boxes.forEach(function (b) {
+      ctx.beginPath();
+      b.pts.forEach(function (q, i) {
+        var x = q[0] * z + offX, y = q[1] * z + offY;
+        i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+      });
+      ctx.closePath();
+      ctx.fillStyle = b.color;
+      ctx.fill();
+    });
+    return true;
+  }
+
+  root.WardogsDesignView = {
+    decode: decode,
+    /* v1 on its own, and synchronous, because it is: only v2 has to inflate. Exposed so a
+       test can check the old format without every assertion becoming a promise. */
+    decodeV1: decodeV1,
+    pieceColor: pieceColor,
+    drawThumb: drawThumb,
+    ROLE_COLOR: ROLE_COLOR,
+    TIER_COLOR: TIER_COLOR
+  };
+})(typeof window !== "undefined" ? window : globalThis);
+
+var THUMB_DEFS = {"__fob__":{"footprint":{"w":3,"d":3},"isFob":true},"sandbag-wall":{"footprint":{"w":2,"d":1},"role":"cover","tier":"small"},"hesco-small":{"footprint":{"w":1,"d":1},"role":"cover","tier":"small"},"hesco-tall":{"footprint":{"w":1,"d":1},"role":"cover","tier":"medium"},"hesco-wall":{"footprint":{"w":4,"d":1},"role":"cover","tier":"medium"},"bremer-wall":{"footprint":{"w":1,"d":1},"role":"cover","tier":"large"},"door":{"footprint":{"w":1,"d":1},"role":"entry","tier":"medium"},"gate":{"footprint":{"w":4,"d":1},"role":"entry","tier":"medium"},"barbed-wire":{"footprint":{"w":2,"d":1},"role":"denial","tier":"small"},"hedgehog":{"footprint":{"w":1,"d":1},"role":"denial","tier":"small"},"recon-tent":{"footprint":{"w":2,"d":1},"role":"support","tier":"small"},"builders-radio":{"footprint":{"w":2,"d":1},"role":"support","tier":"small"},"loudspeaker":{"footprint":{"w":2,"d":2},"role":"support","tier":"medium"},"bunker":{"footprint":{"w":4,"d":4},"role":"cover","tier":"large"},"ifs":{"footprint":{"w":3,"d":3},"role":"cover","tier":"large"},"recon-tower":{"footprint":{"w":4,"d":4},"role":"cover","tier":"large"},"l81-mortar":{"footprint":{"w":4,"d":4},"role":"offense","tier":"large"},"vanguard-ciws":{"footprint":{"w":4,"d":4},"role":"antiair","tier":"large"},"stingray":{"footprint":{"w":4,"d":4},"role":"antivehicle","tier":"large"},"talon-9k-sam":{"footprint":{"w":4,"d":4},"role":"antiair","tier":"large"},"drill-rig":{"footprint":{"w":4,"d":4},"role":"objective","tier":"large"}};
+</script><script>
 (function(){
 var API="https://wardogs-votes.wardogsbuilder.workers.dev";
 var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){
@@ -637,10 +881,18 @@ if(list){
 
   function render(){
     var ds=allDesigns.slice().sort(function(a,b){ return RANK[sortBy](b)-RANK[sortBy](a); });
-    list.innerHTML=ds.map(function(d){
+    /* The same grid the built-in list uses. This one wrote its cards straight into the
+       container, so the moment the worker answered, a tidy grid of designs was replaced by
+       a column of full width rows. Two renderers, one look, and only one of them had it. */
+    list.innerHTML='<div class="grid">'+ds.map(function(d){
       var score=(d.votes.up||0)-(d.votes.down||0);
       return '<details class="design"><summary>'+
-        '<div class="card"><h3>'+esc(d.name)+'</h3>'+
+        '<div class="card">'+
+        /* The base itself, before its name. A layout is what somebody is choosing between,
+           and a list of names tells you nothing about any of them. */
+        '<canvas class="thumb" data-code="'+esc(d.code)+'" width="600" height="300" '+
+          'aria-label="Overhead plan of '+esc(d.name)+'"></canvas>'+
+        '<h3>'+esc(d.name)+'</h3>'+
         (d.note?'<p>'+esc(d.note)+'</p>':'')+
         '<div class="stats"><span>by</span>'+esc(d.author)+
         (d.mine?'<span style="color:var(--accent)">yours</span>':'')+
@@ -668,11 +920,35 @@ if(list){
         '<div class="field"><label>Comment</label><textarea maxlength="1500" data-role="text" required></textarea></div>'+
         '<button class="btn sm" type="submit">Post comment</button>'+
         '<div class="msg" data-role="msg" style="display:none"></div></form></div></details>';
-    }).join("");
+    }).join("")+'</div>';
     wireVotes(list);
     wireThreads(list);
     wireReports(list);
     wireWithdraw(list);
+    paintThumbs(list);
+  }
+
+  /* Decoding is real work and a long list would do all of it before showing anything, so
+     each picture is painted when it is about to be seen. A base that will not decode simply
+     leaves no picture: a broken frame would be worse than none, and the card still has its
+     name, its author and its link. */
+  function paintThumbs(root){
+    var pending=[].slice.call(root.querySelectorAll("canvas.thumb[data-code]"));
+    var paint=function(cv){
+      if(cv.dataset.painted) return;
+      cv.dataset.painted="1";
+      WardogsDesignView.decode(cv.dataset.code, function(t){ return !!THUMB_DEFS[t]; })
+        .then(function(d){
+          var ok=WardogsDesignView.drawThumb(cv, d.pieces, function(t){ return THUMB_DEFS[t]; });
+          if(!ok) cv.style.display="none";
+        })
+        .catch(function(){ cv.style.display="none"; });
+    };
+    if(!("IntersectionObserver" in window)){ pending.forEach(paint); return; }
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){ if(e.isIntersecting){ paint(e.target); io.unobserve(e.target); } });
+    },{rootMargin:"200px"});
+    pending.forEach(function(cv){ io.observe(cv); });
   }
 
   /* Taking your own design down removes it here and in storage, comments and votes with it.

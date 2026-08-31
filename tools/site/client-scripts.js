@@ -6,6 +6,8 @@
    parses every generated page's inline scripts, which is what catches it. */
 module.exports = ctx => {
   const { path, esc, stats, page, written, VOTE_API } = ctx;
+  const fs = require("fs");
+  const ROOT = path.join(__dirname, "..", "..");
 
 
 /* ---------- sign-in, on every page ----------
@@ -49,10 +51,29 @@ A.ready=fetch(API+"/me",{headers:A.headers()})
     var el=document.getElementById("acct");
     if(el && j.loginEnabled){
       el.className="acct on";
+      /* Your name is the control, and what you can do with the account sits under it.
+         Sign out used to be a second link in the header, level with the name and with
+         everything else up there, which put the one destructive account action in the
+         busiest row on the page next to things you press all the time. */
       el.innerHTML = j.user
-        ? '<a href="/account/" class="who">'+esc(j.user.name)+'</a>'+
-          '<span class="sep">/</span><a href="#" data-signout>Sign out</a>'
+        ? '<button type="button" class="who" data-acctmenu aria-expanded="false">'+
+            esc(j.user.name)+'<span class="caret">&#9662;</span></button>'+
+          '<div class="acct-menu" hidden>'+
+            '<a href="/account/">Your designs</a>'+
+            '<a href="#" data-signout>Sign out</a>'+
+          '</div>'
         : '<a href="'+A.signInUrl()+'">Sign in</a>';
+      var btn=el.querySelector("[data-acctmenu]"), menu=el.querySelector(".acct-menu");
+      if(btn){
+        var shut=function(){ menu.hidden=true; btn.setAttribute("aria-expanded","false"); };
+        btn.addEventListener("click",function(ev){
+          ev.stopPropagation();
+          menu.hidden=!menu.hidden;
+          btn.setAttribute("aria-expanded",String(!menu.hidden));
+        });
+        document.addEventListener("click",function(ev){ if(!el.contains(ev.target)) shut(); });
+        document.addEventListener("keydown",function(ev){ if(ev.key==="Escape") shut(); });
+      }
     }
     return j;
   })
@@ -77,7 +98,25 @@ function voteWidget(slug) {
 /* Everything community-shaped runs against the worker. With no API configured the page
    keeps its static empty state and none of this is emitted, so the site never shows
    controls that cannot do anything. */
-const COMMUNITY_SCRIPT = !VOTE_API ? "" : `<script>
+/* The same decoder and the same palette the planner uses, read from the file that holds
+   them. The share format already had two encoders drift apart once, and its card says the
+   count of places is the point, so the community list did not get a decoder of its own.
+
+   The table under it is the slice of the catalog a picture needs: how big a piece is and
+   what colour it paints. Not the names, prices, art or effects, because a thumbnail shows
+   none of those and the list would carry the whole catalog to every reader for nothing. */
+const SHARED_VIEW = fs.readFileSync(
+  path.join(ROOT, "src/shared/design-view.js"), "utf8");
+const THUMB_DEFS = JSON.stringify(
+  (ctx.catalog.buildables || []).reduce((m, b) => {
+    m[b.id] = { footprint: b.footprint, role: b.role, tier: b.tier };
+    return m;
+  }, { __fob__: { footprint: (ctx.catalog.fob || {}).footprint || { w: 3, d: 3 },
+                  isFob: true } }));
+
+const COMMUNITY_SCRIPT = !VOTE_API ? "" : `<script>${SHARED_VIEW}
+var THUMB_DEFS = ${THUMB_DEFS};
+</script><script>
 (function(){
 var API=${JSON.stringify(VOTE_API)};
 var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){
@@ -235,10 +274,18 @@ if(list){
 
   function render(){
     var ds=allDesigns.slice().sort(function(a,b){ return RANK[sortBy](b)-RANK[sortBy](a); });
-    list.innerHTML=ds.map(function(d){
+    /* The same grid the built-in list uses. This one wrote its cards straight into the
+       container, so the moment the worker answered, a tidy grid of designs was replaced by
+       a column of full width rows. Two renderers, one look, and only one of them had it. */
+    list.innerHTML='<div class="grid">'+ds.map(function(d){
       var score=(d.votes.up||0)-(d.votes.down||0);
       return '<details class="design"><summary>'+
-        '<div class="card"><h3>'+esc(d.name)+'</h3>'+
+        '<div class="card">'+
+        /* The base itself, before its name. A layout is what somebody is choosing between,
+           and a list of names tells you nothing about any of them. */
+        '<canvas class="thumb" data-code="'+esc(d.code)+'" width="600" height="300" '+
+          'aria-label="Overhead plan of '+esc(d.name)+'"></canvas>'+
+        '<h3>'+esc(d.name)+'</h3>'+
         (d.note?'<p>'+esc(d.note)+'</p>':'')+
         '<div class="stats"><span>by</span>'+esc(d.author)+
         (d.mine?'<span style="color:var(--accent)">yours</span>':'')+
@@ -266,11 +313,35 @@ if(list){
         '<div class="field"><label>Comment</label><textarea maxlength="1500" data-role="text" required></textarea></div>'+
         '<button class="btn sm" type="submit">Post comment</button>'+
         '<div class="msg" data-role="msg" style="display:none"></div></form></div></details>';
-    }).join("");
+    }).join("")+'</div>';
     wireVotes(list);
     wireThreads(list);
     wireReports(list);
     wireWithdraw(list);
+    paintThumbs(list);
+  }
+
+  /* Decoding is real work and a long list would do all of it before showing anything, so
+     each picture is painted when it is about to be seen. A base that will not decode simply
+     leaves no picture: a broken frame would be worse than none, and the card still has its
+     name, its author and its link. */
+  function paintThumbs(root){
+    var pending=[].slice.call(root.querySelectorAll("canvas.thumb[data-code]"));
+    var paint=function(cv){
+      if(cv.dataset.painted) return;
+      cv.dataset.painted="1";
+      WardogsDesignView.decode(cv.dataset.code, function(t){ return !!THUMB_DEFS[t]; })
+        .then(function(d){
+          var ok=WardogsDesignView.drawThumb(cv, d.pieces, function(t){ return THUMB_DEFS[t]; });
+          if(!ok) cv.style.display="none";
+        })
+        .catch(function(){ cv.style.display="none"; });
+    };
+    if(!("IntersectionObserver" in window)){ pending.forEach(paint); return; }
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){ if(e.isIntersecting){ paint(e.target); io.unobserve(e.target); } });
+    },{rootMargin:"200px"});
+    pending.forEach(function(cv){ io.observe(cv); });
   }
 
   /* Taking your own design down removes it here and in storage, comments and votes with it.
