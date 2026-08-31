@@ -181,6 +181,8 @@ module.exports = ctx => {
       "magazines</label></p>" +
       "</div></div>" +
 
+      adSlot("inArticle") +
+
       '<h2 style="margin-top:34px">Extras</h2>' +
       '<div class="chips" style="margin-top:10px">' +
         byCat("throwables").concat(byCat("medical")).concat(byCat("equipment"))
