@@ -437,5 +437,26 @@ check(!/[>\s]\?<\/span>/.test(app), "no leftover '?' estimate badges");
   check(gone.length === 0, "removed buildables are not still mentioned", gone.join(", "));
 }
 
+/* -- 8. the worker never falls back to a secret that is written down in this repository --
+   The session signing key and the identity salt both used to end in `|| "wardogs"`, so a
+   deploy that was missing its secrets came up anyway and signed sessions with a key printed in
+   a public file. Anybody who read it could have minted a token for any account, the owner's
+   included, and nothing about that deploy would have looked wrong from outside. Missing
+   secrets refuse to serve now, and this is the check that it stays that way, because a default
+   is exactly what is tempting to write the next time a deploy will not come up. */
+{
+  const src = fs.readFileSync(path.join(proj, "worker/vote-worker.js"), "utf8")
+    .replace(/\/\*[\s\S]*?\*\//g, " ")      // block comments are prose, not code
+    .replace(/(^|[^:])\/\/[^\n]*/gm, "$1"); // and so are line comments, minus the // in a URL
+  const SECRETS = "SESSION_SECRET|VOTE_SALT|ADMIN_TOKEN|DISCORD_CLIENT_ID|DISCORD_CLIENT_SECRET";
+  /* `|| ""` is a no-secret default and is how the code says "there isn't one". Any other
+     string literal is a secret sitting in the open. */
+  const defaults = [...src.matchAll(
+    new RegExp(`env\\.(?:${SECRETS})\\s*(?:\\|\\||\\?\\?)\\s*(["'\`])(?!\\1)`, "g"))]
+    .map(m => m[0].replace(/\s+/g, " "));
+  check(defaults.length === 0,
+    "the worker has no hardcoded fallback for any of its secrets", defaults.join(" | "));
+}
+
 console.log(fail ? `\n${fail} structural check(s) failed` : "\nbuild looks structurally sound");
 process.exit(fail ? 1 : 0);

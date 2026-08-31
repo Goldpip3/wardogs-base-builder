@@ -1,5 +1,15 @@
 /* The HTML skeleton every page is poured into: head, header, nav, footer.
-   Change the nav here and it changes everywhere. */
+   Change the nav here and it changes everywhere.
+
+   On security headers, and why there is only one here. GitHub Pages serves docs/ and cannot
+   set a response header at all, so the only ones the site gets are the handful browsers honour
+   from a meta tag. `referrer` is one of them and is set below. Content-Security-Policy is not
+   worth setting from a meta tag here: every page ships an inline <style> and several inline
+   <script> blocks, so a policy this markup could actually satisfy would have to allow
+   'unsafe-inline' and would be a policy in name only. X-Content-Type-Options, X-Frame-Options
+   and HSTS do nothing from a meta tag whatsoever and are deliberately not written here, so
+   nobody adds them later believing the site is covered. All of them need something in front of
+   GitHub Pages that can set real headers: see map/processes/security.md. */
 module.exports = ctx => {
   const { SITE, esc, adScript, adSlot, CSS, AUTH_SCRIPT } = ctx;
   return function page({ title, desc, canonical, body, ogImage = "/preview.png", noindex = false }) {
@@ -8,6 +18,7 @@ module.exports = ctx => {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(desc)}">
 <link rel="canonical" href="${SITE}${canonical}">${noindex ? '\n<meta name="robots" content="noindex,nofollow">' : ""}

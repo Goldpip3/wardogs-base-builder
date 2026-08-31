@@ -1,6 +1,6 @@
 # Processes
 
-The five movements that actually run. Not a wish list.
+The five movements that actually run, and one card that describes a posture rather than a run.
 
 **Reads:** an object card, when you need to know what a step touches.
 **Writes:** nothing. These describe; the scripts do.
@@ -18,3 +18,8 @@ keep assuming are one.
 | [derive-data](derive-data.md) | regenerate armory, re-derive ballistics, never hand-edit either |
 | [deploy](deploy.md) | push ships the site; the worker ships separately and does not |
 | [publish-a-design](publish-a-design.md) | a submission becomes a page, through a human |
+| [security](security.md) | what guards the worker, what GitHub Pages cannot guard at all |
+
+[security](security.md) is the odd one out: most of it is already true rather than a movement
+you run. Its last section is the exception, an owner follow-up that needs the Cloudflare
+dashboard rather than a commit, and it has not been done.

@@ -68,13 +68,20 @@ module.exports = ctx => {
 var OWNER=${JSON.stringify(String(TODO.owner || "AVGVSTVS"))};
 var gate=document.getElementById("gate"),list=document.getElementById("list");
 function show(msg){gate.innerHTML=msg;}
+/* A Discord display name is somebody else's text, so it goes in as text rather than as
+   markup. It used to have its angle brackets and ampersands stripped out, which was safe
+   enough and quietly renamed anyone who had one. */
+function showName(u){
+  gate.textContent="Signed in as ";
+  var b=document.createElement("b"); b.textContent=u; gate.appendChild(b);
+  gate.appendChild(document.createTextNode(". This page is for the site owner."));
+}
 if(!window.wardogsAuth||!wardogsAuth.ready){show("Sign-in is not configured on this build.");return;}
 wardogsAuth.ready.then(function(j){
   var u=j&&j.user&&j.user.name;
   if(u&&String(u).toLowerCase()===OWNER.toLowerCase()){gate.hidden=true;list.hidden=false;return;}
-  show(u
-    ? "Signed in as <b>"+String(u).replace(/[<>&]/g,"")+"</b>. This page is for the site owner."
-    : '<b>Sign in to read this.</b> <a href="'+wardogsAuth.signInUrl()+'">Sign in with Discord</a>.');
+  if(u) showName(String(u));
+  else show('<b>Sign in to read this.</b> <a href="'+wardogsAuth.signInUrl()+'">Sign in with Discord</a>.');
 }).catch(function(){show("Could not check who you are.");});
 }());<\/script>`,
   }));

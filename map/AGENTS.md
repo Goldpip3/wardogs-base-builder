@@ -21,13 +21,14 @@ collisions that will otherwise mislead you.
 | know why something is the way it is, before undoing it | [CHANGES.md](CHANGES.md) |
 | know how the build runs, and what it checks | [processes/build.md](processes/build.md) |
 | know why a check exists | [objects/guards/verification.md](objects/guards/verification.md) |
+| harden something, or know what cannot be hardened | [processes/security.md](processes/security.md) |
 | find every noun at a glance | [objects/_index.md](objects/_index.md) |
 
 ## Movements
 
 [build](processes/build.md) · [add-a-page](processes/add-a-page.md) ·
 [derive-data](processes/derive-data.md) · [deploy](processes/deploy.md) ·
-[publish-a-design](processes/publish-a-design.md)
+[publish-a-design](processes/publish-a-design.md) · [security](processes/security.md)
 
 Verifying is not a separate movement. `build.ps1` runs every check, so there is no way to
 ship having skipped them. See [objects/guards/verification.md](objects/guards/verification.md).

@@ -2,7 +2,7 @@
 type: object
 cluster: service
 universe: live
-status: verified 2026-08-30
+status: verified 2026-08-31
 entity: worker/vote-worker.js
 ---
 
@@ -26,16 +26,30 @@ Discord OAuth in the URL *fragment*, so it never reaches a server log.
 Discord sign-in exists to make submission cost something. `identify` scope only: no email,
 no guilds.
 
+**It refuses to run without its secrets.** `VOTE_SALT` is required. With neither it nor
+`SESSION_SECRET` set, every route answers 503. Both used to fall back to a string written in
+the worker itself, which is a public file, so a deploy that had lost its secrets signed
+sessions with a key anybody could read. See [security](../../processes/security.md).
+
 ## Shape
 
-18 routes at `worker/vote-worker.js:223`, dispatched off a trimmed pathname:
+Routes dispatched off a trimmed pathname in `fetch` at `worker/vote-worker.js:382`:
 
-- public: `/me`, `/auth/start`, `/auth/callback`, `/designs`, `/votes`, `/comments`
-- signed in: `/submit`, `/vote`, `/comment`, `/feedback`, `/mine`, `/mine/delete`
-- admin: `/admin/pending`, `/admin/design`, `/admin/comment`, `/admin/feedback`, `/admin/feedback/delete`
+- open to anyone: `/me`, `/auth/start`, `/auth/callback`, `/designs`, `/votes`, `/comments`,
+  `/report`, `/vote`, `/feedback`
+- needs an account: `/submit`, `/comment`, `/withdraw`, `/mine`, `/mine/delete`
+- admin: `/admin/reported`, `/admin/pending`, `/admin/design`, `/admin/comment`,
+  `/admin/feedback`, `/admin/feedback/delete`
+
+`/feedback` is open on purpose (`NEEDS_LOGIN.feedback` is `false`): nothing sent through it is
+ever published, so there is no audience for a spammer, and a login in front of a bug report is
+how you stop hearing about bugs.
 
 Rate limits: 5 submits a day, 10 comments an hour, 6 feedback an hour, 40 saved designs
-per account.
+per account. A request body over `LIMITS.bodyBytes` is refused before it is parsed.
+
+Responses name the fields that go out rather than deleting the ones that must not. `by`, the
+Discord id on a design or a comment, never leaves.
 
 ## Connected to
 

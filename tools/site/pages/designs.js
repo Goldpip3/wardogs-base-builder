@@ -57,7 +57,7 @@ for (const d of withStats) {
     <a href="/designs/">Designs</a> / ${esc(d.name)}</p>
   <h1>${esc(d.name)}</h1>
   <p class="lede">${esc(d.tagline)}</p>
-  <p style="margin:18px 0"><a class="btn" href="/planner/#d=${d.code}">Open in the planner</a></p>
+  <p style="margin:18px 0"><a class="btn" href="/planner/#d=${esc(d.code)}">Open in the planner</a></p>
   <div class="statbar">
     <div><b>${s.supplies.toLocaleString()}</b><span>build supplies</span></div>
     <div><b>${s.pallets}</b><span>pallets</span></div>
@@ -84,7 +84,7 @@ for (const d of withStats) {
       <td class="n">${n}</td><td class="n">${(n * byId[id].cost).toLocaleString()}</td></tr>`).join("")}
     </tbody>
   </table>
-  <p><a class="btn" href="/planner/#d=${d.code}">Open in the planner</a></p>
+  <p><a class="btn" href="/planner/#d=${esc(d.code)}">Open in the planner</a></p>
 </div></section>`,
   }));
 }

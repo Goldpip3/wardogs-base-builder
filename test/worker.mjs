@@ -264,6 +264,25 @@ check((await call("POST", "/comment", { body: { design: j.slug, text: "signed ou
 check((await callAs(good, "POST", "/comment", { design: j.slug, text: "signed in" })).status === 200,
   "and works once signed in");
 
+/* The comment list used to hand back each stored record exactly as written, which put `by`,
+   the commenter's Discord id, into a response anybody could read without signing in at all.
+   /designs strips that same field and says why; this route was written later and never got
+   the same treatment, so the id the design list is careful about was public one route over. */
+{
+  const posted = await jsonOf(await callAs(good, "POST", "/comment",
+    { design: j.slug, text: "who wrote this" }));
+  check(posted.comment && posted.comment.by === undefined,
+    "posting a comment does not echo the account id back");
+
+  const list = await jsonOf(await call("GET", "/comments?design=" + j.slug));
+  const signed = list.comments.find(c => c.text === "who wrote this");
+  check(signed && signed.author === "Tester", "a signed-in comment is still credited by name");
+  check(list.comments.every(c => c.by === undefined),
+    "and the public comment list carries no account ids");
+  check(!JSON.stringify(list).includes('"42"'),
+    "the Discord id is nowhere in the response at all");
+}
+
 r = await worker.fetch(new Request(
   "https://votes.example.dev/auth/start?return=https://evil.example/steal",
   { headers: { Origin: ORIGIN } }), env);
@@ -271,10 +290,54 @@ check(r.status === 302 && /discord\.com/.test(r.headers.get("Location") || ""),
   "sign-in redirects to Discord");
 const loc = new URL(r.headers.get("Location"));
 check(loc.searchParams.get("scope") === "identify", "asks for identify only, never email");
-const backTo = new TextDecoder().decode(Uint8Array.from(
-  atob(loc.searchParams.get("state").replace(/-/g, "+").replace(/_/g, "/")), c => c.charCodeAt(0)));
-check(!backTo.includes("evil.example"),
-  "and refuses to carry an off-site return address", backTo);
+
+const unb64u = s => {
+  const p = String(s).replace(/-/g, "+").replace(/_/g, "/");
+  return new TextDecoder().decode(Uint8Array.from(
+    atob(p + "=".repeat((4 - p.length % 4) % 4)), c => c.charCodeAt(0)));
+};
+// state is payload.signature now, and the payload is JSON carrying the return address
+const stateBack = state => JSON.parse(unb64u(String(state).split(".")[0])).back;
+const startsAt = async back => {
+  const rr = await worker.fetch(new Request(
+    "https://votes.example.dev/auth/start?return=" + encodeURIComponent(back),
+    { headers: { Origin: ORIGIN } }), env);
+  return stateBack(new URL(rr.headers.get("Location")).searchParams.get("state"));
+};
+check(await startsAt("https://evil.example/steal") === ORIGIN,
+  "and refuses to carry an off-site return address");
+
+/* The return address is where the new session token gets appended, so "starts with the right
+   characters" is not the same question as "is this site". Every one of these passes a prefix
+   test against an allowed origin and belongs to somebody else. The first two are how you get
+   handed a stranger's session: ask to be sent home, be sent next door. */
+for (const bad of [
+  "https://www.wardogsbuilder.com.evil.example/steal",
+  "https://www.wardogsbuilder.com@evil.example/steal",
+  "https://wardogsbuilder.com.evil.example/",
+  "https://www.wardogsbuilder.com.evil.example",
+  "javascript:alert(1)",
+  "not-a-url-at-all",
+]) {
+  check(await startsAt(bad) === ORIGIN,
+    "a lookalike return address is refused: " + bad, "kept " + await startsAt(bad));
+}
+check(await startsAt("https://www.wardogsbuilder.com/designs/") ===
+  "https://www.wardogsbuilder.com/designs/", "a real page on the site is still carried back");
+
+/* A callback carrying a state this worker never minted is not a sign-in that started here.
+   Nothing used to tie the two together: state was the return address alone, base64url'd,
+   which anyone could write for themselves. */
+{
+  const forged = b64u(enc.encode(JSON.stringify({ back: "https://evil.example/steal", n: "x" })))
+    + ".QUFBQQ";
+  const rr = await worker.fetch(new Request(
+    "https://votes.example.dev/auth/callback?state=" + encodeURIComponent(forged),
+    { headers: { Origin: ORIGIN } }), env);
+  const where = rr.headers.get("Location") || "";
+  check(where.startsWith(ORIGIN) && !where.includes("evil.example"),
+    "a callback state the worker did not sign is not followed", where);
+}
 
 r = await call("OPTIONS", "/comment");
 check((r.headers.get("Access-Control-Allow-Headers") || "").includes("Authorization"),
@@ -354,6 +417,50 @@ check((await callAs(me, "POST", "/mine", { name: "Bad", code: "nope" })).status 
   const junk = (await jsonOf(await callAs(me, "POST", "/mine", { name: "Junk", code: "!!!!" }))).error || "";
   check(/does not look right/i.test(junk),
     "a malformed code gets the other message, not the size one", junk);
+}
+
+/* --- it refuses to run on a secret anybody can read ---
+   The session signing key and the identity salt both used to fall back to the literal string
+   "wardogs" when neither secret was set. That string is written in worker/vote-worker.js, which
+   is a public file in a public repository, so a deploy that was missing its secrets signed
+   sessions with a key anyone could look up, and anyone could have minted themselves a token for
+   any account, the owner's included. Nothing about that deploy would have looked wrong. */
+console.log("\n--- no secret configured ---");
+{
+  const bare = { VOTES: fakeKV(), ADMIN_TOKEN: "secret" };
+  const at = (method, path, headers = {}) => worker.fetch(new Request(
+    "https://votes.example.dev" + path,
+    { method, headers: { Origin: ORIGIN, "CF-Connecting-IP": "1.2.3.4", ...headers } }), bare);
+
+  check((await at("GET", "/designs")).status === 503,
+    "a worker with no secret set refuses to serve rather than serving something forgeable");
+  check((await at("GET", "/me")).status === 503, "including the route that says who you are");
+
+  const forged = await tokenFor({ id: "1", name: "Forger", exp: Date.now() + 6e5 }, "wardogs");
+  check((await at("GET", "/me", { Authorization: "Bearer " + forged })).status === 503,
+    "and a token signed with the old public fallback gets nowhere");
+
+  // and with a real secret set, that same token is simply not a session
+  const salted = { VOTES: fakeKV(), VOTE_SALT: "s", ADMIN_TOKEN: "secret" };
+  const asForger = await (await worker.fetch(new Request("https://votes.example.dev/me",
+    { headers: { Origin: ORIGIN, Authorization: "Bearer " + forged } }), salted)).json();
+  check(asForger.user === null, 'a token signed with "wardogs" is not signed in');
+}
+
+/* --- a body nothing has to swallow whole --- */
+console.log("\n--- oversized request ---");
+{
+  env = { VOTES: fakeKV(), VOTE_SALT: "s", ADMIN_TOKEN: "secret" };
+  const r413 = await call("POST", "/submit", { body: { name: "Huge", code: "A".repeat(700000) } });
+  check(r413.status === 413, "a body past the ceiling is refused before it is parsed",
+    "got " + r413.status);
+
+  /* but the ceiling sits well clear of the largest real request, so an oversized design still
+     gets the message that names its size instead of one that can only say "too much" */
+  const big = await call("POST", "/submit", { body: { name: "Absurd", code: "A".repeat(410000) } });
+  const msg = (await jsonOf(big)).error || "";
+  check(big.status === 400 && /too large/i.test(msg) && /limit/i.test(msg),
+    "and a merely oversized design still gets the message about its size", msg);
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

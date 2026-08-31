@@ -1,8 +1,12 @@
 /* Community service for wardogsbuilder.com: submissions, votes and comments.
  *
  * The site itself is static (GitHub Pages), so it cannot store anything. This is the one
- * moving part: a Cloudflare Worker backed by a KV namespace. No framework, no database,
- * no accounts. A player pastes a share link and it is up.
+ * moving part: a Cloudflare Worker backed by a KV namespace. No framework, no database.
+ * A player pastes a share link and it is up.
+ *
+ * There are accounts now, through Discord, and there is no password anywhere in this file:
+ * Discord says who somebody is and this worker signs a token saying so. Nothing else about a
+ * person is stored, and the Discord token itself is thrown away as soon as it has been used.
  *
  * Deploy (from worker/, free Cloudflare account):
  *
@@ -13,6 +17,11 @@
  *   wrangler secret put ADMIN_TOKEN     # any long random string, for moderation
  *   wrangler secret put VOTE_SALT       # any long random string
  *   wrangler deploy
+ *
+ * VOTE_SALT is required, not optional. It salts every identity hash and, unless a separate
+ * SESSION_SECRET is set, signs every session token. Deploy without it and the worker answers
+ * 503 to everything on purpose: it used to fall back to a string written in this file, which
+ * is a public file, and a session signed with a public key is one anybody can forge.
  *
  * Then put the deployed URL into data/community.json -> voteApi and rebuild.
  *
@@ -63,6 +72,12 @@ const LIMITS = {
      name up is an advertising account. It can always be put back. */
   reportsToHide: 3,
   reportsPerDay: 10,
+  /* A ceiling on a whole request body, so nothing unbounded is ever handed to JSON.parse.
+     Set well above the largest legitimate request on purpose: the share code is the biggest
+     field anything sends, and an oversized design should still reach the message that names
+     its size rather than being cut off by a transport limit that can only say "too much".
+     This is here to bound what gets parsed at all, not to second-guess the code cap. */
+  bodyBytes: 600000,
 };
 
 /* Which actions need somebody to be signed in with Discord.
@@ -97,11 +112,57 @@ function cors(origin) {
 const json = (body, origin, status = 200) =>
   new Response(JSON.stringify(body), {
     status,
-    headers: { "Content-Type": "application/json", ...cors(origin) },
+    headers: {
+      "Content-Type": "application/json",
+      /* Nothing this worker returns is meant to be sniffed for a type, cached, or used as a
+         referrer. The site itself is static and cannot set a single header, so these are the
+         only response headers the project gets to choose. They cost nothing. */
+      "X-Content-Type-Options": "nosniff",
+      "Referrer-Policy": "no-referrer",
+      "Cache-Control": "no-store",
+      ...cors(origin),
+    },
   });
 
+/* The secrets this worker cannot run honestly without.
+ *
+ * Both of these used to fall back to the literal string "wardogs" so a half-configured deploy
+ * would still come up. That fallback sits in a public repository, which made it the opposite
+ * of a safe default: a worker deployed without its secrets was signing sessions with a key
+ * anyone could read off GitHub, so anybody could mint themselves a token for any account,
+ * the owner's included. Missing secrets refuse to serve now. A service that is plainly down
+ * gets noticed and fixed; one that is quietly forgeable does not.
+ *
+ * VOTE_SALT is preferred for hashing and SESSION_SECRET for signing, matching what each
+ * fell back to before, so a deploy that only ever set VOTE_SALT keeps every hash already in
+ * storage and nobody's vote marker or rate-limit counter resets underneath them. */
+const saltOf = env => env.VOTE_SALT || env.SESSION_SECRET || "";
+const secretOf = env => env.SESSION_SECRET || env.VOTE_SALT || "";
+const hasSecrets = env => !!saltOf(env);
+
+/* Compared byte for byte rather than with ===, which stops at the first character that
+   differs and so answers "how much of that guess was right" a fraction sooner each time.
+   Length is still compared directly, which is fine: the length of a token is not the secret. */
+function sameSecret(a, b) {
+  const x = new TextEncoder().encode(String(a == null ? "" : a));
+  const y = new TextEncoder().encode(String(b == null ? "" : b));
+  if (x.length !== y.length) return false;
+  let diff = 0;
+  for (let i = 0; i < x.length; i++) diff |= x[i] ^ y[i];
+  return diff === 0;
+}
+
+/* One unreadable record should cost that record, not the whole route. Every value in here was
+   written by this worker, so a parse failure means something corrupted it, and a bare
+   JSON.parse inside a list loop turned one bad row into a dead endpoint for everybody. */
+function parseOr(raw, fallback = null) {
+  try { return JSON.parse(raw); } catch { return fallback; }
+}
+
 async function hash(env, ...parts) {
-  const data = new TextEncoder().encode([env.VOTE_SALT || "wardogs", ...parts].join(":"));
+  const salt = saltOf(env);
+  if (!salt) throw new Error("no secret configured");
+  const data = new TextEncoder().encode([salt, ...parts].join(":"));
   const digest = await crypto.subtle.digest("SHA-256", data);
   return [...new Uint8Array(digest)].slice(0, 12)
     .map(b => b.toString(16).padStart(2, "0")).join("");
@@ -134,9 +195,50 @@ const b64urlToBytes = s => {
 };
 
 async function signingKey(env) {
+  const secret = secretOf(env);
+  if (!secret) throw new Error("no secret configured");
   return crypto.subtle.importKey(
-    "raw", new TextEncoder().encode(env.SESSION_SECRET || env.VOTE_SALT || "wardogs"),
+    "raw", new TextEncoder().encode(secret),
     { name: "HMAC", hash: "SHA-256" }, false, ["sign", "verify"]);
+}
+
+/* Where sign-in is allowed to hand somebody back to.
+ *
+ * This was `ALLOWED.some(a => back.startsWith(a))`, which is not the question it looks like.
+ * `https://www.wardogsbuilder.com.example.net/` starts with the site's origin and belongs to
+ * somebody else; so does `https://www.wardogsbuilder.com@example.net/`. A freshly minted
+ * session token is appended to whatever comes out of here, so a return address that merely
+ * started with the right characters was a way to be handed one. Parse it and compare origins,
+ * which is the question that was meant all along. */
+function safeReturn(back) {
+  try {
+    const origin = new URL(String(back)).origin;
+    if (ALLOWED.includes(origin) || isLocal(origin)) return String(back);
+  } catch { /* not a URL at all, so not one of ours */ }
+  return ALLOWED[0];
+}
+
+/* The state parameter carries the return address out to Discord and back. It used to be that
+   address alone, base64url'd, which anybody could write themselves: nothing tied a callback to
+   a sign-in this site had actually started. It is signed now, with a random nonce, so a
+   callback arriving with a state this worker did not mint is not followed. */
+async function signState(env, back) {
+  const nonce = b64url(crypto.getRandomValues(new Uint8Array(12)));
+  const payload = b64url(new TextEncoder().encode(JSON.stringify({ back, n: nonce })));
+  const sig = b64url(await crypto.subtle.sign(
+    "HMAC", await signingKey(env), new TextEncoder().encode(payload)));
+  return payload + "." + sig;
+}
+
+async function readState(env, state) {
+  if (typeof state !== "string" || !state.includes(".")) return null;
+  const [payload, sig] = state.split(".");
+  try {
+    const ok = await crypto.subtle.verify("HMAC", await signingKey(env),
+      b64urlToBytes(sig), new TextEncoder().encode(payload));
+    if (!ok) return null;
+    return JSON.parse(new TextDecoder().decode(b64urlToBytes(payload)));
+  } catch { return null; }
 }
 
 async function mintToken(env, user) {
@@ -168,8 +270,11 @@ async function readToken(env, token) {
 const bearerOf = request => (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
 
 /* Sign-in is only enforced once Discord is actually configured. Half-configured should
-   degrade to open, not to locked. */
-const loginConfigured = env => !!(env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET);
+   degrade to open, not to locked. The signing secret counts as part of being configured:
+   without one there is no honest way to mint a session, so sign-in reports itself off rather
+   than handing out tokens signed with something guessable. */
+const loginConfigured = env =>
+  !!(env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET && hasSecrets(env));
 
 /* Share codes are base64url. Anything else is not a design and should not be stored.
    Too long and malformed are different problems and get different messages: telling
@@ -243,8 +348,8 @@ async function listDesigns(env, status) {
     for (const k of page.keys) {
       const raw = await env.VOTES.get(k.name);
       if (!raw) continue;
-      const d = JSON.parse(raw);
-      if (!status || d.status === status) out.push(d);
+      const d = parseOr(raw);
+      if (d && (!status || d.status === status)) out.push(d);
     }
     cursor = page.cursor;
     if (page.list_complete) break;
@@ -256,10 +361,26 @@ async function tallies(env, slugs) {
   const out = {};
   await Promise.all(slugs.map(async s => {
     const raw = await env.VOTES.get("d:" + s);
-    out[s] = raw ? JSON.parse(raw) : { up: 0, down: 0 };
+    out[s] = (raw && parseOr(raw)) || { up: 0, down: 0 };
   }));
   return out;
 }
+
+/* What a comment looks like to everybody else.
+   `by` is the commenter's Discord id, kept on the record so a comment can be tied to an
+   account. It is nobody else's business, and this route was handing it to anyone who asked:
+   the design list at /designs strips exactly the same field with exactly this reasoning, and
+   the comment list, written later, never got the same treatment. Listing the fields that go
+   out, rather than deleting the one that must not, means the next field added to a stored
+   comment is private until somebody decides otherwise. */
+const publicComment = c => ({
+  id: c.id,
+  design: c.design,
+  author: c.author,
+  text: c.text,
+  replyTo: c.replyTo,
+  at: c.at,
+});
 
 export default {
   async fetch(request, env) {
@@ -267,14 +388,36 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname.replace(/\/+$/, "") || "/";
     const admin = () => !!env.ADMIN_TOKEN &&
-      request.headers.get("X-Admin-Token") === env.ADMIN_TOKEN;
+      sameSecret(request.headers.get("X-Admin-Token"), env.ADMIN_TOKEN);
 
     if (request.method === "OPTIONS") return new Response(null, { headers: cors(origin) });
 
+    /* Fail closed, not open. See saltOf above: with no secret set there is no honest way to
+       sign a session or salt an identity hash, and what this did instead was use a string out
+       of the public repository for both. Refusing to serve is the loud version of that
+       problem, which is the version that gets fixed. */
+    if (!hasSecrets(env))
+      return json({ error: "This service is not configured." }, origin, 503);
+
     let body = {};
     if (request.method === "POST") {
-      try { body = await request.json(); }
+      /* Bound what gets handed to JSON.parse. The header is a fast path and not trustworthy on
+         its own: a client that omits it, or sends the body chunked, sails straight past a check
+         that only ever reads the header. What actually arrived is the length that counts, so
+         both are measured. */
+      if (Number(request.headers.get("Content-Length") || 0) > LIMITS.bodyBytes)
+        return json({ error: "That request is too large." }, origin, 413);
+      let raw;
+      try { raw = await request.text(); }
       catch { return json({ error: "bad json" }, origin, 400); }
+      if (raw.length > LIMITS.bodyBytes)
+        return json({ error: "That request is too large." }, origin, 413);
+      try { body = JSON.parse(raw); }
+      catch { return json({ error: "bad json" }, origin, 400); }
+      /* A bare string, a number or an array all parse cleanly and then answer every property
+         lookup below with undefined, which is a slower way to reach the same errors. */
+      if (!body || typeof body !== "object" || Array.isArray(body))
+        return json({ error: "bad json" }, origin, 400);
     }
 
     /* ---------------- sign in ---------------- */
@@ -292,11 +435,9 @@ export default {
     // GET /auth/start?return=<page to come back to>
     if (request.method === "GET" && path === "/auth/start") {
       if (!loginConfigured(env)) return json({ error: "sign-in is not configured" }, origin, 503);
-      const back = url.searchParams.get("return") || ALLOWED[0];
       // only ever come back to this site, whatever the caller asked for
-      const safeBack = ALLOWED.some(a => back.startsWith(a)) || isLocal(new URL(back).origin)
-        ? back : ALLOWED[0];
-      const state = b64url(new TextEncoder().encode(safeBack));
+      const safeBack = safeReturn(url.searchParams.get("return") || ALLOWED[0]);
+      const state = await signState(env, safeBack);
       const redirect = new URL(request.url).origin + "/auth/callback";
       const auth = new URL("https://discord.com/oauth2/authorize");
       auth.searchParams.set("client_id", env.DISCORD_CLIENT_ID);
@@ -310,11 +451,12 @@ export default {
     if (request.method === "GET" && path === "/auth/callback") {
       if (!loginConfigured(env)) return json({ error: "sign-in is not configured" }, origin, 503);
       const code = url.searchParams.get("code");
-      let back = ALLOWED[0];
-      try {
-        const asked = new TextDecoder().decode(b64urlToBytes(url.searchParams.get("state") || ""));
-        if (ALLOWED.some(a => asked.startsWith(a)) || isLocal(new URL(asked).origin)) back = asked;
-      } catch {}
+      /* A callback carrying a state this worker did not sign is not a sign-in that started
+         here, so it does not get to choose where the token goes. safeReturn runs on the way
+         out as well as the way in: the signature proves the address came from us, and the
+         origin check proves it is still one of ours. */
+      const asked = await readState(env, url.searchParams.get("state"));
+      const back = asked ? safeReturn(asked.back) : ALLOWED[0];
       if (!code) return Response.redirect(back + "#login=cancelled", 302);
 
       const redirect = new URL(request.url).origin + "/auth/callback";
@@ -427,8 +569,8 @@ export default {
       const raw = await env.VOTES.get("design:" + slug);
       if (!raw) return json({ error: "not found" }, origin, 404);
 
-      const d = JSON.parse(raw);
-      if (!d.by || d.by !== who.id)
+      const d = parseOr(raw);
+      if (!d || !d.by || d.by !== who.id)
         return json({ error: "That one is not yours to take down." }, origin, 403);
 
       await removeDesign(env, slug);
@@ -453,7 +595,8 @@ export default {
           const page = await env.VOTES.list({ prefix: "mine:" + who.id + ":", cursor });
           for (const k of page.keys) {
             const raw = await env.VOTES.get(k.name);
-            if (raw) out.push(JSON.parse(raw));
+            const saved = raw && parseOr(raw);
+            if (saved) out.push(saved);
           }
           cursor = page.cursor;
           if (page.list_complete) break;
@@ -527,7 +670,8 @@ export default {
 
       const raw = await env.VOTES.get("design:" + id);
       if (!raw) return json({ error: "not found" }, origin, 404);
-      const d = JSON.parse(raw);
+      const d = parseOr(raw);
+      if (!d) return json({ error: "not found" }, origin, 404);
       d.reports = (d.reports || 0) + 1;
       if (d.reports >= LIMITS.reportsToHide && d.status !== "hidden") d.status = "hidden";
 
@@ -544,7 +688,7 @@ export default {
       const vk = "v:" + await hash(env, ipOf(request), id);
       const prev = Number(await env.VOTES.get(vk)) || 0;
       const raw = await env.VOTES.get("d:" + id);
-      const tally = raw ? JSON.parse(raw) : { up: 0, down: 0 };
+      const tally = (raw && parseOr(raw)) || { up: 0, down: 0 };
       if (prev === dir) return json({ ...tally, you: dir }, origin);
 
       if (prev === 1) tally.up = Math.max(0, tally.up - 1);
@@ -569,13 +713,14 @@ export default {
         const page = await env.VOTES.list({ prefix: "c:" + slug + ":", cursor });
         for (const k of page.keys) {
           const raw = await env.VOTES.get(k.name);
-          if (raw) out.push(JSON.parse(raw));
+          const c = raw && parseOr(raw);
+          if (c) out.push(c);
         }
         cursor = page.cursor;
         if (page.list_complete) break;
       } while (cursor);
       out.sort((a, b) => a.at - b.at);
-      return json({ comments: out.filter(c => !c.removed) }, origin);
+      return json({ comments: out.filter(c => !c.removed).map(publicComment) }, origin);
     }
 
     // POST /comment {design, author, text, replyTo}
@@ -608,7 +753,7 @@ export default {
         at,
       };
       await env.VOTES.put("c:" + slug + ":" + at + c.id, JSON.stringify(c));
-      return json({ ok: true, comment: c }, origin);
+      return json({ ok: true, comment: publicComment(c) }, origin);
     }
 
     /* ---------------- feedback ----------------
@@ -640,9 +785,12 @@ export default {
     }
 
     /* ---------------- moderation ----------------
-       Everything below needs the admin token, which only the site owner has. Submissions
-       stay invisible until one of these calls approves them, so the public list can never
-       be filled with junk faster than it can be cleared. */
+       Everything below needs the admin token, which only the site owner has.
+       This used to say submissions stay invisible until one of these calls approves them.
+       That stopped being true when the queue was removed: /submit publishes on arrival, and
+       what keeps the list clean is sign-in, the five-a-day cap and community reporting. The
+       calls here are for afterwards. Believing the old sentence would mean believing there is
+       a gate in front of the public list, and there is not. */
 
     if (path.startsWith("/admin")) {
       if (!admin()) return json({ error: "not authorised" }, origin, 401);
@@ -666,7 +814,8 @@ export default {
         }
         if (!["approve", "reject", "restore"].includes(action))
           return json({ error: "bad action" }, origin, 400);
-        const d = JSON.parse(raw);
+        const d = parseOr(raw);
+        if (!d) return json({ error: "not found" }, origin, 404);
         /* Restore puts a reported design back and clears the count with it, otherwise the
            next single report hides it again and the decision never sticks. */
         if (action === "restore") { d.status = "published"; d.reports = 0; }
@@ -692,7 +841,8 @@ export default {
           const page = await env.VOTES.list({ prefix: "fb:", cursor });
           for (const k of page.keys) {
             const raw = await env.VOTES.get(k.name);
-            if (raw) out.push({ key: k.name, ...JSON.parse(raw) });
+            const rec = raw && parseOr(raw);
+            if (rec) out.push({ key: k.name, ...rec });
           }
           cursor = page.cursor;
           if (page.list_complete) break;

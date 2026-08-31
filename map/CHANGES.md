@@ -8,6 +8,64 @@ Newest first. One entry per decision, not per commit.
 
 ## 2026-08-31
 
+### The worker refuses to run on a secret anybody could read
+
+The session signing key and the identity salt both ended in `|| "wardogs"`. That string is
+written in `worker/vote-worker.js`, which is a public file in a public repository, so a deploy
+that was missing its secrets came up looking perfectly healthy and signed every session with a
+key anyone could look up. Minting a token for any account, the owner's included, was a matter
+of reading the repo. Nothing about that deploy would have looked wrong from outside, which is
+the part worth remembering: this was not a bug anyone would have noticed.
+
+Missing secrets now answer 503 on every route. `VOTE_SALT` is required, not optional.
+`tools/check-build.js` fails the build if `env.SECRET || "literal"` reappears anywhere in the
+worker, because writing a default is exactly the tempting thing to do the next time a deploy
+will not come up.
+
+Three more, found in the same read and all with the same shape, a check that looks like it
+asks the right question and does not:
+
+- **The post-login return address was prefix-matched.**
+  `back.startsWith("https://www.wardogsbuilder.com")` is true of
+  `https://www.wardogsbuilder.com.example.net/`, which is somebody else's domain, and the new
+  session token is appended to whatever comes out of that test. Asking to be sent home got you
+  sent next door holding a token. Origins are parsed and compared now, and the OAuth `state`
+  is signed, so a callback this worker did not start is not followed.
+- **`GET /comments` published Discord ids.** `GET /designs` strips `by` and says why in a
+  comment; the comment list was written later and never got the same treatment, so the field
+  one route was careful about was public one route over. Both go out through a projection that
+  names what leaves, so the next field added to a stored record is private by default.
+- **Request bodies were unbounded** before `JSON.parse`. Capped, and measured on what arrived
+  rather than on `Content-Length`, which a client can simply not send.
+
+Also: the admin token is compared byte for byte instead of with `===`, and a corrupt KV record
+now costs that record rather than throwing out of the handler and killing the route.
+
+Every one of these was watched failing against the unfixed code before being trusted; the
+script that puts each bug back is not committed, but `test/worker.mjs` carries the assertions.
+Posture, and the four things GitHub Pages makes impossible, in
+[security](processes/security.md).
+
+### Not everything worth hardening is in the code
+
+The site is static files on GitHub Pages, which cannot set a response header at all. So there
+is no CSP, no HSTS, no hotlink rule and no rate limit on the site itself, and no amount of
+editing the generator will produce one. `tools/site/shell.js` sets `referrer`, which a meta
+tag does carry, and deliberately sets nothing else: the headers that do nothing from a meta
+tag are left out rather than added for the look of it.
+
+Asset protection was asked about and is mostly not a real category here. The 132 MB under
+`docs/game-icons/` and `docs/maps/tiles/` is the game's own art, held so the project does not
+hotlink anyone; every address is enumerable from data that ships in the page. The only
+original artwork is base64 inlined into the planner and never served as a file, which is the
+one measure that actually holds. `docs/robots.txt` now asks the training crawlers to stay out,
+and `tools/site/pages/sitemap.js` writes down that this is a request to parties who mostly
+honour it and not a control.
+
+Raising the ceiling needs Cloudflare proxying the domain rather than only holding its DNS.
+That is dashboard work, not a commit, so it is written up as a follow-up in
+[security](processes/security.md) and has not been done.
+
 ### The loadout page is the vendor now, and it has the game's own icons
 
 The page was ten bare dropdowns with three inline widths and no picture of anything. It is
