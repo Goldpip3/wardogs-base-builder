@@ -98,7 +98,7 @@ write("index.html", page({
   <span class="eyebrow">The planner</span>
   <h2 class="display">What the planner does</h2>
   <p class="lede">A FOB costs supplies to place and trips to haul. The planner lays a whole
-  layout out on a grid and totals both before anything is built.</p>
+  layout out on a grid and totals both.</p>
   <div class="features">
     <div><h3>Costs from the game</h3><p>Every buildable carries the Build Supply cost shown in
       the in-game radial menu. A pallet holds ${perPallet} supplies and costs $${palletCash};

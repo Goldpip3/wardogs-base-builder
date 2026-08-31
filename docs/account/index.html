@@ -762,6 +762,21 @@ ul,ol{padding-left:22px}li{margin:6px 0}
   .nav-gap{display:none}
   .grid{grid-template-columns:1fr}
 }
+/* --- the nav on a phone, once every link became a box ---
+   Two boxes among six plain links wrapped to about 120px. Seven boxes at desktop size did
+   not: 40px tall with 18px of gap between them, they came out four rows and 279px, which is
+   34% of a 812px phone screen standing between the top of the page and the start of it.
+   Measured, because "it looks tall" is not a reason to change a size.
+
+   The boxes stay. They are the whole point of the change and dropping them here would mean
+   the nav says one thing on a desktop and another on a phone. They are sized for a phone
+   instead: the row height comes off, the letter spacing that was padding out seven words
+   comes in, and the gap closes to something that still reads as separate buttons. --- */
+@media(max-width:760px){
+  nav.site{gap:8px}
+  nav.site a.cta{height:30px;padding:0 10px;font-size:11px;letter-spacing:.08em;gap:6px}
+  nav.site a{font-size:11px;letter-spacing:.08em}
+}
 
 /* --- the artillery map, laid out like the planner: bar, panel, canvas, status --- */
 /* The tool takes the whole window. It sits outside .wrap so nothing centres it into a
