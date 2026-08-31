@@ -1454,17 +1454,24 @@ const ROLE_LABEL = {
    colour, which is what it always meant, and the two ways in own a warm pair of their own:
    34.9 from the fault and 33.5 from each other.
 
-   One pair stays close and is worth knowing about: the vehicle dash is 13.9 from the hesco
-   gold it is usually drawn on, which is the commonest case there is. It was already that
-   before any of this and is not made worse by it, but it is the next thing to fix here, and
-   the 21 this comment used to claim was not measured against the palette as it now stands.
+   The vehicle dash used to be an amber that was nearly the gold it sits on. Measuring that
+   honestly took two goes, and the first was wrong in a way worth writing down: comparing it
+   to the role colour said 13.9, but the role colour is not what gets painted. A piece is
+   filled with shade(base, -62 + 13 per storey), so on the ground it is much darker than its
+   own swatch and the real gap there was 30.2. The number that mattered was the worst case,
+   not the average one: at the sixth storey the fill has lightened to within 13.7 of the
+   dash, and a marking you cannot see on the one wall high enough to need it is no marking.
+
+   So the dash is measured against every fill it can ever be drawn on, all six storeys of all
+   six wall roles, and the worst of those is what it is chosen for: 28.3 now against 13.7,
+   while staying 63.4 from the foot dash and inside the warm pair the two ways in share.
 
    They live here rather than as literals at each call site because they were literals at
    each call site, and the legend under the plan had already drifted off them: the foot
    count was drawn in --danger and the vehicle count in --accent, so neither number matched
    the dash sitting next to it. One constant each, canvas and legend both. */
 const ISSUE_COLOR = "#f30000";                              // same value as --danger
-const CLIMB_COLOR = { foot: "#ff7a1a", vehicle: "#e2a33a" };
+const CLIMB_COLOR = { foot: "#ff7a1a", vehicle: "#fff06b" };
 const pieceColor = SHARED.pieceColor;
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");

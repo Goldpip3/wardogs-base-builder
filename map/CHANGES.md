@@ -88,6 +88,17 @@ Reload came out of the panel. Nothing about it changes with where the gun or the
 so it was reference material sitting in a readout, and it is still on the platform card
 below where the rest of the reference lives.
 
+### The vehicle dash is chosen against every wall it can land on
+
+The amber was near enough to hesco gold to disappear on it, worst at the top of the range
+where the storey shading has lightened the wall most: 13.7 apart at the sixth storey.
+
+It is picked against every fill it can ever be drawn on now, all six storeys of all six wall
+roles, and chosen for the worst of those rather than the average: 28.3 against 13.7, still
+63.4 from the foot dash and still inside the warm pair the two ways in share. A search over
+the whole space offered better numbers by leaving that family, and they were not taken: the
+two ways in reading as siblings is worth more than the extra distance.
+
 ### A fault and a way in stop looking the same
 
 Not this session own work: another session was part way through this in the same file, and
@@ -101,11 +112,16 @@ already drifted off the canvas colours, drawing the foot count in --danger and t
 count in --accent, so neither number matched the dash beside it. One constant each, canvas
 and legend both.
 
-Two things checked before shipping it. Every figure in the comment was recomputed and all
-of them hold, except one: it claimed nothing else on the canvas comes nearer than 21, and
-the vehicle dash is 13.9 from the hesco gold it is usually drawn on. That is the commonest
-case there is, it was already that way before this change, and the comment now says so
-instead. It is the next thing to fix here.
+Every figure in the comment was recomputed before shipping it and all of them hold, except a
+claim that nothing else on the canvas comes nearer than 21. Chasing that produced a wrong
+answer of my own first, which is worth writing down: I compared the vehicle dash to the role
+colour and got 13.9, then called it the commonest case. The role colour is not what gets
+painted. A piece is filled with shade(base, -62 + 13 per storey), so on the ground it is far
+darker than its own swatch and the real gap there is 30.2, not 13.9.
+
+The 13.7 that does matter is the worst case rather than the common one: by the sixth storey
+the fill has lightened to within 13.7 of the dash, and a marking you cannot see on the one
+wall high enough to need it is no marking. Fixed in the next entry.
 
 ### The draw order was sorted by the middle of each piece
 
