@@ -490,6 +490,27 @@ tr[data-on="1"] td{background:var(--panel2);color:var(--text)}
 .vslot{position:relative;border:1px solid var(--line2);background:var(--bg);
   display:flex;flex-direction:column}
 .vslot[data-on="1"]{border-color:var(--yellow)}
+/* A slot that hangs off the weapon reads as waiting rather than as broken: dashed, dimmed,
+   and it says what it is waiting for. Not display:none, because a slot that vanishes takes
+   the shape of the kit with it and you cannot see what you have still to fill. */
+/* The items shelf: three named groups instead of one wall of 29, and a count on each card
+   rather than a pressed state, because four frags and one frag are not the same life. */
+.vitem-group{display:flex;align-items:baseline;gap:9px;margin:22px 0 10px;font-weight:600;
+  font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--yellow)}
+.vitem-group:first-of-type{margin-top:6px}
+.vitem-group span{color:var(--dim);letter-spacing:.1em}
+.vcard-item{display:flex;flex-direction:column;position:relative}
+.vcard-item[data-qty="0"] .vitem-n{color:var(--dim)}
+.vcard-item:not([data-qty="0"]){border-color:var(--yellow)}
+.vitem-step{display:flex;align-items:center;justify-content:center;gap:2px;
+  border-top:1px solid var(--line);margin-top:auto}
+.vitem-step .vstep-b{flex:1;background:transparent;border:0;color:var(--dim2);cursor:pointer;
+  font-family:var(--ui);font-size:15px;line-height:1;padding:7px 0}
+.vitem-step .vstep-b:hover{background:var(--panel2);color:var(--text)}
+.vitem-n{min-width:2ch;text-align:center;font-family:var(--num);font-size:13px;color:var(--yellow)}
+.vslot[data-locked="1"]{border-style:dashed;border-color:var(--line2);opacity:.55}
+.vslot[data-locked="1"] .vslot-btn{cursor:not-allowed}
+.vslot[data-locked="1"] .vslot-art{opacity:.3}
 .vslot-role{position:absolute;top:6px;left:8px;font-size:9px;font-weight:600;
   letter-spacing:.14em;text-transform:uppercase;color:var(--dim);pointer-events:none}
 .vslot-tag{position:absolute;top:5px;right:5px;background:var(--good);color:var(--bg);

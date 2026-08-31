@@ -39,6 +39,57 @@ module.exports = ctx => {
     return it.cat === "attachments" ? Object.assign({}, it, { slot: slotOf(it.name) }) : it;
   });
 
+  /* What an attachment fits, where the source says so. It does not carry a compatibility
+     field, so the only honest signal is the label, and the label is often explicit: 36 of
+     the 49 magazines are named for their weapon outright, and four muzzle devices name a
+     calibre. Read those and nothing else.
+
+     The longest weapon name wins, or "Bushmaster M17S 20 RND" would resolve to the M17 as
+     well as to the M17S. On this catalogue that ambiguity happens 0 times, and the rule is
+     here so it stays 0 when weapons are added.
+
+     Anything the label does not speak for is left unowned, which the filter reads as
+     unknown rather than as incompatible. Most optics are genuinely universal, and a
+     wrongly hidden attachment is a worse error than a wrongly offered one. */
+  const attOwner = (function () {
+    const flat = function (s) { return String(s).toLowerCase().replace(/[^a-z0-9]/g, ""); };
+    const weapons = A.items.filter(function (i) { return i.cat === "weapons"; });
+    const calibres = weapons.map(function (w) { return w.calibre; })
+      .filter(function (c, i, all) { return c && all.indexOf(c) === i; });
+
+    /* An attachment often drops the rest of the weapon's name: the M249 SAW's belt is a
+       "M249 200 RND Box", and Mosin Nagant magazines say Mosin. A leading token is only
+       usable when it points at exactly one weapon, which is why GGX magazines stay unowned:
+       there is a GGX 17 and a GGX 18, and the label does not say which. */
+    const lead = {};
+    weapons.forEach(function (w) {
+      const t = flat(w.name.split(" ")[0]);
+      if (t.length > 2) (lead[t] = lead[t] || []).push(w.name);
+    });
+    const solo = Object.keys(lead).filter(function (t) { return lead[t].length === 1; });
+
+    const out = {};
+    A.items.filter(function (i) { return i.cat === "attachments"; }).forEach(function (it) {
+      const k = flat(it.name);
+      let best = null;
+      weapons.forEach(function (w) {
+        const wk = flat(w.name);
+        if (wk.length > 2 && k.indexOf(wk) >= 0 && (!best || wk.length > flat(best).length)) best = w.name;
+      });
+      if (!best) {
+        const t = solo.filter(function (x) { return k.indexOf(x) === 0; })
+          .sort(function (a, b) { return b.length - a.length; })[0];
+        if (t) best = lead[t][0];
+      }
+      if (best) { out[it.name] = { w: best }; return; }
+      const cal = calibres.filter(function (c) {
+        return flat(c).length >= 3 && k.indexOf(flat(c)) >= 0;
+      });
+      if (cal.length === 1) out[it.name] = { c: cal[0] };
+    });
+    return out;
+  }());
+
   /* ---------- armory: browse the lot ----------
      Two views over one list. The grid is the default because every item has its own art
      now and a picture is how you recognise a thing you have seen in game; the table is
@@ -209,8 +260,9 @@ module.exports = ctx => {
 
   /* A vendor slot: the art box with its price tag, and a button that opens the shelf for
      that slot underneath. Shaped after the equipment slots the game shows you. */
-  const slot = function (id, label, blank) {
-    return '<div class="vslot" id="' + id + '-slot" data-on="0">' +
+  const slot = function (id, label, blank, needs) {
+    return '<div class="vslot" id="' + id + '-slot" data-on="0"' +
+      (needs ? ' data-needs="' + needs + '"' : "") + '>' +
       '<span class="vslot-role">' + esc(label) + "</span>" +
       '<span class="vslot-tag" id="' + id + '-tag" hidden></span>' +
       '<span class="vslot-art"><img id="' + id + '-icon" alt="" width="72" height="72" hidden></span>' +
@@ -221,6 +273,26 @@ module.exports = ctx => {
   };
   /* The shelf itself, one per slot, closed until its slot is clicked. Rendered into the
      page rather than built on demand so the whole catalogue is in the HTML either way. */
+  /* Carried in a quantity, so the card holds a stepper rather than reading as pressed or
+     not. The card body is a plus as well, because the common case is wanting one more of
+     something you can already see. */
+  const itemCard = function (i) {
+    return '<div class="vcard vcard-item" data-extra="' + esc(i.name) + '"' +
+      ' data-price="' + i.price + '" data-qty="0">' +
+      '<span class="vcard-tag">' + money(i.price) + "</span>" +
+      '<span class="vcard-art">' +
+      (i.icon ? '<img src="/game-icons/' + i.icon + '.png" alt="" width="52" height="52" loading="lazy">' : "") +
+      "</span>" +
+      '<span class="vcard-name">' + esc(i.name) + "</span>" +
+      '<span class="vitem-step">' +
+        '<button type="button" class="vstep-b" data-step="-1"' +
+        ' aria-label="One fewer ' + esc(i.name) + '">&minus;</button>' +
+        '<b class="vitem-n">0</b>' +
+        '<button type="button" class="vstep-b" data-step="1"' +
+        ' aria-label="One more ' + esc(i.name) + '">+</button>' +
+      "</span></div>";
+  };
+
   const picker = function (id, label, list, blank) {
     return '<div class="vpicker" id="' + id + '-grid" hidden>' +
       '<p class="vpicker-head">' + esc(label) +
@@ -260,9 +332,9 @@ module.exports = ctx => {
             '<p class="vend-head">Equipment slots<span class="vend-hint">Click a slot to open the shelf</span></p>' +
             '<div class="vslots">' +
               slot("w", "Primary", "No weapon") +
-              slot("opt", "Optic", "None") +
-              slot("muz", "Muzzle", "None") +
-              slot("grip", "Grip or bipod", "None") +
+              slot("opt", "Optic", "None", "w") +
+              slot("muz", "Muzzle", "None", "w") +
+              slot("grip", "Grip or bipod", "None", "w") +
             "</div>" +
             /* The game builds a loaded magazine in front of you: pick the mag, pick the
                round, and it shows you what you end up with. The sum was always here, it
@@ -270,12 +342,12 @@ module.exports = ctx => {
             '<div class="veq">' +
               '<div class="veq-step">' +
                 '<span class="veq-note">Step 1 // magazine</span>' +
-                slot("mag", "Magazine", "None") +
+                slot("mag", "Magazine", "None", "w") +
               "</div>" +
               '<span class="veq-op" aria-hidden="true">+</span>' +
               '<div class="veq-step">' +
                 '<span class="veq-note">Step 2 // round</span>' +
-                slot("ammo", "Ammunition", "None") +
+                slot("ammo", "Ammunition", "None", "w") +
               "</div>" +
               '<span class="veq-op" aria-hidden="true">&times;</span>' +
               '<div class="veq-step veq-qty">' +
@@ -319,21 +391,23 @@ module.exports = ctx => {
             picker("vest", "Rig", nameHas(byCat("storage"), "tac vest").concat(nameHas(byCat("storage"), "pouch")), "None") +
           "</div>" +
 
+          /* Three shelves, not one wall. Throwables, medical and equipment were a single
+             undifferentiated grid of 29 cards, which is a list you scan rather than a shelf
+             you shop from.
+
+             Each carries a count rather than an on or off. This page exists to say what a
+             life costs, and a life with four frags in it costs a good deal more than a life
+             with one, which the toggle could not express at all. */
           '<div class="vend-panel" data-panel="items" hidden>' +
-            '<p class="vend-head">Items</p>' +
-            '<div class="vgrid">' +
-              byCat("throwables").concat(byCat("medical")).concat(byCat("equipment"))
-                .filter(function (i) { return i.price !== null; })
-                .map(function (i) {
-                  return '<button class="vcard" data-extra="' + esc(i.name) + '" data-price="' + i.price +
-                    '" aria-pressed="false">' +
-                    '<span class="vcard-tag">' + money(i.price) + "</span>" +
-                    '<span class="vcard-art">' +
-                    (i.icon ? '<img src="/game-icons/' + i.icon + '.png" alt="" width="52" height="52" loading="lazy">' : "") +
-                    "</span>" +
-                    '<span class="vcard-name">' + esc(i.name) + "</span></button>";
-                }).join("") +
-            "</div>" +
+            '<p class="vend-head">Items<span class="vend-hint">Set how many of each you carry</span></p>' +
+            [["throwables", "Throwables"], ["medical", "Medical"], ["equipment", "Equipment"]]
+              .map(function (g) {
+                const list = byCat(g[0]).filter(function (i) { return i.price !== null; });
+                if (!list.length) return "";
+                return '<p class="vitem-group">' + esc(g[1]) +
+                  "<span>" + list.length + "</span></p>" +
+                  '<div class="vgrid">' + list.map(itemCard).join("") + "</div>";
+              }).join("") +
           "</div>" +
 
         "</div>" +
@@ -372,6 +446,7 @@ module.exports = ctx => {
         });
         return out;
       }())) + ';' +
+      'var ATTFIT=' + JSON.stringify(attOwner) + ';' +
       'var SLOTS=["w","opt","muz","grip","mag","ammo","hel","arm","bag","vest"];' +
       'var extras={},chosen={},openSlot=null;' +
       'function el(id){return document.getElementById(id);}' +
@@ -431,6 +506,39 @@ module.exports = ctx => {
       ' if(!any)Array.prototype.forEach.call(cards,function(c){c.hidden=false;});' +
       ' if(chosen.ammo&&chosen.ammo.hidden)setSlot("ammo",null);}' +
 
+      /* An optic on no rifle is not a decision anybody can make, so the four slots that
+         hang off the weapon stay shut until there is one. Picking a different weapon, or
+         clearing it, empties them rather than leaving an AK magazine sitting under a
+         shotgun. */
+      'function setGates(){' +
+      ' var w=nameOf("w");' +
+      ' Array.prototype.forEach.call(document.querySelectorAll("[data-needs]"),function(box){' +
+      '  var id=box.id.replace("-slot","");' +
+      '  box.setAttribute("data-locked",w?"0":"1");' +
+      '  var b=box.querySelector(".vslot-btn");if(b)b.disabled=!w;' +
+      '  if(!w){' +
+      '   if(chosen[id])setSlot(id,null);' +
+      '   var nm=el(id+"-name");if(nm)nm.textContent="Pick a weapon first";}});}' +
+
+      /* Same rule the ammunition shelf already follows: hide what the label says belongs to
+         something else, show everything it does not speak for, and if that leaves nothing
+         show the lot rather than an empty shelf. */
+      'function fits(name){' +
+      ' var o=ATTFIT[name];if(!o)return true;' +
+      ' var w=nameOf("w");if(!w)return true;' +
+      ' if(o.w)return o.w===w;' +
+      ' if(o.c)return CAL[w]===o.c;' +
+      ' return true;}' +
+      'function filterAtts(){' +
+      ' ["opt","muz","grip","mag"].forEach(function(id){' +
+      '  var grid=el(id+"-grid");if(!grid)return;' +
+      '  var cards=grid.querySelectorAll(".vcard"),any=false;' +
+      '  Array.prototype.forEach.call(cards,function(c){' +
+      '   if(c.className.indexOf("vcard-none")>=0){c.hidden=false;return;}' +
+      '   var ok=fits(attr(c,"data-name"));c.hidden=!ok;if(ok)any=true;});' +
+      '  if(!any)Array.prototype.forEach.call(cards,function(c){c.hidden=false;});' +
+      '  if(chosen[id]&&chosen[id].hidden)setSlot(id,null);});}' +
+
       'function ammoCost(){' +
       ' var c=chosen.ammo;if(!c)return{cost:0,rounds:0};' +
       ' var per=+attr(c,"data-per")||1,price=+attr(c,"data-price")||0;' +
@@ -455,14 +563,15 @@ module.exports = ctx => {
       '  pr.textContent=attr(c,"data-unknown")?"?":money(+attr(c,"data-price")||0);' +
       '  li.appendChild(pr);ul.appendChild(li);});' +
       ' Object.keys(extras).forEach(function(k){' +
-      '  n++;' +
+      '  n+=extras[k].q;' +
       '  var li=document.createElement("li");' +
       '  var b=document.querySelector("[data-extra=\\""+k.replace(/"/g,"")+"\\"]");' +
       '  var im0=b&&b.querySelector("img");' +
       '  if(im0){var im=document.createElement("img");im.src=im0.src;im.alt="";' +
       '   im.width=26;im.height=26;li.appendChild(im);}' +
-      '  var nm=document.createElement("span");nm.textContent=k;li.appendChild(nm);' +
-      '  var pr=document.createElement("b");pr.textContent=money(extras[k]);' +
+      '  var nm=document.createElement("span");' +
+      '  nm.textContent=(extras[k].q>1?extras[k].q+" × ":"")+k;li.appendChild(nm);' +
+      '  var pr=document.createElement("b");pr.textContent=money(extras[k].q*extras[k].p);' +
       '  li.appendChild(pr);ul.appendChild(li);});' +
       ' el("packcount").textContent=n?n+(n>1?" items":" item"):"Empty";}' +
 
@@ -473,12 +582,12 @@ module.exports = ctx => {
       '  var c=chosen[id];if(!c)return;' +
       '  total+=+attr(c,"data-price")||0;if(attr(c,"data-unknown"))unknown++;});' +
       ' var a=ammoCost();total+=a.cost;' +
-      ' Object.keys(extras).forEach(function(k){total+=extras[k];});' +
+      ' Object.keys(extras).forEach(function(k){total+=extras[k].q*extras[k].p;});' +
       ' el("total").textContent=money(total);' +
       ' el("ready").textContent=a.rounds?a.rounds+" rounds loaded, "+money(a.cost):"Nothing loaded";' +
       ' el("ready").setAttribute("data-on",a.rounds?"1":"0");' +
       ' if(a.rounds)parts.push(a.rounds+" rounds for "+money(a.cost));' +
-      ' var ne=Object.keys(extras).length;' +
+      ' var ne=0;Object.keys(extras).forEach(function(k){ne+=extras[k].q;});' +
       ' if(ne)parts.push(ne+" item"+(ne>1?"s":""));' +
       ' el("breakdown").textContent=parts.join(" \u00b7 ");' +
       ' el("warn").textContent=unknown?' +
@@ -495,12 +604,19 @@ module.exports = ctx => {
       ' if(t.closest("[data-close]")){closePicker();return;}' +
       ' var p=t.closest("[data-pick]");' +
       ' if(p){var id=p.getAttribute("data-pick");' +
-      '  setSlot(id,p);if(id==="w")filterAmmo();' +
+      '  setSlot(id,p);if(id==="w"){setGates();filterAtts();filterAmmo();}' +
       '  closePicker();render();return;}' +
-      ' var x=t.closest("[data-extra]");' +
-      ' if(x){var k=x.getAttribute("data-extra");' +
-      '  if(extras[k]!==undefined){delete extras[k];x.setAttribute("aria-pressed","false");}' +
-      '  else{extras[k]=+x.getAttribute("data-price");x.setAttribute("aria-pressed","true");}' +
+      /* The stepper is read before the card, because both are under the cursor when the
+         minus is clicked and the card would otherwise add one while the minus took one
+         away. Clicking the card itself is the plus, which is what wanting another grenade
+         usually looks like. */
+      ' var q=t.closest("[data-step]"),x=t.closest("[data-extra]");' +
+      ' if(x){var k=x.getAttribute("data-extra"),p=+x.getAttribute("data-price")||0;' +
+      '  var cur=extras[k]?extras[k].q:0;' +
+      '  var next=Math.max(0,Math.min(20,cur+(q?+q.getAttribute("data-step"):1)));' +
+      '  if(next)extras[k]={q:next,p:p};else delete extras[k];' +
+      '  x.setAttribute("data-qty",String(next));' +
+      '  var nEl=x.querySelector(".vitem-n");if(nEl)nEl.textContent=String(next);' +
       '  render();return;}' +
       ' var m=t.closest("[data-mags]");' +
       ' if(m){var i=el("mags");' +
@@ -517,7 +633,7 @@ module.exports = ctx => {
       '  closePicker();if(b)b.focus();}});' +
       'el("mags").addEventListener("input",render);' +
       'SLOTS.forEach(function(id){setSlot(id,null);});' +
-      'filterAmmo();render();' +
+      'setGates();filterAtts();filterAmmo();render();' +
       '}());<\/script>',
   }));
 
