@@ -15,7 +15,8 @@ the next build will either overwrite or refuse.
 ## Why this shape
 
 Vendor prices are transcribed, so `tools/build-armory.js` holds the transcription as plain
-lines and emits the JSON. Lines are hard to break; three hundred hand-written JSON objects
+lines and emits the JSON. The same tool joins each item to its wiki icon slug; that
+pipeline is the [game-icons](game-icons.md) card's story. Lines are hard to break; three hundred hand-written JSON objects
 are not, and a missing comma in the middle is a silent corruption.
 
 Damage is not transcribed at all. Shots-to-kill is a *bound*, not a value, so

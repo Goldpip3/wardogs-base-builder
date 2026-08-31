@@ -386,7 +386,7 @@
 
 
 <div id="topbar">
-  <a id="homeLink" class="leaveLink" href="/" title="Back to wardogsbuilder.com"><h1>WARDOGS <span>BASE BUILDER</span></h1></a>
+  <a id="homeLink" class="leaveLink" href="/" title="Back to wardogsbuilder.com"><h1>WARDOGS <span>PLANNER</span></h1></a>
   
   <input id="designName" placeholder="Design name" value="New FOB">
   <button id="btnNew" title="New design">✚ New</button>
@@ -896,9 +896,10 @@ const CATALOG_DEFAULT = {
     },
     "height": 2,
     "sizeConfirmed": true,
-    "buildRadiusUnits": 100,
+    "buildRadiusUnits": 200,
     "radiusConfirmed": false,
-    "icon": "fob.webp"
+    "icon": "fob.webp",
+    "radiusNote": "The square the FOB lets you build inside, in cells. Raised from 100 to 200 on 2026-08-31 as a better estimate, not a reading: nobody has stood at the edge of one and counted. It stays unconfirmed until somebody does, and it is what blocks range rings on the plan. A design records its own zone, so older ones keep the number they were built under and can be corrected in the panel."
   },
   "buildables": [
     {
@@ -1401,6 +1402,12 @@ const PALLET_DEFAULT = (catalog.logistics && catalog.logistics.suppliesPerPallet
 const FOB_STOCK_DEFAULT = (catalog.fob && catalog.fob.startingSupplies) || 0;
 let byId = {};
 function indexCatalog() { byId = {}; for (const b of catalog.buildables) byId[b.id] = b; byId["__fob__"] = fobDef(); }
+/* The square a FOB lets you build inside. A design records its own, so a base keeps the
+   figure it was drawn under and can be corrected in the panel; anything without one falls
+   back to the catalog rather than to a literal repeated at each call site. */
+function fobZone(p) {
+  return (p && p.zone) || catalog.fob.buildRadiusUnits || 100;
+}
 function fobDef() {
   const f = catalog.fob;
   return { id:"__fob__", name:"FOB (Forward Operating Base)", tier:"small", cost:0, costConfirmed:true,
@@ -1563,7 +1570,7 @@ function insideFobZone(p) {
   const r = pieceRect(p);
   for (const f of design.pieces) {
     if (f.type !== "__fob__") continue;
-    const half = (f.zone || 100) / 2;
+    const half = fobZone(f) / 2;
     if (r.cx >= f.x - half && r.cx <= f.x + half && r.cy >= f.y - half && r.cy <= f.y + half) return true;
   }
   return false;
@@ -1817,7 +1824,7 @@ function commitStamp(d) {
   pushUndo();
   for (const pt of fresh) {
     const p = { id: design.nextId++, type: placing, x: pt.cx, y: pt.cy, rot, level: lvl };
-    if (def.isFob) p.zone = catalog.fob.buildRadiusUnits || 100;
+    if (def.isFob) p.zone = fobZone(null);
     design.pieces.push(p);
   }
   if (fresh.length < pts.length)
@@ -2083,7 +2090,7 @@ function draw3DNow() {
 
   // ground grid, drawn first and kept faint so the base sits on something
   const fob = design.pieces.find(p => byId[p.type] && byId[p.type].isFob);
-  const half = fob ? Math.min(60, (fob.zone || 100) / 4) : 26;
+  const half = fob ? Math.min(60, fobZone(fob) / 4) : 26;
   ctx.strokeStyle = "#1e1e1e"; ctx.lineWidth = 1;
   ctx.beginPath();
   for (let i = -half; i <= half; i += 2) {
@@ -2299,15 +2306,15 @@ function drawNow() {
 
   // FOB zones underneath
   for (const p of design.pieces) if (p.type === "__fob__") {
-    const half = (p.zone || 100) / 2;
+    const half = fobZone(p) / 2;
     const [zx, zy] = toScreen(p.x - half, p.y - half);
-    const side = (p.zone || 100) * z;
+    const side = fobZone(p) * z;
     ctx.fillStyle = "#4d8fc411"; ctx.fillRect(zx, zy, side, side);
     ctx.strokeStyle = "#4d8fc466"; ctx.setLineDash([7, 5]); ctx.lineWidth = 1.5;
     ctx.strokeRect(zx, zy, side, side); ctx.setLineDash([]);
     if (z > 4) {
       ctx.fillStyle = "#4d8fc499"; ctx.font = `${10*uiScale}px Chakra Petch,system-ui,sans-serif`; ctx.textAlign = "left";
-      ctx.fillText(`BUILD ZONE ${p.zone||100}×${p.zone||100}`, zx + 5*uiScale, zy + 13*uiScale);
+      ctx.fillText(`BUILD ZONE ${fobZone(p)}×${fobZone(p)}`, zx + 5*uiScale, zy + 13*uiScale);
     }
   }
 
@@ -2386,9 +2393,9 @@ function drawNow() {
       ctx.fillText(label, bx + pad, by + 5*uiScale);
     }
     if (def.isFob) {
-      const half = (catalog.fob.buildRadiusUnits || 100) / 2;
+      const half = fobZone(null) / 2;
       const [zx, zy] = toScreen(ghost.cx - half, ghost.cy - half);
-      const side = (catalog.fob.buildRadiusUnits || 100) * z;
+      const side = fobZone(null) * z;
       ctx.strokeStyle = "#4d8fc455"; ctx.setLineDash([7,5]); ctx.strokeRect(zx, zy, side, side); ctx.setLineDash([]);
     }
   }
@@ -3360,7 +3367,7 @@ function updateRightPanel() {
       szl.title = "Applies to all " + shortName + " in every design";
       document.getElementById("sizeRows").style.display = "";
       const fr = document.getElementById("fobSizeRow");
-      if (def.isFob) { fr.style.display = ""; document.getElementById("fobSize").value = p.zone || 100; }
+      if (def.isFob) { fr.style.display = ""; document.getElementById("fobSize").value = fobZone(p); }
       else fr.style.display = "none";
     }
   } else if (selection.size > 1) {
@@ -3759,7 +3766,7 @@ function zoomFit() {
       x0 = Math.min(x0, cx); y0 = Math.min(y0, cy); x1 = Math.max(x1, cx); y1 = Math.max(y1, cy);
     }
     if (p.type === "__fob__") {
-      const half = (p.zone||100)/2;
+      const half = fobZone(p)/2;
       x0 = Math.min(x0, p.x-half); y0 = Math.min(y0, p.y-half);
       x1 = Math.max(x1, p.x+half); y1 = Math.max(y1, p.y+half);
     }
@@ -4258,6 +4265,11 @@ function encodeDesign(d) {
   // positional arrays rather than objects. Roughly a third the characters
   const pieces = d.pieces.map(p => {
     const a = [idx(p.type), Math.round(p.x * 2), Math.round(p.y * 2), p.rot || 0, p.level || 0];
+    /* Literal on purpose, and it stays literal. This is the wire format default, not a
+       display one: the site generator writes the same 100 and test/share-links.js requires
+       the two encoders to produce identical bytes. Reading the catalog here would make the
+       code depend on a value a player can edit, and the same base would encode differently
+       on the two sides. */
     if (p.type === "__fob__") a.push(p.zone || 100);
     return a;
   });

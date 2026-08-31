@@ -315,7 +315,9 @@ if(list){
         '<span class="crew" data-crew-for="'+esc(d.slug)+'" hidden></span>'+
         '<span>score</span><b data-role="score">'+score+'</b>'+
         '<span>'+ago(d.submitted)+'</span></div>'+
-        '<div class="vote" data-design="'+esc(d.slug)+'" style="margin-top:14px">'+
+        /* No inline margin here: an inline style beats the stylesheet, and the stylesheet is
+           what drops this row to the bottom of the card so the buttons line up across a row. */
+        '<div class="vote" data-design="'+esc(d.slug)+'">'+
         '<button type="button" data-dir="1" aria-label="Vote up">&#9650;</button>'+
         '<span class="score" data-role="n">'+score+'</span>'+
         '<button type="button" data-dir="-1" aria-label="Vote down">&#9660;</button>'+

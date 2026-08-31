@@ -170,11 +170,18 @@ section+section{border-top:1px solid var(--line)}
    left hanging against the left edge with the rest of the row empty. A grid always draws its
    full width of tracks, which with one design meant one card and three columns of nothing.
    A max width keeps that single card from growing into a poster. */
-#designList .grid{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;
+#designList .grid{display:flex;flex-wrap:wrap;justify-content:center;align-items:stretch;
   gap:16px;background:none;border:0}
-#designList .grid > *{flex:1 1 280px;max-width:380px;min-width:0}
-#designList .grid > *{border:1px solid var(--line)}
-#designList .card{border:0}
+#designList .grid > *{flex:1 1 280px;max-width:380px;min-width:0;border:1px solid var(--line)}
+/* Cards in a row are the same height whatever is written on them. One design carries a note
+   and a crew and the next carries neither, so left to their contents they came out ragged,
+   which reads as a broken layout rather than as two different designs. Stretch the row, let
+   the card fill its share, and drop the buttons to the bottom so they line up across the row
+   instead of floating wherever the text above them happened to end. */
+#designList .grid > *,
+#designList .grid > * > summary{display:flex;flex-direction:column;flex:1;min-width:0}
+#designList .card{border:0;flex:1;display:flex;flex-direction:column}
+#designList .card .vote{margin-top:auto}
 
 /* --- feature list: prose in columns rather than panels. A row that does not fill
    reads as a list ending, where an unfilled panel grid reads as a hole. --- */
@@ -1116,7 +1123,9 @@ if(list){
         '<span class="crew" data-crew-for="'+esc(d.slug)+'" hidden></span>'+
         '<span>score</span><b data-role="score">'+score+'</b>'+
         '<span>'+ago(d.submitted)+'</span></div>'+
-        '<div class="vote" data-design="'+esc(d.slug)+'" style="margin-top:14px">'+
+        /* No inline margin here: an inline style beats the stylesheet, and the stylesheet is
+           what drops this row to the bottom of the card so the buttons line up across a row. */
+        '<div class="vote" data-design="'+esc(d.slug)+'">'+
         '<button type="button" data-dir="1" aria-label="Vote up">&#9650;</button>'+
         '<span class="score" data-role="n">'+score+'</span>'+
         '<button type="button" data-dir="-1" aria-label="Vote down">&#9660;</button>'+

@@ -154,11 +154,18 @@ section+section{border-top:1px solid var(--line)}
    left hanging against the left edge with the rest of the row empty. A grid always draws its
    full width of tracks, which with one design meant one card and three columns of nothing.
    A max width keeps that single card from growing into a poster. */
-#designList .grid{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;
+#designList .grid{display:flex;flex-wrap:wrap;justify-content:center;align-items:stretch;
   gap:16px;background:none;border:0}
-#designList .grid > *{flex:1 1 280px;max-width:380px;min-width:0}
-#designList .grid > *{border:1px solid var(--line)}
-#designList .card{border:0}
+#designList .grid > *{flex:1 1 280px;max-width:380px;min-width:0;border:1px solid var(--line)}
+/* Cards in a row are the same height whatever is written on them. One design carries a note
+   and a crew and the next carries neither, so left to their contents they came out ragged,
+   which reads as a broken layout rather than as two different designs. Stretch the row, let
+   the card fill its share, and drop the buttons to the bottom so they line up across the row
+   instead of floating wherever the text above them happened to end. */
+#designList .grid > *,
+#designList .grid > * > summary{display:flex;flex-direction:column;flex:1;min-width:0}
+#designList .card{border:0;flex:1;display:flex;flex-direction:column}
+#designList .card .vote{margin-top:auto}
 
 /* --- feature list: prose in columns rather than panels. A row that does not fill
    reads as a list ending, where an unfilled panel grid reads as a hole. --- */
@@ -394,6 +401,32 @@ tr[data-on="1"] td{background:var(--panel2);color:var(--text)}
 .rload em{font-style:normal}
 .rrow .n{font-family:var(--num);font-variant-numeric:tabular-nums;color:var(--text);text-align:right}
 .rrow .rdmg{cursor:help}
+
+/* --- loadouts: slot cards, item icons and the total ---
+   Same panel grid as .calc. Every slot is an icon box beside its picker; the box stays
+   visible when nothing is picked, because an empty slot reading as empty is the point. */
+.lo{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);
+  grid-template-columns:1fr;margin:30px 0 0}
+.lo>div{background:var(--panel);padding:22px}
+@media(min-width:900px){.lo{grid-template-columns:1fr 1fr 280px}}
+.lo-h{font-weight:600;font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--dim);margin:0 0 16px}
+.lo-slot{display:flex;gap:12px;align-items:center;margin:0 0 14px}
+.lo-slot:last-child{margin-bottom:0}
+.lo-icon{flex:0 0 auto;width:52px;height:52px;background:var(--bg);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center}
+.lo-icon img{width:44px;height:44px;object-fit:contain}
+.lo-pick{flex:1;min-width:0}
+.lo-pick label.fine{display:block;margin-bottom:4px}
+.lo-pick select{width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--line2);
+  padding:9px 11px;font-family:var(--ui);font-size:13px}
+.lo-mags{display:block;margin-top:8px}
+.lo-mags input{width:64px;padding:6px;background:var(--panel2);color:var(--text);
+  border:1px solid var(--line2);font-family:var(--num)}
+.lo-out b{display:block;font-family:var(--display);font-weight:700;font-size:40px;line-height:1;
+  letter-spacing:0;color:var(--red-hot);font-variant-numeric:tabular-nums;margin:0 0 12px}
+.lo-out .fine{margin:10px 0 0}
+.chip img{width:18px;height:18px;object-fit:contain;vertical-align:-4px;margin-right:6px}
 
 ul,ol{padding-left:22px}li{margin:6px 0}
 @media(max-width:760px){

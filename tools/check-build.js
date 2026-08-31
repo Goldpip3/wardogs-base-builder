@@ -247,6 +247,55 @@ check(!mojibake, "no mojibake from a codepage mismatch",
     [...new Set(bad)].slice(0, 3).join(" | "));
 }
 
+/* -- 3e. game icons: every reference resolves and every file is accounted for --
+   The wiki icons under docs/game-icons/ are joined to items by slug in three places:
+   data/armory.json (via build-armory.js), the pages that render them, and the catalog in
+   data/game-icons.json that records what the wiki actually served. A slug drifting in any
+   one of them ships a broken image, so all three are held against the files on disk. */
+{
+  const iconDir = path.join(proj, "docs/game-icons");
+  const onDisk = new Set(fs.existsSync(iconDir)
+    ? fs.readdirSync(iconDir).filter(f => f.endsWith(".png")) : []);
+  const gameIcons = JSON.parse(fs.readFileSync(path.join(proj, "data/game-icons.json"), "utf8"));
+  const armory = JSON.parse(fs.readFileSync(path.join(proj, "data/armory.json"), "utf8"));
+
+  const badItem = armory.items.filter(i => i.icon && !onDisk.has(i.icon + ".png"))
+    .map(i => i.name + " -> " + i.icon);
+  check(badItem.length === 0, "every armory icon slug has its file in docs/game-icons",
+    badItem.slice(0, 3).join(" | "));
+
+  const pages = [];
+  (function walk(d) {
+    for (const f of fs.readdirSync(d)) {
+      const p = path.join(d, f);
+      if (fs.statSync(p).isDirectory()) walk(p);
+      else if (f.endsWith(".html")) pages.push(p);
+    }
+  })(path.join(proj, "docs"));
+  const badRef = [];
+  for (const p of pages) {
+    const s = fs.readFileSync(p, "utf8");
+    for (const m of s.matchAll(/\/game-icons\/([A-Za-z0-9_.-]+\.png)/g)) {
+      if (!onDisk.has(m[1])) badRef.push(path.relative(proj, p) + "  " + m[1]);
+    }
+  }
+  check(badRef.length === 0, "every /game-icons/ reference in the site points at a real file",
+    [...new Set(badRef)].slice(0, 3).join(" | "));
+
+  const cataloged = new Set(gameIcons.items.map(i => i.slug + ".png"));
+  const strays = [...onDisk].filter(f => !cataloged.has(f));
+  check(strays.length === 0, "no icon file sits outside data/game-icons.json",
+    strays.slice(0, 3).join(", "));
+  const lying = gameIcons.items.filter(i => i.hasIcon === true && !onDisk.has(i.slug + ".png"))
+    .map(i => i.slug);
+  check(lying.length === 0, "every icon the catalog says was fetched is on disk",
+    lying.slice(0, 3).join(", "));
+
+  /* The icons are the site's business only. The downloadable planner naming one would be
+     a network fetch, and the offline promise is the whole point of that file. */
+  check(!download.includes("/game-icons/"), "the downloadable planner never references game icons");
+}
+
 /* -- 4. nothing reaches the network: offline is the whole promise --
    Read the downloadable file, not the hosted one. The two were interchangeable for this
    purpose until the hosted copy started loading an ad script. Had this stayed pointed at

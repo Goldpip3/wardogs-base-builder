@@ -11,6 +11,7 @@ One line each. Open the card, not this file, to act.
 | [build-config](data/build-config.md) | `data/community.json`, `data/ads.json` | verified 2026-08-30 |
 | [artillery-data](data/artillery-data.md) | `data/artillery.json`, the firing tables | verified 2026-08-30 |
 | [artillery-maps](data/artillery-maps.md) | `data/artillery-maps.json`, the two terrains | verified 2026-08-30 |
+| [game-icons](data/game-icons.md) | `data/game-icons.json`, `docs/game-icons/` | verified 2026-08-31 |
 
 ## planner: I want to change the tool
 

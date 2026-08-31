@@ -1,0 +1,3397 @@
+{
+  "_note": "Item catalog of the wardogs.zone fan wiki: which items exist and which have an icon fetched into docs/game-icons/. hasIcon false means the wiki confirmed 404. Regenerate with tools/pull-game-icons.js.",
+  "source": "https://wardogs.zone/database",
+  "fetchedOn": "2026-08-31",
+  "items": [
+    {
+      "slug": "10xscopemoa",
+      "name": "6-10x Scope MOA",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "120x570mm",
+      "name": "120mm HEAT-MP Shell",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "120x800mm",
+      "name": "81mm",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "120x800mm-expensive",
+      "name": "81mm",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "120x800mm-standard",
+      "name": "81mm",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "122mm",
+      "name": "122mm HE Rocket",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "12g",
+      "name": "12g",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "12g-7mmbuck",
+      "name": "12g 7mm Buckshot",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "12g-rifledslug",
+      "name": "12g Rifled Slug",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "155mm",
+      "name": "155mm HE Shell",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "155mm-expensive",
+      "name": "155mm HE Shell",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "155mm-expensive-sandbox",
+      "name": "155mm Expensive (SB)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "155mm-sandbox",
+      "name": "155mm (SB)",
+      "cat": "ammo",
+      "hasIcon": false
+    },
+    {
+      "slug": "155mm-standard",
+      "name": "155mm HE Shell",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "155mm-standard-sandbox",
+      "name": "155mm Standard (SB)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "20x102mm",
+      "name": "20x102mm",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "308win",
+      "name": ".308 Win",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "308win-armorpiercing",
+      "name": ".308 Win Armor Piercing (AP)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "308win-armorpiercing-tracer",
+      "name": ".308 Win Armor Piercing (AP) (T)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "308win-hollowpoint",
+      "name": ".308 Win (HP)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "308win-hollowpoint-tracer",
+      "name": ".308 Win Flesh Damage (HP) (T)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "308win-tracer",
+      "name": ".308 Win Standard (FMJ) (T)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "30mm",
+      "name": "30mm HE Cannon",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "338nor",
+      "name": ".338",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "338nor-armourpiercing",
+      "name": ".338 AP",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "338nor-armourpiercing-tracer",
+      "name": ".338 AP (T)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "338nor-hollowpoint",
+      "name": ".338 HP",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "338nor-hollowpoint-tracer",
+      "name": ".338 HP (T)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "338nor-tracer",
+      "name": ".338 (T)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "35x228mm",
+      "name": "35x228mm Anti-Air Cannon",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "3xscope",
+      "name": "Spitfire 3X",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "40mm",
+      "name": "40mm",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "45acp",
+      "name": ".45 ACP",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "45acp-armorpiercing",
+      "name": ".45 ACP Armor Piercing (AP)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "45acp-armorpiercing-tracer",
+      "name": ".45 ACP Armor Piercing (AP) (T)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "45acp-hollowpoint",
+      "name": ".45 ACP Flesh Damage (HP)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "45acp-hollowpoint-tracer",
+      "name": ".45 ACP Flesh Damage (HP) (T)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "45acp-tracer",
+      "name": ".45 ACP Standard (FMJ) (T)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "45colt",
+      "name": ".45 Colt",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "45colt-armorpiercing",
+      "name": ".45 Colt Armor Piercing (AP)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "45colt-armorpiercing-tracer",
+      "name": ".45 Colt Armor Piercing (AP) (T)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "45colt-hollowpoint",
+      "name": ".45 Colt Flesh Damage (HP)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "45colt-hollowpoint-tracer",
+      "name": ".45 Colt Flesh Damage (HP) (T)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "45colt-tracer",
+      "name": ".45 Colt Standard (FMJ) (T)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "4xelcanspectr",
+      "name": "Spectr 4x",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "50ae",
+      "name": "50AE",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "50ae-armorpiercing",
+      "name": "50AE Armor Piercing (AP)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "50ae-armorpiercing-tracer",
+      "name": "50AE Armor Piercing (AP) (T)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "50ae-hollowpoint",
+      "name": "50AE Flesh Damage (HP)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "50ae-hollowpoint-tracer",
+      "name": "50AE Flesh Damage (HP) (T)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "50ae-tracer",
+      "name": "50AE Standard (FMJ) (T)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "50cal",
+      "name": ".50Cal",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "50cal-armorpiercing",
+      "name": ".50 Cal AP",
+      "cat": "ammo",
+      "hasIcon": false
+    },
+    {
+      "slug": "50cal-armorpiercing-tracer",
+      "name": ".50 Cal AP (T)",
+      "cat": "ammo",
+      "hasIcon": false
+    },
+    {
+      "slug": "50cal-hollowpoint",
+      "name": ".50 Cal HP",
+      "cat": "ammo",
+      "hasIcon": false
+    },
+    {
+      "slug": "50cal-hollowpoint-tracer",
+      "name": ".50 Cal HP (T)",
+      "cat": "ammo",
+      "hasIcon": false
+    },
+    {
+      "slug": "50cal-tracer",
+      "name": ".50Cal Standard (FMJ) (T)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "545mm",
+      "name": "5.45x39mm",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "545mm-armorpiercing",
+      "name": "5.45mm Armor Piercing (AP)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "545mm-armorpiercing-tracer",
+      "name": "5.45mm Armor Piercing (AP) (T)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "545mm-hollowpoint",
+      "name": "5.45mm Flesh Damage (HP)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "545mm-hollowpoint-tracer",
+      "name": "5.45mm Flesh Damage (HP) (T)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "545mm-tracer",
+      "name": "5.45mm Standard (FMJ) (T)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "556mm",
+      "name": "5.56x45mm",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "556mm-armorpiercing",
+      "name": "5.56mm Armor Piercing (AP)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "556mm-armorpiercing-tracer",
+      "name": "5.56mm Armor Piercing (AP) (T)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "556mm-hollowpoint",
+      "name": "5.56mm Flesh Damage (HP)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "556mm-hollowpoint-tracer",
+      "name": "5.56mm Flesh Damage (HP) (T)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "556mm-tracer",
+      "name": "5.56mm Standard (FMJ) (T)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "6xscope",
+      "name": "3-6x Scope",
+      "cat": "attachments",
+      "hasIcon": false
+    },
+    {
+      "slug": "70mm",
+      "name": "70mm",
+      "cat": "ammo",
+      "hasIcon": false
+    },
+    {
+      "slug": "72mm",
+      "name": "72mm",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "762mm",
+      "name": "7.62x39mm",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "762mm-armorpiercing",
+      "name": "7.62mm Armor Piercing (AP)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "762mm-armorpiercing-tracer",
+      "name": "7.62mm Armor Piercing (AP) (T)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "762mm-hollowpoint",
+      "name": "7.62mm Flesh Damage (HP)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "762mm-hollowpoint-tracer",
+      "name": "7.62mm Flesh Damage (HP) (T)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "762mm-tracer",
+      "name": "7.62mm Standard (FMJ) (T)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "762x51mm",
+      "name": "7.62x51mm",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "762x51mm-armorpiercing",
+      "name": "7.62x51mm Armor Piercing (AP)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "762x51mm-armorpiercing-tracer",
+      "name": "7.62x51mm Armor Piercing (AP) (T)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "762x51mm-hollowpoint",
+      "name": "762x51mm Flesh Damage (HP)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "762x51mm-hollowpoint-tracer",
+      "name": "762x51mm Flesh Damage (HP) (T)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "762x51mm-tracer",
+      "name": "7.62x51mm Standard (FMJ) (T)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "762x54mm",
+      "name": "7.62x54mm",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "762x54mm-armorpiercing",
+      "name": "7.62x54mm Armor Piercing (AP)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "762x54mm-armorpiercing-tracer",
+      "name": "7.62x54mm Armor Piercing (AP) (T)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "762x54mm-hollowpoint",
+      "name": "7.62x54mm Flesh Damage (HP)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "762x54mm-hollowpoint-tracer",
+      "name": "7.62x54mm Flesh Damage (HP) (T)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "762x54mm-tracer",
+      "name": "7.62x54mm Standard (FMJ) (T)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "84mm",
+      "name": "84mm",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "93mm",
+      "name": "93mm",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "9mm",
+      "name": "9x19mm",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "9mm-armorpiercing",
+      "name": "9mm Armor Piercing (AP)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "9mm-armorpiercing-tracer",
+      "name": "9mm Armor Piercing (AP) (T)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "9mm-hollowpoint",
+      "name": "9mm Flesh Damage (HP)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "9mm-hollowpoint-tracer",
+      "name": "9mm Flesh Damage (HP) (T)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "9mm-tracer",
+      "name": "9mm Standard (FMJ) (T)",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "a91",
+      "name": "A-91",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "a91barrel",
+      "name": "A91 Barrel",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "a91mag",
+      "name": "STANAG 30 RND Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "adrenalinepen",
+      "name": "Adrenaline Pen",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "air-rotary-havoc-default",
+      "name": "Havoc",
+      "cat": "vehicles",
+      "hasIcon": true
+    },
+    {
+      "slug": "air-rotary-huey-default",
+      "name": "UH-1Y",
+      "cat": "vehicles",
+      "hasIcon": true
+    },
+    {
+      "slug": "air-rotary-huey-mountedmachineguns",
+      "name": "UH-1Y [Miniguns]",
+      "cat": "vehicles",
+      "hasIcon": true
+    },
+    {
+      "slug": "air-rotary-littlebird-default",
+      "name": "MH-6",
+      "cat": "vehicles",
+      "hasIcon": true
+    },
+    {
+      "slug": "air-rotary-littlebird-mountedmachineguns",
+      "name": "AH-6M [Miniguns]",
+      "cat": "vehicles",
+      "hasIcon": true
+    },
+    {
+      "slug": "air-rotary-littlebird-rocketpods",
+      "name": "AH-6R [Rockets]",
+      "cat": "vehicles",
+      "hasIcon": true
+    },
+    {
+      "slug": "ak74m",
+      "name": "AK74",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "ak74mbarrel",
+      "name": "AK74 Barrel",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "ak74mextendedmagazine",
+      "name": "AK74 60 RND Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "ak74mgrip",
+      "name": "AK74 Grip",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "ak74mhandguard",
+      "name": "AK74 Handguard",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "ak74mimieggrip",
+      "name": "AK74 Grip",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "ak74mmagazine",
+      "name": "AK74 30 RND Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "ak74mmagazine75rnd",
+      "name": "AK74 75 RND Drum Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "ak74mmagazineplum130rnd",
+      "name": "AK74-M Extended Mag",
+      "cat": "attachments",
+      "hasIcon": false
+    },
+    {
+      "slug": "ak74mreceiver",
+      "name": "AK74 Receiver",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "ak74mstock",
+      "name": "AK74 Stock",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "ammo_01",
+      "name": "Smoke Shell",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "ammocrate",
+      "name": "Ammo Crate",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "ar_02_brl_01",
+      "name": "MMGL Barrel",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "ar_02_hgd_04",
+      "name": "LVOA Handguard",
+      "cat": "attachments",
+      "hasIcon": false
+    },
+    {
+      "slug": "arextendedmagazine545mm",
+      "name": "AR Extended Mag",
+      "cat": "attachments",
+      "hasIcon": false
+    },
+    {
+      "slug": "armr_005",
+      "name": "Flak Jacket",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "arrow",
+      "name": "Broadhead Arrow",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "arrow-explosive",
+      "name": "Rambo Explosive Arrow",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "at4",
+      "name": "AT4",
+      "cat": "weapons",
+      "hasIcon": false
+    },
+    {
+      "slug": "at4rocket",
+      "name": "AT4 Mag",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "atmine",
+      "name": "AT Mine",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "bandage",
+      "name": "Bandage",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "barl_003",
+      "name": "M1911 Barrel",
+      "cat": "attachments",
+      "hasIcon": false
+    },
+    {
+      "slug": "barl_004",
+      "name": "Deagle Barrel",
+      "cat": "attachments",
+      "hasIcon": false
+    },
+    {
+      "slug": "barl_005",
+      "name": "MP5 Barrel",
+      "cat": "attachments",
+      "hasIcon": false
+    },
+    {
+      "slug": "barl_006",
+      "name": "Galil Barrel",
+      "cat": "attachments",
+      "hasIcon": false
+    },
+    {
+      "slug": "barl_010",
+      "name": "AKS74u Barrel + Gas Block",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "barl_011",
+      "name": "RPK74 Barrel + Gas Block",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "barl_045",
+      "name": "Scout Rifle Standard Barrel",
+      "cat": "attachments",
+      "hasIcon": false
+    },
+    {
+      "slug": "basicmuzzle",
+      "name": "Basic Muzzle",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "basicreddot",
+      "name": "Compact T-2 Red Dot",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "battery",
+      "name": "Battery",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "batterycharge",
+      "name": "Battery Charge",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "binoculars",
+      "name": "Binoculars",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "bpak_005",
+      "name": "Field Backpack",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "bpak_006",
+      "name": "Assault Backpack",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "bpak_007",
+      "name": "Halftrack Backpack",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "browningmg",
+      "name": "Browning MG",
+      "cat": "weapons",
+      "hasIcon": false
+    },
+    {
+      "slug": "buildtool-hammer-large",
+      "name": "Large Hammer",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "buildtool-hammer-medium",
+      "name": "Medium Hammer",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "buildtool-hammer-small",
+      "name": "Small Hammer",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "buildtoolsupply",
+      "name": "Build Supplies",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "c4explosive",
+      "name": "C4 Charge",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "c4trigger",
+      "name": "Remote Detonator",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "cantedirons",
+      "name": "Canted Irons",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "cgm4",
+      "name": "MAAWS",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "cgm4mag",
+      "name": "AT4 Mag",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "claymore",
+      "name": "Claymore",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "combatbow",
+      "name": "Compound Bow",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "combatbowmagazine",
+      "name": "Combat Bow Standard Mag",
+      "cat": "attachments",
+      "hasIcon": false
+    },
+    {
+      "slug": "cons_001",
+      "name": "Energy Drink",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "cons_002",
+      "name": "Painkillers",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "cons_003",
+      "name": "Amphetamine",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "crowbar",
+      "name": "Halligan Bar",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "dcvr_001",
+      "name": "AK74u Dust Cover",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "dcvr_002",
+      "name": "Railed Dust Cover",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "dcvr_003",
+      "name": "RPK74 Dust Cover",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "debughomingrocketammo",
+      "name": "RocketTesting 84mm",
+      "cat": "ammo",
+      "hasIcon": false
+    },
+    {
+      "slug": "defibrillator-standard",
+      "name": "Defibrillator",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "dply_001",
+      "name": "Drill Rig",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "dply_002",
+      "name": "Mortars",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "dply_003",
+      "name": "Repair Station",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "droneprojectile",
+      "name": "Stringray",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "enox-standard",
+      "name": "Enox",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "eotechholosight",
+      "name": "Holographic Sight",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "extralargeslingbackpack",
+      "name": "Arsenal Backpack + 2 Slings",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "fgp_02",
+      "name": "TDG Vertical Foregrip",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "fgp_03",
+      "name": "AFG Angled Foregrip",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "fgp_04",
+      "name": "Hybrid Grip Pod",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "fgrp_006",
+      "name": "RVG Vertical Foregrip",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "fgrp_007",
+      "name": "Shift Foregrip",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "fgrp_008",
+      "name": "PKM Bipod",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "fgrp_009",
+      "name": "SV98 Bipod",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "fgrp_010",
+      "name": "SKS Bipod",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "fgrp_011",
+      "name": "SVD Bipod",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "fgrp_012",
+      "name": "M249 Bipod",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "fgrp_013",
+      "name": "Pro Tilt Bipod",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "fgrp_014",
+      "name": "CQR Tactical Front Rail Grip",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "fgrp_015",
+      "name": "Rubberized Ergonomic Foregrip",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "fgrp_016",
+      "name": "45° Angled Foregrip",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "fgrp_017",
+      "name": "Angled Tactical Foregrip",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "fgrp_018",
+      "name": "Mini Angled Foregrip",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "fists",
+      "name": "Fists",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "flares",
+      "name": "Flares",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "fob",
+      "name": "Forward Operating Base",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "fuelcan",
+      "name": "Fuel Can",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "fuelsupplies",
+      "name": "Fuel Supplies",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "g60",
+      "name": "G60",
+      "cat": "weapons",
+      "hasIcon": false
+    },
+    {
+      "slug": "g60extendedmagazine",
+      "name": "G60 Extended Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "g60magazine",
+      "name": "G60 Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "ghilliearmor",
+      "name": "Ghillie Body Suit",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "ghilliearmor-dead",
+      "name": "Ghillie Body Suit (Dead)",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "ghilliehelmet",
+      "name": "Ghillie Headwear",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "ghilliehelmet-dead",
+      "name": "Ghillie Headwear (Dead)",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "glock17",
+      "name": "GGX 17",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "glock17extendedmagazine",
+      "name": "Glock 17 Extended Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "glock17magazine",
+      "name": "GGX 17 RND Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "goldm67grenade",
+      "name": "Gold Frag Grenade",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "heavyarmor",
+      "name": "Level 3 Armor",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "heavyhelmet",
+      "name": "Level 3 Helmet",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "heavytankmountedmachinegun",
+      "name": "Machine Gun",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "helm_005",
+      "name": "Level 4 Helmet",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "hndg_003",
+      "name": "MP5 Handguard",
+      "cat": "attachments",
+      "hasIcon": false
+    },
+    {
+      "slug": "hndg_005",
+      "name": "Polymer Handguard",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "hndg_006",
+      "name": "Wooden Dong Grip",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "hndg_007",
+      "name": "Sharkfin Dong Grip",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "hndg_008",
+      "name": "AK74u Wooden Handguard",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "hndg_009",
+      "name": "AK74u Polymer Handguard",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "hndg_010",
+      "name": "Archangel OPFOR Forend",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "hndg_011",
+      "name": "RPK74 Wooden Handguard",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "hndg_012",
+      "name": "RPK74 Polymer Handguard",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "hndg_013",
+      "name": "M-LOK Dong Grip",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "hndg_014",
+      "name": "MI Universal Handguard",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "hndg_015",
+      "name": "TI Battlerail",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "hndg_016",
+      "name": "ZenitCo B-13 Side Mount",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "humveevehicleringturret",
+      "name": "Machine Gun",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "hybridscope4x",
+      "name": "4X Hybrid",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "ied-explosive",
+      "name": "Improvised Explosive Device",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "ied-trigger",
+      "name": "Improvised Explosive Device",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "infraredrangefinder",
+      "name": "Infrared Range Finder",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "item",
+      "name": "Fuel Can",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "judge",
+      "name": "Judge",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "judgemagazine",
+      "name": "Judge Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "keycard-alpha-1",
+      "name": "Alpha Card",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "keycard-alpha-2",
+      "name": "Alpha Card",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "keycard-bravo-1",
+      "name": "Bravo Card",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "keycard-bravo-2",
+      "name": "Bravo Card",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "keycard-charlie-1",
+      "name": "Charlie Card",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "keycard-charlie-2",
+      "name": "Charlie Card",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "kh2002",
+      "name": "KH-2002",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "kh2002barrel",
+      "name": "KH2002 Barrel",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "kh2002extendedmagazine",
+      "name": "STANAG Extended Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "kh2002mag",
+      "name": "STANAG 30 RND Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "land-tracked-spawnvehicle-lonestar",
+      "name": "M113 APC SV",
+      "cat": "vehicles",
+      "hasIcon": true
+    },
+    {
+      "slug": "land-tracked-spawnvehicle-manticore",
+      "name": "M113 APC SV",
+      "cat": "vehicles",
+      "hasIcon": true
+    },
+    {
+      "slug": "land-tracked-spawnvehicle-valkyra",
+      "name": "M113 APC SV",
+      "cat": "vehicles",
+      "hasIcon": true
+    },
+    {
+      "slug": "land-tracked-tnk_01-antiair",
+      "name": "Flakpanzer Gepard",
+      "cat": "vehicles",
+      "hasIcon": true
+    },
+    {
+      "slug": "land-tracked-tnk_01-artillery",
+      "name": "SPH-2",
+      "cat": "vehicles",
+      "hasIcon": true
+    },
+    {
+      "slug": "land-tracked-tnk_01-heavy",
+      "name": "L2A6",
+      "cat": "vehicles",
+      "hasIcon": true
+    },
+    {
+      "slug": "land-wheeled-bobcat-default",
+      "name": "Bobcat",
+      "cat": "vehicles",
+      "hasIcon": true
+    },
+    {
+      "slug": "land-wheeled-dunebuggy-default",
+      "name": "Dune Buggy",
+      "cat": "vehicles",
+      "hasIcon": true
+    },
+    {
+      "slug": "land-wheeled-humvee-default",
+      "name": "Humvee",
+      "cat": "vehicles",
+      "hasIcon": true
+    },
+    {
+      "slug": "land-wheeled-humvee-machinegun",
+      "name": "Humvee [M249]",
+      "cat": "vehicles",
+      "hasIcon": true
+    },
+    {
+      "slug": "land-wheeled-humvee-minigun",
+      "name": "Humvee [Minigun]",
+      "cat": "vehicles",
+      "hasIcon": true
+    },
+    {
+      "slug": "land-wheeled-kodiak-default",
+      "name": "Kodiak",
+      "cat": "vehicles",
+      "hasIcon": true
+    },
+    {
+      "slug": "land-wheeled-kodiak-machinegun",
+      "name": "Kodiak [M249]",
+      "cat": "vehicles",
+      "hasIcon": true
+    },
+    {
+      "slug": "land-wheeled-kodiak-pickup",
+      "name": "Kodiak [Pickup]",
+      "cat": "vehicles",
+      "hasIcon": true
+    },
+    {
+      "slug": "land-wheeled-ural-attack",
+      "name": "Ural Defender [M249]",
+      "cat": "vehicles",
+      "hasIcon": true
+    },
+    {
+      "slug": "land-wheeled-ural-battle",
+      "name": "Ural Defender",
+      "cat": "vehicles",
+      "hasIcon": true
+    },
+    {
+      "slug": "land-wheeled-ural-default",
+      "name": "URAL",
+      "cat": "vehicles",
+      "hasIcon": true
+    },
+    {
+      "slug": "largebackpack",
+      "name": "Ruck Backpack",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "largebattery",
+      "name": "High Capacity Battery",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "largeslingbackpack",
+      "name": "Gunner Backpack + Sling",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "largetacvest",
+      "name": "Large Tac Vest",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "launcher_04",
+      "name": "9K333 Verba",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "launcher_04magazine",
+      "name": "Launcher_04 Standard Mag",
+      "cat": "attachments",
+      "hasIcon": false
+    },
+    {
+      "slug": "lightarmor",
+      "name": "Level 1 Armor",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "lighthelmet",
+      "name": "Level 1 Helmet",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "lmg_02",
+      "name": "PKM",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "lmg_02magazine",
+      "name": "PKM 100 RND Box",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "m12g",
+      "name": "M12G",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "m12gmagazine",
+      "name": "M12G Internal Magazine",
+      "cat": "ammo",
+      "hasIcon": false
+    },
+    {
+      "slug": "m249",
+      "name": "M249 SAW",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "m249magazine",
+      "name": "M249 200 RND Box",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "m4",
+      "name": "M4",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "m4barrel",
+      "name": "M4 Barrel",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "m4extendedmagazine",
+      "name": "M4 Extended Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "m4handguard",
+      "name": "M4 Handguard",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "m4magazine",
+      "name": "STANAG 30 RND Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "m4pistolgrip",
+      "name": "M4 Pistol Grip",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "m4stock",
+      "name": "M4 Stock",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "m500",
+      "name": "M500",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "m500magazine",
+      "name": "M500 Internal Mag",
+      "cat": "attachments",
+      "hasIcon": false
+    },
+    {
+      "slug": "m67grenade",
+      "name": "M67 Frag Grenade",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_002",
+      "name": "M1911 7 RND Magazine",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_003",
+      "name": "Deagle 7 RND Magazine",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_004",
+      "name": "MP5 30 RND Magazine",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_005",
+      "name": "Galil 35 RND Magazine",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_006",
+      "name": "FAL 20 RND Magazine",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_011",
+      "name": "GGX 50 RND Drum Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_012",
+      "name": "GGX 33 RND Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_013",
+      "name": "Glock Extended 27RD",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_014",
+      "name": "AK74N EXTENDED MAG 120RD",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_016",
+      "name": "AK74N EXTENDED MAG 60RD",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_017",
+      "name": "AK47N EXTENDED MAG 45RD",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_018",
+      "name": "HOMEMADE 50RD DRUM MAG",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_019",
+      "name": "MP9 Extended Mag 30RD",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_020",
+      "name": "MAGPUL D60",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_021",
+      "name": "SKS EXTENDED MAG 40RD",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_022",
+      "name": "SKS EXTENDED MAG 30RD",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_023",
+      "name": "SKS EXT MAG 20RD",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_024",
+      "name": "FAL 30 RND Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_025",
+      "name": "SVD MAG 20RD",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_026",
+      "name": "AMR 50 10 RND Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_027",
+      "name": "MOSIN 20RD Extended",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_028",
+      "name": "MOSIN 10RD Extended",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_029",
+      "name": "MOSIN Stripper Clip",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_030",
+      "name": "SV98 20RD MAG",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_031",
+      "name": "SAW-MAG 150 RD TWIN DRUM",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_032",
+      "name": "RFB 20RD MAGPUL",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_033",
+      "name": "MK22 10RD",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_034",
+      "name": "MK22 5 RND Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_035",
+      "name": "MOSS EXT MAG",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_036",
+      "name": "9RD SHELL",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_037",
+      "name": "SUREFIRE 60 RD",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_046",
+      "name": "PP-19 50 RND Vityaz Drum Magazine",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_052",
+      "name": "AMP-9 20 RND Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_055",
+      "name": "Super-45 40 RND Drum Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_056",
+      "name": "MP5 50 RND Drum Magazine",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_057",
+      "name": "Super-45 13 RND Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_059",
+      "name": "PP-19 Vityaz 10 RND Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_060",
+      "name": "Galil 50 RND Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_061",
+      "name": "AMP-9 15 RND Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_062",
+      "name": "M249 100 RND Fabric Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_063",
+      "name": "M1911 10 RND Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_064",
+      "name": "MP5 20 RND Magazine",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_065",
+      "name": "SVD 5 RND Magazine",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "magz_066",
+      "name": "AMP-9 50 RND Drum Magazine",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "mediumarmor",
+      "name": "Level 2 Armor",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "mediumbackpack",
+      "name": "Operator Backpack",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "mediumhelmet",
+      "name": "Level 2 Helmet",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "mediumslingbackpack",
+      "name": "Medium Backpack + Sling",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "mediumtacvest",
+      "name": "Medium Tac Vest",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "medkit-standard",
+      "name": "Medical Bag",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "mistralaa",
+      "name": "Machine Gun",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "mk22",
+      "name": "MK22",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "mk22mag",
+      "name": "MK22 10 RND Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "mmgl",
+      "name": "MGL-40",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "mmglbarrel",
+      "name": "MMGL Barrel",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "mmglhandguard",
+      "name": "MMGL Handguard",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "mmglmagazine",
+      "name": "MMGL Internal Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "mmglpistolgrip",
+      "name": "MMGL Pistol Grip",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "mmglstock",
+      "name": "MMGL Stock",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "monocular",
+      "name": "Monocular",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "mosin",
+      "name": "Mosin Nagant",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "mosinmagazine",
+      "name": "Mosin Internal Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "mosinmagazineextended10rd",
+      "name": "SV98 Extended Mag",
+      "cat": "attachments",
+      "hasIcon": false
+    },
+    {
+      "slug": "mosinmagazineextended20rd",
+      "name": "SV98 Extended Mag",
+      "cat": "attachments",
+      "hasIcon": false
+    },
+    {
+      "slug": "mp43",
+      "name": "MP43",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "mp43magazine",
+      "name": "MP43 Internal Mag",
+      "cat": "attachments",
+      "hasIcon": false
+    },
+    {
+      "slug": "mp9",
+      "name": "AMP-9",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "mp9extendedmagazine",
+      "name": "MP9 Extended Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "mp9magazine",
+      "name": "AMP-9 30 RND Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "munitionssupplies",
+      "name": "Ammo Supplies",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "musictape-01",
+      "name": "H4ZARD - Gigilow",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "musictape-02",
+      "name": "You Are Not Invited - MokuMoku",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "musictape-03",
+      "name": "Giants (Remix) - The Quemists",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "musictape-04",
+      "name": "Ride of the Valkyries - Richard Wagner",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "musictape-05",
+      "name": "Ride of the Valkyries - Richard Wagner",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "musictape-06",
+      "name": "Tianqi Xu - Vodka Bomb",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "musictape-07",
+      "name": "Luili-Luili - Masha Kondratenko",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "musictape-08",
+      "name": "HORA - Irina Rimes & Jerry Heil",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "musictape-09",
+      "name": "Helikopter - Fazlija",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "musictape-10",
+      "name": "Kai Wachi ft. TheBurntPeanut - BUNGULATOR BASS",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "muzl_013",
+      "name": "3 Prong Flash Hider",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_014",
+      "name": "TopComp Brake",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_019",
+      "name": "Dual Port Brake",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_020",
+      "name": "Ballista Brake",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_022",
+      "name": "Constrictor Brake",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_023",
+      "name": "Tread Brake",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_024",
+      "name": "Hexagon Brake",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_025",
+      "name": "Slicktap Brake",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_027",
+      "name": "3-Chamber Brake",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_028",
+      "name": "DTK-1 Brake",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_029",
+      "name": "Orpheus Max Brake",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_030",
+      "name": "Three Port Brake",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_031",
+      "name": "M500 Sabre Brake",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_032",
+      "name": "RC-556 Suppressor",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_037",
+      "name": "Eclipse Flash Hider",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_038",
+      "name": "Slotted Flash Hider",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_039",
+      "name": "Birdcage Flash Hider",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_040",
+      "name": "SVD 7.62x54R Brake",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_041",
+      "name": "SRVV Brake",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_042",
+      "name": "Deadeye Flash Hider",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_044",
+      "name": "Improved Cylinder Choke",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_045",
+      "name": "Full Choke",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_046",
+      "name": "Super-45 Flash Hider",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_047",
+      "name": "Ghost LITE Muzzle Brake",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_048",
+      "name": "AX50 .50 Cal Muzzle Brake",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_049",
+      "name": ".50 Cal Heavy Suppressor",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_050",
+      "name": ".45 ACP Pistol Compensator",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_051",
+      "name": "AMP-9 9x19 Suppressor",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_052",
+      "name": "AMP-9 Tactical Flash Hider",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_053",
+      "name": "PP-19-01 Vityaz 9x19 Suppressor",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_054",
+      "name": "PP-19 Vityaz Flash Hider",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_055",
+      "name": "BMR-308 Flash Hider",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_056",
+      "name": "BMR-308 Suppressor",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_057",
+      "name": "Flow-Through .308 Suppressor",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_058",
+      "name": "QD-5 Suppressor",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_059",
+      "name": "MP5 Flash Hider",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_060",
+      "name": "Suppressor T8L1 Scout",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_061",
+      "name": "FAL Flash Hider",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "muzl_062",
+      "name": "STRELIX Suppressor",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "mzl_04",
+      "name": "GOL Multi-Caliber Suppressor",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "mzl_05",
+      "name": "SG Multi-Caliber Suppressor",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "mzl_06",
+      "name": "12 Gauge Suppressor",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "mzl_07",
+      "name": "AR Multi-Caliber Suppressor",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "mzl_08",
+      "name": "Hexagon 762 Suppressor",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "mzl_09",
+      "name": "PBS-4 Suppressor",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "mzl_10",
+      "name": "TGP-A Suppressor 5.45",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "opt_08",
+      "name": "2.5x Combat Optic",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "parachute-basic",
+      "name": "Basic Parachute",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "parachute-sport",
+      "name": "Sport Parachute",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "pgrp_003",
+      "name": "FAL Pistol Grip",
+      "cat": "attachments",
+      "hasIcon": false
+    },
+    {
+      "slug": "pgrp_004",
+      "name": "Wooden Pistol Grip",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "pgrp_005",
+      "name": "Polymer Pistol Grip",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "pgrp_006",
+      "name": "AK-12 Pistol Grip",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "pgrp_007",
+      "name": "Archangel OPFOR Pistol Grip",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "pgrp_008",
+      "name": "KGB MG47 Grip",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "pgrp_009",
+      "name": "AGS-74 PRO Sniper Pistol Grip",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "pgrp_010",
+      "name": "Galil Pistol Grip",
+      "cat": "attachments",
+      "hasIcon": false
+    },
+    {
+      "slug": "pouch",
+      "name": "Pouch",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "pwscqb74muzzle",
+      "name": "CQB 74 Brake",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "rangefinder",
+      "name": "Range Finder",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "repairtool-drill-heavy",
+      "name": "Heavy Drill",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "repairtool-drill-light",
+      "name": "Light Drill",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "repairtool-wrench-standard",
+      "name": "Wrench",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "resuscitator-cheap",
+      "name": "Emergency Resuscitator",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "resuscitator-standard",
+      "name": "Field Resuscitator",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "rfb",
+      "name": "BMR-308",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "rfbmagazine",
+      "name": "FAL 10 RND Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "rk6foregrip",
+      "name": "RK6 Tactical Foregrip",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "rpg7",
+      "name": "RPG-7",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "sght_009",
+      "name": "Kobra Reflex",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "sght_010",
+      "name": "Magpul MBUS Iron Sights",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "sght_011",
+      "name": "3x-6x LPVO Short Dot",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "sght_012",
+      "name": "10x Thermal Scope",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "sght_016",
+      "name": "Four Reticle Reflex",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "sght_023",
+      "name": "OKP 7 Reflex",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "sght_025",
+      "name": "Mini Reflex Sight",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "sght_026",
+      "name": "Tricon 1.5x Compact Prism Scope",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "sght_027",
+      "name": "Vektor Frenix-X Micro Reflex Sight",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "sght_028",
+      "name": "CQ-2x Prism Combat Scope",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "sght_029",
+      "name": "3x Tactical Prism Scope",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "sght_030",
+      "name": "4x Combat Prism Scope with Reflex",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "sght_031",
+      "name": "6x Precision Rifle Scope",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "sght_032",
+      "name": "Frontier 2.5x-10x Precision Scope",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "sght_033",
+      "name": "CGM4 Scope",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "sght_034",
+      "name": "PGO-7",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "sght_036",
+      "name": "6x Marksman Scope + Reflex",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "sght_037",
+      "name": "MMGL Sight",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "sks",
+      "name": "SKS",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "sksextendedmag",
+      "name": "SKS Extended Mag",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "sksmagazine",
+      "name": "SKS Internal Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "smallbackpack",
+      "name": "Scout Backpack",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "smalltacvest",
+      "name": "Small Tac Vest",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "smg_01_stk_05",
+      "name": "RS2 Slim",
+      "cat": "attachments",
+      "hasIcon": false
+    },
+    {
+      "slug": "smg_03",
+      "name": "PP-19 Vityaz",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "smg_03magazine",
+      "name": "PP-19 Vityaz 30 RND Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "smokegrenade-black",
+      "name": "M18 Smoke Grenade: Black",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "smokegrenade-blue",
+      "name": "M18 Signal Grenade: Friendly",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "smokegrenade-green",
+      "name": "M18 Signal Grenade: Supply Request",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "smokegrenade-orange",
+      "name": "M18 Signal Grenade: Damaged Vehicle",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "smokegrenade-purple",
+      "name": "M18 Signal Grenade: Landing Zone",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "smokegrenade-red",
+      "name": "M18 Signal Grenade: Hostile",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "smokegrenade-white",
+      "name": "M18 Smoke Grenade: White",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "smokegrenade-yellow",
+      "name": "M18 Signal Grenade: Alert",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "snipermuzzle",
+      "name": "Sniper Muzzle",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "sniperscope10x",
+      "name": "6-10x Scope MRAD",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "sniperscoperender",
+      "name": "10x",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "spanner",
+      "name": "Spanner",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "sparepartssupplies",
+      "name": "Mechanical Supplies",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "spawnvehicleaccessiblestorage",
+      "name": "Spawn Vehicle Accessible Vehicle Storage",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "spawnvehiclestorage",
+      "name": "Spawn Vehicle Vehicle Storage",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "sr_04",
+      "name": "AMR 50",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "sr_04magazine",
+      "name": "AMR 50 5 RND Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "stanagdrummagazine90rd",
+      "name": "M4 Extended Mag",
+      "cat": "attachments",
+      "hasIcon": false
+    },
+    {
+      "slug": "stanagextendedmagazine",
+      "name": "STANAG 60 RND Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "stanagmagazine",
+      "name": "STANAG 30 RND Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "stanagmagazine20rd",
+      "name": "STANAG 20 RND Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "stationary-loudspeaker",
+      "name": "Loudspeaker",
+      "cat": "vehicles",
+      "hasIcon": true
+    },
+    {
+      "slug": "stationary-mistralaa",
+      "name": "Talon 9K-SAM",
+      "cat": "vehicles",
+      "hasIcon": true
+    },
+    {
+      "slug": "stationary-mortar",
+      "name": "L81 Mortar",
+      "cat": "vehicles",
+      "hasIcon": true
+    },
+    {
+      "slug": "stationary-phalanx",
+      "name": "Vanguard CIWS",
+      "cat": "vehicles",
+      "hasIcon": true
+    },
+    {
+      "slug": "stationary-stn_05",
+      "name": "Stingray",
+      "cat": "vehicles",
+      "hasIcon": true
+    },
+    {
+      "slug": "stimpen",
+      "name": "Adrenaline Pen",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "stn_02-maincannon",
+      "name": "Machine Gun",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "stn_03-mainbarrel",
+      "name": "Mortar Barrel",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "stn_05-mainbarrel",
+      "name": "Stingray",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "stok_003",
+      "name": "MP5 Stock",
+      "cat": "attachments",
+      "hasIcon": false
+    },
+    {
+      "slug": "stok_005",
+      "name": "FAL Stock",
+      "cat": "attachments",
+      "hasIcon": false
+    },
+    {
+      "slug": "stok_006",
+      "name": "Polymer Stock",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "stok_007",
+      "name": "AK74u Steel Folding Stock",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "stok_008",
+      "name": "RPK74 Wooden Stock",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "stok_009",
+      "name": "Alpha Folding Stock",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "stok_010",
+      "name": "Buffertube Stock",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "stok_011",
+      "name": "Archangel OPFOR Stock",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "stok_012",
+      "name": "AK-47 HERA CQR Stock",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "stok_013",
+      "name": "Galil Stock",
+      "cat": "attachments",
+      "hasIcon": false
+    },
+    {
+      "slug": "stok_057",
+      "name": "Scout Rifle Stock",
+      "cat": "attachments",
+      "hasIcon": false
+    },
+    {
+      "slug": "superbandage",
+      "name": "Individual First Aid Kit",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "superheavyarmor",
+      "name": "Level 4 Armor",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "superheavyhelmet",
+      "name": "Level 4 Helmet",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "sv98",
+      "name": "SV98",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "sv98extendedmagazine",
+      "name": "SV98 Extended Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "sv98magazine",
+      "name": "SV98 10 RND Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "sv98stock",
+      "name": "SV98 Stock",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "svdm",
+      "name": "SVD",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "svdmbarrel",
+      "name": "SVDM Barrel",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "svdmhandguard",
+      "name": "SVDM Handguard",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "svdmmagazine",
+      "name": "SVD 10 RND Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "svdmstock",
+      "name": "SVDM Stock",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "tact_001",
+      "name": "NcSTAR Blue Laser",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "tar21",
+      "name": "T-21",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "tar21mag",
+      "name": "STANAG 30 RND Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "thrw_001",
+      "name": "HE Grenade",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "thrw_002",
+      "name": "Flash Grenade",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "tool_001",
+      "name": "IR Goggles",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "tool_002",
+      "name": "Spotted Scope",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "tool_003",
+      "name": "Field Medical Kit",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "tool_004",
+      "name": "Manual Resuscitator",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "trgr_001",
+      "name": "RAK-1 Enhanced Trigger",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "trgr_002",
+      "name": "Timney Drop-in Trigger",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "trgr_003",
+      "name": "CMC Flat Trigger",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "universaltool",
+      "name": "Universal Tool",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "uralvehiclemachinegun",
+      "name": "Machine Gun",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "vector",
+      "name": "Super-45",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "vectormagazine",
+      "name": "Super-45 30 RND Magazine",
+      "cat": "ammo",
+      "hasIcon": true
+    },
+    {
+      "slug": "vehicleammo-1",
+      "name": "Ammo: 1",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "vehicleammo-10",
+      "name": "Ammo: 10",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "vehicleammo-100",
+      "name": "Ammo: 100",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "vehicleammo-25",
+      "name": "Ammo: 25",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "vehicleammo-50",
+      "name": "Ammo: 50",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "vehiclehelicoptercannon",
+      "name": "Machine Gun",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "vehiclehelicopterrockets",
+      "name": "Rockets",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "vehiclehelicopterrockets_rot_03",
+      "name": "Rockets",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "vehicleringturret",
+      "name": "Machine Gun",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "vehiclestorageintermediate",
+      "name": "Intermediate Vehicle Storage",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "vehiclestoragelarge",
+      "name": "Large Vehicle Storage",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "vehiclestoragemedium",
+      "name": "Medium Vehicle Storage",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "vehiclestoragesmall",
+      "name": "Small Vehicle Storage",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "vehiclesupplycrate-container-free",
+      "name": "Free Supply Crate Container",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "vehiclesupplycrate-free",
+      "name": "Free Supply Crate",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "vehiclesupplycrate-large",
+      "name": "Large Crate",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "vehiclesupplycrate-large-armoured",
+      "name": "Large Armored Crate",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "vehiclesupplycrate-pallet-buildsupply",
+      "name": "Build Supply Pallet",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "vehiclesupplycrate-pallet-fuelsupply",
+      "name": "Fuel Supply Pallet",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "vehiclesupplycrate-pallet-munitionssupply",
+      "name": "Ammo Supply Pallet",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "vehiclesupplycrate-pallet-sparepartssupply",
+      "name": "Mechanical Supply Pallet",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "vehiclesupplycrate-small",
+      "name": "Small Crate",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "vehiclesupplycrate-small-armoured",
+      "name": "Small Armored Crate",
+      "cat": "equipment",
+      "hasIcon": true
+    },
+    {
+      "slug": "vehicleturretantiair",
+      "name": "Anti-Air Turret",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "vehicleturretartillery",
+      "name": "Artillery Turret",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "vehicleturretartillery-sandbox",
+      "name": "Artillery Turret",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "vehicleturretheavy",
+      "name": "Heavy Turret",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "vehicleturretmachinegun",
+      "name": "Machine Gun",
+      "cat": "equipment",
+      "hasIcon": false
+    },
+    {
+      "slug": "wepn_026",
+      "name": "M1911",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "wepn_027",
+      "name": "Deagle",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "wepn_028",
+      "name": "MP5",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "wepn_029",
+      "name": "Galil",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "wepn_030",
+      "name": "FAL",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "wepn_032",
+      "name": "GGX 18",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "wepn_033",
+      "name": "Bushmaster M17S",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "wepn_035",
+      "name": "Scout Rifle TD",
+      "cat": "weapons",
+      "hasIcon": true
+    },
+    {
+      "slug": "zenithandguard",
+      "name": "Zenit Handguard",
+      "cat": "attachments",
+      "hasIcon": true
+    },
+    {
+      "slug": "zenitstock",
+      "name": "Zenit Stock",
+      "cat": "attachments",
+      "hasIcon": true
+    }
+  ]
+}

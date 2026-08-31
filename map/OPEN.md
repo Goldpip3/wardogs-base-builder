@@ -104,7 +104,7 @@ the tools exist so that it is a data job rather than a rebuild.
 | armory | 38 of 331 items have no confirmed price | `tools/build-armory.js` |
 | artillery | the contested mortar range settles with one shot | `data/artillery.json` |
 | buildables | costs and sizes marked `costConfirmed: false` / `sizeConfirmed: false` | `data/buildables.json` |
-| the planner | `buildRadiusUnits: 100` is `radiusConfirmed: false`, which is what blocks range rings on the plan | `data/buildables.json` |
+| the planner | `buildRadiusUnits` is 200 as of 2026-08-31 and still `radiusConfirmed: false`. It was raised from 100 as a better estimate, not a reading: nobody has stood at the edge of a zone and counted. It is what blocks range rings on the plan | `data/buildables.json` |
 | ongoing supplies | how much Ammo, Fuel or Mechanical a single reload draws is not published anywhere, so the planner counts the emplacements that will keep drawing and states no figure. One reload of a mortar, watched, closes it | `data/buildables.json` `mechanics.supplies`, and the Ongoing Supplies panel |
 
 ## Needs a decision, not a discovery

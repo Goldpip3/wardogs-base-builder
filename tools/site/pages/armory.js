@@ -131,7 +131,8 @@ module.exports = ctx => {
   const opts = function (list, blank) {
     return '<option value="">' + blank + "</option>" + list.map(function (it) {
       return '<option value="' + esc(it.name) + '" data-price="' + (it.price === null ? 0 : it.price) +
-        '"' + (it.price === null ? " data-unknown=1" : "") + ">" + esc(it.name) +
+        '"' + (it.price === null ? " data-unknown=1" : "") +
+        (it.icon ? ' data-icon="' + it.icon + '"' : "") + ">" + esc(it.name) +
         (it.price === null ? " (price unknown)" : it.price === 0 ? " (free)" : " " + money(it.price)) +
         "</option>";
     }).join("");
@@ -145,9 +146,10 @@ module.exports = ctx => {
   };
 
   const slot = function (id, label, list, blank) {
-    return '<p style="margin:0 0 14px"><label class="fine" style="display:block;margin-bottom:4px">' +
-      esc(label) + "</label>" +
-      '<select id="' + id + '" style="width:100%;max-width:460px">' + opts(list, blank) + "</select></p>";
+    return '<div class="lo-slot">' +
+      '<span class="lo-icon"><img id="' + id + '-icon" alt="" width="44" height="44" hidden></span>' +
+      '<span class="lo-pick"><label class="fine" for="' + id + '">' + esc(label) + "</label>" +
+      '<select id="' + id + '">' + opts(list, blank) + "</select></span></div>";
   };
 
   write("loadouts/index.html", page({
@@ -159,14 +161,22 @@ module.exports = ctx => {
       "<h1>Loadout calculator</h1>" +
       '<p class="lede">Build a kit and watch the number climb. Everything here is what you are' +
       " writing off the moment the kit does not come home.</p>" +
-      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:0 34px;margin-top:30px">' +
+      '<div class="lo">' +
       "<div>" +
+      '<h3 class="lo-h">Weapon</h3>' +
       slot("w", "Weapon", byCat("weapons"), "No weapon") +
+      '<div class="lo-slot">' +
+      '<span class="lo-icon"><img id="ammo-icon" alt="" width="44" height="44" hidden></span>' +
+      '<span class="lo-pick"><label class="fine" for="ammo">Ammunition</label>' +
+      '<select id="ammo"></select>' +
+      '<label class="fine lo-mags">&times; <input id="mags" type="number" min="0" max="20" value="3"> ' +
+      "magazines</label></span></div>" +
       slot("mag", "Magazine", attSlot("magazine"), "None") +
       slot("opt", "Optic", attSlot("optic"), "None") +
       slot("muz", "Muzzle", attSlot("muzzle"), "None") +
       slot("grip", "Grip or bipod", attSlot("grip"), "None") +
       "</div><div>" +
+      '<h3 class="lo-h">Protection and carry</h3>' +
       slot("hel", "Helmet", nameHas(byCat("armour"), "helmet").concat(nameHas(byCat("armour"), "headwear")), "Bare head") +
       slot("arm", "Body armour", byCat("armour").filter(function (i) {
         const n = i.name.toLowerCase();
@@ -174,11 +184,12 @@ module.exports = ctx => {
       }), "No armour") +
       slot("bag", "Backpack", nameHas(byCat("storage"), "backpack"), "None") +
       slot("vest", "Rig", nameHas(byCat("storage"), "tac vest").concat(nameHas(byCat("storage"), "pouch")), "None") +
-      '<p style="margin:0 0 14px"><label class="fine" style="display:block;margin-bottom:4px">Ammunition</label>' +
-      '<select id="ammo" style="width:100%;max-width:340px"></select> ' +
-      '<label class="fine">&times; <input id="mags" type="number" min="0" max="20" value="3" ' +
-      'style="width:64px;padding:6px;background:var(--panel);color:var(--text);border:1px solid var(--line)"> ' +
-      "magazines</label></p>" +
+      "</div>" +
+      '<div class="lo-out">' +
+      '<h3 class="lo-h">Cost per life</h3>' +
+      '<b id="total">$0</b>' +
+      '<p class="fine" id="breakdown" style="margin:0"></p>' +
+      '<p class="fine" id="warn"></p>' +
       "</div></div>" +
 
       adSlot("inArticle") +
@@ -189,16 +200,10 @@ module.exports = ctx => {
           .filter(function (i) { return i.price !== null; })
           .map(function (i) {
             return '<button class="chip" data-extra="' + esc(i.name) + '" data-price="' + i.price +
-              '" aria-pressed="false">' + esc(i.name) + "<small>" + money(i.price) + "</small></button>";
+              '" aria-pressed="false">' +
+              (i.icon ? '<img src="/game-icons/' + i.icon + '.png" alt="" width="18" height="18" loading="lazy">' : "") +
+              esc(i.name) + "<small>" + money(i.price) + "</small></button>";
           }).join("") +
-      "</div>" +
-
-      '<div class="empty" style="margin-top:40px;text-align:left">' +
-        '<h3 style="margin:0">Cost per life</h3>' +
-        '<p id="total" style="font-family:var(--display);font-size:44px;line-height:1;margin:10px 0 6px;' +
-        'color:var(--red-hot)">$0</p>' +
-        '<p class="fine" id="breakdown" style="margin:0"></p>' +
-        '<p class="fine" id="warn" style="margin:10px 0 0"></p>' +
       "</div>" +
       '<p style="margin-top:34px"><a class="btn" href="/armory/">Browse the armory</a> ' +
       '<a class="btn" href="/ballistics/">Check what it kills</a></p>' +
@@ -206,7 +211,9 @@ module.exports = ctx => {
 
       '<script>(function(){' +
       'var AMMO=' + JSON.stringify(byCat("ammunition").map(function (i) {
-        return { name: i.name, price: i.price, per: i.per };
+        const a = { name: i.name, price: i.price, per: i.per };
+        if (i.icon) a.icon = i.icon;
+        return a;
       })) + ';' +
       'var CAL=' + JSON.stringify(byCat("weapons").reduce(function (m, w) {
         if (w.calibre) m[w.name] = w.calibre; return m;
@@ -244,9 +251,15 @@ module.exports = ctx => {
       '  o.value=a.name;' +
       '  o.setAttribute("data-price",a.price);' +
       '  o.setAttribute("data-per",a.per);' +
+      '  if(a.icon)o.setAttribute("data-icon",a.icon);' +
       '  o.textContent=a.name+" $"+a.price+" / "+a.per;' +
       '  s.appendChild(o);});' +
       ' if(keep)s.value=keep;}' +
+      'function setIcon(id){' +
+      ' var s=el(id),o=s.options[s.selectedIndex],ic=el(id+"-icon");' +
+      ' var slug=o&&o.getAttribute("data-icon");' +
+      ' if(slug){ic.src="/game-icons/"+slug+".png";ic.hidden=false;}' +
+      ' else{ic.hidden=true;ic.removeAttribute("src");}}' +
       'function ammoCost(){' +
       ' var s=el("ammo"),o=s.options[s.selectedIndex];' +
       ' if(!o||!o.value)return {cost:0,rounds:0};' +
@@ -269,8 +282,8 @@ module.exports = ctx => {
       '  unknown+" item"+(unknown>1?"s have":" has")+" no confirmed price yet and counts as zero."' +
       '  :"";}' +
       'sel.forEach(function(id){el(id).addEventListener("change",function(){' +
-      ' if(id==="w")fillAmmo();render();});});' +
-      'el("ammo").addEventListener("change",render);' +
+      ' if(id==="w"){fillAmmo();setIcon("ammo");}setIcon(id);render();});});' +
+      'el("ammo").addEventListener("change",function(){setIcon("ammo");render();});' +
       'el("mags").addEventListener("input",render);' +
       'Array.prototype.forEach.call(document.querySelectorAll("[data-extra]"),function(b){' +
       ' b.addEventListener("click",function(){' +
@@ -278,7 +291,7 @@ module.exports = ctx => {
       '  if(extras[k]!==undefined){delete extras[k];b.setAttribute("aria-pressed","false");}' +
       '  else{extras[k]=+b.getAttribute("data-price");b.setAttribute("aria-pressed","true");}' +
       '  render();});});' +
-      'fillAmmo();render();' +
+      'fillAmmo();sel.concat(["ammo"]).forEach(setIcon);render();' +
       '}());<\/script>',
   }));
 
