@@ -18,12 +18,6 @@ module.exports = ctx => {
 
   const num = n => n.toLocaleString("en-US");
 
-  /* The grouping angle is the one number on this page that can be checked rather than
-     taken on trust. Spread is range times the angle in radians, and that reproduces all
-     four of the spreads the source publishes, so the relationship is not in doubt even
-     though what it bounds is. */
-  const spreadAt = (dist, moa) => dist * (moa / 60) * Math.PI / 180;
-
   const platformCard = p => {
     /* A third entry is a note, set under the figure rather than beside it. Numeric cells
        are nowrap on purpose across the site, so a sentence parked in one runs straight out
@@ -33,9 +27,6 @@ module.exports = ctx => {
       ["Arcs", p.arcs.length > 1 ? "Low and high" : "High only"],
       ["Reload", p.reloadSeconds + " s"],
       ["Shell", p.damage + " damage", p.blastRadius + " m blast radius"],
-      ["Grouping", p.moa + " MOA",
-        "about " + spreadAt(p.maxRange, p.moa).toFixed(1) +
-        " m of error at maximum range, and less the closer you shoot"],
       ["Round", "$" + num(p.roundCost) + " each", esc(p.roundName)],
     ];
     if (p.lowArcFrom) rows.splice(2, 0, ["Low arc from", num(p.lowArcFrom) + " m"]);
@@ -57,33 +48,32 @@ module.exports = ctx => {
       "</div>";
   };
 
-  const milTable = (rows, moa) =>
+  const milTable = rows =>
     "<table><thead><tr><th>Dial (mil)</th><th class=\"n\">Range (m)</th>" +
-    "<th class=\"n\">Spread</th></tr></thead><tbody>" +
+    "</tr></thead><tbody>" +
     rows.map(function (r) {
-      return "<tr><td>" + r.mils + '</td><td class="n">' + num(r.dist) + '</td>' +
-        '<td class="n"><span class="fine">about ' +
-        spreadAt(r.dist, moa).toFixed(1) + " m</span></td></tr>";
+      return "<tr><td>" + r.mils + '</td><td class="n">' + num(r.dist) +
+        "</td></tr>";
     }).join("") + "</tbody></table>";
 
   const tableFor = p => {
-    if (p.table) return milTable(p.table, p.moa);
+    if (p.table) return milTable(p.table);
     if (p.tableLow || p.tableHigh) {
       return '<p class="fine" style="margin:0 0 14px">' + esc(p.tableSource || "") +
         " Below " + num(p.lowArcFrom) + " m only the high arc reaches; from there to" +
         " maximum range both do, and both dials are listed.</p>" +
         '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));' +
         'gap:30px">' +
-        '<div><h3>Low arc</h3>' + milTable(p.tableLow, p.moa) + "</div>" +
-        '<div><h3>High arc</h3>' + milTable(p.tableHigh, p.moa) + "</div>" +
+        '<div><h3>Low arc</h3>' + milTable(p.tableLow) + "</div>" +
+        '<div><h3>High arc</h3>' + milTable(p.tableHigh) + "</div>" +
         "</div>";
     }
     return '<div class="empty" style="text-align:left">' +
       '<span class="wip">No table published</span>' +
       "<h3>" + esc(p.name) + " has no elevation table here</h3>" +
-      "<p>Its envelope is known and its bearing, distance and spread are on the" +
-      " calculator above, because those need no table. What is not published anywhere is" +
-      " the elevation for a given range, so it is not here.</p></div>";
+      "<p>Its envelope is known, and its bearing and distance are on the calculator" +
+      " above, because those need no table. What is not published anywhere is the" +
+      " elevation for a given range, so it is not here.</p></div>";
   };
 
   const mortar = A.platforms.find(function (p) { return p.buildableId; });
@@ -91,7 +81,7 @@ module.exports = ctx => {
 
   write("artillery/index.html", page({
     title: "WARDOGS Artillery Calculator: L81 Mortar and SPH-2",
-    desc: "Interactive map calculator for WARDOGS indirect fire. Place your gun and your target on Bakurani or Ozeti and get bearing, range, elevation for both arcs and spread, with range rings, the firing tables and where every number came from.",
+    desc: "Interactive map calculator for WARDOGS indirect fire. Place your gun and your target on Bakurani or Ozeti and get bearing, range and elevation for both arcs, with range rings, the firing tables and where every number came from.",
     canonical: "/artillery/",
     body: '<section style="padding:0">' +
 
@@ -112,7 +102,7 @@ module.exports = ctx => {
       "<h1>Artillery</h1>" +
       '<p class="lede">Place your gun and your target on the map above, or type the' +
       " coordinates the game shows you. Out comes the bearing to traverse to, the range," +
-      " what to dial on each arc that reaches, and how wide the shells will land.</p>" +
+      " and what to dial on each arc that reaches.</p>" +
 
       '<h2 style="margin-top:52px">The platforms</h2>' +
       /* The shared .grid is auto-fill at 270px, which lays four tracks across a 1180px
@@ -159,7 +149,8 @@ module.exports = ctx => {
         return "<li>" + esc(c) + "</li>";
       }).join("") + "</ul>" +
       '<h3 style="margin-top:24px">Still open</h3>' +
-      "<p>Six things about WARDOGS artillery are not settled. They are listed here rather" +
+      "<p>" + A.open.length + " things about WARDOGS artillery are not settled. They are" +
+      " listed here rather" +
       " than papered over, and each one says what would close it, because most of them need" +
       " somebody with the game open rather than more reading.</p>" +
       "<dl style=\"max-width:66ch\">" + A.open.map(function (o) {

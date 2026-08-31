@@ -1,5 +1,5 @@
 {
- "_note": "Indirect fire. The mortar firing table is a community measurement, not a published one, and it is the most contested number in WARDOGS artillery. Every figure here says where it came from and how much to trust it. Nothing is invented to fill a gap: the SPH-2 tables are transcribed from the one calculator that publishes a complete curve, and they are marked unfired until somebody checks a row in game.",
+ "_note": "Indirect fire. The mortar firing table is a community measurement, not a published one, and it is the most contested number in WARDOGS artillery. Every figure here says where it came from and how much to trust it. Nothing is invented to fill a gap, and a grouping angle that no source could account for was taken back out on 2026-08-31 rather than left in because it looked useful: the SPH-2 tables are transcribed from the one calculator that publishes a complete curve, and they are marked unfired until somebody checks a row in game.",
  "checkedOn": "2026-08-30",
  "gameVersion": "closed beta 1, 21 Aug 2026",
 
@@ -21,7 +21,6 @@
    "arcs": ["high"],
    "minRange": 110,
    "maxRange": 700,
-   "moa": 50,
    "reloadSeconds": 6.5,
    "damage": 120,
    "blastRadius": 10,
@@ -62,7 +61,6 @@
    "lowArcFrom": 1181,
    "minElevationMil": 20,
    "maxElevationMil": 1390,
-   "moa": 10,
    "reloadSeconds": 27,
    "damage": 450,
    "blastRadius": 20,
@@ -135,11 +133,15 @@
 
  "caveats": [
   "The firing table is flat ground. It assumes the gun and the target sit at the same height, and the terrain is a river valley with ridges. A shot from the valley floor onto high ground falls short of this; a shot down off a ridge carries past.",
-  "Grouping is an angle, so the error grows with range. A mortar at the far end of its reach puts shells across about ten metres whatever you dial, which is why the first round is a ranging round and not the shot.",
-  "What the grouping angle bounds is not stated anywhere: a radius, a full width or a typical spread. Read the number as the scale of the error, not a guarantee."
+  "Nothing here says how far a shell lands from where it was aimed. That is unmeasured, so no figure for it appears on this page."
  ],
 
  "open": [
+  {
+   "what": "Nobody has measured how far shells scatter",
+   "why": "One community calculator published a grouping angle in MOA and this page carried it, converted to metres. No source says where that angle came from, the other two calculators do not mention dispersion at all, and MOA is not a unit the game uses. It was one site's number multiplied out to a tenth of a metre, so it was removed rather than dressed up.",
+   "close": "Fire ten rounds at one dial from one position, at a known range, and measure the group. That gives a real figure in metres at a real range, and a second range gives the shape of it."
+  },
   {
    "what": "The SPH-2 table is transcribed, not fired",
    "why": "wardogs-artillery.com is the one source publishing the complete curve for both arcs, and no second source confirms it. It is carried here with that label rather than left out, because a labelled single source beats a gap.",
@@ -182,7 +184,7 @@
   {
    "name": "wardogshub.gg artillery calculator",
    "url": "https://wardogshub.gg/artillery-calculator/",
-   "gives": "the grid, both envelopes, grouping in MOA, the arc crossover"
+   "gives": "the grid, both envelopes, the arc crossover"
   },
   {
    "name": "wardogs-artillery.com",

@@ -144,6 +144,8 @@
     #topbar a.toolLink span { display: none; }
     #topbar a.toolLink { padding: 0 7px; }
     #designName { width: 118px; }
+    /* the select next to it reads "100%", which says what it is without the word */
+    #topbar label.sizeLabel { display: none; }
   }
   #topbar h1 {
     font-family: var(--display); font-weight: 700; font-size: 17px; letter-spacing: .01em;
@@ -422,7 +424,7 @@
   <button id="btnHelp" title="Help, shortcuts and the catalog editor">? Help</button>
   <a id="btnSupport" target="_blank" rel="noopener noreferrer" style="display:none"></a>
   <div class="sep"></div>
-  <label for="uiScale" style="color:var(--dim)">Size</label>
+  <label for="uiScale" class="sizeLabel" style="color:var(--dim)">Size</label>
   <select id="uiScale" title="Interface size. Turn this up on a large or 4K monitor ( [ and ] )">
     <option value="1">100%</option>
     <option value="1.25">125%</option>
@@ -1391,7 +1393,7 @@ const LS_CATALOG = "wardogs.catalog";
    completely offline: with this empty, none of the cloud code below is ever reachable
    and the app makes no network call of any kind. */
 const CLOUD_API = "https://wardogs-votes.wardogsbuilder.workers.dev";
-const BUILD_STAMP = "20260831-032353";
+const BUILD_STAMP = "20260831-032440";
 const LS_TOKEN = "wardogs.token";
 
 const LS_DESIGNS = "wardogs.designs";

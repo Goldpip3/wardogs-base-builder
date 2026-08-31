@@ -29,9 +29,9 @@ module.exports = ctx => {
 
   const platforms = A.platforms.map(p => ({
     id: p.id, name: p.name, minRange: p.minRange, maxRange: p.maxRange,
-    moa: p.moa, table: p.table || null, tableLow: p.tableLow || null,
+    table: p.table || null, tableLow: p.tableLow || null,
     tableHigh: p.tableHigh || null, lowArcFrom: p.lowArcFrom || null,
-    blastRadius: p.blastRadius, confidence: p.confidence,
+    confidence: p.confidence,
     milFrom: milEnds(p)[0], milTo: milEnds(p)[1],
   }));
 
@@ -159,7 +159,6 @@ function dialAsc(d,t){
  return null;}
 function onRow(t,mm){if(!t)return false;
  for(var i=0;i<t.length;i++)if(t[i].mils===mm)return true;return false;}
-function spreadAt(d){return d*(cur.moa/60)*Math.PI/180;}
 
 function line(k,v,note){
  return "<tr><td>"+k+"</td><td class=n><b>"+v+"</b>"+
@@ -239,31 +238,13 @@ function solution(){
    rows+=line("Dial","not published","see below");
   }
  }
- var sp=spreadAt(dist);
- rows+=line(why("Spread","The gun does not point at a spot, it points inside a narrow"+
-  " cone. MOA is how wide that cone is: minutes of angle, 60 to a degree. "+cur.moa+
-  " MOA is about "+(cur.moa/60).toFixed(2)+" of a degree, which opens out to roughly "+
-  sp.toFixed(1)+" m by the time the round has flown "+Math.round(dist)+" m. Nobody has"+
-  " published whether that bounds a radius, a full width or a typical group, so read it"+
-  " as the size of the error and not a promise."),
-  "about "+sp.toFixed(1)+" m",cur.moa+" MOA at "+Math.round(dist)+" m");
-
- /* The spread number on its own tells a new player nothing. What they want to know is
-    whether the shell still lands on the thing, and whether moving the gun would help. */
+ /* No spread row. The one source for the grouping angle never said where it got it, the
+    game deals in no such unit, and the metres were arithmetic on top of that. What a
+    shell does either side of the aim point is unmeasured, and the open list says so. */
  var detail="";
- if(inRange){
-  detail="<p class=fine style='margin:10px 0 0'>The dashed circle on the target is that"+
-   " number drawn as a radius, the widest it can honestly be read. "+
-   (sp<=cur.blastRadius
-    ? "The shell bursts to "+cur.blastRadius+" m, so a round landing anywhere in that"+
-      " circle still catches the aim point."
-    : "The shell bursts to "+cur.blastRadius+" m, which is smaller than that circle, so a"+
-      " round out at the edge leaves the aim point untouched. Send one to range with,"+
-      " watch where it falls, correct, then fire for effect.")+
-   " Spread is an angle, so it grows with the shot: about "+
-   spreadAt(cur.minRange).toFixed(1)+" m at "+cur.minRange+" m and "+
-   spreadAt(cur.maxRange).toFixed(1)+" m at "+cur.maxRange+" m. Moving the gun closer"+
-   " tightens the group; dialling does not.</p>";}
+ if(inRange)
+  detail="<p class=fine style='margin:10px 0 0'>How far a round lands from the aim point"+
+   " is unmeasured. Send one to range with, watch where it falls, correct, then fire.</p>";
 
  box.innerHTML="<h3 style='margin:0 0 4px'>Firing solution</h3>"+
   "<p class=fine style='margin:0 0 10px'>Hover or tap a label for what it means.</p>"+
@@ -467,9 +448,7 @@ function draw(){
  if(gun&&tgt){
   g2.strokeStyle="rgba(255,247,234,.5)";g2.lineWidth=1;g2.setLineDash([3,4]);
   g2.beginPath();g2.moveTo(w2sX(gun.x),w2sY(gun.y));
-  g2.lineTo(w2sX(tgt.x),w2sY(tgt.y));g2.stroke();g2.setLineDash([]);
-  var dm=Math.sqrt(Math.pow((tgt.x-gun.x)*UNIT,2)+Math.pow((tgt.y-gun.y)*UNIT,2));
-  ring(tgt.x,tgt.y,spreadAt(dm)/UNIT,"rgba(255,247,234,.45)",1,[2,3]);}
+  g2.lineTo(w2sX(tgt.x),w2sY(tgt.y));g2.stroke();g2.setLineDash([]);}
 
  if(gun)marker(gun,"#f30000","GUN");
  if(tgt)marker(tgt,"#fff7ea","TGT");
