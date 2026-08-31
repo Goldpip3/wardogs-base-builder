@@ -209,7 +209,9 @@ if(list){
   };
   var sortBy="hot", allDesigns=[];
 
-  fetch(API+"/designs").then(function(r){return r.json();}).then(function(j){
+  /* Signed in, so the worker can mark which of these are yours. It answers with a flag and
+     never with the submitter's account id, which it used to put in this public list. */
+  fetch(API+"/designs",{headers:authHeaders()}).then(function(r){return r.json();}).then(function(j){
     var ds=j.designs||[];
     if(!ds.length) return;                       // keep whatever static state is there
     allDesigns=ds;
@@ -239,6 +241,7 @@ if(list){
         '<div class="card"><h3>'+esc(d.name)+'</h3>'+
         (d.note?'<p>'+esc(d.note)+'</p>':'')+
         '<div class="stats"><span>by</span>'+esc(d.author)+
+        (d.mine?'<span style="color:var(--accent)">yours</span>':'')+
         '<span>score</span><b data-role="score">'+score+'</b>'+
         '<span>'+ago(d.submitted)+'</span></div>'+
         '<div class="vote" data-design="'+esc(d.slug)+'" style="margin-top:14px">'+
@@ -246,9 +249,15 @@ if(list){
         '<span class="score" data-role="n">'+score+'</span>'+
         '<button type="button" data-dir="-1" aria-label="Vote down">&#9660;</button>'+
         '<a class="btn sm" style="margin-left:14px" href="/planner/#d='+esc(d.code)+'">Open in planner</a>'+
-        '<button type="button" class="btn sm" data-report="'+esc(d.slug)+'" '+
-          'style="margin-left:8px;opacity:.6" '+
-          'title="Report this for a name or content that should not be here">Report</button>'+
+        /* Your own work offers the button that makes sense on it. Reporting yourself does
+           not, and being unable to take your own post down is the wrong shape entirely. */
+        (d.mine
+          ? '<button type="button" class="btn sm" data-withdraw="'+esc(d.slug)+'" '+
+              'style="margin-left:8px" '+
+              'title="Remove this from the list. It cannot be undone.">Take it down</button>'
+          : '<button type="button" class="btn sm" data-report="'+esc(d.slug)+'" '+
+              'style="margin-left:8px;opacity:.6" '+
+              'title="Report this for a name or content that should not be here">Report</button>')+
         '</div></div></summary>'+
         '<div class="design-open" data-thread="'+esc(d.slug)+'">'+
         '<h3>Comments</h3><div class="thread" data-role="list"></div>'+
@@ -261,6 +270,28 @@ if(list){
     wireVotes(list);
     wireThreads(list);
     wireReports(list);
+    wireWithdraw(list);
+  }
+
+  /* Taking your own design down removes it here and in storage, comments and votes with it.
+     It is the one destructive thing a visitor can do, so it asks first and says plainly that
+     it does not come back. */
+  function wireWithdraw(root){
+    root.querySelectorAll("[data-withdraw]").forEach(function(b){
+      b.addEventListener("click",function(ev){
+        ev.preventDefault();
+        if(b.disabled) return;
+        if(!window.confirm("Take this design down for good? Its votes and comments go too.")) return;
+        b.disabled=true; b.textContent="Taking it down...";
+        post("/withdraw",{slug:b.dataset.withdraw}).then(function(){
+          allDesigns=allDesigns.filter(function(d){ return d.slug!==b.dataset.withdraw; });
+          render();
+        }).catch(function(err){
+          b.disabled=false; b.textContent="Take it down";
+          alert(err && err.message ? err.message : "That did not go through.");
+        });
+      });
+    });
   }
 }
 

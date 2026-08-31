@@ -8,6 +8,33 @@ Newest first. One entry per decision, not per commit.
 
 ## 2026-08-31
 
+### Your own work is yours to take back
+
+Everything published on arrival and nothing could ever be unpublished except by the person
+holding the admin token. That is the wrong shape: it makes a favour out of a decision that
+belongs to whoever posted the thing. `POST /withdraw` lets the account that submitted a
+design remove it. Ownership is not a guess, since `/submit` has always recorded the Discord
+id in `by`; a submission from before that has no `by` and stays with the admin.
+
+On the page, a card that is yours offers "Take it down" where a stranger sees "Report".
+Reporting your own design was never a thing anyone wanted to do.
+
+Two things came out with it.
+
+`/designs` was returning each stored record as it was, which put `by`, the Discord id of
+whoever submitted it, into a public list anybody could read. Nothing needed it. The only
+question the page asks is whether a design belongs to the reader, so the worker answers that
+with a `mine` flag worked out from the caller's own token and deletes `by` before replying.
+The page now sends its token when it fetches the list, which it did not do before, so the
+flag can be worked out at all.
+
+And deleting a design deleted its record and its vote tally but left its comments behind
+under a slug nothing could reach any more. `removeDesign` takes all three, and both the
+owner's withdrawal and the admin's delete go through it so they cannot drift apart.
+
+Pinned in `test/worker.mjs`: a stranger gets 403, signed out gets 401, the owner gets 200,
+the public list carries no account id, and no comment key survives the delete.
+
 ### The update chip can hand back the build it was replacing
 
 Ctrl+V was reported as still broken after it had been fixed and deployed, and pressing it on

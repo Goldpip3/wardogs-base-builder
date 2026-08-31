@@ -214,7 +214,51 @@ check(r.status === 200, "submitting works once signed in");
 // straight onto the public list now, so that is where to look for it
 const filed = (await jsonOf(await call("GET", "/designs"))).designs.find(d => d.slug === j.slug);
 check(filed.author === "Tester", "the account name is used, not what was typed in the form");
-check(filed.by === "42", "and the record says which account sent it");
+check(filed.by === undefined,
+  "and the public list does not carry the submitter's account id");
+check(filed.mine === undefined || filed.mine === false,
+  "a reader who is not signed in is told nothing is theirs");
+{
+  const asOwner = (await jsonOf(await callAs(good, "GET", "/designs")))
+    .designs.find(d => d.slug === j.slug);
+  check(asOwner.mine === true, "the person who sent it is shown that it is theirs");
+  check(asOwner.by === undefined, "still without handing back the account id");
+  const asStranger = (await jsonOf(await callAs(
+    await tokenFor({ id: "77", name: "Someone Else", exp: Date.now() + 6e5 }), "GET", "/designs")))
+    .designs.find(d => d.slug === j.slug);
+  check(asStranger.mine === false, "and somebody else is not");
+}
+
+/* Taking your own work back down. Publishing on arrival with no way to undo it leaves the
+   person who runs the site as the only one who can remove what you posted, which makes a
+   favour out of a decision that should be yours. */
+{
+  // its own submission, so withdrawing it does not pull the design later checks are using
+  const mine = (await jsonOf(await callAs(good, "POST", "/submit",
+    { name: "Mine To Remove", code: CODE }))).slug;
+  check((await call("POST", "/withdraw", { body: { slug: mine } })).status === 401,
+    "withdrawing signed out is refused");
+  const stranger = await tokenFor({ id: "77", name: "Someone Else", exp: Date.now() + 6e5 });
+  check((await callAs(stranger, "POST", "/withdraw", { slug: mine })).status === 403,
+    "and somebody else cannot take down a design that is not theirs");
+  check((await callAs(good, "POST", "/withdraw", { slug: "no-such-design-1" })).status === 404,
+    "withdrawing something that is not there says so");
+
+  // a comment and a vote to prove they go with it
+  await callAs(good, "POST", "/comment", { design: mine, text: "mine to remove" });
+  await callAs(good, "POST", "/vote", { id: mine, dir: 1 });
+
+  check((await callAs(good, "POST", "/withdraw", { slug: mine })).status === 200,
+    "the person who submitted it can take it down");
+  const after = (await jsonOf(await call("GET", "/designs"))).designs.find(d => d.slug === mine);
+  check(!after, "and it leaves the public list");
+  check(!(await env.VOTES.get("design:" + mine)) && !(await env.VOTES.get("d:" + mine)),
+    "the record and its votes are gone from storage, not just hidden");
+  const leftovers = (await env.VOTES.list({ prefix: "c:" + mine + ":" })).keys.length;
+  check(leftovers === 0,
+    "and so are its comments, which used to be orphaned under a slug nothing could reach",
+    leftovers + " left behind");
+}
 check((await call("POST", "/comment", { body: { design: j.slug, text: "signed out" } })).status === 401,
   "commenting signed out is refused");
 check((await callAs(good, "POST", "/comment", { design: j.slug, text: "signed in" })).status === 200,

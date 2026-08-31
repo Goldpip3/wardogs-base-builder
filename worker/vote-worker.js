@@ -218,6 +218,23 @@ async function overLimit(env, key, max, ttl) {
   return false;
 }
 
+/* Taking a design down means taking all of it down.
+   A design owns three kinds of key: the record, its vote tally, and its comments. Deleting
+   only the first two left the comments behind under a slug nothing could reach any more, so
+   they sat in storage forever and would have reattached to a design that reused the slug.
+   One helper, so the owner's own withdrawal and the admin's delete cannot drift apart. */
+async function removeDesign(env, slug) {
+  await env.VOTES.delete("design:" + slug);
+  await env.VOTES.delete("d:" + slug);
+  let cursor;
+  do {
+    const page = await env.VOTES.list({ prefix: "c:" + slug + ":", cursor });
+    for (const k of page.keys) await env.VOTES.delete(k.name);
+    cursor = page.cursor;
+    if (page.list_complete) break;
+  } while (cursor);
+}
+
 async function listDesigns(env, status) {
   const out = [];
   let cursor;
@@ -343,7 +360,19 @@ export default {
       const designs = (await listDesigns(env, null))
         .filter(d => d.status !== "hidden" && d.status !== "rejected");
       const votes = await tallies(env, designs.map(d => d.slug));
-      designs.forEach(d => { d.votes = votes[d.slug]; });
+
+      /* Who is asking, so a person can be shown their own work. The whole record used to go
+         out as it was stored, which put `by`, the submitter's Discord id, in a public list
+         that anybody could read. Nothing needed it: the only question the page asks is "is
+         this one mine", and that is answered here and sent as a flag. Signing in is optional
+         on this route, so a reader who is not signed in simply gets no flags. */
+      const who = await readToken(env, bearerOf(request));
+      designs.forEach(d => {
+        d.votes = votes[d.slug];
+        d.mine = !!(who && d.by && d.by === who.id);
+        delete d.by;
+      });
+
       designs.sort((a, b) =>
         (b.votes.up - b.votes.down) - (a.votes.up - a.votes.down) ||
         b.submitted - a.submitted);
@@ -381,6 +410,29 @@ export default {
                        by: who ? who.id : null, reports: 0 };
       await env.VOTES.put("design:" + slug, JSON.stringify(record));
       return json({ ok: true, slug, status: "published" }, origin);
+    }
+
+    /* Your own work is yours to take back.
+       Publishing on arrival without a way to undo it means the only person who can remove
+       something you posted is the one who runs the site, which is the wrong shape: it makes
+       a favour out of a decision that should be yours. Ownership is not a guess, since
+       /submit records the Discord id that made it. An older submission with no `by` cannot
+       be proven to belong to anyone and is left to the admin. */
+    if (request.method === "POST" && path === "/withdraw") {
+      const who = await readToken(env, bearerOf(request));
+      if (!who) return json({ error: "Sign in first.", needsLogin: true }, origin, 401);
+
+      const slug = String(body.slug || "");
+      if (!okSlug(slug)) return json({ error: "bad slug" }, origin, 400);
+      const raw = await env.VOTES.get("design:" + slug);
+      if (!raw) return json({ error: "not found" }, origin, 404);
+
+      const d = JSON.parse(raw);
+      if (!d.by || d.by !== who.id)
+        return json({ error: "That one is not yours to take down." }, origin, 403);
+
+      await removeDesign(env, slug);
+      return json({ ok: true, withdrawn: slug }, origin);
     }
 
     /* ---------------- a signed-in player's own saved designs ----------------
@@ -609,8 +661,7 @@ export default {
         const raw = await env.VOTES.get("design:" + slug);
         if (!raw) return json({ error: "not found" }, origin, 404);
         if (action === "delete") {
-          await env.VOTES.delete("design:" + slug);
-          await env.VOTES.delete("d:" + slug);
+          await removeDesign(env, slug);
           return json({ ok: true, deleted: slug }, origin);
         }
         if (!["approve", "reject", "restore"].includes(action))
