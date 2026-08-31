@@ -7,3 +7,9 @@ Thumbs.db
 *.swp
 .vscode/
 .idea/
+
+# Wrangler's local cache. Holds the Cloudflare account id and account name. Neither is a
+# credential, but neither belongs in a public repo. worker/.gitignore has covered the copy
+# under worker/ since the first time this happened; running wrangler from the repo root
+# creates a second one HERE, which that rule never saw. Ignore it wherever it lands.
+.wrangler/
