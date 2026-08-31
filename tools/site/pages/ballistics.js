@@ -67,8 +67,11 @@ module.exports = ctx => {
      pelvis" is something you see rather than something you read, which is the single most
      expensive thing to get wrong in this game. Armoured zones carry a hatch, and the hatch
      appears only when that armour is actually set. */
-  const mirror = pts => pts.map(p => [200 - p[0], p[1]]);
-  const poly = pts => pts.map(p => p[0] + "," + p[1]).join(" ");
+  /* Paths, not polygons. A polygon can only join its points with straight lines, so every
+     shoulder, forearm and calf came out faceted and the figure read as a mannequin however
+     many points were thrown at it. These are cubic curves, and the left side is drawn once
+     and mirrored with a transform rather than by negating coordinates, which is how a curve
+     stays a curve. */
   /* Traced off the reference the owner supplied on 2026-08-31: a plated figure, faceted
      rather than rounded, each zone its own armour panel with a dark seam between. Torso in
      three bands, hips as a brief with a notch, a pauldron cap flaring off the top of each
@@ -77,18 +80,23 @@ module.exports = ctx => {
      An earlier pass copied the figure off a different fan site on the understanding it came
      from the game. It did not, and this replaces it. */
   const FIGURE = [
-    ["head",         [[[82, 10], [118, 10], [124, 23], [124, 46], [113, 60], [87, 60], [76, 46], [76, 23]]]],
-    ["neck",         [[[89, 62], [111, 62], [111, 78], [89, 78]]]],
-    ["upper-torso",  [[[64, 79], [136, 79], [139, 128], [61, 128]]]],
-    ["middle-torso", [[[62, 131], [138, 131], [136, 161], [64, 161]]]],
-    ["lower-torso",  [[[64, 163], [136, 163], [133, 198], [67, 198]]]],
-    ["pelvis",       [[[67, 200], [133, 200], [130, 222], [100, 233], [70, 222]]]],
-    ["upper-arm",    [[[40, 88], [48, 80], [64, 79], [66, 152], [44, 157]]]],
-    ["lower-arm",    [[[44, 159], [66, 154], [64, 206], [42, 212]]]],
-    ["hand",         [[[42, 214], [64, 208], [62, 240], [52, 252], [41, 246]]]],
-    ["upper-leg",    [[[68, 235], [99, 237], [97, 303], [73, 303]]]],
-    ["lower-leg",    [[[74, 305], [96, 305], [93, 389], [77, 389]]]],
-    ["foot",         [[[70, 391], [93, 391], [95, 412], [80, 423], [70, 414]]]],
+    ["head", "M100 8C112 8 124 14 124 26L124 42C124 52 114 60 100 60" +
+             "C86 60 76 52 76 42L76 26C76 14 88 8 100 8Z"],
+    ["neck", "M90 62L110 62L110 75C104 79 96 79 90 75Z"],
+    ["upper-torso", "M72 78C80 74 92 72 100 72C108 72 120 74 128 78" +
+             "C134 81 138 88 139 96L139 126L61 126L61 96C62 88 66 81 72 78Z"],
+    ["middle-torso", "M61 129L139 129C138 140 137 152 136 160L64 160C63 152 62 140 61 129Z"],
+    ["lower-torso", "M64 163L136 163C135 175 133 188 131 197L69 197C67 188 65 175 64 163Z"],
+    ["pelvis", "M69 200L131 200C130 210 127 218 123 224C114 231 106 234 100 234" +
+             "C94 234 86 231 77 224C73 218 70 210 69 200Z"],
+    ["upper-arm", "M64 76C54 79 46 87 43 98C40 112 40 132 43 150L62 154C64 132 65 102 64 76Z"],
+    ["lower-arm", "M43 153L62 157C63 176 63 194 62 206L45 210C43 192 42 172 43 153Z"],
+    ["hand", "M45 212L62 208C64 218 64 230 61 238C58 246 52 250 47 248C43 244 42 228 45 212Z"],
+    ["upper-leg", "M70 236L99 238C99 258 98 282 96 302L76 302C73 282 70 258 70 236Z"],
+    ["lower-leg", "M76 305L96 305C97 322 96 340 94 360C93 375 92 385 91 388L80 388" +
+             "C79 385 78 375 77 360C75 340 75 322 76 305Z"],
+    ["foot", "M77 391L93 391C94 400 95 408 96 412C97 418 92 423 84 423" +
+             "C76 423 71 420 71 415C72 405 75 397 77 391Z"],
   ];
   const SYMMETRIC = ["upper-arm", "lower-arm", "hand", "upper-leg", "lower-leg", "foot"];
 
@@ -106,17 +114,19 @@ module.exports = ctx => {
       '<rect width="200" height="432" fill="url(#bgrid)" opacity=".45" pointer-events="none"/>';
     FIGURE.forEach(entry => {
       const id = entry[0];
-      const shapes = entry[1].slice();
-      if (SYMMETRIC.indexOf(id) >= 0) shapes.push(mirror(entry[1][0]));
+      const d = entry[1];
       const zone = zoneById[id];
-      shapes.forEach((pts, i) => {
+      const sides = SYMMETRIC.indexOf(id) >= 0
+        ? ["", ' transform="translate(200,0) scale(-1,1)"']
+        : [""];
+      sides.forEach((tf, i) => {
         const label = zone.name + (SYMMETRIC.indexOf(id) >= 0 ? (i ? " (right)" : " (left)") : "");
-        out += '<polygon class="bz" data-zone="' + id + '" points="' + poly(pts) + '" ' +
+        out += '<path class="bz" data-zone="' + id + '" d="' + d + '"' + tf + ' ' +
           'tabindex="0" role="button" aria-label="' + esc(label) + '"><title>' +
-          esc(label) + "</title></polygon>";
+          esc(label) + "</title></path>";
         if (zone.armour) {
-          out += '<polygon class="bp" data-plate="' + zone.armour + '" points="' + poly(pts) +
-            '" fill="url(#plate)" pointer-events="none"/>';
+          out += '<path class="bp" data-plate="' + zone.armour + '" d="' + d + '"' + tf +
+            ' fill="url(#plate)" pointer-events="none"/>';
         }
       });
     });
@@ -224,9 +234,6 @@ module.exports = ctx => {
           '<p class="ctl" id="pelletrow" hidden><label for="pellets">Pellets on target</label>' +
             '<input id="pellets" type="range" min="1" max="8" value="8"> ' +
             '<span class="n" id="pelletn">8 of 8</span></p>' +
-          '<p class="ctl"><label for="dist">Distance</label>' +
-            '<input id="dist" type="range" min="0" max="400" step="10" value="50"> ' +
-            '<span class="n" id="distn">50 m</span></p>' +
         "</div>" +
 
         '<div class="calc-out">' +
@@ -235,8 +242,6 @@ module.exports = ctx => {
           '<div class="hero"><b id="ttk">0</b><span>time to kill</span></div>' +
           '<p class="fine" id="chain"></p>' +
           '<p class="fine" id="armnote"></p>' +
-          '<p class="fine" id="flight"></p>' +
-          '<p style="margin-top:14px"><button class="btn sm" id="copy">Copy this setup as a link</button></p>' +
         "</div>" +
       "</div>" +
 
@@ -422,7 +427,7 @@ module.exports = ctx => {
       "B.rounds.forEach(function(r){roundById[r.id]=r});" +
       "var byName={};B.weapons.forEach(function(w){byName[w.name]=w});" +
 
-      "var S={w:'M4',r:'FMJ',helmet:0,vest:0,zone:'upper-torso',pellets:8,dist:50,cls:'',by:'ttk'};" +
+      "var S={w:'M4',r:'FMJ',helmet:0,vest:0,zone:'upper-torso',pellets:8,cls:'',by:'ttk'};" +
 
       /* the fragment is the setup, so a solution is a link. Same idea as the artillery
          page: nothing is stored, and pasting the URL to somebody reproduces the screen. */
@@ -436,10 +441,10 @@ module.exports = ctx => {
       "  else if(k==='h')S.helmet=Math.max(0,Math.min(4,+v||0));" +
       "  else if(k==='v')S.vest=Math.max(0,Math.min(4,+v||0));" +
       "  else if(k==='p')S.pellets=Math.max(1,Math.min(8,+v||8));" +
-      "  else if(k==='d')S.dist=Math.max(0,Math.min(400,+v||0));});}" +
+      "  });}" +
       "function writeHash(){" +
       " var h='w='+encodeURIComponent(S.w)+'&r='+S.r+'&h='+S.helmet+'&v='+S.vest+" +
-      "  '&z='+S.zone+'&d='+S.dist+(shotgun()?'&p='+S.pellets:'');" +
+      "  '&z='+S.zone+(shotgun()?'&p='+S.pellets:'');" +
       " history.replaceState(null,'','#'+h);}" +
 
       "function el(id){return document.getElementById(id);}" +
@@ -529,12 +534,7 @@ module.exports = ctx => {
       "  ' Set one and watch it drop.';" +
       " else an='Level '+s.tier+' '+s.slot+' takes '+fmt(s.absorbed)+' off, leaving '+" +
       "  fmt(s.damage)+'. '+r.name+' keeps '+(Math.round(s.keep*1000)/10)+'% through it.';" +
-      " el('armnote').textContent=an;" +
-      " var ft=flightTime(c,S.dist);" +
-      " el('flight').textContent=S.dist?('At '+S.dist+' m the round is in the air at least '+" +
-      "  ft.toFixed(2)+' s, off a muzzle velocity of '+c.velocity[c.velocity.length-1]+" +
-      "  ' m/s. That is a floor: a bullet slows down, and how fast is not published.')" +
-      "  :'Point blank. Every damage figure on this page is point blank.';}" +
+      " el('armnote').textContent=an;}" +
 
       "function renderZones(){" +
       " var w=weapon(),r=loadFor(w),tb=document.querySelector('#zt tbody');tb.textContent='';" +
@@ -618,7 +618,6 @@ module.exports = ctx => {
       " renderRounds();renderBody();renderCalc();renderZones();renderRank();" +
       " el('pelletrow').hidden=!shotgun();" +
       " el('pelletn').textContent=S.pellets+' of '+(cal().pellets||8);" +
-      " el('distn').textContent=S.dist+' m';" +
       " writeHash();}" +
 
       /* ---------- wiring ---------- */
@@ -662,19 +661,11 @@ module.exports = ctx => {
       "  Array.prototype.forEach.call(document.querySelectorAll('[data-wpick]'),function(c){" +
       "   c.hidden=!!want&&c.getAttribute('data-wclass')!==want;});});});" +
       "el('pellets').addEventListener('input',function(e){S.pellets=+e.target.value;render();});" +
-      "el('dist').addEventListener('input',function(e){S.dist=+e.target.value;render();});" +
       "Array.prototype.forEach.call(document.querySelectorAll('.bz'),function(p){" +
       " p.addEventListener('click',function(){S.zone=p.getAttribute('data-zone');render();});" +
       " p.addEventListener('keydown',function(e){" +
       "  if(e.key==='Enter'||e.key===' '){e.preventDefault();" +
       "   S.zone=p.getAttribute('data-zone');render();}});});" +
-      "el('copy').addEventListener('click',function(){" +
-      " var url=location.href;" +
-      " var done=function(){el('copy').textContent='Copied';" +
-      "  setTimeout(function(){el('copy').textContent='Copy this setup as a link';},1600);};" +
-      " if(navigator.clipboard&&navigator.clipboard.writeText)" +
-      "  navigator.clipboard.writeText(url).then(done,done);" +
-      " else done();});" +
 
       /* A setup arriving in the fragment of a tab that is already open is not a page load,
          so nothing would happen without this. Pasting a link into the address bar of the

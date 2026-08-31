@@ -2,7 +2,7 @@
    Body sits at column zero deliberately. Indenting it would add whitespace inside
    these template literals, and that whitespace is page content. */
 module.exports = ctx => {
-  const { esc, ARMORY, adSlot, page, write } = ctx;
+  const { esc, ARMORY, BALLISTICS, adSlot, page, write } = ctx;
 
 /* ---------- armory, loadouts and vehicles ----------
    One transcribed vendor catalogue behind all three. The armory browses it, the loadout
@@ -89,6 +89,33 @@ module.exports = ctx => {
     });
     return out;
   }());
+
+  /* Which of the four attachment slots a weapon has at all.
+
+     A missile launcher was being offered a drum magazine, a foregrip and a rifle optic,
+     because the name filter treats anything it cannot place as unknown and shows unknowns.
+     That default is right for optics on a rifle and absurd on a tube.
+
+     Nothing here is invented. data/ballistics.json already classes the 28 figured weapons
+     and gives the other six a kind, and Launcher and Anti-air are the two that take none of
+     this: they are aimed down an integral sight and loaded with a rocket. A bow takes no
+     magazine and no muzzle for the same sort of reason. Everything else keeps all four and
+     is filtered by label as before. */
+  const weaponKind = {};
+  BALLISTICS.weapons.forEach(function (w) { weaponKind[w.name] = w.class; });
+  (BALLISTICS.unfiguredWeapons || []).forEach(function (w) { weaponKind[w.name] = w.kind; });
+
+  const ALL_SLOTS = ["opt", "muz", "grip", "mag"];
+  const slotsFor = function (name) {
+    const k = weaponKind[name];
+    if (k === "Launcher" || k === "Anti-air") return [];
+    if (k === "Bow") return ["opt"];
+    return ALL_SLOTS;
+  };
+  const weaponSlots = {};
+  ARMORY.items.forEach(function (it) {
+    if (it.cat === "weapons") weaponSlots[it.name] = slotsFor(it.name);
+  });
 
   /* ---------- armory: browse the lot ----------
      Two views over one list. The grid is the default because every item has its own art
@@ -461,6 +488,7 @@ module.exports = ctx => {
         return out;
       }())) + ';' +
       'var ATTFIT=' + JSON.stringify(attOwner) + ';' +
+      'var WSLOTS=' + JSON.stringify(weaponSlots) + ';' +
       'var SLOTS=["w","opt","muz","grip","mag","ammo","hel","arm","bag","vest"];' +
       'var extras={},chosen={},openSlot=null;' +
       'function el(id){return document.getElementById(id);}' +
@@ -524,19 +552,33 @@ module.exports = ctx => {
          hang off the weapon stay shut until there is one. Picking a different weapon, or
          clearing it, empties them rather than leaving an AK magazine sitting under a
          shotgun. */
+      /* Three states, not two. No weapon at all, a weapon that has no such slot, and a
+         weapon that does. The middle one is why a launcher was wearing a foregrip. */
       'function setGates(){' +
       ' var w=nameOf("w");' +
+      ' var has=w?(WSLOTS[w]||["opt","muz","grip","mag"]):null;' +
       ' Array.prototype.forEach.call(document.querySelectorAll("[data-needs]"),function(box){' +
       '  var id=box.id.replace("-slot","");' +
-      '  box.setAttribute("data-locked",w?"0":"1");' +
-      '  var b=box.querySelector(".vslot-btn");if(b)b.disabled=!w;' +
-      '  if(!w){' +
+      '  var ok=!!w&&(id==="ammo"||has.indexOf(id)>=0);' +
+      '  box.setAttribute("data-locked",ok?"0":"1");' +
+      '  var b=box.querySelector(".vslot-btn");if(b)b.disabled=!ok;' +
+      '  if(!ok){' +
       '   if(chosen[id])setSlot(id,null);' +
-      '   var nm=el(id+"-name");if(nm)nm.textContent="Pick a weapon first";}});}' +
+      '   var nm=el(id+"-name");' +
+      '   if(nm)nm.textContent=w?"Not on this weapon":"Pick a weapon first";}' +
+      /* A slot that unlocks has to take its own label back. Without this it kept whatever
+         the last weapon left on it, so every slot on an M4 read "Not on this weapon". */
+      '  else if(!chosen[id]){var n2=el(id+"-name");' +
+      '   if(n2)n2.textContent=n2.getAttribute("data-blank");}});}' +
 
       /* Same rule the ammunition shelf already follows: hide what the label says belongs to
          something else, show everything it does not speak for, and if that leaves nothing
          show the lot rather than an empty shelf. */
+      /* Hide what the label says belongs to something else, show what it does not speak
+         for. Magazines were briefly strict, on the reasoning that a magazine is cut for one
+         weapon, and that took the M4 to zero: its magazines are STANAG, which name a
+         standard rather than a rifle. The absurd case that strictness was aimed at is the
+         launcher, and the slot map above already answers that one properly. */
       'function fits(name){' +
       ' var o=ATTFIT[name];if(!o)return true;' +
       ' var w=nameOf("w");if(!w)return true;' +
