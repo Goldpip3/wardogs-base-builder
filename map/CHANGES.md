@@ -8,6 +8,22 @@ Newest first. One entry per decision, not per commit.
 
 ## 2026-08-31
 
+### The update chip can hand back the build it was replacing
+
+Ctrl+V was reported as still broken after it had been fixed and deployed, and pressing it on
+the live site pasted. The copy in the reporter browser was the old one. GitHub Pages serves
+the planner with `max-age=600`, so for ten minutes after a deploy a browser can answer
+`location.reload()` out of its own cache without asking the server: the chip that says
+"Update available" could hand back the same old build and make a fix look unfixed. It
+refetches the page with cache "reload" first now, then reloads onto that. The address is
+never rewritten, because the hash carries the design.
+
+The check also only ran four seconds after load and on visibility change, so a tab left open
+across a deploy was never told. It runs on focus and every five minutes as well.
+
+This is the reason CLAUDE.md now says to compare the live `build.txt` against the local one
+before believing a bug report on a fresh deploy.
+
 ### Ctrl+V pastes
 
 Reported as a hotkey clash: V toggled the 3D view and Ctrl+V is paste. It was worse than a

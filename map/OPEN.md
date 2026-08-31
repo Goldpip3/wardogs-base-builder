@@ -31,6 +31,13 @@ that was reading nothing at all.
 
 ## Start here if you are picking artillery back up
 
+**Measured 2026-08-31, and the first thing to fix: on a phone the map is 819 px down the
+page.** At 390 px wide the tool renders nav, eleven buttons and four empty coordinate boxes
+before any map appears, so the whole first screen is chrome and the thing the page exists
+for is below the fold. Nothing overflows sideways and desktop is fine at 1440; this is
+ordering, not breakage. The map wants to come first on a narrow screen with the coordinates
+under it. Nobody has decided that yet, so it is a question, not a task.
+
 `/artillery/` is a full-screen tool, laid out like the planner: bar, panel, canvas, status
 bar, filling the viewport on arrival with the reference material below it. Bakurani and
 Ozeti over real terrain imagery from
