@@ -79,29 +79,39 @@ module.exports = ctx => {
 
      An earlier pass copied the figure off a different fan site on the understanding it came
      from the game. It did not, and this replaces it. */
+  /* Proportioned to the usual seven and a half heads rather than by eye. Head is 56 tall in
+     a 430 figure, shoulders are two and a half head widths across, and the hands finish at
+     mid thigh, which is where hands finish.
+
+     The version before this hung the arms off y76 with the neck still running to y75, so
+     the shoulders started at the jaw and the whole thing looked hunched. The neck now has
+     20 units of its own before the chest begins, and the deltoid sits below the collar
+     rather than beside the ear. */
   const FIGURE = [
-    ["head", "M100 8C112 8 124 14 124 26L124 42C124 52 114 60 100 60" +
-             "C86 60 76 52 76 42L76 26C76 14 88 8 100 8Z"],
-    ["neck", "M90 62L110 62L110 75C104 79 96 79 90 75Z"],
-    ["upper-torso", "M72 78C80 74 92 72 100 72C108 72 120 74 128 78" +
-             "C134 81 138 88 139 96L139 126L61 126L61 96C62 88 66 81 72 78Z"],
-    ["middle-torso", "M61 129L139 129C138 140 137 152 136 160L64 160C63 152 62 140 61 129Z"],
-    ["lower-torso", "M64 163L136 163C135 175 133 188 131 197L69 197C67 188 65 175 64 163Z"],
-    ["pelvis", "M69 200L131 200C130 210 127 218 123 224C114 231 106 234 100 234" +
-             "C94 234 86 231 77 224C73 218 70 210 69 200Z"],
-    ["upper-arm", "M64 76C54 79 46 87 43 98C40 112 40 132 43 150L62 154C64 132 65 102 64 76Z"],
-    ["lower-arm", "M43 153L62 157C63 176 63 194 62 206L45 210C43 192 42 172 43 153Z"],
-    ["hand", "M45 212L62 208C64 218 64 230 61 238C58 246 52 250 47 248C43 244 42 228 45 212Z"],
-    ["upper-leg", "M70 236L99 238C99 258 98 282 96 302L76 302C73 282 70 258 70 236Z"],
-    ["lower-leg", "M76 305L96 305C97 322 96 340 94 360C93 375 92 385 91 388L80 388" +
-             "C79 385 78 375 77 360C75 340 75 322 76 305Z"],
-    ["foot", "M77 391L93 391C94 400 95 408 96 412C97 418 92 423 84 423" +
-             "C76 423 71 420 71 415C72 405 75 397 77 391Z"],
+    ["head", "M100 12C111 12 121 19 121 31L121 47C121 59 112 68 100 68" +
+             "C88 68 79 59 79 47L79 31C79 19 89 12 100 12Z"],
+    ["neck", "M91 64L109 64L109 84C103 88 97 88 91 84Z"],
+    ["upper-torso", "M82 86C90 83 95 82 100 82C105 82 110 83 118 86" +
+             "C126 90 131 98 132 108L132 148L68 148L68 108C69 98 74 90 82 86Z"],
+    ["middle-torso", "M68 151L132 151C131 164 130 178 129 190L71 190C70 178 69 164 68 151Z"],
+    ["lower-torso", "M71 193L129 193C128 204 127 216 125 228L75 228C73 216 72 204 71 193Z"],
+    ["pelvis", "M75 231L125 231C125 243 123 254 119 262C112 270 106 274 100 274" +
+             "C94 274 88 270 81 262C77 254 75 243 75 231Z"],
+    ["upper-arm", "M67 92C58 96 51 104 49 114C47 126 47 144 49 160L50 172L66 172" +
+             "C67 152 67 122 67 92Z"],
+    ["lower-arm", "M50 175L66 175C67 194 67 214 66 232L52 236C50 218 49 196 50 175Z"],
+    ["hand", "M50 236L67 233C69 245 69 259 66 269C63 278 57 282 52 280" +
+             "C48 276 47 254 50 236Z"],
+    ["upper-leg", "M72 277L99 279C99 301 98 327 96 350L78 350C75 327 72 301 72 277Z"],
+    ["lower-leg", "M78 353L96 353C97 371 96 389 94 405C93 410 93 414 92 416L80 416" +
+             "C79 414 79 410 78 405C76 389 76 371 78 353Z"],
+    ["foot", "M80 419L92 419C93 424 95 428 97 431C99 435 94 438 85 438" +
+             "C75 438 70 436 70 432C72 427 76 422 80 419Z"],
   ];
   const SYMMETRIC = ["upper-arm", "lower-arm", "hand", "upper-leg", "lower-leg", "foot"];
 
   const figureSvg = () => {
-    let out = '<svg class="body" viewBox="0 0 200 432" role="img" ' +
+    let out = '<svg class="body" viewBox="0 0 200 446" role="img" ' +
       'aria-label="Hit zones. Pick one to see what a shot there does.">' +
       '<defs><pattern id="plate" width="6" height="6" patternUnits="userSpaceOnUse" ' +
       'patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" ' +
@@ -111,7 +121,7 @@ module.exports = ctx => {
       '<pattern id="bgrid" width="18" height="18" patternUnits="userSpaceOnUse">' +
       '<path d="M18 0H0V18" fill="none" stroke="var(--line2)" stroke-width="1"/>' +
       "</pattern></defs>" +
-      '<rect width="200" height="432" fill="url(#bgrid)" opacity=".45" pointer-events="none"/>';
+      '<rect width="200" height="446" fill="url(#bgrid)" opacity=".45" pointer-events="none"/>';
     FIGURE.forEach(entry => {
       const id = entry[0];
       const d = entry[1];
@@ -488,14 +498,13 @@ module.exports = ctx => {
       "  var s=shot(w,z,r,tiers(),pellets(w));" +
       "  var k=toKill(s.damage,w.rpm,B.health);" +
       "  var band=bandFor(B.bands,k.stk,k.ttk);" +
-      /* Only the zone you picked wears its time to kill. Colouring all twelve at once put
-         four hues on the figure at all times and it read as a heat map of nothing in
-         particular, when the zone table underneath already gives every zone its number.
-         The rest stay the plate colour, so the figure looks like the target and the one
-         thing you asked about is the one thing lit up. */
-      "  var on=z.id===S.zone;" +
-      "  p.style.fill=on?band.tint:'';" +
-      "  p.setAttribute('data-on',on?'1':'0');" +
+      /* Every zone wears its own time to kill, all the time. Lighting only the selected one
+         was tried and it answers the wrong question: the reason to look at a body rather
+         than at the table under it is to compare, to see at a glance that the chest is red
+         through a vest while the hands are still green. Selection is carried by the outline
+         instead, so it can say which zone without taking the colour off the other eleven. */
+      "  p.style.fill=band.tint;" +
+      "  p.setAttribute('data-on',z.id===S.zone?'1':'0');" +
       "  var t=p.querySelector('title');" +
       "  if(t)t.textContent=z.name+': '+fmt(s.damage)+' damage, '+k.stk+' shot'+" +
       "   (k.stk===1?'':'s')+', '+secs(k.stk,k.ttk);});" +

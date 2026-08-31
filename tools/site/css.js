@@ -401,7 +401,10 @@ svg.body{width:100%;max-width:210px;height:auto}
 svg.body .bz{fill:#b8b3a7;stroke:var(--bg);stroke-width:2;cursor:pointer;transition:opacity .12s}
 svg.body .bz:hover{opacity:.72}
 svg.body .bz:focus{outline:none;stroke:var(--text);stroke-width:2}
-svg.body .bz[data-on="1"]{stroke:var(--text);stroke-width:2.5}
+/* Selection is an outline, not a fill, because every zone keeps its own time to kill and
+   the whole point of the figure is comparing them. White at 3px reads against all four
+   band colours; a fill swap would have to take one of them away. */
+svg.body .bz[data-on="1"]{stroke:var(--white);stroke-width:3;paint-order:stroke}
 .ctl{margin:0 0 16px;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .ctl[hidden]{display:none}
 .ctl>label{flex:0 0 100%;font-weight:600;font-size:10px;letter-spacing:.16em;
