@@ -26,6 +26,34 @@ The art is 495 icons off the wardogs.zone wiki, fetched by `tools/pull-game-icon
 The damage page can take the same icons next, since armory items now carry the slug and
 ballistics already joins on the armory name.
 
+### Nothing is chosen from a dropdown any more
+
+The three catalogue pages all worked the same way: a `select`, or a table row, standing in
+for a thing that has a picture. A dropdown hides every option until you open it and then
+shows them as a list of words, which is the wrong control for a shelf where recognising the
+item is the whole task. All three now let you click the thing.
+
+**Loadouts.** Clicking a slot opens that slot's shelf underneath it; clicking a card equips
+it and closes the shelf. One shelf at a time, Escape closes and returns focus to the slot,
+and the round shelf shows only what the chosen weapon chambers. Magazine count is a pair of
+buttons, not a number spinner.
+
+**Armory.** A card grid with the art is the default view and the table is behind a toggle,
+because a picture is how you recognise an item and a column is how you compare forty
+prices. Both views are one filter and one sort over the same elements, so switching never
+reshuffles. An unconfirmed price sorts to the bottom in **both** directions: a blank is not
+the cheapest thing on the shelf.
+
+**Damage.** The weapon control is the weapon, with a shelf of every gun behind it, filtered
+by class. `setWeapon` is now the only way `S.w` changes; four places used to set it and then
+separately poke the select's value, which is two facts about one thing.
+
+**The trap, twice.** `.vcard` and `.acard` are `display:flex`, and an explicit display beats
+the `hidden` attribute's UA `display:none`. Filtered-out cards stayed on the shelf while the
+script believed it had put them away, and the probe agreed with the script rather than the
+screen. Anything given a display here has to say what hidden means for it, the way
+`.ctl[hidden]` already had to. Found by looking at the page, not by asking it.
+
 ### The damage page shows the gun it is talking about
 
 The weapon art sits under the picker, and every ranking row carries its weapon. All 28
