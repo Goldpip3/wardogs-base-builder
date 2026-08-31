@@ -69,19 +69,24 @@ module.exports = ctx => {
      appears only when that armour is actually set. */
   const mirror = pts => pts.map(p => [200 - p[0], p[1]]);
   const poly = pts => pts.map(p => p[0] + "," + p[1]).join(" ");
+  /* Proportioned rather than blocky. The first pass was a stack of near rectangles and it
+     read as a robot, which matters here: the game shows these zones on a soldier, and a
+     reader is matching what is on this page against what they saw in the killfeed. So the
+     head is cut at the jaw, the chest carries shoulders, the arms hang away from the body
+     at the angle arms actually hang, and everything tapers. */
   const FIGURE = [
-    ["head",         [[[84, 10], [116, 10], [116, 46], [84, 46]]]],
-    ["neck",         [[[92, 46], [108, 46], [108, 60], [92, 60]]]],
-    ["upper-torso",  [[[70, 60], [130, 60], [132, 106], [68, 106]]]],
-    ["middle-torso", [[[68, 108], [132, 108], [130, 150], [70, 150]]]],
-    ["lower-torso",  [[[70, 152], [130, 152], [127, 192], [73, 192]]]],
-    ["pelvis",       [[[73, 194], [127, 194], [122, 226], [78, 226]]]],
-    ["upper-arm",    [[[50, 66], [68, 62], [68, 140], [52, 142]]]],
-    ["lower-arm",    [[[52, 144], [68, 142], [68, 212], [54, 214]]]],
-    ["hand",         [[[52, 216], [68, 214], [68, 242], [52, 242]]]],
-    ["upper-leg",    [[[78, 228], [98, 228], [97, 316], [80, 316]]]],
-    ["lower-leg",    [[[80, 318], [97, 318], [96, 398], [82, 398]]]],
-    ["foot",         [[[74, 400], [97, 400], [97, 422], [74, 422]]]],
+    ["head",         [[[89, 10], [111, 10], [117, 20], [117, 38], [112, 49], [88, 49], [83, 38], [83, 20]]]],
+    ["neck",         [[[93, 51], [107, 51], [108, 64], [92, 64]]]],
+    ["upper-torso",  [[[70, 70], [84, 63], [116, 63], [130, 70], [133, 114], [67, 114]]]],
+    ["middle-torso", [[[67, 116], [133, 116], [130, 158], [70, 158]]]],
+    ["lower-torso",  [[[70, 160], [130, 160], [125, 198], [75, 198]]]],
+    ["pelvis",       [[[75, 200], [125, 200], [119, 234], [81, 234]]]],
+    ["upper-arm",    [[[46, 78], [66, 70], [70, 140], [52, 147]]]],
+    ["lower-arm",    [[[52, 150], [69, 143], [71, 208], [55, 213]]]],
+    ["hand",         [[[55, 215], [71, 210], [71, 238], [57, 241]]]],
+    ["upper-leg",    [[[79, 236], [98, 236], [97, 320], [80, 320]]]],
+    ["lower-leg",    [[[81, 322], [97, 322], [95, 398], [83, 398]]]],
+    ["foot",         [[[71, 400], [96, 400], [97, 421], [71, 421]]]],
   ];
   const SYMMETRIC = ["upper-arm", "lower-arm", "hand", "upper-leg", "lower-leg", "foot"];
 
@@ -90,7 +95,13 @@ module.exports = ctx => {
       'aria-label="Hit zones. Pick one to see what a shot there does.">' +
       '<defs><pattern id="plate" width="6" height="6" patternUnits="userSpaceOnUse" ' +
       'patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" ' +
-      'stroke="var(--text)" stroke-width="1.4" opacity=".5"/></pattern></defs>';
+      'stroke="var(--text)" stroke-width="1.4" opacity=".5"/></pattern>' +
+      /* The game frames its soldier on a grid, and without one the figure floats in a
+         panel with nothing to sit against. */
+      '<pattern id="bgrid" width="18" height="18" patternUnits="userSpaceOnUse">' +
+      '<path d="M18 0H0V18" fill="none" stroke="var(--line2)" stroke-width="1"/>' +
+      "</pattern></defs>" +
+      '<rect width="200" height="432" fill="url(#bgrid)" opacity=".45" pointer-events="none"/>';
     FIGURE.forEach(entry => {
       const id = entry[0];
       const shapes = entry[1].slice();
@@ -186,6 +197,11 @@ module.exports = ctx => {
       " than filled in.</p>" +
 
       /* ---------- the calculator ---------- */
+      /* The shelf sits inside this wrapper and on top of the calculator rather than after
+         it. As a sibling in the flow it added its own height to the page every time it
+         opened, shoved everything below it down, and then scrolled to itself, so choosing a
+         weapon moved the page twice and put the numbers you were reading somewhere else. */
+      '<div class="calc-wrap">' +
       '<div class="calc" id="calc">' +
         '<div class="calc-body">' + figureSvg() +
           '<p class="fine" id="cover"></p>' +
@@ -218,7 +234,6 @@ module.exports = ctx => {
           '<p class="fine" id="chain"></p>' +
           '<p class="fine" id="armnote"></p>' +
           '<p class="fine" id="flight"></p>' +
-          '<p class="fine" id="cost"></p>' +
           '<p style="margin-top:14px"><button class="btn sm" id="copy">Copy this setup as a link</button></p>' +
         "</div>" +
       "</div>" +
@@ -246,6 +261,7 @@ module.exports = ctx => {
               '<span class="vcard-name">' + esc(w.name) + "</span></button>";
           }).join("") +
         "</div>" +
+      "</div>" +
       "</div>" +
 
       '<h2 style="margin-top:16px">Every zone, this weapon, this armour</h2>' +
@@ -387,7 +403,6 @@ module.exports = ctx => {
       weapons: B.weapons,
       armour: B.armour,
       bands: B.ttkBands,
-      price: priceOf,
       /* Weapon name to icon slug, joined off the armory the same way prices are. The slug
          is never written down here: it lives on the armory item, and a weapon the wiki has
          no icon for simply does not appear, which is what keeps this honest. */
@@ -438,7 +453,6 @@ module.exports = ctx => {
       "function tiers(){return {helmet:S.helmet,vest:S.vest};}" +
 
       "function fmt(n){return n>=100?String(Math.round(n)):String(Math.round(n*10)/10);}" +
-      "function cash(n){return n>=10?'$'+Math.round(n):'$'+n.toFixed(2);}" +
       "function secs(stk,ttk){return stk===1?'one shot':ttk.toFixed(2)+' s';}" +
 
       /* ---------- the calculator ---------- */
@@ -512,12 +526,7 @@ module.exports = ctx => {
       " el('flight').textContent=S.dist?('At '+S.dist+' m the round is in the air at least '+" +
       "  ft.toFixed(2)+' s, off a muzzle velocity of '+c.velocity[c.velocity.length-1]+" +
       "  ' m/s. That is a floor: a bullet slows down, and how fast is not published.')" +
-      "  :'Point blank. Every damage figure on this page is point blank.';" +
-      " var per=(B.price[w.calibre]||{})[r.id];" +
-      " el('cost').textContent=per&&isFinite(k.stk)?" +
-      "  ('At '+cash(per)+' a round, that kill costs '+cash(per*k.stk)+' in ammunition,'+" +
-      "   ' assuming every shot lands.')" +
-      "  :'';}" +
+      "  :'Point blank. Every damage figure on this page is point blank.';}" +
 
       "function renderZones(){" +
       " var w=weapon(),r=loadFor(w),tb=document.querySelector('#zt tbody');tb.textContent='';" +
@@ -627,7 +636,7 @@ module.exports = ctx => {
       "function shelf(open){" +
       " el('wpnShelf').hidden=!open;" +
       " el('wpnOpen').setAttribute('aria-expanded',open?'true':'false');" +
-      " if(open)el('wpnShelf').scrollIntoView({block:'nearest'});}" +
+      " if(open){var f=el('wpnShelf').querySelector('[data-wpick]');if(f)f.focus({preventScroll:true});}}" +
       "el('wpnOpen').addEventListener('click',function(){shelf(el('wpnShelf').hidden);});" +
       "el('wpnClose').addEventListener('click',function(){shelf(false);el('wpnOpen').focus();});" +
       "document.addEventListener('keydown',function(e){" +

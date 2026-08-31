@@ -352,6 +352,12 @@ footer.site .fine{flex:1 1 100%;color:var(--dim);font-size:12px;line-height:1.5;
 .calc{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);
   grid-template-columns:1fr;margin:30px 0 0}
 .calc>div{background:var(--panel);padding:22px}
+/* The weapon shelf covers the calculator instead of displacing it, so opening and closing
+   it changes no height anywhere on the page and nothing under it moves. It takes the
+   calculator's own footprint and scrolls inside that when the list is longer. */
+.calc-wrap{position:relative}
+.calc-wrap>.vpicker{position:absolute;inset:0;z-index:5;margin:30px 0 0;overflow:auto;
+  background:var(--panel);border:1px solid var(--line)}
 @media(min-width:900px){.calc{grid-template-columns:250px 1fr 300px}}
 .calc-body{display:flex;flex-direction:column;align-items:center}
 .calc-body .fine{margin-top:12px;text-align:center}
