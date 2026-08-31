@@ -21,6 +21,13 @@ group, and that moving the gun closer is the only thing that tightens it. Dialli
 The dial tip is written per arc on purpose. More mils is less range on the mortar and on the
 high arc, and more range on the low arc, so one rule for both would mislead half the time.
 
+It does not say a full circle is 6,400 mils, and it does not say the gun's sight reads the
+number directly. Both are true of the NATO mil and neither has been checked here: the open
+list says two sources read different scales off this mortar and that nobody has noted what
+the sight shows. So the tip claims only what the tables are written in, quotes the envelope
+derived from the tables' own ends, and points at the open list. Do not add the 6,400 back
+without firing the gun first.
+
 Spread is worded the same way everywhere now, "about N m" rather than a plus or minus, and
 the platform card no longer says "across". The data is explicit that nobody has published
 whether the angle bounds a radius, a full width or a typical group, so the page had been

@@ -48,6 +48,9 @@ It lives outside `.wrap`. That is load bearing: inside it, the tool was centred 
   number is, in the panel where the number is. The dial tip is written per arc, because more
   mils is less range on the high arc and more on the low one, and telling a new player one
   rule for both would be wrong half the time
+- the dial tip states no mil convention and no sight behaviour. It quotes the envelope
+  `milEnds()` derives from the tables' own ends and sends the reader to the open list,
+  because what the gun's sight reads is one of the six things nobody here has checked
 - the solution reports what varies with the shot. Reload and round cost do not, so they are
   on the platform cards below the tool and not in the panel
 
