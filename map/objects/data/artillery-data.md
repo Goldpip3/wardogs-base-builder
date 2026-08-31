@@ -25,18 +25,22 @@ that nobody here has fired a row of it. The curve turns over at maximum range, w
 the arc is two tables and why two elevations can land on the same spot: from 1,181 m out
 both arcs reach and the page reports both dials.
 
-Grouping is the one number here that can be checked rather than trusted. Spread is range
-times the angle in radians, and that reproduces all four spreads the sources publish, which
-`test/artillery.js` pins.
+There is no grouping angle in here any more, and putting one back is the mistake this file
+is most likely to invite. One calculator published `moa` per platform, this file carried it
+and the page multiplied it out to metres on every solution, every table row and both cards.
+No source said where the angle came from, the other two calculators never mention
+dispersion, and the game uses no such unit: it was one site's number wearing four decimal
+places of authority. `test/artillery.js` now checks the absence, in the data and on the
+built page, and `open` carries what would replace it.
 
-Six things are unsettled and are listed in the file under `open`, each with what would
+Seven things are unsettled and are listed in the file under `open`, each with what would
 close it. They render on the page, so a player sees the same list a maintainer does. That is
 the first place to look if you are picking artillery back up: see [../../OPEN.md](../../OPEN.md).
 
 ## Shape
 
 - `grid`: one coordinate unit is 100 m, Y counts north, the terrain is 163.84 units square
-- `platforms[]`: envelope, `moa`, reload, damage, blast, round cost, `table` for the
+- `platforms[]`: envelope, reload, damage, blast, round cost, `table` for the
   mortar, `tableLow` and `tableHigh` for the SPH-2
 - `dispute`: three sources at roughly 120 to 700 m against one at 3.1 km
 - every table's own ends are the stated envelope, so a solution can never fall outside it
@@ -58,7 +62,7 @@ Citations: `data/artillery.json`, read at `tools/site/context.js:105`, rendered 
 
 - **Hits:** `/artillery/` only. `test/artillery.js` re-checks that every measured range
   gives back its own elevation on its own arc, that each envelope matches its tables' ends,
-  and that the spread relationship still holds.
+  and that no grouping angle has come back, in the file or on the page.
 - **Does not hit:** the planner. It has no range rings, deliberately: drawing one needs a
   plan-cell-to-metre conversion and nothing published establishes one. `buildRadiusUnits`
   in the buildables catalog is marked `radiusConfirmed: false` for the same reason. The

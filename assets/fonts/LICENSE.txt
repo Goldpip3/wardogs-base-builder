@@ -1,14 +1,13 @@
-Chakra Petch and Barlow are used under the SIL Open Font License 1.1.
+Chakra Petch is used under the SIL Open Font License 1.1.
 
   Chakra Petch - Copyright (c) 2019 Cadson Demak
                  https://github.com/cadsondemak/Chakra-Petch
-  Barlow       - Copyright 2017 The Barlow Project Authors
-                 https://github.com/jpt/barlow
 
 Full licence: https://scripts.sil.org/OFL
 
-These are Latin-subset woff2 files, embedded as base64 in the planner so it keeps
-working with no network. The site pages load the same files from /fonts/.
+Latin-subset woff2 at 400, 600 and 700, embedded as base64 in the planner so it
+keeps working with no network. The site pages load the same files from /fonts/.
 
-Inter was the display face until 2026-08-31 and was dropped when the display face
-became Chakra Petch. Nothing loads inter-900.woff2 any more.
+One family sets the whole site. Inter was the display face until 2026-08-31 and
+Barlow set everything else until the same day; two families read as two sites, so
+both were dropped rather than left loading.

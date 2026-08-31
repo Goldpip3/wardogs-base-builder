@@ -22,12 +22,11 @@ Get-ChildItem "$proj\assets\icons\*" -Include *.webp, *.svg, *.png | ForEach-Obj
 $iconsJson = ($iconMap.GetEnumerator() | Sort-Object Name | ForEach-Object { '"{0}":"{1}"' -f $_.Key, $_.Value }) -join ","
 
 # The site loads these fonts as files, but the planner has to work with no network at
-# all, so they are baked in as data URIs. Latin subsets, ~35 KB for all four.
+# all, so they are baked in as data URIs. Latin subsets, ~30 KB for all three.
 $faces = @(
+  @{ file = "chakrapetch-400.woff2"; family = "Chakra Petch"; weight = 400 },
   @{ file = "chakrapetch-600.woff2"; family = "Chakra Petch"; weight = 600 },
-  @{ file = "chakrapetch-700.woff2"; family = "Chakra Petch"; weight = 700 },
-  @{ file = "barlow-400.woff2";      family = "Barlow";       weight = 400 },
-  @{ file = "barlow-600.woff2";      family = "Barlow";       weight = 600 }
+  @{ file = "chakrapetch-700.woff2"; family = "Chakra Petch"; weight = 700 }
 )
 $fontCss = ($faces | ForEach-Object {
   $p = "$proj\assets\fonts\$($_.file)"

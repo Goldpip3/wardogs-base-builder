@@ -49,10 +49,13 @@ gun stands. The solution reports both SPH-2 arcs where both reach. The SPH-2 ele
 from wardogs-artillery.com, the one source publishing the complete curve, and are marked
 unfired. The URL fragment carries map, weapon and both points, so a solution is a link.
 
-Six open questions remain listed in `data/artillery.json` under `open`, each with what
+Seven open questions remain listed in `data/artillery.json` under `open`, each with what
 would close it, and they are rendered on the page so players can see them too. Read
 [objects/data/artillery-data.md](objects/data/artillery-data.md) first, then that array.
-All six now need somebody with the game open, not more research. The largest is that
+All seven now need somebody with the game open, not more research. The newest is there
+because a figure came off the page rather than onto it: the grouping angle in MOA, which
+one calculator published, no source could account for, and the game has no such unit for.
+Ten rounds at one dial from one position, measured, replaces it with something real. The largest is that
 **every firing table here is flat ground**, and the terrain is a river valley, so a shot
 onto high ground falls short of what the page says. One coefficient per platform would fix
 most of it. Second largest: nobody has fired a row of the transcribed SPH-2 tables.

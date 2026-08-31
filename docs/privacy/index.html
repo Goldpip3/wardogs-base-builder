@@ -23,14 +23,15 @@
    worked as the colour that carries a number. Yellow does that job at 12.43 and
    matches the game's own sunset key art. Red is left with one job, which is to
    mean a fault: a failed message, and an out of range shot. Nothing decorative.
-   The display face: bulkhead.com sets headings in Inter, but the game's own wordmark
-   is squared, flat-apexed and wide, and Inter is none of those. Chakra Petch is the
-   closest open face to the logo's character. It is not the logo, which is drawn
-   lettering, so the ceiling here is close rather than same. */
+   The type: bulkhead.com sets headings in Inter over Barlow, but the game's own
+   wordmark is squared, flat-apexed and wide, and Inter is none of those. Chakra Petch
+   is the closest open face to the logo's character, and it now sets everything, not
+   just the headings: one family at 400, 600 and 700 rather than two families reading
+   as two sites. It is not the logo, which is drawn lettering, so the ceiling here is
+   close rather than same. */
 @font-face{font-family:"Chakra Petch";src:url(/fonts/chakrapetch-600.woff2)format("woff2");font-weight:600;font-display:swap}
 @font-face{font-family:"Chakra Petch";src:url(/fonts/chakrapetch-700.woff2)format("woff2");font-weight:700;font-display:swap}
-@font-face{font-family:Barlow;src:url(/fonts/barlow-400.woff2)format("woff2");font-weight:400;font-display:swap}
-@font-face{font-family:Barlow;src:url(/fonts/barlow-600.woff2)format("woff2");font-weight:600;font-display:swap}
+@font-face{font-family:"Chakra Petch";src:url(/fonts/chakrapetch-400.woff2)format("woff2");font-weight:400;font-display:swap}
 
 :root{
   --bg:#0c0c0c;--panel:#111;--panel2:#161616;--line:#242424;--line2:#333;
@@ -41,7 +42,7 @@
   --y-100:#ffe9a3;--y-300:#ffd23f;--yellow:#ffc61a;--y-600:#d9a521;--y-700:#a87a14;--y-950:#2a2210;
   --red:#c00b0b;--red-hot:#f30000;--good:#86ad55;
   --display:"Chakra Petch","Arial Narrow",system-ui,sans-serif;
-  --ui:Barlow,"Segoe UI",system-ui,-apple-system,sans-serif;
+  --ui:"Chakra Petch","Segoe UI",system-ui,-apple-system,sans-serif;
   --num:"Cascadia Mono",Consolas,ui-monospace,monospace;
 }
 *{box-sizing:border-box;margin:0;padding:0}

@@ -112,6 +112,11 @@
        view, where height is the thing you are looking at. Desaturated on purpose: it is the
        one structural colour that should not compete with the wall it stands behind. */
     tower:       "#9c9484",
+    /* A bremer is a poured concrete slab and a hesco is a wire basket full of dirt. They
+       were the same gold, which made a mixed perimeter read as one material and hid the
+       thing you would actually notice standing in front of it. Paler than the tower so the
+       two concretes are still told apart, and nowhere near the gold. */
+    barrier:     "#c9c3b4",
     entry:       "#5fa855",  // doors and gates
     offense:     "#9c5ec4",  // indirect fire at ground targets
     antiair:     "#3f9fb5",

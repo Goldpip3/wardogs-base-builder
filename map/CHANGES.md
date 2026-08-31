@@ -8,6 +8,33 @@ Newest first. One entry per decision, not per commit.
 
 ## 2026-08-31
 
+### The grouping angle comes off the page
+
+Spread was on every firing solution, every table row and both platform cards, in metres to
+one decimal place. It is gone, along with the dashed circle it drew round the target.
+
+It traced to one source. wardogshub publishes a grouping angle, 50 MOA for the mortar and 10
+for the SPH-2, and never says where it came from. djzet, which is where the mortar firing
+table comes from, does not mention dispersion anywhere in its config, its features doc or
+its calculator. wardogs-artillery.com reports "distance, azimuth and the firing-table MIL
+value" and nothing else. The wardogs wiki guide says the mortar is aimed by setting
+direction and distance on the live interface, and warns readers off old numerical tables.
+And no game shows a player an MOA figure; it is a unit this hobby imported from elsewhere.
+
+The check that used to guard it proved spread reproduces all four published figures from the
+MOA alone. It does, because the site that published both did the same multiplication. It
+was a check on arithmetic that read like a check on a measurement, which is worse than no
+check at all: it made an ungrounded number look verified for as long as it stood.
+
+What replaces it is an open item saying nobody has measured the scatter, and how to settle
+it: ten rounds at one dial from one position, at a known range, measured. `test/artillery.js`
+now checks the absence rather than the relationship, in the data and on the built page, and
+allows the word so the open item can explain itself while forbidding a figure. Both halves
+were proved against a reintroduced `moa` and a planted Spread cell before being trusted.
+
+The dial stays. Three independent sources publish mil tables and the gun plainly takes a mil
+elevation, so that number has ground under it in a way the spread never did.
+
 ### The firing solution explains itself
 
 Every label in the solution panel now opens an explanation on hover, tap or tab, and the

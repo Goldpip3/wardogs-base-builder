@@ -45,7 +45,7 @@
     --cell: 26px;
     --s: 1;            /* interface scale. Raised automatically on large/4K displays */
     --display: "Chakra Petch", "Arial Narrow", system-ui, sans-serif;
-    --ui: Barlow, "Segoe UI", system-ui, -apple-system, sans-serif;
+    --ui: "Chakra Petch", "Segoe UI", system-ui, -apple-system, sans-serif;
     --num: "Cascadia Mono", Consolas, "SF Mono", ui-monospace, monospace;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -665,7 +665,7 @@ const TIER_COLOR = SHARED.TIER_COLOR;              // fallback for custom entrie
    same pieces the same colours and two tables would have drifted the first time one moved. */
 const ROLE_COLOR = SHARED.ROLE_COLOR;
 const ROLE_LABEL = {
-  cover:"Cover", tower:"Tower & bunker", entry:"Entryway", offense:"Offensive fire", antiair:"Anti-air",
+  cover:"Cover", barrier:"Bremer wall", tower:"Tower & bunker", entry:"Entryway", offense:"Offensive fire", antiair:"Anti-air",
   antivehicle:"Anti-vehicle",
   denial:"Area denial", support:"Support & logistics", objective:"Objective", fob:"FOB"
 };
@@ -1060,6 +1060,12 @@ function toScreen(wx, wy) { return [ (wx - view.x) * view.zoom + canvas.clientWi
 let view3d = false;
 const iso = { rot: 0, zoom: 15, x: 0, y: 0 };
 const ISO_K = 0.866;
+/* A block is 0.866 of a cell across and was one cell tall, so a two block wall and a five
+   block tower differed by three faint steps and the view answered the one question the plan
+   cannot. Height is the reason to be in here at all, so it is drawn taller than the ground
+   it stands on. Not a lie about the geometry: the plan is where footprints are read, and
+   this is where you look at what stands up. */
+const ISO_Z = 1.45;
 
 function isoSpin(x, y) {
   switch (iso.rot & 3) {
@@ -1074,7 +1080,7 @@ function isoPt(x, y, z) {
   const u = iso.zoom;
   return [
     canvas.clientWidth / 2 + (rx - ry) * ISO_K * u,
-    canvas.clientHeight / 2 + (rx + ry) * u * 0.5 - z * u,
+    canvas.clientHeight / 2 + (rx + ry) * u * 0.5 - z * u * ISO_Z,
   ];
 }
 
@@ -1119,6 +1125,14 @@ function traceFace(face) {
   ctx.moveTo(face[0][0], face[0][1]);
   for (let i = 1; i < face.length; i++) ctx.lineTo(face[i][0], face[i][1]);
   ctx.closePath();
+}
+/* A vertical face, minus the edges that are not the shape of anything: the top, which the
+   roof already draws, and either upright that stands on a side joined to a neighbour. */
+function sideEdges(face, mask, bitAtEnd, bitAtStart) {
+  const seg = (i, j) => { ctx.moveTo(face[i][0], face[i][1]); ctx.lineTo(face[j][0], face[j][1]); };
+  seg(0, 1);                                   // where it meets the ground or the storey below
+  if (!(mask & bitAtEnd)) seg(1, 2);
+  if (!(mask & bitAtStart)) seg(3, 0);
 }
 function draw3DNow() {
   const W = canvas.clientWidth, H = canvas.clientHeight;
@@ -1189,8 +1203,15 @@ function draw3DNow() {
     ctx.lineWidth = keepWhole ? 2 : 1;
     ctx.strokeStyle = bad ? "#f04a2e" : sel ? "#fff7ea" : shade(base, -74);
     ctx.beginPath();
-    if (!(mask & nearYBit)) traceFace(f.side);
-    if (!(mask & nearXBit)) traceFace(f.face);
+    if (keepWhole) {
+      traceFace(f.side); traceFace(f.face);
+    } else {
+      /* side sits at nearY and spans x0..x1, so its uprights stand on +x and -x.
+         face sits at nearX and spans y0..y1, so its uprights stand on +y and -y.
+         Neither draws its top edge: that is the same line the roof draws below. */
+      if (!(mask & nearYBit)) sideEdges(f.side, mask, 1, 2);
+      if (!(mask & nearXBit)) sideEdges(f.face, mask, 4, 8);
+    }
     // top quad corners run x0y0, x1y0, x1y1, x0y1, so its edges face -y, +x, +y, -x
     const TOP_EDGE_BIT = [8, 1, 4, 2];
     for (let i = 0; i < 4; i++) {
@@ -3745,7 +3766,7 @@ function renderSupport() {
 }
 function renderLegend() {
   document.getElementById("legend").innerHTML =
-    ["fob","cover","tower","entry","denial","offense","antiair","antivehicle","support","objective"]
+    ["fob","cover","barrier","tower","entry","denial","offense","antiair","antivehicle","support","objective"]
       .map(r => `<span class="sw" style="background:${ROLE_COLOR[r]}"></span><span>${ROLE_LABEL[r]}</span>`)
       .join("");
 }

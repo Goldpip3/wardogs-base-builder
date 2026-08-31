@@ -320,7 +320,13 @@ check(/opt\.level > 0 \? "#ffc61a" : "#8b8b80"/.test(src),
 
   /* the key has to name it, or a colour appears on the plan with nothing to explain it */
   check(/tower:"Tower & bunker"/.test(src), "the key has a label for it");
-  check(/"cover","tower"/.test(src), "and lists it, next to the cover it was split from");
+  /* grouped with the other structural roles rather than adjacent to one of them: barrier
+     landed between them when the bremer wall was split out too. */
+  const key = (src.match(/\["fob",[^\]]*\]/) || [""])[0];
+  check(/"cover"/.test(key) && /"tower"/.test(key) && /"barrier"/.test(key),
+    "and the key lists it with the other structural roles", key);
+  check(key.indexOf("cover") < key.indexOf("entry"),
+    "which stay together, ahead of everything that is not structure");
 
   /* nothing is left pointing at a role with no colour */
   const orphans = cat.buildables

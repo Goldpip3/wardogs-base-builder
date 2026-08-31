@@ -190,7 +190,7 @@
     },
     {
       "id": "bremer-wall",
-      "role": "cover",
+      "role": "barrier",
       "name": "Bremer Wall",
       "tier": "large",
       "page": 2,

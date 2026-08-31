@@ -31,7 +31,6 @@ function dial(d, t) {
   }
   return null;
 }
-const spread = (d, moa) => d * (moa / 60) * Math.PI / 180;
 
 /* --- the table has to be usable as a table --- */
 {
@@ -75,17 +74,31 @@ const spread = (d, moa) => d * (moa / 60) * Math.PI / 180;
   check(dial(mortar.maxRange + 1, mortar.table) === null, "past maximum range there is no solution");
 }
 
-/* --- spread is the published relationship, not a guess ---
-   Four spreads are published against these two guns. All four have to fall out of
-   range times the grouping angle, or the angle is not what the sources say it is. */
+/* --- the grouping angle stays out ---
+   It was carried for a while and converted to metres on every solution, every table row and
+   both platform cards. One source published it, that source never said where it came from,
+   the other two never mention dispersion, and the game deals in no such unit. The old check
+   here proved the published spreads fall out of the MOA, which they do because the site
+   that published both did the same multiplication: arithmetic, not observation, wearing the
+   look of a verified number.
+
+   So this checks the absence, on the built page as well as in the data, because the number
+   was plausible and useful and that is exactly what gets a figure quietly put back. What
+   replaces it is an open item saying nobody has measured the scatter, and how to. */
 {
-  const cases = [
-    [mortar, 132, 1.9], [mortar, 684, 9.9],
-    [sph, 1000, 2.9], [sph, 2629, 7.6],
-  ];
-  const off = cases.filter(([p, d, want]) => Math.abs(spread(d, p.moa) - want) > 0.1);
-  check(off.length === 0, "spread reproduces all four published figures from the MOA alone",
-    off.map(([p, d, w]) => p.id + "@" + d + " wanted " + w + " got " + spread(d, p.moa).toFixed(2)).join(", "));
+  const withMoa = A.platforms.filter(p => p.moa !== undefined);
+  check(withMoa.length === 0, "no platform carries a grouping angle",
+    withMoa.map(p => p.id).join(", "));
+
+  const page = fs.readFileSync(path.join(ROOT, "docs/artillery/index.html"), "utf8");
+  // The word is allowed: the open list has to be able to say what was taken out and why.
+  // A figure is not. "50 MOA" or a Spread cell is the thing coming back.
+  check(!/\d\s*MOA/.test(page), "the built page quotes no grouping angle");
+  check(!/>\s*Spread\s*</i.test(page), "and offers no spread row, cell or column");
+
+  const scatter = (A.open || []).find(o => /scatter|dispersion/i.test(o.what + " " + o.why));
+  check(!!scatter && /measure the group|measure/i.test(scatter.close || ""),
+    "the open list says the scatter is unmeasured and how to measure it");
 }
 
 /* --- the SPH-2 tables hold together as a pair of arcs ---
