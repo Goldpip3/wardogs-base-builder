@@ -333,11 +333,15 @@ export default {
 
     // GET /designs -> approved designs, newest first, with their scores
     if (request.method === "GET" && path === "/designs") {
-      /* "approved" is what the old moderated flow called a live design, and records from
-         then still carry it. Both mean visible; neither is going to be rewritten in place
-         just to tidy the vocabulary. */
+      /* Visible unless somebody hid it.
+         "approved" is what the old moderated flow called a live design and records from then
+         still carry it. "pending" is what that flow called one waiting on the owner, and
+         three real submissions were left stranded in it when the queue was removed: nothing
+         queues any more, so there was no longer any page that could let them out. Listing by
+         what is not hidden rather than by what was once approved frees them and cannot strand
+         anything again. */
       const designs = (await listDesigns(env, null))
-        .filter(d => d.status === "published" || d.status === "approved");
+        .filter(d => d.status !== "hidden" && d.status !== "rejected");
       const votes = await tallies(env, designs.map(d => d.slug));
       designs.forEach(d => { d.votes = votes[d.slug]; });
       designs.sort((a, b) =>

@@ -110,5 +110,76 @@ vm.runInContext(`
 const aligned = vm.runInContext(`JSON.stringify([design.pieces[0].x,design.pieces[0].y,design.pieces[0].rot])`, sandbox);
 check(aligned === "[3.5,-1,270]", `Align to grid squares position and rotation (got ${aligned})`);
 
+// ---------- turning a selection ----------
+/* Turning used to spin every piece where it stood, which is right for one piece and useless
+   for several: a corner copied and turned came back as the same corner with its blocks
+   facing a different way. Building the far side of a symmetrical base needs the group to
+   turn about its own centre.
+*/
+vm.runInContext(`
+  var placing = null, ghost = { rot: 0 };
+  snap = true;                       // the real rotatedValue is already lifted above
+  function updateHint(){} function draw(){}
+  ${lift("rotateSelection")}
+`, sandbox);
+
+const layout = () => vm.runInContext(
+  "design.pieces.map(p=>[+p.x.toFixed(3),+p.y.toFixed(3),p.rot].join(':')).join(' ')", sandbox);
+const setUp = pieces => vm.runInContext(
+  `design.pieces = ${pieces}; selection = new Set(design.pieces.map(p=>p.id));`, sandbox);
+
+// an L of wall, the sort of corner somebody copies to build the other side
+const CORNER = `[ {id:1,type:"hesco-wall",x:0,y:0,rot:0,level:0},
+                  {id:2,type:"hesco-wall",x:4,y:0,rot:0,level:0},
+                  {id:3,type:"hesco-wall",x:6,y:2,rot:90,level:0} ]`;
+
+setUp(CORNER);
+const before = layout();
+vm.runInContext("rotateSelection(90)", sandbox);
+const turned = layout();
+check(turned !== before, "turning a selection moves the pieces, it does not just spin them");
+
+// four quarter turns must land exactly back, or repeated use drifts the base apart
+vm.runInContext("rotateSelection(90); rotateSelection(90); rotateSelection(90)", sandbox);
+check(layout() === before, "four quarter turns land a selection exactly back where it began");
+
+// the shape has to survive the turn: every distance between pieces is unchanged
+setUp(CORNER);
+const spread = () => vm.runInContext(`
+  (function(){ const P = design.pieces, out = [];
+    for (let i = 0; i < P.length; i++) for (let j = i+1; j < P.length; j++)
+      out.push(Math.hypot(P[i].x-P[j].x, P[i].y-P[j].y).toFixed(4));
+    return out.join(","); })()`, sandbox);
+const spreadBefore = spread();
+vm.runInContext("rotateSelection(90)", sandbox);
+check(spread() === spreadBefore, "and the shape is carried round intact, not stretched");
+
+// the pieces themselves turn too, or the walls end up facing the wrong way
+const rots = vm.runInContext("design.pieces.map(p=>p.rot).join(',')", sandbox);
+check(rots === "90,90,180", `each piece turns with the group (got ${rots})`);
+
+// pieces stay on the grid, so the turned copy still clicks onto everything else
+const offGrid = vm.runInContext(
+  "design.pieces.filter(p=>Math.abs(p.x*2-Math.round(p.x*2))>1e-9||Math.abs(p.y*2-Math.round(p.y*2))>1e-9).length",
+  sandbox);
+check(offGrid === 0, "a turned selection lands back on the grid, not between cells");
+
+// one piece is its own centre, so single-piece turning is exactly what it always was
+vm.runInContext(`
+  design.pieces = [ {id:1,type:"hesco-wall",x:3,y:7,rot:0,level:0} ];
+  selection = new Set([1]);
+  rotateSelection(90);`, sandbox);
+check(layout() === "3:7:90", "turning one piece still turns it on the spot");
+
+// and with a buildable in hand, the key turns what you are about to place, not the design
+vm.runInContext(`
+  placing = "hesco-wall"; ghost.rot = 0;
+  design.pieces = [ {id:1,type:"hesco-wall",x:3,y:7,rot:0,level:0} ];
+  selection = new Set([1]);
+  rotateSelection(90);
+  placing = null;`, sandbox);
+check(layout() === "3:7:0" && vm.runInContext("ghost.rot", sandbox) === 90,
+  "with a piece in hand the key turns the piece in hand, leaving the design alone");
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

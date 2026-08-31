@@ -1314,7 +1314,30 @@ function rotateSelection(deg) {
   if (placing) { ghost.rot = rotatedValue(ghost.rot, deg); updateHint(); draw(); return; }
   if (!selection.size) return;
   pushUndo();
-  for (const p of design.pieces) if (selection.has(p.id)) p.rot = rotatedValue(p.rot, deg);
+  const sel = design.pieces.filter(p => selection.has(p.id));
+
+  /* Turn the group, not each piece where it stands.
+     Spinning every piece on its own spot is right for one piece and useless for several: a
+     corner copied and turned came back as the same corner with its blocks facing a different
+     way, which is not how anyone builds the other half of a base. The selection turns about
+     its own centre instead, so copy, paste, turn gives you the mirrored half. One piece is
+     unchanged by this, since it is its own centre.
+
+     The centre is the average of the pieces, which a turn maps to itself, so four quarter
+     turns land exactly back where they started. It is put on the grid first so that a
+     quarter turn takes pieces from the grid to the grid rather than off it. */
+  let cx = 0, cy = 0;
+  for (const p of sel) { cx += p.x; cy += p.y; }
+  cx /= sel.length; cy /= sel.length;
+  if (snap) { cx = Math.round(cx * 2) / 2; cy = Math.round(cy * 2) / 2; }
+
+  const a = (deg * Math.PI) / 180, c = Math.cos(a), s = Math.sin(a);
+  for (const p of sel) {
+    const dx = p.x - cx, dy = p.y - cy;
+    p.x = cx + dx * c - dy * s;
+    p.y = cy + dx * s + dy * c;
+    p.rot = rotatedValue(p.rot, deg);
+  }
   afterChange();
 }
 /* Explicit repair for anything left off-grid by free placement */

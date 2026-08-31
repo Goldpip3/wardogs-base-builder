@@ -8,6 +8,21 @@ Newest first. One entry per decision, not per commit.
 
 ## 2026-08-31
 
+### Turning a selection turns the group, and nothing is stranded pending
+
+`rotateSelection` spun every piece where it stood. That is right for one piece and useless
+for several: a corner copied and turned came back as the same corner with its blocks facing
+a different way, so there was no way to build the matching half of a base. It turns the
+selection about its own centre now, so copy, paste, turn gives the mirrored half. The centre
+is the average of the pieces, which a turn maps to itself, so four quarter turns land exactly
+back; it is put on the grid first so a quarter turn goes grid to grid. One piece is its own
+centre, so single-piece turning is unchanged. Pinned in `test/planner-tools.js`.
+
+In the worker, `/designs` listed what was once approved. Three real submissions were left
+stranded in the old queue state when the queue was removed, with no page left that could
+release them. It lists what is not hidden instead, which frees them and cannot strand
+anything again. Needs a wrangler deploy; `git push` does not ship the worker.
+
 ### A run steps along the piece, not down the drag
 
 Three separate things all made a diagonal wall come out ragged, and fixing the first two was
