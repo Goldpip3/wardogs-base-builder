@@ -44,8 +44,8 @@ write("index.html", page({
   still waiting on damage figures. They are printed rather than quietly filled in with
   something that looks about right.</p>
   <div class="actions">
-    <a class="btn primary" href="/buildables/">Start reading</a>
-    <a class="btn" href="/planner/">Open the planner</a>
+    <a class="btn primary" href="/planner/">Open the planner</a>
+    <a class="btn" href="/artillery/">Artillery</a>
   </div>
   <div class="hero-rule"></div>
 </div></section>
