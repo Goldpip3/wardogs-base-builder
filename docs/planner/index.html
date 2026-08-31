@@ -1114,7 +1114,7 @@ const LS_CATALOG = "wardogs.catalog";
    completely offline: with this empty, none of the cloud code below is ever reachable
    and the app makes no network call of any kind. */
 const CLOUD_API = "https://wardogs-votes.wardogsbuilder.workers.dev";
-const BUILD_STAMP = "20260831-014645";
+const BUILD_STAMP = "20260831-014938";
 const LS_TOKEN = "wardogs.token";
 
 const LS_DESIGNS = "wardogs.designs";
@@ -3912,9 +3912,23 @@ function cloudSignInUrl() {
       })
       .catch(() => {});
   };
-  chip.onclick = () => location.reload();
+  /* Reloading is not enough on its own. GitHub Pages serves this page with max-age=600, so
+     for ten minutes after a deploy the browser can answer location.reload() out of its own
+     cache without asking the server anything. Somebody clicked this chip, got the same old
+     build back, and reported a fix as still broken. Replace the cached copy first, then
+     reload onto it. The hash carries the design, so the address is never rewritten. */
+  chip.onclick = () => {
+    chip.textContent = "↻ Updating…";
+    fetch(location.pathname, { cache: "reload" })
+      .catch(() => {})
+      .then(() => location.reload());
+  };
+
   document.addEventListener("visibilitychange", check);
+  window.addEventListener("focus", check);
   setTimeout(check, 4000);
+  /* A tab left open across a deploy never changed visibility and so was never told. */
+  setInterval(check, 5 * 60 * 1000);
 })();
 
 (function pickUpToken() {
