@@ -395,7 +395,10 @@ footer.site .fine{flex:1 1 100%;color:var(--dim);font-size:12px;line-height:1.5;
 .calc-body{display:flex;flex-direction:column;align-items:center}
 .calc-body .fine{margin-top:12px;text-align:center}
 svg.body{width:100%;max-width:210px;height:auto}
-svg.body .bz{stroke:var(--bg);stroke-width:2;cursor:pointer;transition:opacity .12s}
+/* The unselected plate colour, and the figure's resting state. Warm rather than neutral
+   grey so it sits with the cream rather than beside it. The selected zone overrides this
+   inline with its time to kill band. */
+svg.body .bz{fill:#b8b3a7;stroke:var(--bg);stroke-width:2;cursor:pointer;transition:opacity .12s}
 svg.body .bz:hover{opacity:.72}
 svg.body .bz:focus{outline:none;stroke:var(--text);stroke-width:2}
 svg.body .bz[data-on="1"]{stroke:var(--text);stroke-width:2.5}

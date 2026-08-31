@@ -483,8 +483,14 @@ module.exports = ctx => {
       "  var s=shot(w,z,r,tiers(),pellets(w));" +
       "  var k=toKill(s.damage,w.rpm,B.health);" +
       "  var band=bandFor(B.bands,k.stk,k.ttk);" +
-      "  p.style.fill=band.tint;" +
-      "  p.setAttribute('data-on',z.id===S.zone?'1':'0');" +
+      /* Only the zone you picked wears its time to kill. Colouring all twelve at once put
+         four hues on the figure at all times and it read as a heat map of nothing in
+         particular, when the zone table underneath already gives every zone its number.
+         The rest stay the plate colour, so the figure looks like the target and the one
+         thing you asked about is the one thing lit up. */
+      "  var on=z.id===S.zone;" +
+      "  p.style.fill=on?band.tint:'';" +
+      "  p.setAttribute('data-on',on?'1':'0');" +
       "  var t=p.querySelector('title');" +
       "  if(t)t.textContent=z.name+': '+fmt(s.damage)+' damage, '+k.stk+' shot'+" +
       "   (k.stk===1?'':'s')+', '+secs(k.stk,k.ttk);});" +
