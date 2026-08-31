@@ -12,6 +12,7 @@ This file routes. It holds no content.
 | understand the codebase before changing it | [map/CLAUDE.md](map/CLAUDE.md) |
 | know what a change will break | [map/effects/CONTEXT.md](map/effects/CONTEXT.md) |
 | pick up where the last session stopped | [map/OPEN.md](map/OPEN.md) |
+| see what changed lately, and why | [map/CHANGES.md](map/CHANGES.md) |
 | orient as a human, not an agent | [README.md](README.md) |
 | change a number | `data/`, never the markup |
 | change the planner | `src/app-template.html` |
