@@ -1353,18 +1353,34 @@ function occupied(cx, cy, type, level, rot) {
 
 function stampPositions(d) {
   const def = byId[placing]; if (!def) return [];
-  const ext = stampExtents(def, ghost.rot || 0);
   const dx = d.x1 - d.x0, dy = d.y1 - d.y0;
-  const horiz = Math.abs(dx) >= Math.abs(dy);          // axis-locked: straight walls
-  const step = Math.max(0.5, horiz ? ext.x : ext.y);
-  const dist = horiz ? Math.abs(dx) : Math.abs(dy);
+  if (!dx && !dy) return [{ cx: d.x0, cy: d.y0 }];
+
+  /* A run used to lock to horizontal or vertical, so dragging diagonally laid a straight
+     line of turned pieces and spaced them by their axis-aligned bounding box. For a piece
+     turned forty five degrees that box is its corner-to-corner width, so the pieces met at
+     their points with gaps between: the chain of diamonds that got reported as blocks not
+     clicking together. Eight directions, not two. */
+  const quarter = Math.PI / 4;
+  const dir = Math.round(Math.atan2(dy, dx) / quarter) * quarter;
+  const ux = Math.cos(dir), uy = Math.sin(dir);
+
+  /* The step is the piece's own extent along the way it is travelling, measured in the
+     piece's frame rather than the world's. A w by d box seen along a direction sitting at
+     angle t to its own axes is w|cos t| + d|sin t| across. The old bounding box is the
+     special case where the two frames happen to agree, which is why it only ever worked on
+     square-on walls. A turned wall laid along its own edge now steps by that edge, so the
+     pieces sit flush. */
+  const rot = ((ghost.rot || 0) * Math.PI) / 180;
+  const t = dir - rot;
+  const step = Math.max(0.25,
+    def.footprint.w * Math.abs(Math.cos(t)) + def.footprint.d * Math.abs(Math.sin(t)));
+
+  const dist = Math.abs(dx * ux + dy * uy);            // how far along that direction
   const n = Math.min(STAMP_MAX, Math.floor(dist / step + 1e-6) + 1);
-  const sign = (horiz ? dx : dy) < 0 ? -1 : 1;
   const out = [];
-  for (let i = 0; i < n; i++) {
-    out.push(horiz ? { cx: d.x0 + i * step * sign, cy: d.y0 }
-                   : { cx: d.x0, cy: d.y0 + i * step * sign });
-  }
+  for (let i = 0; i < n; i++)
+    out.push({ cx: d.x0 + i * step * ux, cy: d.y0 + i * step * uy });
   return out;
 }
 function commitStamp(d) {
