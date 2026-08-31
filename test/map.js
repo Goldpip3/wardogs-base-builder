@@ -100,8 +100,34 @@ const cards = [];
   console.log(`  entry ${entry} + hub ${hub} + ${path.basename(fattest.p)} ${fattest.t}` +
               ` = ~${walkCost} tokens`);
   check(walkCost <= 8000, "a cold walk lands inside the 8k budget", walkCost + " tokens");
-  check(tokens(cards.map(p => fs.readFileSync(p, "utf8")).join("")) < 30000,
-    "the whole map stays smaller than the code it describes");
+
+  /* The size budget counts the map, which means the things that describe how the repo is
+     shaped now. Two kinds of file are deliberately not in it.
+     AGENTS.md and routing.md are byte-identical generated twins of CLAUDE.md, so counting
+     all three charged one document three times.
+     CHANGES.md is a log. It grows with every commit forever, while the cards only grow when
+     the architecture does, so holding them to one number means a busy week eats the budget
+     for the next real card. That is not theoretical: this constant was written on 30 August
+     against a 12.8k map that had no changelog in it, and within nine hours a changelog that
+     did not exist when the number was chosen had taken 28 percent of it, which was then paid
+     for by deleting reasoning out of older entries. The log gets its own ceiling below. */
+  const GENERATED_TWINS = ["AGENTS.md", "routing.md"];
+  const LOGS = ["CHANGES.md"];
+  const mapOnly = cards.filter(p => {
+    const base = path.basename(p);
+    const atRoot = path.dirname(p) === MAP;
+    return !(atRoot && (GENERATED_TWINS.includes(base) || LOGS.includes(base)));
+  });
+  const mapSize = tokens(mapOnly.map(p => fs.readFileSync(p, "utf8")).join(""));
+  console.log(`  map ${mapSize} + log ${tokens(read("CHANGES.md"))}`);
+  check(mapSize < 30000, "the map stays smaller than the code it describes",
+    mapSize + " tokens");
+
+  /* When this fires the fix is to condense the oldest entries, which carry commit hashes so
+     `git show` still has the full story, and never to raise the ceiling. A changelog nobody
+     prunes stops being the shorter record it says it is in its own first line. */
+  check(tokens(read("CHANGES.md")) < 12000, "the changelog is pruned rather than sprawled",
+    tokens(read("CHANGES.md")) + " tokens");
 }
 
 console.log("\n" + pass + " passed, " + fail + " failed");
