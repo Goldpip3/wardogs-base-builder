@@ -419,30 +419,109 @@ tr[data-on="1"] td{background:var(--panel2);color:var(--text)}
 .rrow .n{font-family:var(--num);font-variant-numeric:tabular-nums;color:var(--text);text-align:right}
 .rrow .rdmg{cursor:help}
 
-/* --- loadouts: slot cards, item icons and the total ---
-   Same panel grid as .calc. Every slot is an icon box beside its picker; the box stays
-   visible when nothing is picked, because an empty slot reading as empty is the point. */
-.lo{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);
-  grid-template-columns:1fr;margin:30px 0 0}
-.lo>div{background:var(--panel);padding:22px}
-@media(min-width:900px){.lo{grid-template-columns:1fr 1fr 280px}}
-.lo-h{font-weight:600;font-size:10px;letter-spacing:.16em;text-transform:uppercase;
-  color:var(--dim);margin:0 0 16px}
-.lo-slot{display:flex;gap:12px;align-items:center;margin:0 0 14px}
-.lo-slot:last-child{margin-bottom:0}
-.lo-icon{flex:0 0 auto;width:52px;height:52px;background:var(--bg);border:1px solid var(--line);
-  display:flex;align-items:center;justify-content:center}
-.lo-icon img{width:44px;height:44px;object-fit:contain}
-.lo-pick{flex:1;min-width:0}
-.lo-pick label.fine{display:block;margin-bottom:4px}
-.lo-pick select{width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--line2);
-  padding:9px 11px;font-family:var(--ui);font-size:13px}
-.lo-mags{display:block;margin-top:8px}
-.lo-mags input{width:64px;padding:6px;background:var(--panel2);color:var(--text);
-  border:1px solid var(--line2);font-family:var(--num)}
-.lo-out b{display:block;font-family:var(--display);font-weight:700;font-size:40px;line-height:1;
-  letter-spacing:0;color:var(--red-hot);font-variant-numeric:tabular-nums;margin:0 0 12px}
-.lo-out .fine{margin:10px 0 0}
+/* --- loadouts: the equipment vendor ---
+   Shaped after the vendor the game puts in front of you when you buy a kit: a titled bar
+   with its tabs, a slot per thing you carry, the magazine built from a mag and a round,
+   and the bag listed back to you. Two things the game shows are deliberately absent.
+   Weight, because no weight figure is confirmed here and a bar drawn from a guess is worse
+   than no bar. And a cash balance, because this is a planner and nobody's wallet is known;
+   the one number that is real, what the kit costs, takes that place instead. */
+.vend{border:1px solid var(--line);background:var(--panel);margin:30px 0 0}
+.vend-top{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:0 14px;
+  background:var(--bg);border-bottom:1px solid var(--line);min-height:52px}
+.vend-mark{width:11px;height:11px;background:var(--yellow);flex:0 0 auto;
+  clip-path:polygon(50% 0,100% 28%,100% 72%,50% 100%,0 72%,0 28%)}
+.vend-title{font-family:var(--display);font-weight:700;text-transform:uppercase;
+  letter-spacing:.06em;font-size:14px;color:var(--text)}
+.vend-tabs{display:flex;align-items:stretch;gap:2px;margin-left:6px}
+.vend-tab{background:transparent;border:0;border-bottom:2px solid transparent;color:var(--dim);
+  font-family:var(--ui);font-weight:600;text-transform:uppercase;letter-spacing:.14em;
+  font-size:11px;padding:16px 14px;cursor:pointer}
+.vend-tab:hover{color:var(--text)}
+.vend-tab[aria-selected="true"]{color:var(--text);border-bottom-color:var(--yellow)}
+.vend-cash{margin-left:auto;display:flex;align-items:baseline;gap:12px;padding:8px 0}
+.vend-cash i{font-style:normal;font-size:10px;font-weight:600;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--dim)}
+.vend-cash b{font-family:var(--display);font-weight:700;font-size:28px;line-height:1;
+  color:var(--yellow);font-variant-numeric:tabular-nums}
+.vend-body{display:grid;grid-template-columns:1fr;gap:1px;background:var(--line)}
+@media(min-width:900px){.vend-body{grid-template-columns:26px 1fr 268px}}
+/* the vendor's own spine, vertical down the left edge, decoration only */
+.vend-rail{display:none;background:var(--bg);color:var(--dim);font-size:10px;font-weight:600;
+  letter-spacing:.28em;text-transform:uppercase;writing-mode:vertical-rl;
+  padding:14px 0;text-align:center}
+@media(min-width:900px){.vend-rail{display:block}}
+.vend-main{background:var(--panel);padding:20px}
+.vend-pack{background:var(--panel);padding:20px}
+.vend-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+  font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--dim);margin:0 0 14px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.vend-head span{color:var(--dim2);letter-spacing:.1em}
+.vend-foot{display:flex;align-items:center;justify-content:space-between;gap:16px;
+  flex-wrap:wrap;padding:12px 20px;background:var(--bg);border-top:1px solid var(--line);
+  min-height:44px}
+.vend-foot .fine{margin:0}
+
+/* a slot: art box, price tag, and the picker as its name bar */
+.vslots{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.vslot{position:relative;border:1px solid var(--line2);background:var(--bg);
+  display:flex;flex-direction:column}
+.vslot[data-on="1"]{border-color:var(--yellow)}
+.vslot-role{position:absolute;top:6px;left:8px;font-size:9px;font-weight:600;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--dim);pointer-events:none}
+.vslot-tag{position:absolute;top:5px;right:5px;background:var(--good);color:var(--bg);
+  font-family:var(--num);font-size:11px;font-weight:600;padding:2px 6px;z-index:1}
+.vslot-art{height:96px;display:flex;align-items:center;justify-content:center;padding:22px 8px 6px}
+.vslot-art img{max-width:100%;max-height:72px;object-fit:contain}
+/* On a phone the slots are full width, so a 96px art box on four of them is most of a
+   screen of nothing. The box still reads as a box at 64. */
+@media(max-width:599px){.vslot-art{height:64px;padding:20px 8px 4px}
+  .vslot-art img{max-height:44px}}
+.vslot select{width:100%;background:var(--panel2);color:var(--text);border:0;
+  border-top:1px solid var(--line2);padding:9px 10px;font-family:var(--ui);font-size:12.5px}
+.vslot[data-on="1"] select{background:var(--panel2);color:var(--text)}
+
+/* mag plus round equals a loaded magazine, the way the vendor spells it out */
+.veq{display:grid;gap:10px;align-items:end;margin-top:22px;
+  grid-template-columns:1fr;justify-items:stretch}
+@media(min-width:760px){.veq{grid-template-columns:1fr auto 1fr auto auto auto 1fr}}
+.veq-op{font-family:var(--display);font-weight:700;font-size:20px;color:var(--dim);
+  padding-bottom:22px;text-align:center}
+@media(max-width:759px){.veq-op{display:none}}
+.veq-note{display:block;font-size:9px;font-weight:600;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--dim);margin-bottom:6px}
+.vqty{display:block}
+.vqty input{width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line2);
+  padding:9px 10px;font-family:var(--num);font-size:16px}
+.vqty span{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--dim);margin-top:5px}
+.vready{border:1px solid var(--line2);background:var(--bg);color:var(--dim);
+  font-family:var(--num);font-size:13px;padding:11px 12px;min-height:44px;
+  display:flex;align-items:center}
+.vready[data-on="1"]{border-color:var(--good);color:var(--text)}
+
+/* the item cards on the Items tab, pressed rather than ticked */
+.vgrid{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(132px,1fr))}
+.vcard{position:relative;border:1px solid var(--line2);background:var(--bg);cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:8px;padding:26px 8px 0;
+  font-family:var(--ui);color:var(--dim2);text-align:center}
+.vcard:hover{border-color:var(--line2);color:var(--text)}
+.vcard[aria-pressed="true"]{border-color:var(--yellow)}
+.vcard-tag{position:absolute;top:5px;right:5px;background:var(--good);color:var(--bg);
+  font-family:var(--num);font-size:10px;font-weight:600;padding:2px 5px}
+.vcard-art{height:52px;display:flex;align-items:center;justify-content:center}
+.vcard-art img{max-width:52px;max-height:52px;object-fit:contain}
+.vcard-name{display:block;width:100%;font-size:11px;font-weight:600;padding:7px 6px;
+  background:var(--panel2);border-top:1px solid var(--line2);margin-top:auto}
+.vcard[aria-pressed="true"] .vcard-name{background:var(--yellow);color:var(--bg)}
+
+/* the bag, listed back to you */
+.vpack{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:1px}
+.vpack li{display:flex;align-items:center;gap:9px;background:var(--bg);padding:7px 9px;
+  font-size:12px;color:var(--dim2)}
+.vpack img{width:26px;height:26px;object-fit:contain;flex:0 0 auto}
+.vpack span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vpack b{font-family:var(--num);font-size:11px;color:var(--text);font-weight:400}
 .chip img{width:18px;height:18px;object-fit:contain;vertical-align:-4px;margin-right:6px}
 
 ul,ol{padding-left:22px}li{margin:6px 0}

@@ -8,22 +8,38 @@ Newest first. One entry per decision, not per commit.
 
 ## 2026-08-31
 
-### The game's own icons, and a loadout page that shows them
+### The loadout page is the vendor now, and it has the game's own icons
 
-The loadout page was ten bare dropdowns with three different inline widths and no picture
-of anything. It is now three panels on the grid the damage calculator uses, each slot
-showing the selected item's in-game icon.
+The page was ten bare dropdowns with three inline widths and no picture of anything. It is
+now shaped after the equipment vendor you buy a kit from in game, checked against beta
+footage rather than imagined: Equipment, Gear and Items tabs, a card per slot carrying the
+item's art and a price tag, and the magazine built the way the vendor builds it, mag plus
+round times a count equals a loaded mag. Every panel is in the page whatever the script
+does; the tabs only choose what is on screen.
 
-`tools/pull-game-icons.js` scrapes the wardogs.zone item catalog into
-`data/game-icons.json` and fetches 495 icons into `docs/game-icons/`, committed directly
-the way the map tiles are. It is manual, never part of the build, because the build stays
-offline. `tools/build-armory.js` joins items to slugs by name, `ICON_OVERRIDES` covering
-the 32 that differ and `null` marking the honest gaps, mostly mounted guns the wiki carries
-only under generic names. Check 3e holds the chain: slug to file, page reference to file,
-file to catalog, and the planner never naming any of it.
+**Two things the game shows are deliberately missing.** Weight, because no weight figure is
+confirmed here and a bar drawn from a guess is worse than none. And a cash balance, because
+no planner knows your wallet; what the kit costs takes that place.
 
-The damage page can take the same icons next: armory items carry the slug, and ballistics
-already joins on the armory name.
+The art is 495 icons off the wardogs.zone wiki, fetched by `tools/pull-game-icons.js` into
+`docs/game-icons/`. Mechanism and its four checks: [game-icons](objects/data/game-icons.md).
+The damage page can take the same icons next, since armory items now carry the slug and
+ballistics already joins on the armory name.
+
+### A generated file that its generator no longer makes
+
+`data/armory.json` was committed carrying 323 icon slugs without the `tools/build-armory.js`
+change behind them. Nothing noticed: that generator is run by hand and nothing compared the
+two, so the next regeneration would have stripped every icon off the loadout page.
+
+`build.ps1` now runs `tools/build-armory.js --check`, which rebuilds into memory and
+**refuses** if the committed file disagrees. Refusing rather than overwriting is the point:
+overwriting is what hid this, and a silent repair leaves the wrong generator in the tree.
+Proved by replaying the real commit, where the old generator did not have the flag, quietly
+overwrote the file and exited zero.
+
+The armory card claimed all along that a hand-edit is what "the next build will either
+overwrite or refuse". True for ballistics, not for the armory, until now.
 
 ### Two black squares on the map, and a shudder on the way in
 
@@ -50,30 +66,23 @@ delta modes converted, so a notch lands where it always did and a glide is conti
 
 ### The grouping angle comes off the page
 
-Spread was on every firing solution, every table row and both platform cards, in metres to
-one decimal place. It is gone, along with the dashed circle it drew round the target.
+Spread is gone from every firing solution, table row and platform card, along with the
+dashed circle it drew round the target. It traced to one ungrounded source: wardogshub
+publishes 50 MOA for the mortar and 10 for the SPH-2 and never says where from. djzet, where
+the firing table comes from, never mentions dispersion; wardogs-artillery.com reports only
+distance, azimuth and the MIL value. No game shows a player an MOA figure anyway.
 
-It traced to one source. wardogshub publishes a grouping angle, 50 MOA for the mortar and 10
-for the SPH-2, and never says where it came from. djzet, which is where the mortar firing
-table comes from, does not mention dispersion anywhere in its config, its features doc or
-its calculator. wardogs-artillery.com reports "distance, azimuth and the firing-table MIL
-value" and nothing else. The wardogs wiki guide says the mortar is aimed by setting
-direction and distance on the live interface, and warns readers off old numerical tables.
-And no game shows a player an MOA figure; it is a unit this hobby imported from elsewhere.
+**The check that guarded it was the worst kind.** It proved spread reproduces all four
+published figures from the MOA alone, which it does, because the site publishing both did
+the same multiplication. A check on arithmetic that reads like a check on a measurement is
+worse than no check: it made an ungrounded number look verified for as long as it stood.
 
-The check that used to guard it proved spread reproduces all four published figures from the
-MOA alone. It does, because the site that published both did the same multiplication. It
-was a check on arithmetic that read like a check on a measurement, which is worse than no
-check at all: it made an ungrounded number look verified for as long as it stood.
-
-What replaces it is an open item saying nobody has measured the scatter, and how to settle
-it: ten rounds at one dial from one position, at a known range, measured. `test/artillery.js`
-now checks the absence rather than the relationship, in the data and on the built page, and
-allows the word so the open item can explain itself while forbidding a figure. Both halves
-were proved against a reintroduced `moa` and a planted Spread cell before being trusted.
-
-The dial stays. Three independent sources publish mil tables and the gun plainly takes a mil
-elevation, so that number has ground under it in a way the spread never did.
+What replaces it is an open item saying nobody has measured the scatter and how to settle
+it: ten rounds at one dial from one position, at a known range. `test/artillery.js` checks
+the absence, in the data and on the built page, allowing the word so the open item can
+explain itself while forbidding a figure. Proved against a reintroduced `moa` and a planted
+Spread cell. **The dial stays**: three sources publish mil tables and the gun takes a mil
+elevation, so it has ground under it in a way the spread never did.
 
 ### The firing solution explains itself
 
@@ -340,30 +349,18 @@ design, refreshed only on the path where the design is edited.
 
 ### The designs page stops spending space on nothing
 
-Three things on one page, all of them the same mistake in different clothes: a layout built
-for a full rectangle, used for a list that is usually not one.
+Three things, all the same mistake: a layout built for a full rectangle used for a list that
+usually is not one.
 
-The sort tabs wore the filter bar's styling. That bar spans its column because on the armory
-and buildables pages it sits next to a search box which wants the rest of the width. Three
-tabs have nothing to sit next to, so it drew a grey band most of the way across the page
-with three words at one end. `.chips.sorts` is the width of what is in it.
-
-The card grid drew its hairlines by showing its own background through a one pixel gap,
-which is right for a dense table where every cell is filled and wrong for a list of designs.
-With one design in it, the empty track beside the card rendered as a large grey panel: an
-empty cell reading as a missing thing rather than as space. The list is rows now, centred,
-with the cards carrying their own edges, so one design sits in the middle of the page and
-four fill a row and centre what is left over.
-
-And the submit form was the old way of doing it. The planner has a Submit button that knows
-the design and its name already, so the form asked for a share link, a name and an author it
-would have had to be told twice. It is one instruction and a way to the planner now. The
-line under it promising that "submissions are read before they go up" came off with it: that
-stopped being true when the queue was removed, and a page promising a review nobody performs
-is worse than a page that promises nothing.
-
-The thumbnail also grew from 150px to 190px. Most bases are nearer square than a card is, so
-the shorter strip letterboxed them into a band with black either side.
+`.chips.sorts` is the width of its contents now, rather than spanning the column the way the
+filter bar does beside a search box. The card grid drew hairlines as background through a
+1px gap, which is right for a dense table and wrong here: with one design in it the empty
+track read as a missing thing. It is centred rows carrying their own edges. And the submit
+form asked for a link, a name and an author the planner's Submit button already knows, so it
+is one instruction and a way to the planner. **The line promising submissions are read
+before they go up came off with it: that stopped being true when the queue was removed, and
+a page promising a review nobody performs is worse than one promising nothing.** Thumbnails
+went 150px to 190px, since most bases are nearer square than a card is.
 
 ### The community list shows the base, and one decoder now serves both sides
 

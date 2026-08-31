@@ -145,11 +145,16 @@ module.exports = ctx => {
     return list.filter(function (i) { return i.name.toLowerCase().indexOf(s) >= 0; });
   };
 
+  /* A vendor slot: the art box with its price tag, the role label, and the picker as the
+     name bar under it. Shaped after the equipment slots the game shows you at the vendor,
+     with the select doing the job the game gives to a grid of cards. */
   const slot = function (id, label, list, blank) {
-    return '<div class="lo-slot">' +
-      '<span class="lo-icon"><img id="' + id + '-icon" alt="" width="44" height="44" hidden></span>' +
-      '<span class="lo-pick"><label class="fine" for="' + id + '">' + esc(label) + "</label>" +
-      '<select id="' + id + '">' + opts(list, blank) + "</select></span></div>";
+    return '<div class="vslot" id="' + id + '-slot">' +
+      '<span class="vslot-role">' + esc(label) + "</span>" +
+      '<span class="vslot-tag" id="' + id + '-tag" hidden></span>' +
+      '<span class="vslot-art"><img id="' + id + '-icon" alt="" width="72" height="72" hidden></span>' +
+      '<select id="' + id + '" aria-label="' + esc(label) + '">' + opts(list, blank) + "</select>" +
+      "</div>";
   };
 
   write("loadouts/index.html", page({
@@ -161,50 +166,112 @@ module.exports = ctx => {
       "<h1>Loadout calculator</h1>" +
       '<p class="lede">Build a kit and watch the number climb. Everything here is what you are' +
       " writing off the moment the kit does not come home.</p>" +
-      '<div class="lo">' +
-      "<div>" +
-      '<h3 class="lo-h">Weapon</h3>' +
-      slot("w", "Weapon", byCat("weapons"), "No weapon") +
-      '<div class="lo-slot">' +
-      '<span class="lo-icon"><img id="ammo-icon" alt="" width="44" height="44" hidden></span>' +
-      '<span class="lo-pick"><label class="fine" for="ammo">Ammunition</label>' +
-      '<select id="ammo"></select>' +
-      '<label class="fine lo-mags">&times; <input id="mags" type="number" min="0" max="20" value="3"> ' +
-      "magazines</label></span></div>" +
-      slot("mag", "Magazine", attSlot("magazine"), "None") +
-      slot("opt", "Optic", attSlot("optic"), "None") +
-      slot("muz", "Muzzle", attSlot("muzzle"), "None") +
-      slot("grip", "Grip or bipod", attSlot("grip"), "None") +
-      "</div><div>" +
-      '<h3 class="lo-h">Protection and carry</h3>' +
-      slot("hel", "Helmet", nameHas(byCat("armour"), "helmet").concat(nameHas(byCat("armour"), "headwear")), "Bare head") +
-      slot("arm", "Body armour", byCat("armour").filter(function (i) {
-        const n = i.name.toLowerCase();
-        return n.indexOf("helmet") < 0 && n.indexOf("headwear") < 0;
-      }), "No armour") +
-      slot("bag", "Backpack", nameHas(byCat("storage"), "backpack"), "None") +
-      slot("vest", "Rig", nameHas(byCat("storage"), "tac vest").concat(nameHas(byCat("storage"), "pouch")), "None") +
+      '<div class="vend">' +
+
+      '<div class="vend-top">' +
+        '<span class="vend-mark" aria-hidden="true"></span>' +
+        '<span class="vend-title">Equipment vendor</span>' +
+        '<span class="vend-tabs" role="tablist">' +
+          '<button class="vend-tab" role="tab" data-tab="equipment" aria-selected="true">Equipment</button>' +
+          '<button class="vend-tab" role="tab" data-tab="gear" aria-selected="false">Gear</button>' +
+          '<button class="vend-tab" role="tab" data-tab="items" aria-selected="false">Items</button>' +
+        "</span>" +
+        '<span class="vend-cash"><i>Cost per life</i><b id="total">$0</b></span>' +
       "</div>" +
-      '<div class="lo-out">' +
-      '<h3 class="lo-h">Cost per life</h3>' +
-      '<b id="total">$0</b>' +
-      '<p class="fine" id="breakdown" style="margin:0"></p>' +
-      '<p class="fine" id="warn"></p>' +
-      "</div></div>" +
+
+      '<div class="vend-body">' +
+        '<span class="vend-rail" aria-hidden="true">// Vendor_</span>' +
+
+        '<div class="vend-main">' +
+
+          '<div class="vend-panel" data-panel="equipment">' +
+            '<p class="vend-head">Equipment slots</p>' +
+            '<div class="vslots">' +
+              slot("w", "Primary", byCat("weapons"), "No weapon") +
+              slot("opt", "Optic", attSlot("optic"), "None") +
+              slot("muz", "Muzzle", attSlot("muzzle"), "None") +
+              slot("grip", "Grip or bipod", attSlot("grip"), "None") +
+            "</div>" +
+            /* The game builds a loaded magazine in front of you: pick the mag, pick the
+               round, and it shows you what you end up with. The sum was always here, it
+               was just written as a sentence under a dropdown. */
+            '<div class="veq">' +
+              '<div class="veq-step">' +
+                '<span class="veq-note">Step 1 // magazine</span>' +
+                slot("mag", "Magazine", attSlot("magazine"), "None") +
+              "</div>" +
+              '<span class="veq-op" aria-hidden="true">+</span>' +
+              '<div class="veq-step">' +
+                '<span class="veq-note">Step 2 // round</span>' +
+                '<div class="vslot" id="ammo-slot">' +
+                  '<span class="vslot-role">Ammunition</span>' +
+                  '<span class="vslot-tag" id="ammo-tag" hidden></span>' +
+                  '<span class="vslot-art"><img id="ammo-icon" alt="" width="72" height="72" hidden></span>' +
+                  '<select id="ammo" aria-label="Ammunition"></select>' +
+                "</div>" +
+              "</div>" +
+              '<span class="veq-op" aria-hidden="true">&times;</span>' +
+              '<div class="veq-step veq-qty">' +
+                '<span class="veq-note">Step 3 // how many</span>' +
+                '<label class="vqty"><input id="mags" type="number" min="0" max="20" value="3">' +
+                "<span>magazines</span></label>" +
+              "</div>" +
+              '<span class="veq-op" aria-hidden="true">=</span>' +
+              '<div class="veq-step">' +
+                '<span class="veq-note">Loaded</span>' +
+                '<div class="vready" id="ready">Nothing loaded</div>' +
+              "</div>" +
+            "</div>" +
+          "</div>" +
+
+          '<div class="vend-panel" data-panel="gear" hidden>' +
+            '<p class="vend-head">Gear</p>' +
+            '<div class="vslots">' +
+              slot("hel", "Helmet", nameHas(byCat("armour"), "helmet").concat(nameHas(byCat("armour"), "headwear")), "Bare head") +
+              slot("arm", "Body armour", byCat("armour").filter(function (i) {
+                const n = i.name.toLowerCase();
+                return n.indexOf("helmet") < 0 && n.indexOf("headwear") < 0;
+              }), "No armour") +
+              slot("bag", "Backpack", nameHas(byCat("storage"), "backpack"), "None") +
+              slot("vest", "Rig", nameHas(byCat("storage"), "tac vest").concat(nameHas(byCat("storage"), "pouch")), "None") +
+            "</div>" +
+          "</div>" +
+
+          '<div class="vend-panel" data-panel="items" hidden>' +
+            '<p class="vend-head">Items</p>' +
+            '<div class="vgrid">' +
+              byCat("throwables").concat(byCat("medical")).concat(byCat("equipment"))
+                .filter(function (i) { return i.price !== null; })
+                .map(function (i) {
+                  return '<button class="vcard" data-extra="' + esc(i.name) + '" data-price="' + i.price +
+                    '" aria-pressed="false">' +
+                    '<span class="vcard-tag">' + money(i.price) + "</span>" +
+                    '<span class="vcard-art">' +
+                    (i.icon ? '<img src="/game-icons/' + i.icon + '.png" alt="" width="52" height="52" loading="lazy">' : "") +
+                    "</span>" +
+                    '<span class="vcard-name">' + esc(i.name) + "</span></button>";
+                }).join("") +
+            "</div>" +
+          "</div>" +
+
+        "</div>" +
+
+        '<div class="vend-pack">' +
+          '<p class="vend-head">Backpack<span id="packcount">Empty</span></p>' +
+          '<ul class="vpack" id="pack"></ul>' +
+        "</div>" +
+
+      "</div>" +
+
+      '<div class="vend-foot">' +
+        '<span class="fine" id="breakdown"></span>' +
+        '<span class="fine" id="warn"></span>' +
+      "</div>" +
+
+      "</div>" +
 
       adSlot("inArticle") +
 
-      '<h2 style="margin-top:34px">Extras</h2>' +
-      '<div class="chips" style="margin-top:10px">' +
-        byCat("throwables").concat(byCat("medical")).concat(byCat("equipment"))
-          .filter(function (i) { return i.price !== null; })
-          .map(function (i) {
-            return '<button class="chip" data-extra="' + esc(i.name) + '" data-price="' + i.price +
-              '" aria-pressed="false">' +
-              (i.icon ? '<img src="/game-icons/' + i.icon + '.png" alt="" width="18" height="18" loading="lazy">' : "") +
-              esc(i.name) + "<small>" + money(i.price) + "</small></button>";
-          }).join("") +
-      "</div>" +
       '<p style="margin-top:34px"><a class="btn" href="/armory/">Browse the armory</a> ' +
       '<a class="btn" href="/ballistics/">Check what it kills</a></p>' +
       "</div></section>" +
@@ -255,11 +322,21 @@ module.exports = ctx => {
       '  o.textContent=a.name+" $"+a.price+" / "+a.per;' +
       '  s.appendChild(o);});' +
       ' if(keep)s.value=keep;}' +
+      'function money(n){return "$"+n.toLocaleString("en-US");}' +
+      /* A slot carries three states at once: the art, the price tag and whether it reads as
+         filled. They are set together so a slot can never show one and not the others. */
       'function setIcon(id){' +
       ' var s=el(id),o=s.options[s.selectedIndex],ic=el(id+"-icon");' +
       ' var slug=o&&o.getAttribute("data-icon");' +
       ' if(slug){ic.src="/game-icons/"+slug+".png";ic.hidden=false;}' +
-      ' else{ic.hidden=true;ic.removeAttribute("src");}}' +
+      ' else{ic.hidden=true;ic.removeAttribute("src");}' +
+      ' var tag=el(id+"-tag"),box=el(id+"-slot"),on=!!(o&&o.value);' +
+      ' if(box)box.setAttribute("data-on",on?"1":"0");' +
+      ' if(tag){' +
+      '  if(on&&!o.getAttribute("data-unknown")){' +
+      '   tag.textContent=money(+o.getAttribute("data-price")||0);tag.hidden=false;}' +
+      '  else if(on){tag.textContent="no price";tag.hidden=false;}' +
+      '  else tag.hidden=true;}}' +
       'function ammoCost(){' +
       ' var s=el("ammo"),o=s.options[s.selectedIndex];' +
       ' if(!o||!o.value)return {cost:0,rounds:0};' +
@@ -268,19 +345,50 @@ module.exports = ctx => {
       ' var rounds=size*(+el("mags").value||0);' +
       /* You buy rounds in packs, so a part pack still costs a whole one. */
       ' return {cost:Math.ceil(rounds/per)*price,rounds:rounds};}' +
+      /* The kit listed back to you, the way the vendor shows what is going in the bag. */
+      'function fillPack(){' +
+      ' var ul=el("pack");ul.textContent="";var n=0;' +
+      ' sel.concat(["ammo"]).forEach(function(id){' +
+      '  var s=el(id),o=s.options[s.selectedIndex];' +
+      '  if(!o||!o.value)return;' +
+      '  n++;' +
+      '  var li=document.createElement("li");' +
+      '  var slug=o.getAttribute("data-icon");' +
+      '  if(slug){var im=document.createElement("img");im.src="/game-icons/"+slug+".png";' +
+      '   im.alt="";im.width=26;im.height=26;li.appendChild(im);}' +
+      '  var nm=document.createElement("span");nm.textContent=o.value;li.appendChild(nm);' +
+      '  var pr=document.createElement("b");' +
+      '  pr.textContent=o.getAttribute("data-unknown")?"?":money(+o.getAttribute("data-price")||0);' +
+      '  li.appendChild(pr);ul.appendChild(li);});' +
+      ' Object.keys(extras).forEach(function(k){' +
+      '  n++;' +
+      '  var li=document.createElement("li");' +
+      '  var b=document.querySelector("[data-extra=\\""+k.replace(/"/g,"")+"\\"]");' +
+      '  var im0=b&&b.querySelector("img");' +
+      '  if(im0){var im=document.createElement("img");im.src=im0.src;im.alt="";' +
+      '   im.width=26;im.height=26;li.appendChild(im);}' +
+      '  var nm=document.createElement("span");nm.textContent=k;li.appendChild(nm);' +
+      '  var pr=document.createElement("b");pr.textContent=money(extras[k]);' +
+      '  li.appendChild(pr);ul.appendChild(li);});' +
+      ' el("packcount").textContent=n?n+(n>1?" items":" item"):"Empty";}' +
       'function render(){' +
       ' var total=0,unknown=0,parts=[];' +
       ' sel.forEach(function(id){var r=priceOf(id);total+=r.p;if(r.unknown)unknown++;});' +
       ' var a=ammoCost();total+=a.cost;' +
       ' Object.keys(extras).forEach(function(k){total+=extras[k];});' +
-      ' el("total").textContent="$"+total.toLocaleString("en-US");' +
-      ' if(a.rounds)parts.push(a.rounds+" rounds for $"+a.cost.toLocaleString("en-US"));' +
+      ' el("total").textContent=money(total);' +
+      ' el("ready").textContent=a.rounds' +
+      '  ?a.rounds+" rounds loaded, "+money(a.cost)' +
+      '  :"Nothing loaded";' +
+      ' el("ready").setAttribute("data-on",a.rounds?"1":"0");' +
+      ' if(a.rounds)parts.push(a.rounds+" rounds for "+money(a.cost));' +
       ' var ne=Object.keys(extras).length;' +
-      ' if(ne)parts.push(ne+" extra"+(ne>1?"s":""));' +
+      ' if(ne)parts.push(ne+" item"+(ne>1?"s":""));' +
       ' el("breakdown").textContent=parts.join(" \u00b7 ");' +
       ' el("warn").textContent=unknown?' +
       '  unknown+" item"+(unknown>1?"s have":" has")+" no confirmed price yet and counts as zero."' +
-      '  :"";}' +
+      '  :"";' +
+      ' fillPack();}' +
       'sel.forEach(function(id){el(id).addEventListener("change",function(){' +
       ' if(id==="w"){fillAmmo();setIcon("ammo");}setIcon(id);render();});});' +
       'el("ammo").addEventListener("change",function(){setIcon("ammo");render();});' +
@@ -291,6 +399,16 @@ module.exports = ctx => {
       '  if(extras[k]!==undefined){delete extras[k];b.setAttribute("aria-pressed","false");}' +
       '  else{extras[k]=+b.getAttribute("data-price");b.setAttribute("aria-pressed","true");}' +
       '  render();});});' +
+      /* The vendor's tabs. Every panel is in the page already, so the content is there for
+         a reader with no script and for anything indexing it; the tabs only choose which
+         one is on screen. */
+      'Array.prototype.forEach.call(document.querySelectorAll(".vend-tab"),function(t){' +
+      ' t.addEventListener("click",function(){' +
+      '  var want=t.getAttribute("data-tab");' +
+      '  Array.prototype.forEach.call(document.querySelectorAll(".vend-tab"),function(o){' +
+      '   o.setAttribute("aria-selected",o===t?"true":"false");});' +
+      '  Array.prototype.forEach.call(document.querySelectorAll("[data-panel]"),function(p){' +
+      '   p.hidden=p.getAttribute("data-panel")!==want;});});});' +
       'fillAmmo();sel.concat(["ammo"]).forEach(setIcon);render();' +
       '}());<\/script>',
   }));

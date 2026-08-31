@@ -400,6 +400,67 @@ const WEAPON_CALIBRE = {
   "PP-19 Vityaz": "9mm", "Compound Bow": "Broadhead Arrow", "PKM": "7.62x51mm",
 };
 
+/* Icon slugs join items to the wiki icons fetched into docs/game-icons/ by
+ * tools/pull-game-icons.js. Most items share their exact name with the wiki and match
+ * automatically; this map covers the rest. A null value is a deliberate honest gap: the
+ * wiki has no icon that can be identified as this item without guessing, so the item
+ * ships without one and stops appearing in the unmatched report. */
+const ICON_OVERRIDES = {
+  // The wiki names the plain round after its full cartridge, the armory says Standard (FMJ)
+  ".308 Win Standard (FMJ)": "308win",
+  ".45 ACP Standard (FMJ)": "45acp",
+  ".45 Colt Standard (FMJ)": "45colt",
+  ".50Cal Standard (FMJ)": "50cal",
+  "5.45mm Standard (FMJ)": "545mm",
+  "5.56mm Standard (FMJ)": "556mm",
+  "50AE Standard (FMJ)": "50ae",
+  "7.62mm Standard (FMJ)": "762mm",
+  "7.62x51mm Standard (FMJ)": "762x51mm",
+  "7.62x54mm Standard (FMJ)": "762x54mm",
+  "9mm Standard (FMJ)": "9mm",
+  ".308 Win Flesh Damage (HP)": "308win-hollowpoint",
+  // Several wiki entries share one display name; these pick the base variant
+  "81mm": "120x800mm",
+  "155mm HE Shell": "155mm",
+  "Level 4 Helmet": "superheavyhelmet",
+  "AK74 Grip": "ak74mgrip",
+  "AT4 Mag": "at4rocket",
+  "STANAG 30 RND Magazine": "stanagmagazine",
+  "45 Degree Angled Foregrip": "fgrp_016",
+  "Fuel Can": "fuelcan",
+  "Improvised Explosive Device": "ied-explosive",
+  "Adrenaline Pen": "adrenalinepen",
+  "M113 APC SV": "land-tracked-spawnvehicle-lonestar",
+  "Stingray": "stationary-stn_05",
+  // Mounted guns the wiki only carries under generic names like Machine Gun; matching a
+  // specific gun to one of those icons would be a guess
+  "2A42 Autocannon": null,
+  "B-13 Rocket Pods": null,
+  "Duel 35mm Oerlikon GDF Cannons": null,
+  "L52 Cannon": null,
+  "L55A1 Cannon": null,
+  "M134D Minigun": null,
+  "M249 Machine Gun": null,
+  "MG3A1 Coaxial Gun": null,
+};
+
+const WIKI = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "data", "game-icons.json"), "utf8"));
+const iconNorm = s => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+const iconByName = new Map();
+const iconNameDupes = new Set();
+for (const w of WIKI.items) {
+  if (w.hasIcon === false) continue;
+  const k = iconNorm(w.name);
+  if (iconByName.has(k) && iconByName.get(k) !== w.slug) iconNameDupes.add(k);
+  else iconByName.set(k, w.slug);
+}
+const iconFor = name => {
+  if (name in ICON_OVERRIDES) return ICON_OVERRIDES[name];
+  const k = iconNorm(name);
+  if (iconNameDupes.has(k)) return null;
+  return iconByName.get(k) || null;
+};
+
 const items = [];
 const problems = [];
 
@@ -422,6 +483,8 @@ for (const [cat, block] of Object.entries(RAW)) {
     const item = { name, cat, price, per };
     if (free) item.free = true;
     if (cat === "weapons" && WEAPON_CALIBRE[name]) item.calibre = WEAPON_CALIBRE[name];
+    const slug = iconFor(name);
+    if (slug) item.icon = slug;
     items.push(item);
   }
 }
@@ -440,6 +503,13 @@ const calibres = new Set(items.filter(i => i.cat === "ammunition").map(i => i.na
 for (const [w, cal] of Object.entries(WEAPON_CALIBRE)) {
   if (!items.some(i => i.cat === "weapons" && i.name === w)) problems.push("calibre for unknown weapon: " + w);
 }
+const wikiSlugs = new Set(WIKI.items.map(w => w.slug));
+for (const [name, slug] of Object.entries(ICON_OVERRIDES)) {
+  if (!items.some(i => i.name === name)) problems.push("icon override for unknown item: " + name);
+  if (slug !== null && !wikiSlugs.has(slug)) problems.push("icon override to unknown slug: " + name + " -> " + slug);
+  if (slug !== null && WIKI.items.some(w => w.slug === slug && w.hasIcon === false))
+    problems.push("icon override to a slug the wiki has no icon for: " + name + " -> " + slug);
+}
 
 if (problems.length) {
   console.error("armory data is not clean:");
@@ -449,17 +519,49 @@ if (problems.length) {
 
 const priced = items.filter(i => i.price !== null).length;
 const out = {
-  _note: "Vendor prices transcribed from the public item database, not derived. A null price is an item the source has not confirmed; it stays blank rather than being guessed at. Regenerate with tools/build-armory.js.",
+  _note: "Vendor prices transcribed from the public item database, not derived. A null price is an item the source has not confirmed; it stays blank rather than being guessed at. An icon names a file under docs/game-icons/, fetched by tools/pull-game-icons.js. Regenerate with tools/build-armory.js.",
   checkedOn: "2026-08-30",
   gameVersion: "closed beta, pre Early Access",
   categories: CATEGORIES,
   items,
 };
-fs.writeFileSync(path.join(__dirname, "..", "data", "armory.json"),
-  JSON.stringify(out, null, 1) + "\n");
+/* --check regenerates into memory and refuses if the committed file disagrees, rather than
+   overwriting it. The build runs it that way so a generated file can never drift from the
+   generator that is supposed to produce it. It has drifted once: a commit took the new
+   data/armory.json without the tools/build-armory.js change that made it, so the next
+   regeneration would have quietly stripped every icon off the loadout page. Overwriting
+   here would have hidden exactly that. Refusing names it. */
+const FILE = path.join(__dirname, "..", "data", "armory.json");
+const text = JSON.stringify(out, null, 1) + "\n";
 
+if (process.argv.includes("--check")) {
+  const onDisk = fs.existsSync(FILE) ? fs.readFileSync(FILE, "utf8") : "";
+  if (onDisk !== text) {
+    console.error("data/armory.json does not match what tools/build-armory.js produces.");
+    console.error("Either it was hand-edited, or the generator changed and the file was");
+    console.error("not regenerated. Run: node tools/build-armory.js");
+    const was = (() => { try { return JSON.parse(onDisk).items || []; } catch (_) { return []; } })();
+    const icons = n => n.filter(i => i.icon).length;
+    if (was.length) {
+      console.error("  on disk: " + was.length + " items, " + icons(was) + " with icons");
+      console.error("  fresh:   " + items.length + " items, " + icons(items) + " with icons");
+    }
+    process.exit(1);
+  }
+  console.log("data/armory.json reproduces from its generator");
+  process.exit(0);
+}
+
+fs.writeFileSync(FILE, text);
+
+const noIcon = items.filter(i => !i.icon && ICON_OVERRIDES[i.name] !== null);
 console.log(items.length + " items across " + CATEGORIES.length + " categories, " +
-  priced + " priced, " + (items.length - priced) + " awaiting confirmation");
+  priced + " priced, " + (items.length - priced) + " awaiting confirmation, " +
+  items.filter(i => i.icon).length + " with icons");
 for (const c of CATEGORIES) {
   console.log("  " + c.name.padEnd(16) + String(items.filter(i => i.cat === c.id).length).padStart(4));
+}
+if (noIcon.length) {
+  console.log("no icon matched (add to ICON_OVERRIDES, or set null for an honest gap):");
+  noIcon.forEach(i => console.log("  " + i.cat + " | " + i.name));
 }

@@ -124,6 +124,13 @@ node (Join-Path $proj "tools/sync-map-twins.js")
 node (Join-Path $proj "tools/solve-ballistics.js") | Out-Null
 if ($LASTEXITCODE -ne 0) { throw "Ballistics data no longer reproduces its published source - run tools/solve-ballistics.js." }
 
+# data/armory.json is generated too, but by a tool nobody runs on a schedule, so it can be
+# committed without the generator change that produced it. That happened once and would
+# have stripped every icon off the loadout page at the next regeneration. --check refuses
+# rather than overwrites, so the drift is named instead of quietly repaired.
+node (Join-Path $proj "tools/build-armory.js") --check | Out-Null
+if ($LASTEXITCODE -ne 0) { throw "data/armory.json no longer matches tools/build-armory.js - run tools/build-armory.js." }
+
 node (Join-Path $proj "tools/check-build.js")
 if ($LASTEXITCODE -ne 0) { throw "Build produced a broken page - see the failures above." }
 

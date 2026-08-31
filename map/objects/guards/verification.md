@@ -32,6 +32,9 @@ the site's prose. **Checks walk a tree; they do not read a list.**
 - `test/run.js`: 11 suites, a little over 250 checks, about half a second
 - suites lift real functions out of the *built* HTML with `vm`, so they test what shipped
 - `tools/solve-ballistics.js` re-derives the damage data and fails on drift
+- `tools/build-armory.js --check` refuses if `data/armory.json` is not what the generator
+  makes. It drifted once: a commit took the file without the generator change behind it,
+  so regenerating would have stripped every icon. Refusing names that; overwriting hid it
 - `test/ballistics.js` carries the fourth ballistics check, the one the solver cannot make:
   the whole pipeline has to reproduce a published hit-zone column that is stored nowhere in
   this repo. It also refuses to let a weapon or a load on the vendor shelf go unmentioned
