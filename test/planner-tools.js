@@ -211,5 +211,35 @@ check(/function openImport\(/.test(src) && /function openCatalog\(/.test(src),
 check(!/getElementById\("btnCatalog"\)/.test(src) && !/id="btnCatalog"/.test(html),
   "and no code is left reaching for the Catalog button that was removed");
 
+// ---------- the keys everyone already knows ----------
+/* The plain letters were matched before the Ctrl combinations, and holding Ctrl did not stop
+   them. So Ctrl+V hit the plain "v" branch and toggled the 3D view instead of pasting,
+   Ctrl+R turned the selection on its way to reloading the page, and Ctrl+B toggled snap.
+   Reported as a hotkey clash, and it was worse than that: the shortcut everybody has in
+   their fingers did the wrong thing.
+*/
+const keys = src.slice(src.indexOf(`window.addEventListener("keydown"`));
+const at = needle => keys.indexOf(needle);
+
+check(at("e.ctrlKey || e.metaKey") > -1 && at("e.ctrlKey || e.metaKey") < at(`k === "b"`),
+  "Ctrl combinations are matched before the plain letters, not after them");
+
+/* Order alone is not enough: without the return, a plain branch further down still catches
+   a modified key that the block above did not list. */
+const modBlock = keys.slice(at("e.ctrlKey || e.metaKey"), at(`if (k === "[")`));
+check(/\breturn;/.test(modBlock),
+  "and a modified key stops there, so an unlisted Ctrl combination stays the browser's");
+for (const [combo, fn] of [["z", "undo"], ["y", "redo"], ["d", "duplicateSelection"],
+                           ["c", "copySelection"], ["v", "pasteClipboard"]])
+  check(new RegExp(`k === "${combo}"[\\s\\S]{0,80}${fn}\\(`).test(modBlock),
+    `Ctrl+${combo.toUpperCase()} does the Word thing (${fn})`);
+
+// and the 3D view is off the letter that made Ctrl+V ambiguous to read
+check(!/k === "v"\)\s*set3D/.test(keys), "the 3D view is no longer on V");
+check(/k === "3"\)\s*set3D/.test(keys), "it is on 3, which nothing else wants");
+check(!/<kbd>V<\/kbd>/.test(html) && !/3D view \(V\)/.test(html),
+  "and nothing still tells the user to press V");
+check(/<kbd>3<\/kbd>/.test(html), "the shortcut list says 3");
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

@@ -8,6 +8,21 @@ Newest first. One entry per decision, not per commit.
 
 ## 2026-08-31
 
+### Ctrl+V pastes
+
+Reported as a hotkey clash: V toggled the 3D view and Ctrl+V is paste. It was worse than a
+clash. The plain letters were matched before the Ctrl combinations in the same if-else chain,
+and holding Ctrl did not stop them, so Ctrl+V hit the plain "v" branch and toggled the 3D
+view without ever pasting. Ctrl+R turned the selection on its way to reloading the page, and
+Ctrl+B toggled snap.
+
+Modified keys are handled first now, in their own block that returns. Order alone would not
+have been enough: without the return a plain branch further down still catches any modified
+key the block above does not list. The 3D view moved from V to 3, which nothing else wants.
+
+Pinned in `test/planner-tools.js`: the modifier block comes first, it returns, each Ctrl
+key reaches the function it should, and nothing in the markup still tells anyone to press V.
+
 ### Fewer buttons up top
 
 Fifteen controls on the top bar, four of which were the one job of getting a design out.
