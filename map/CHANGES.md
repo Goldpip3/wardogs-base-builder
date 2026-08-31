@@ -65,6 +65,21 @@ Reload came out of the panel. Nothing about it changes with where the gun or the
 so it was reference material sitting in a readout, and it is still on the platform card
 below where the rest of the reference lives.
 
+### The camera sits higher
+
+The textbook isometric puts the eye about thirty degrees above the ground, which is a low
+angle to plan a footprint from: a perimeter comes out as a thin band and you read the walls
+rather than the shape. `ISO_TILT` raises it. The walls keep their height while the ground
+opens toward the overhead plan, because height here is a fixed offset up the screen rather
+than something the tilt foreshortens. Not a real camera, and that is the point: the plan
+answers where things are, this answers how tall, and this angle reads as much of both at
+once as it can.
+
+That exposed one more thing. `fit3D` measured the ground across and nothing else, so it
+never saw the height it was about to draw, and a base fitted to the width and ran off the
+top. It projects the eight corners of the whole volume now and fits what actually lands on
+screen, in both directions.
+
 ### The 3D view, second pass: seamless runs, real height, and concrete
 
 Three things, all reported off the same screen.

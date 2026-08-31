@@ -1840,6 +1840,14 @@ const ISO_K = 0.866;
    it stands on. Not a lie about the geometry: the plan is where footprints are read, and
    this is where you look at what stands up. */
 const ISO_Z = 1.45;
+/* How far above the ground the camera sits. The ground runs 0.866 across and this far down
+   the screen, so the two together are the tilt: 0.5 is the textbook isometric, about thirty
+   degrees up, which is a low angle to plan a footprint from. Higher opens the ground out
+   toward the overhead plan while the walls still stand up, because height here is a fixed
+   offset up the screen rather than something the tilt foreshortens. That is not a real
+   camera, and it is the point: the plan answers where things are, the 3D answers how tall,
+   and this reads as much of both at once as it can. */
+const ISO_TILT = 0.68;
 
 function isoSpin(x, y) {
   switch (iso.rot & 3) {
@@ -1854,7 +1862,7 @@ function isoPt(x, y, z) {
   const u = iso.zoom;
   return [
     canvas.clientWidth / 2 + (rx - ry) * ISO_K * u,
-    canvas.clientHeight / 2 + (rx + ry) * u * 0.5 - z * u * ISO_Z,
+    canvas.clientHeight / 2 + (rx + ry) * u * ISO_TILT - z * u * ISO_Z,
   ];
 }
 
@@ -2049,8 +2057,26 @@ function fit3D() {
     x1 = Math.max(x1, b.x1); y1 = Math.max(y1, b.y1);
   }
   iso.x = (x0 + x1) / 2; iso.y = (y0 + y1) / 2;
-  const spread = Math.max(4, (x1 - x0) + (y1 - y0));
-  iso.zoom = Math.max(4, Math.min(46, (canvas.clientWidth * 0.62) / (spread * ISO_K)));
+
+  let top = 0;
+  for (const p of design.pieces) {
+    const def = byId[p.type]; if (!def) continue;
+    top = Math.max(top, (p.level || 0) + (def.isFob ? 0.35 : (def.height || 1)));
+  }
+
+  // the eight corners of the volume, projected at zoom 1, so the fit sees what it will draw
+  let sx0 = 1e9, sy0 = 1e9, sx1 = -1e9, sy1 = -1e9;
+  for (const cx of [x0, x1]) for (const cy of [y0, y1]) for (const cz of [0, top]) {
+    const [rx, ry] = isoSpin(cx - iso.x, cy - iso.y);
+    const sx = (rx - ry) * ISO_K, sy = (rx + ry) * ISO_TILT - cz * ISO_Z;
+    if (sx < sx0) sx0 = sx;
+    if (sx > sx1) sx1 = sx;
+    if (sy < sy0) sy0 = sy;
+    if (sy > sy1) sy1 = sy;
+  }
+  const spanX = Math.max(2, sx1 - sx0), spanY = Math.max(2, sy1 - sy0);
+  iso.zoom = Math.max(4, Math.min(46, Math.min(canvas.clientWidth * 0.78 / spanX,
+                                               canvas.clientHeight * 0.72 / spanY)));
 }
 
 function set3D(on) {

@@ -412,5 +412,50 @@ check(/opt\.level > 0 \? "#ffc61a" : "#8b8b80"/.test(src),
     "runs merge by role, so a hesco meeting a bremer now shows the join between them");
 }
 
+// ---------- where the camera sits ----------
+/* The textbook isometric puts the eye about thirty degrees above the ground, which is a low
+   angle to plan a footprint from: a perimeter comes out as a thin band and you read the
+   walls rather than the shape. Higher opens the ground toward the overhead plan, and the
+   walls keep their height because height here is a fixed offset up the screen rather than
+   something the tilt foreshortens.
+ */
+{
+  const tilt = src.match(/const ISO_TILT = ([\d.]+);/);
+  check(!!tilt, "the tilt is a named number, not a 0.5 buried in the projection");
+  const t = tilt ? parseFloat(tilt[1]) : 0;
+  check(t > 0.5, "and sits higher than the textbook isometric it started at", String(t));
+  check(t < 0.866, "without going fully overhead, which would flatten the walls to nothing",
+    t + " against a ground scale of 0.866");
+  check(/\(rx \+ ry\) \* u \* ISO_TILT/.test(src), "the projection uses it");
+
+  /* Fit measured the ground across and nothing else, so it never saw the height it was about
+     to draw. Tilting up made that visible: a base fitted to the width and ran off the top. */
+  const fit = lift("fit3D");
+  check(/ISO_Z/.test(fit) && /ISO_TILT/.test(fit),
+    "and the fit projects the volume it is about to draw, height included");
+  check(/clientHeight/.test(fit),
+    "so it fits what is on screen in both directions, not just across");
+
+  /* the arithmetic, on a base that is mostly height: it has to come back small enough to
+     land inside the canvas rather than being fitted to the width alone */
+  const W = 900, H = 600, ISO_K = 0.866, Z = parseFloat(src.match(/const ISO_Z = ([\d.]+)/)[1]);
+  const fitZoom = (spanCells, tallBlocks) => {
+    let sx0 = 1e9, sy0 = 1e9, sx1 = -1e9, sy1 = -1e9;
+    const h = spanCells / 2;
+    for (const cx of [-h, h]) for (const cy of [-h, h]) for (const cz of [0, tallBlocks]) {
+      const sx = (cx - cy) * ISO_K, sy = (cx + cy) * t - cz * Z;
+      sx0 = Math.min(sx0, sx); sx1 = Math.max(sx1, sx);
+      sy0 = Math.min(sy0, sy); sy1 = Math.max(sy1, sy);
+    }
+    return Math.max(4, Math.min(46, Math.min(W * 0.78 / Math.max(2, sx1 - sx0),
+                                             H * 0.72 / Math.max(2, sy1 - sy0))));
+  };
+  const flat = fitZoom(30, 2), towers = fitZoom(30, 12);
+  check(towers < flat,
+    "a base full of towers pulls back further than the same footprint of low walls",
+    "zoom " + towers.toFixed(1) + " against " + flat.toFixed(1));
+  check(30 * ISO_K * flat < W, "and a wide flat base still fits across");
+}
+
 console.log("\n" + pass + " passed, " + fail + " failed");
 process.exit(fail ? 1 : 0);
