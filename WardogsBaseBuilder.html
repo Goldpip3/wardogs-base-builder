@@ -1764,6 +1764,7 @@ function drawPiece(p, hasIssue) {
   drawRect(pieceRect(p), def, {
     seams: seam ? seam.mask : 0,
     kin: seam ? seam.kin : 0,
+    quiet: !!(seam && seam.quiet),
     climb: getClimb().get(p.id),
     selected: selection.has(p.id),
     hovered: hoverId === p.id,
@@ -1948,7 +1949,7 @@ function drawRect(r, def, opt) {
        the second one lands exactly on the join and reads as a divider through a wall that
        is meant to be continuous. One run, one height, one chip: the piece that starts the
        run, meaning nothing joined to its -x or -y. Hovering any block still shows it. */
-    const runStart = !(opt.kin & 2) && !(opt.kin & 8);
+    const runStart = !opt.quiet && !(opt.kin & 2) && !(opt.kin & 8);
     if (badges.length && (runStart || opt.hovered)) {
       const txt = badges.join(" ");
       ctx.font = `700 ${10.5 * uiScale}px sans-serif`;
@@ -2414,6 +2415,48 @@ function computeSeams() {
       if (q.type === p.type) kin |= bit;
     }
     if (mask) merged.set(p.id, { mask, kin });
+  }
+
+  /* Off-square pieces skipped all of that, so none of them ever had kin, so every single
+     one counted as the start of its own run and printed its own height badge. A diagonal
+     wall came out as a row of identical labels.
+
+     Their bodies still cannot merge, because the seam bits describe axis-aligned edges and
+     a turned piece has none. But the badge only needs to know which piece speaks for the
+     group, and that is answerable without any of that: same buildable, same angle, same
+     storey, centres a piece's width apart. One label per wall, on the piece furthest back
+     along the run, so it lands at an end rather than in the middle. */
+  const odd = design.pieces.filter(p => {
+    const r = ((p.rot || 0) % 360 + 360) % 360;
+    return r % 90 !== 0 && byId[p.type];
+  });
+  if (odd.length) {
+    const seen = new Set();
+    for (const p of odd) {
+      if (seen.has(p.id)) continue;
+      const def = byId[p.type];
+      const reach = Math.max(def.footprint.w, def.footprint.d) + SEAM_EPS;
+      const group = [], queue = [p];
+      seen.add(p.id);
+      while (queue.length) {
+        const cur = queue.pop();
+        group.push(cur);
+        for (const q of odd) {
+          if (seen.has(q.id) || q.type !== cur.type) continue;
+          if ((q.level || 0) !== (cur.level || 0)) continue;
+          if (((q.rot || 0) - (cur.rot || 0)) % 360 !== 0) continue;
+          if (Math.hypot(q.x - cur.x, q.y - cur.y) <= reach) { seen.add(q.id); queue.push(q); }
+        }
+      }
+      if (group.length < 2) continue;
+      // the piece furthest back along the run keeps the badge; the rest go quiet
+      group.sort((a, b) => (a.y - b.y) || (a.x - b.x));
+      for (let i = 1; i < group.length; i++) {
+        const cur = merged.get(group[i].id) || { mask: 0, kin: 0 };
+        cur.quiet = true;
+        merged.set(group[i].id, cur);
+      }
+    }
   }
   return merged;
 }
