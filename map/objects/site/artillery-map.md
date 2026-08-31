@@ -32,6 +32,11 @@ It lives outside `.wrap`. That is load bearing: inside it, the tool was centred 
 2. **Tile level is chosen in device pixels.** CSS pixels shipped once and every 2x display
    drew at half resolution. It also rounds up, never to nearest. See
    [artillery-maps](../data/artillery-maps.md).
+   A square with no tile in hand is drawn from a coarser ancestor, up to three levels up,
+   and a failed request is retried three times rather than marked dead: the canvas is black,
+   so anything not drawn reads as a hole in the world. Both of those were holes.
+   Draws are coalesced into one per animation frame, so nothing here should call `draw()`
+   from an event that can fire faster than the screen refreshes. Use `requestDraw()`.
 3. **Panning is the left button only.** The middle button is the browser's autoscroll
    gesture, and letting it through scrolls the page out from under the map mid-drag. It is
    swallowed on the canvas. Pointer capture is wrapped in a `try`: it throws on an id that

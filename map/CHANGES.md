@@ -8,6 +8,29 @@ Newest first. One entry per decision, not per commit.
 
 ## 2026-08-31
 
+### Two black squares on the map, and a shudder on the way in
+
+Both came from the same place: a tile that is not in hand yet draws nothing, and nothing on
+this canvas is black.
+
+A tile whose request failed was marked dead for the session and never asked for again. The
+failure is almost never a missing file. Every tile is present at every level, checked. It is
+the browser cancelling requests when a fast zoom starts a hundred of them at once, and those
+tiles then stayed black for as long as the page was open, which is what was on screen. It
+retries now, three times, backing off, before giving up for real.
+
+And a square with no tile yet is drawn from the piece of a coarser tile that covers it, up
+to three levels up. Changing zoom level used to empty the screen until the new level
+arrived, so the terrain blinked out and came back on every step in. Now it goes soft for a
+moment and sharpens, which is what every map does and what "seamless" means here.
+
+Two more things that made it feel worse than it was. A wheel sends events faster than the
+screen refreshes and every one of them ran a full draw, so a quick zoom ran several draws
+inside one frame; they ask for a frame now and the frame draws once. And zoom stepped a flat
+1.2 per event no matter how far the wheel turned, so a trackpad's stream of small deltas
+arrived as a stack of 20 percent jumps. It scales by the actual delta, with line and page
+delta modes converted, so a notch lands where it always did and a glide is continuous.
+
 ### The grouping angle comes off the page
 
 Spread was on every firing solution, every table row and both platform cards, in metres to

@@ -9,7 +9,7 @@
    in, so the copy cannot drift away from the tables it describes. */
 module.exports = ctx => {
   const { catalog, run, page, write, withStats, designCard, ranked, FORWARD_SHARED,
-          ARMORY, BALLISTICS, ARTILLERY } = ctx;
+          ARMORY, BALLISTICS, ARTILLERY, COMMUNITY_SCRIPT } = ctx;
 
 const nBuildables = catalog.buildables.length;
 const nPrices     = ARMORY.items.length;
@@ -101,8 +101,13 @@ write("index.html", page({
 <section><div class="wrap">
   <div class="section-head">
     <div><span class="eyebrow">Community</span><h2 class="display">Bases worth copying</h2></div>
-    ${withStats.length ? `<a class="btn sm" href="/designs/">See all</a>` : ""}
+    <a class="btn sm" href="/designs/" data-when-designs hidden>See all</a>
   </div>
+  <!-- Live, not baked. data/community.json carries no designs and never will, because a
+       submission goes to the worker rather than into the repo, so a built-in list here
+       could only ever say nobody has posted. Same id and same renderer as the designs
+       page, capped at six and without the sort tabs, so the two cannot drift apart. -->
+  <div id="designList" data-limit="6" data-notabs>
   ${withStats.length
     ? `<div class="grid">${ranked.slice(0, 6).map(designCard).join("")}</div>`
     : `<div class="empty">
@@ -112,6 +117,7 @@ write("index.html", page({
         design travels inside the URL, so there is nothing to upload and no account to make.</p>
         <a class="btn primary" href="/designs/">Post the first one</a>
       </div>`}
+  </div>
 </div></section>
 
 <section><div class="wrap">
@@ -119,7 +125,7 @@ write("index.html", page({
   here are only as good as the last person who checked them, and a few are still guesses
   wearing a question mark. Say so on the <a href="/feedback/">feedback page</a> and it gets
   fixed for everyone.</div>
-</div></section>`,
+</div></section>${COMMUNITY_SCRIPT}`,
 }));
 
 // --- buildables reference ---

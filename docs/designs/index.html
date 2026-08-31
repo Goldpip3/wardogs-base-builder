@@ -962,6 +962,10 @@ if(list){
     top: function(d){ return (d.votes.up||0)-(d.votes.down||0); },
     "new": function(d){ return d.submitted; }
   };
+  /* The home page shows the same list, shorter and without the tabs, so this renderer
+     serves both rather than a second one drifting away from it. */
+  var LIMIT=parseInt(list.getAttribute("data-limit")||"0",10);
+  var NOTABS=list.hasAttribute("data-notabs");
   var sortBy="hot", allDesigns=[];
 
   /* Signed in, so the worker can mark which of these are yours. It answers with a flag and
@@ -970,6 +974,11 @@ if(list){
     var ds=j.designs||[];
     if(!ds.length) return;                       // keep whatever static state is there
     allDesigns=ds;
+    /* Anything that only makes sense once designs exist, such as the See all link on the
+       home page, is hidden in the markup and revealed here. */
+    Array.prototype.forEach.call(document.querySelectorAll("[data-when-designs]"),
+      function(el){ el.hidden=false; });
+    if(NOTABS){ render(); return; }
     var tabs=document.createElement("div");
     /* "sorts" so these three sit at the width of three words. The plain chips row is a
        filter bar built to span its column next to a search box, and three tabs wearing it
@@ -993,6 +1002,7 @@ if(list){
 
   function render(){
     var ds=allDesigns.slice().sort(function(a,b){ return RANK[sortBy](b)-RANK[sortBy](a); });
+    if(LIMIT>0) ds=ds.slice(0,LIMIT);
     /* The same grid the built-in list uses. This one wrote its cards straight into the
        container, so the moment the worker answered, a tidy grid of designs was replaced by
        a column of full width rows. Two renderers, one look, and only one of them had it. */

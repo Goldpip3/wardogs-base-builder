@@ -755,17 +755,39 @@ function tileZoomFor(){
  var dpr=window.devicePixelRatio||1;
  var z=Math.ceil(Math.log((tb.maxX-tb.minX)*cam.k*dpr/t.tileSize)/Math.LN2);
  return Math.max(t.minZoom,Math.min(t.maxZoom,z));}
+/* A tile that fails is nearly always a request the browser cancelled, not a file that is
+   not there: zoom quickly and a hundred loads start and some are dropped. Marking those
+   dead for the session is what left the two black squares on the map, because nothing ever
+   asked for them again. Three tries, backing off, then it gives up for real. */
 function getTile(z,x,y){
  var key=map.id+":"+z+":"+x+":"+y;
- if(TILEBAD[key])return null;
+ if(TILEBAD[key]>=3)return null;
  var img=TILE[key];
  if(img)return (img.complete&&img.naturalWidth)?img:null;
  img=new Image();
- img.onload=function(){draw();};
- img.onerror=function(){TILEBAD[key]=true;};
+ img.onload=function(){requestDraw();};
+ img.onerror=function(){
+  var n=(TILEBAD[key]||0)+1;TILEBAD[key]=n;
+  if(n<3)setTimeout(function(){delete TILE[key];requestDraw();},300*n);};
  img.src=map.tiles.path+"/zoom_"+z+"/"+x+"_"+y+"."+map.tiles.extension;
  TILE[key]=img;
  return null;}
+
+/* Nothing loaded for this square yet, so draw the piece of a coarser tile that covers it.
+   That is what stops the terrain blinking out on the way between zoom levels: the map goes
+   soft for a moment instead of going black, and sharpens when the real tile lands. Three
+   levels up is plenty and bounds the extra requests. */
+function drawTileAt(z,x,y,dx,dy,dw,dh){
+ var img=getTile(z,x,y);
+ if(img){g2.drawImage(img,dx,dy,dw,dh);return;}
+ var zz=z,xx=x,yy=y,f=1;
+ while(zz>map.tiles.minZoom&&f<8){
+  zz--;xx=Math.floor(xx/2);yy=Math.floor(yy/2);f*=2;
+  var up=getTile(zz,xx,yy);
+  if(up){
+   var t=up.naturalWidth/f;
+   g2.drawImage(up,(x-xx*f)*t,(y-yy*f)*t,t,t,dx,dy,dw,dh);
+   return;}}}
 function drawTiles(){
  if(!map.tiles)return;
  var tb=tileBox();
@@ -777,11 +799,19 @@ function drawTiles(){
  /* tile rows count south from the north edge, world y counts north */
  var y0=Math.max(0,Math.floor((tb.maxY-s2wY(0))/sy));
  var y1=Math.min(n-1,Math.floor((tb.maxY-s2wY(h))/sy));
- for(var x=x0;x<=x1;x++)for(var y=y0;y<=y1;y++){
-  var img=getTile(z,x,y);
-  if(!img)continue;
+ for(var x=x0;x<=x1;x++)for(var y=y0;y<=y1;y++)
   /* +1 closes the hairline seam that rounding leaves between neighbours */
-  g2.drawImage(img,w2sX(tb.minX+x*sx),w2sY(tb.maxY-y*sy),sx*cam.k+1,sy*cam.k+1);}}
+  drawTileAt(z,x,y,w2sX(tb.minX+x*sx),w2sY(tb.maxY-y*sy),sx*cam.k+1,sy*cam.k+1);}
+
+/* A wheel sends events faster than the screen refreshes, and a tile that lands calls back
+   whenever it lands. Both used to redraw the whole canvas on the spot, so a quick zoom ran
+   several full draws inside one frame and the map juddered. They ask for a frame instead,
+   and the frame draws once. */
+var pendingDraw=false;
+function requestDraw(){
+ if(pendingDraw)return;
+ pendingDraw=true;
+ requestAnimationFrame(function(){pendingDraw=false;draw();});}
 
 /* ---------- camera ---------- */
 function w2sX(x){return (x-cam.x)*cam.k+canvas.clientWidth/2;}
@@ -989,11 +1019,11 @@ canvas.addEventListener("pointermove",function(e){
  if(drag.what==="pan"){
   var dx=sx-drag.sx,dy=sy-drag.sy;
   if(Math.abs(dx)+Math.abs(dy)>4)drag.moved=true;
-  if(drag.moved){cam.x=drag.cx-dx/cam.k;cam.y=drag.cy+dy/cam.k;draw();}
+  if(drag.moved){cam.x=drag.cx-dx/cam.k;cam.y=drag.cy+dy/cam.k;requestDraw();}
  } else {
   var p={x:s2wX(sx),y:s2wY(sy)};
   if(drag.what==="gun")gun=p;else tgt=p;
-  syncInputs();solution();zoneNote();draw();}});
+  syncInputs();solution();zoneNote();requestDraw();}});
 canvas.addEventListener("pointerup",function(e){
  if(!drag)return;
  var r=canvas.getBoundingClientRect(),sx=e.clientX-r.left,sy=e.clientY-r.top;
@@ -1005,11 +1035,17 @@ canvas.addEventListener("wheel",function(e){
  e.preventDefault();
  var r=canvas.getBoundingClientRect(),sx=e.clientX-r.left,sy=e.clientY-r.top;
  var wx=s2wX(sx),wy=s2wY(sy);
- cam.k*=e.deltaY<0?1.2:1/1.2;
+ /* Zoom followed the notch, a flat 1.2 either way, so a trackpad's stream of small deltas
+    stepped the map 20 percent at a time and a fast scroll arrived as a stack of jumps.
+    Scaling by how far the wheel actually turned makes a notch land in the same place and a
+    trackpad glide continuous. deltaMode 1 is lines, 2 is pages; both are converted. */
+ var d=e.deltaY;
+ if(e.deltaMode===1)d*=16;else if(e.deltaMode===2)d*=canvas.clientHeight;
+ cam.k*=Math.pow(1.0018,-Math.max(-240,Math.min(240,d)));
  cam.k=Math.max(1,Math.min(cam.k,600));
  cam.x=wx-(sx-canvas.clientWidth/2)/cam.k;
  cam.y=wy+(sy-canvas.clientHeight/2)/cam.k;
- draw();},{passive:false});
+ requestDraw();},{passive:false});
 
 /* ---------- controls ---------- */
 function setActive(which){active=which;
