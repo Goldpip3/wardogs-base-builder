@@ -1,7 +1,7 @@
 /* The site stylesheet. Lifted out of the generator because it is two hundred lines
    that almost never change while the pages around them do. */
 module.exports = `
-/* Ground, cream and Barlow are lifted from bulkhead.com/games/wardogs, along with
+/* The ground and the cream are lifted from bulkhead.com/games/wardogs, along with
    square corners on absolutely everything. Two things here are ours.
    The accent: their #c00b0b measures 3.07 on this ground, under AA, so it never
    worked as the colour that carries a number. Yellow does that job at 12.43 and

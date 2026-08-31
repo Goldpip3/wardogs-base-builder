@@ -1397,7 +1397,7 @@ const LS_CATALOG = "wardogs.catalog";
    completely offline: with this empty, none of the cloud code below is ever reachable
    and the app makes no network call of any kind. */
 const CLOUD_API = "https://wardogs-votes.wardogsbuilder.workers.dev";
-const BUILD_STAMP = "20260831-032856";
+const BUILD_STAMP = "20260831-033039";
 const LS_TOKEN = "wardogs.token";
 
 const LS_DESIGNS = "wardogs.designs";
@@ -2027,7 +2027,7 @@ function draw3DNow() {
 
   if (!design.pieces.length) {
     ctx.fillStyle = "#6b6b63";
-    ctx.font = `${14 * uiScale}px sans-serif`;
+    ctx.font = `${14 * uiScale}px Chakra Petch,system-ui,sans-serif`;
     ctx.textAlign = "center";
     ctx.fillText("Nothing built yet. Switch back to the plan to place something.", W / 2, H / 2);
   }
@@ -2131,7 +2131,7 @@ function drawNow() {
     ctx.strokeStyle = "#4d8fc466"; ctx.setLineDash([7, 5]); ctx.lineWidth = 1.5;
     ctx.strokeRect(zx, zy, side, side); ctx.setLineDash([]);
     if (z > 4) {
-      ctx.fillStyle = "#4d8fc499"; ctx.font = `${10*uiScale}px sans-serif`; ctx.textAlign = "left";
+      ctx.fillStyle = "#4d8fc499"; ctx.font = `${10*uiScale}px Chakra Petch,system-ui,sans-serif`; ctx.textAlign = "left";
       ctx.fillText(`BUILD ZONE ${p.zone||100}×${p.zone||100}`, zx + 5*uiScale, zy + 13*uiScale);
     }
   }
@@ -2195,7 +2195,7 @@ function drawNow() {
       const last = pts[pts.length - 1];
       const [lx, ly] = toScreen(last.cx, last.cy);
       const label = `×${pts.length}` + (def.cost ? `  ${(pts.length * def.cost).toLocaleString()}${COST_UNIT}` : "");
-      ctx.font = `700 ${13 * uiScale}px sans-serif`;
+      ctx.font = `700 ${13 * uiScale}px Chakra Petch,system-ui,sans-serif`;
       const pad = 6 * uiScale, tw = ctx.measureText(label).width;
       const bx = lx + 14 * uiScale, by = ly - 12 * uiScale;
       ctx.fillStyle = "rgba(20,22,15,.9)";
@@ -2400,7 +2400,7 @@ function drawRect(r, def, opt) {
        made a selected run look like scattered floating text. */
     const halfDown = (rectAABB(r).y1 - r.cy) * z;
     const halfUp = (r.cy - rectAABB(r).y0) * z;
-    ctx.font = "600 " + Math.max(9*uiScale, Math.min(11*uiScale, z*0.4)) + "px sans-serif";
+    ctx.font = "600 " + Math.max(9*uiScale, Math.min(11*uiScale, z*0.4)) + "px Chakra Petch,system-ui,sans-serif";
     ctx.textAlign = "center"; ctx.fillStyle = "#fff7eadd";
     const short = def.isFob ? "FOB" : def.name.replace(/ \(.*\)/, "").split(" ").slice(0,2).join(" ");
     if (showLabel) ctx.fillText(short, 0, halfDown + 11 * uiScale);
@@ -2420,7 +2420,7 @@ function drawRect(r, def, opt) {
     const runStart = !opt.quiet && !(opt.kin & 2) && !(opt.kin & 8);
     if (badges.length && (runStart || opt.hovered)) {
       const txt = badges.join(" ");
-      ctx.font = `700 ${10.5 * uiScale}px sans-serif`;
+      ctx.font = `700 ${10.5 * uiScale}px Chakra Petch,system-ui,sans-serif`;
       const tw = ctx.measureText(txt).width;
       const padX = 4 * uiScale, chipH = 13 * uiScale;
       const chipY = -halfUp - 4 * uiScale - chipH;
@@ -2432,7 +2432,7 @@ function drawRect(r, def, opt) {
       ctx.textBaseline = "alphabetic";
     }
     if (opt.note) {
-      ctx.fillStyle = "#7fa650"; ctx.font = `${9*uiScale}px sans-serif`;
+      ctx.fillStyle = "#7fa650"; ctx.font = `${9*uiScale}px Chakra Petch,system-ui,sans-serif`;
       ctx.fillText("✎", Math.max(r.w, r.h) * z / 2 + 6 * uiScale, 0);
     }
     ctx.restore();

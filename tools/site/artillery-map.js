@@ -406,7 +406,7 @@ function draw(){
 
  if(LAYER.spawns){
   var zc={VALKYRA:"#d4553a",MANTICORE:"#86ad55",LONESTAR:"#6b93b8"};
-  g2.font="11px Barlow,system-ui,sans-serif";
+  g2.font="11px Chakra Petch,system-ui,sans-serif";
   map.spawns.forEach(function(z){
    var c=zc[z.label]||"#888";
    g2.beginPath();
@@ -428,7 +428,7 @@ function draw(){
   ring(z.centre.x,z.centre.y,zr,"rgba(120,170,220,.85)",1.8);
   if(cam.k>4){
    g2.fillStyle="rgba(150,195,240,.8)";
-   g2.font="11px Barlow,system-ui,sans-serif";g2.textAlign="center";
+   g2.font="11px Chakra Petch,system-ui,sans-serif";g2.textAlign="center";
    g2.fillText("CONTROL ZONE",w2sX(z.centre.x),w2sY(z.centre.y+zr)-8);
    g2.textAlign="left";}}
 

@@ -65,6 +65,32 @@ Reload came out of the panel. Nothing about it changes with where the gun or the
 so it was reference material sitting in a readout, and it is still on the platform card
 below where the rest of the reference lives.
 
+### The 3D view, second pass: seamless runs, real height, and concrete
+
+Three things, all reported off the same screen.
+
+**The lining that was left.** The first pass skipped a vertical face when that face own side
+was joined, and missed the case that matters most. A run along x has every piece joined on
+its plus and minus x sides, so the face pointing at the camera went, but the long side is
+joined to nothing and every piece still drew its whole side quad, uprights included: a
+vertical line at every join, down the length of the wall. An upright stands on a direction,
+so it goes when that direction is joined, and a vertical face never draws its top edge
+because the roof already draws that line. Measured on a fifty one piece base: 612 edges down
+to 209, two thirds fewer.
+
+**Height.** A block was drawn one cell tall against a cell being 0.866 wide, so a two block
+wall and a five block tower differed by three faint steps, in the one view whose whole job is
+to answer how tall. `ISO_Z` stands a block 1.45 times the ground scale. It is not a lie
+about the geometry: footprints are read on the plan, and this is where you look at what
+stands up.
+
+**Bremer walls are concrete.** A bremer is a poured slab and a hesco is a wire basket full of
+dirt, and they were the same gold, so a mixed perimeter read as one material. Its own role
+now, in a pale concrete kept apart from the tower grey so the two concretes are still told
+apart. One consequence worth knowing rather than tripping over: runs merge by role, so a
+hesco meeting a bremer now shows the join between them. That is correct once they are
+different materials, but it is a behaviour change and `test/elevation.js` says so out loud.
+
 ### A tower is not a wall
 
 Bunker and recon tower were painted the same gold as the hesco walls they stand behind, so a

@@ -335,5 +335,82 @@ check(/opt\.level > 0 \? "#ffc61a" : "#8b8b80"/.test(src),
     orphans.join(", "));
 }
 
+// ---------- what is left of the lines, and what stands up ----------
+/* The first pass at this skipped a whole vertical face when that face's own side was joined.
+   It missed the case that matters most: a run along x has every piece joined on ±x, so the
+   face at nearX went, but the long side at nearY is joined to nothing and every piece drew
+   its whole side quad, uprights included. A vertical line at every join, down the length of
+   the wall. An upright stands on a direction, so it goes when that direction is joined.
+ */
+{
+  const iso = src.slice(src.indexOf("function draw3DNow"));
+  const body = iso.slice(0, iso.indexOf("\nfunction ", 10));
+  const helper = src.slice(src.indexOf("function sideEdges"));
+  const fn = helper.slice(0, helper.indexOf("\n}") + 2);
+
+  check(/sideEdges\(f\.side, mask, 1, 2\)/.test(body),
+    "the long side drops the upright standing on a joined +x or -x");
+  check(/sideEdges\(f\.face, mask, 4, 8\)/.test(body),
+    "and the near face drops the one standing on a joined +y or -y");
+  check(/seg\(0, 1\)/.test(fn) && !/seg\(2, 3\)/.test(fn),
+    "a vertical face never draws its top edge, because the roof already draws that line");
+
+  /* count it on a wall run rather than trusting the reading. Twelve edges a piece before;
+     a piece in the middle of a run should keep almost none of them. */
+  const TOP = [8, 1, 4, 2];
+  const edgesFor = (mask, nearXBit, nearYBit) => {
+    let n = 0;
+    for (let i = 0; i < 4; i++) if (!(mask & TOP[i])) n++;
+    if (!(mask & nearYBit)) { n += 1; if (!(mask & 1)) n++; if (!(mask & 2)) n++; }
+    if (!(mask & nearXBit)) { n += 1; if (!(mask & 4)) n++; if (!(mask & 8)) n++; }
+    return n;
+  };
+  // a piece mid-run along x, seen at spin 0: joined on +x and -x, open north and south
+  const mid = edgesFor(1 | 2, 1, 4);
+  const lone = edgesFor(0, 1, 4);
+  /* Ten, not twelve: three closed quads would repeat the two roof edges the vertical faces
+     share with the top, and those were being drawn over themselves before any of this. */
+  check(lone === 10, "a piece with no neighbours still draws its whole self, once",
+    lone + " edges");
+  check(mid <= 4, "a piece in the middle of a run draws almost nothing",
+    mid + " edges, against " + lone + " alone");
+}
+
+/* Height is the reason to leave the plan, and a block was drawn shorter than a cell is wide.
+   A two block wall and a five block tower differed by three faint steps. */
+{
+  const z = src.match(/const ISO_Z = ([\d.]+);/);
+  check(!!z, "the view has a height scale of its own");
+  check(z && parseFloat(z[1]) > 1.2,
+    "and it stands a block taller than the ground it sits on", z && z[1]);
+  check(/- z \* u \* ISO_Z/.test(src), "and the projection actually uses it");
+}
+
+/* A bremer is a poured slab and a hesco is a wire basket of dirt. Same gold made a mixed
+   perimeter read as one material. */
+{
+  const cat = JSON.parse(fs.readFileSync(ROOT + "/data/buildables.json", "utf8"));
+  const V = vm.runInContext("WardogsDesignView", sandbox);
+  const rgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+  const gap = (a, b) => { const [p, q] = [rgb(a), rgb(b)];
+    return Math.round(Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2])); };
+
+  check((cat.buildables.find(b => b.id === "bremer-wall") || {}).role === "barrier",
+    "the bremer wall is its own role");
+  check(gap(V.ROLE_COLOR.barrier, V.ROLE_COLOR.cover) > 60,
+    "and nowhere near the hesco gold",
+    gap(V.ROLE_COLOR.barrier, V.ROLE_COLOR.cover) + " apart");
+  check(gap(V.ROLE_COLOR.barrier, V.ROLE_COLOR.tower) > 45,
+    "while still telling the two concretes apart",
+    gap(V.ROLE_COLOR.barrier, V.ROLE_COLOR.tower) + " apart");
+
+  /* and the consequence, stated so nobody trips over it later: seams are drawn per family
+     and a family is the role, so hesco and bremer no longer merge into one wall. That is
+     correct now they are different materials, but it is a behaviour change, not a side
+     effect nobody chose. */
+  check(/wall:" \+ def\.role/.test(src),
+    "runs merge by role, so a hesco meeting a bremer now shows the join between them");
+}
+
 console.log("\n" + pass + " passed, " + fail + " failed");
 process.exit(fail ? 1 : 0);
