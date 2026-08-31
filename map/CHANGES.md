@@ -88,6 +88,25 @@ Reload came out of the panel. Nothing about it changes with where the gun or the
 so it was reference material sitting in a readout, and it is still on the platform card
 below where the rest of the reference lives.
 
+### A fault and a way in stop looking the same
+
+Not this session own work: another session was part way through this in the same file, and
+it is committed here rather than left to be rebuilt or clobbered.
+
+A fault outline was #f04a2e and the foot climb dash #f0503a, 5.5 apart in Lab, which is not
+a difference anybody can see on a plan. A fault is the danger colour now, which is what it
+always meant, and the two ways in take a warm pair of their own: 34.9 from the fault and
+33.5 from each other, both measured rather than eyeballed. The legend under the plan had
+already drifted off the canvas colours, drawing the foot count in --danger and the vehicle
+count in --accent, so neither number matched the dash beside it. One constant each, canvas
+and legend both.
+
+Two things checked before shipping it. Every figure in the comment was recomputed and all
+of them hold, except one: it claimed nothing else on the canvas comes nearer than 21, and
+the vehicle dash is 13.9 from the hesco gold it is usually drawn on. That is the commonest
+case there is, it was already that way before this change, and the comment now says so
+instead. It is the next thing to fix here.
+
 ### The draw order was sorted by the middle of each piece
 
 Reported as a yellow wall not carrying on through: a notch bitten out of a hesco run where a
