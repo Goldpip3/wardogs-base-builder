@@ -8,6 +8,17 @@ Newest first. One entry per decision, not per commit.
 
 ## 2026-08-31
 
+### Fewer buttons up top
+
+Fifteen controls on the top bar, four of which were the one job of getting a design out.
+Share, Export and PNG are now Share, with copy link, save picture and save file under it.
+Import moved in with Designs, which is where a design comes from. The catalog editor moved
+into Help: it is a power tool for correcting costs and sizes, and almost nobody opens it.
+Nine buttons show on the bar now, and nothing was removed, only moved.
+
+`test/planner-tools.js` counts what shows on the bar rather than only checking names,
+because buttons creep back one at a time and each one looks reasonable on its own.
+
 ### Turning a selection turns the group, and nothing is stranded pending
 
 `rotateSelection` spun every piece where it stood. That is right for one piece and useless

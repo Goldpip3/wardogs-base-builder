@@ -181,5 +181,35 @@ vm.runInContext(`
 check(layout() === "3:7:0" && vm.runInContext("ghost.rot", sandbox) === 90,
   "with a piece in hand the key turns the piece in hand, leaving the design alone");
 
+// ---------- the toolbar stays lean ----------
+/* Four buttons up top all did the one job of getting a design out, and a fifth was a power
+   tool almost nobody opens. Less is more was the instruction. Buttons creep back one at a
+   time and each one looks reasonable on its own, so the count is checked, not just the
+   names.
+*/
+const topbar = html.match(/<div id="topbar">([\s\S]*?)\n<\/div>/);
+check(!!topbar, "the top bar is still findable in the markup");
+// what is actually on the bar, so tucking things into the menu counts as tucking them away
+const onBar = topbar[1].replace(/<div id="shareMenu"[\s\S]*?<\/div>/, "");
+const topButtons = (onBar.match(/<button /g) || []).length;
+check(topButtons <= 10,
+  `the top bar shows ten buttons or fewer (shows ${topButtons})`);
+
+// the three ways out live under Share, not beside it
+const menu = html.match(/<div id="shareMenu"[\s\S]*?<\/div>/);
+check(!!menu, "Share opens a menu rather than sitting next to its own alternatives");
+for (const id of ["btnShareLink", "btnPng", "btnExport"])
+  check(menu[0].includes(id), `${id} is inside the Share menu`);
+
+// and the two that moved are reachable from where they moved to, not orphaned
+check(/openModal\("Saved Designs"[\s\S]{0,200}openImport/.test(src),
+  "Import is offered from Saved Designs");
+check(/openCatalog\]/.test(src) || /\["⚙ Catalog editor", openCatalog\]/.test(src),
+  "the catalog editor is offered from Help");
+check(/function openImport\(/.test(src) && /function openCatalog\(/.test(src),
+  "both are real functions, so nothing depends on a button that no longer exists");
+check(!/getElementById\("btnCatalog"\)/.test(src) && !/id="btnCatalog"/.test(html),
+  "and no code is left reaching for the Catalog button that was removed");
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

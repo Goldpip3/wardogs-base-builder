@@ -122,6 +122,21 @@
   .cost-ico { width: 12px; height: 12px; object-fit: contain; vertical-align: -2px; margin-left: 2px; }
   #topbar label { font-size: 11px; color: var(--dim); }
   .sep { width: 1px; height: 22px; background: var(--border); margin: 0 3px; }
+  /* The Share menu. Anchored to its own button rather than the bar, so it stays put when
+     the bar wraps onto a second line on a narrow window. */
+  #shareWrap { position: relative; display: inline-flex; }
+  #shareMenu {
+    position: absolute; top: calc(100% + 4px); left: 0; z-index: 40;
+    display: flex; flex-direction: column; min-width: 160px;
+    background: var(--panel); border: 1px solid var(--border);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .45);
+  }
+  #shareMenu[hidden] { display: none; }
+  #shareMenu button {
+    border: 0; border-radius: 0; justify-content: flex-start; padding: 7px 11px;
+    background: transparent; white-space: nowrap;
+  }
+  #shareMenu button:hover { background: var(--panel3); }
   #designName { width: 158px; font-weight: 600; }
 
   #main { flex: 1; display: flex; min-height: 0; }
@@ -339,10 +354,17 @@
   <input id="designName" placeholder="Design name" value="New FOB">
   <button id="btnNew" title="New design">✚ New</button>
   <button id="btnDesigns" title="Saved designs">🗂 Designs</button>
-  <button id="btnShare" title="Get a link that opens this exact design">🔗 Share</button>
-  <button id="btnExport" title="Export design as JSON file">⭳ Export</button>
-  <button id="btnImport" title="Import design JSON">⭱ Import</button>
-  <button id="btnPng" title="Export layout as PNG image">🖼 PNG</button>
+  <!-- Four buttons here all did the one job of getting a design out, so they are one button
+       with the three ways under it. Import moved in with Designs, which is where a design
+       comes from. -->
+  <span id="shareWrap">
+    <button id="btnShare" title="Copy a link, save a picture, or save a file">🔗 Share ▾</button>
+    <div id="shareMenu" hidden>
+      <button id="btnShareLink" title="A link that opens this exact design">🔗 Copy link</button>
+      <button id="btnPng" title="Save the plan as a picture">🖼 Save picture</button>
+      <button id="btnExport" title="Save the design as a file you can keep">⭳ Save file</button>
+    </div>
+  </span>
   <div class="sep"></div>
   <button id="btnUndo" title="Undo (Ctrl+Z)">↩</button>
   <button id="btnRedo" title="Redo (Ctrl+Y)">↪</button>
@@ -354,8 +376,8 @@
   <span class="group-label">Storey</span>
   <span id="levelStrip" class="seg" title="Everything is shown by default. Pick a storey to work on it on its own."></span>
   <div class="sep"></div>
-  <button id="btnCatalog" title="Edit the buildables catalog (costs/sizes)">⚙ Catalog</button>
-  <button id="btnHelp" title="Help & shortcuts">? Help</button>
+  <!-- The catalog editor is a power tool almost nobody opens, so it sits inside Help -->
+  <button id="btnHelp" title="Help, shortcuts and the catalog editor">? Help</button>
   <a id="btnSupport" target="_blank" rel="noopener noreferrer" style="display:none"></a>
   <div class="sep"></div>
   <label for="uiScale" style="color:var(--dim)">Size</label>
@@ -3544,7 +3566,7 @@ document.getElementById("btnExport").onclick = () => {
       ["Close", closeModal]
     ]);
 };
-document.getElementById("btnShare").onclick = async () => {
+document.getElementById("btnShareLink").onclick = async () => {
   if (!design.pieces.length) { flashStatus("Place something first"); return; }
   let url;
   try { url = await shareUrl(design); }
@@ -3586,7 +3608,7 @@ document.getElementById("btnShare").onclick = async () => {
       ]);
   });
 };
-document.getElementById("btnImport").onclick = () => {
+function openImport() {
   openModal("Import Design",
     `<p style="color:var(--dim);font-size:12px;margin-bottom:8px">Paste a design's JSON below, or load a .wardogs.json file.</p>
      <textarea id="impTa" spellcheck="false" placeholder='{"name": "...", "pieces": [...]}'></textarea>
@@ -3599,7 +3621,7 @@ document.getElementById("btnImport").onclick = () => {
         catch(err) { document.getElementById("impErr").textContent = "Couldn't read that: " + err.message; }
       }, "active"]
     ]);
-};
+}
 function applyImportedDesign(d) {
   if (!Array.isArray(d.pieces)) throw new Error("not a design file (missing pieces[])");
   design = d;
@@ -4052,11 +4074,27 @@ function wireDesignRows(all, names) {
     });
 }
 document.getElementById("btnDesigns").onclick = () => {
-  openModal("Saved Designs", "", [["Close", closeModal]]);
+  openModal("Saved Designs", "", [["⭱ Import a file", openImport], ["Close", closeModal]]);
   renderDesigns();
 };
 
-document.getElementById("btnCatalog").onclick = () => {
+/* The Share button is three ways of getting a design out, not three buttons. */
+{
+  const wrap = document.getElementById("shareWrap");
+  const menu = document.getElementById("shareMenu");
+  const btn = document.getElementById("btnShare");
+  const shut = () => { menu.hidden = true; btn.classList.remove("active"); };
+  btn.onclick = e => {
+    e.stopPropagation();
+    menu.hidden = !menu.hidden;
+    btn.classList.toggle("active", !menu.hidden);
+  };
+  menu.onclick = () => setTimeout(shut, 0);   // let the chosen action run first
+  document.addEventListener("click", e => { if (!wrap.contains(e.target)) shut(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") shut(); });
+}
+
+function openCatalog() {
   openModal("Catalog Editor",
     `<p style="color:var(--dim);font-size:12px;margin-bottom:8px">
       Costs and sizes come from Closed Beta 1 footage. Edit any value here as you verify it in-game. Your correction sticks to every piece of that type, in every design.
@@ -4082,7 +4120,7 @@ document.getElementById("btnCatalog").onclick = () => {
         } catch(err) { document.getElementById("catErr").textContent = "Invalid JSON: " + err.message; }
       }, "active"]
     ]);
-};
+}
 
 document.getElementById("btnHelp").onclick = () => {
   openModal("Help & Shortcuts", `
@@ -4139,7 +4177,7 @@ document.getElementById("btnHelp").onclick = () => {
       <li>Costs are Build Supplies. 1 supply = $10 at the vendor, or ${PALLET_DEFAULT.toLocaleString()} in a ${(catalog.logistics.palletCash || 400).toLocaleString()} pallet. A fresh FOB lands with ${FOB_STOCK_DEFAULT.toLocaleString()} already inside.</li>
       <li>Mortar, CIWS and SAM eat <b>Ammo</b> supplies; the Drill Rig eats <b>Fuel</b>. They keep drawing after they are built, so a base is not finished when the last wall goes up.</li>
     </ul>`,
-    [["Close", closeModal]]);
+    [["⚙ Catalog editor", openCatalog], ["Close", closeModal]]);
 };
 
 /* Optional tip link. Stays hidden until a URL is set in the catalog's `support` block,
