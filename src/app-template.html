@@ -119,6 +119,26 @@
   #topbar a#homeLink { text-decoration: none; border-radius: 0; padding: 2px 5px; margin-left: -5px; }
   #topbar a#homeLink:hover { background: var(--panel2, #2a2f2a); }
   #topbar a#homeLink:hover h1 { color: var(--accent); }
+  #topbar a.toolLink {
+    display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px;
+    border: 1px solid var(--accent); color: var(--text); text-decoration: none;
+    font-family: var(--display); font-weight: 600; font-size: 11px;
+    letter-spacing: .1em; text-transform: uppercase; white-space: nowrap;
+  }
+  #topbar a.toolLink svg {
+    width: 13px; height: 13px; fill: none; stroke: var(--accent);
+    stroke-width: 1.6; stroke-linecap: round; flex: 0 0 auto;
+  }
+  #topbar a.toolLink:hover { background: var(--accent); color: var(--accent-ink); }
+  #topbar a.toolLink:hover svg { stroke: var(--accent-ink); }
+  /* The bar is one row at 1440 and 69px over at 1280, and this tool spends its vertical
+     space on the map. So the words give way, not the row: below 1400 the link keeps its
+     icon and the wordmark keeps WARDOGS, which is 81px back and one row again. */
+  @media (max-width: 1400px) {
+    #topbar a.toolLink span { display: none; }
+    #topbar a.toolLink { padding: 0 7px; }
+    #topbar h1 span { display: none; }
+  }
   #topbar h1 {
     font-family: var(--display); font-weight: 700; font-size: 17px; letter-spacing: .01em;
     color: var(--text); margin-right: 6px; white-space: nowrap; text-transform: uppercase;
@@ -240,6 +260,7 @@
   }
   .rp-section { padding: 11px 13px; border-bottom: 1px solid var(--border-soft); }
   .rp-section h3 {
+    font-family: var(--display);
     font-size: 10px; letter-spacing: .16em; color: var(--dim);
     text-transform: uppercase; margin-bottom: 8px; font-weight: 600;
   }
@@ -315,7 +336,8 @@
   }
   .ss-card { max-width: 380px; text-align: center; }
   .ss-card h2 {
-    font-size: 19px; letter-spacing: .16em; color: var(--accent);
+    font-family: var(--display);
+    font-size: 19px; letter-spacing: .1em; color: var(--accent);
     font-weight: 700; margin-bottom: 2px;
   }
   .ss-card h2 span {
@@ -340,7 +362,7 @@
     display: flex; flex-direction: column;
   }
   #modal header { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-  #modal header h2 { font-size: 16px; color: var(--accent); }
+  #modal header h2 { font-family: var(--display); font-weight: 600; font-size: 16px; color: var(--accent); }
   /* The toolbar is chrome and can be small. The modal is the one place in this app that
      asks somebody to read a sentence, and it was set at 12px inside a 12px shell, which on
      a big monitor at 100% is unreadable. The Size control scales all of this, but the
@@ -363,7 +385,8 @@
 </head>
 <body>
 <div id="topbar">
-  <a id="homeLink" href="/" title="Back to wardogsbuilder.com"><h1>WARDOGS <span>BASE BUILDER</span></h1></a>
+  <a id="homeLink" class="leaveLink" href="/" title="Back to wardogsbuilder.com"><h1>WARDOGS <span>BASE BUILDER</span></h1></a>
+  <!--__TOOLNAV__-->
   <input id="designName" placeholder="Design name" value="New FOB">
   <button id="btnNew" title="New design">✚ New</button>
   <button id="btnDesigns" title="Saved designs">🗂 Designs</button>
@@ -1087,6 +1110,11 @@ const isoFill = (pts, col) => {
   ctx.fillStyle = col; ctx.fill();
 };
 
+function traceFace(face) {
+  ctx.moveTo(face[0][0], face[0][1]);
+  for (let i = 1; i < face.length; i++) ctx.lineTo(face[i][0], face[i][1]);
+  ctx.closePath();
+}
 function draw3DNow() {
   const W = canvas.clientWidth, H = canvas.clientHeight;
   ctx.clearRect(0, 0, W, H);
@@ -1107,7 +1135,14 @@ function draw3DNow() {
 
   const climb = getClimb();
   const issueIds = new Set(getIssues().map(i => i.pieceId).filter(Boolean));
+  const seams = getSeams();          // the same joins the plan draws, so the two agree
   const boxes = isoBoxes();
+
+  /* Which two vertical faces point at the camera depends on how the world is spun, and the
+     seam mask is in world directions, so the spin decides which bit to ask about. */
+  const n3 = iso.rot & 3;
+  const nearXBit = (n3 === 0 || n3 === 3) ? 1 : 2;      // +x : -x
+  const nearYBit = (n3 === 0 || n3 === 1) ? 4 : 8;      // +y : -y
 
   let drawn = 0;
   for (const b of boxes) {
@@ -1127,19 +1162,36 @@ function draw3DNow() {
     const base = pieceColor(b.def);
     const sel = selection.has(b.p.id);
     const bad = issueIds.has(b.p.id);
+    const keepWhole = sel || bad;
 
-    isoFill(f.side, shade(base, -46));
-    isoFill(f.face, shade(base, -64));
-    isoFill(f.top, shade(base, b.def.isFob ? 6 : -4));
+    /* A picked piece is filled, not merely outlined. A yellow line one pixel wide around a
+       box in a crowd of boxes is not an answer to "which one did I click", and in 3D it can
+       be behind something. */
+    const tint = sel ? "#ffc61a" : base;
+    isoFill(f.side, shade(tint, sel ? 6 : -46));
+    isoFill(f.face, shade(tint, sel ? -16 : -64));
+    isoFill(f.top, shade(tint, sel ? 40 : (b.def.isFob ? 6 : -4)));
 
-    // one path for all three faces rather than three stroke calls
-    ctx.lineWidth = sel || bad ? 2 : 1;
-    ctx.strokeStyle = bad ? "#f04a2e" : sel ? "#ffc61a" : shade(base, -74);
+    /* Thirty walls in a row used to draw thirty outlined boxes, so a perimeter came out as a
+       field of lines with a wall somewhere inside it. An edge shared with a neighbour that
+       the plan already calls part of the same wall is interior: it is not the shape of
+       anything, and drawing it is what made this view hard to read. So the two vertical
+       faces are skipped outright when that side is joined, and the roof is stroked edge by
+       edge, leaving only the outline of the run itself. A selected or faulted piece keeps
+       its whole outline, because there the point is to find one piece rather than to read
+       the shape. */
+    const mask = keepWhole ? 0 : ((seams.get(b.p.id) || {}).mask || 0);
+    ctx.lineWidth = keepWhole ? 2 : 1;
+    ctx.strokeStyle = bad ? "#f04a2e" : sel ? "#fff7ea" : shade(base, -74);
     ctx.beginPath();
-    for (const face of [f.side, f.face, f.top]) {
-      ctx.moveTo(face[0][0], face[0][1]);
-      for (let i = 1; i < face.length; i++) ctx.lineTo(face[i][0], face[i][1]);
-      ctx.closePath();
+    if (!(mask & nearYBit)) traceFace(f.side);
+    if (!(mask & nearXBit)) traceFace(f.face);
+    // top quad corners run x0y0, x1y0, x1y1, x0y1, so its edges face -y, +x, +y, -x
+    const TOP_EDGE_BIT = [8, 1, 4, 2];
+    for (let i = 0; i < 4; i++) {
+      if (mask & TOP_EDGE_BIT[i]) continue;
+      const a = f.top[i], c = f.top[(i + 1) % 4];
+      ctx.moveTo(a[0], a[1]); ctx.lineTo(c[0], c[1]);
     }
     ctx.stroke();
 
@@ -1149,9 +1201,13 @@ function draw3DNow() {
       ctx.strokeStyle = how === "foot" ? "#f0503a" : "#e2a33a";
       ctx.lineWidth = 2; ctx.setLineDash([5, 4]);
       ctx.beginPath();
-      ctx.moveTo(f.top[0][0], f.top[0][1]);
-      for (let i = 1; i < f.top.length; i++) ctx.lineTo(f.top[i][0], f.top[i][1]);
-      ctx.closePath(); ctx.stroke();
+      const TOP_EDGE_BIT2 = [8, 1, 4, 2];
+      for (let i = 0; i < 4; i++) {
+        if (mask & TOP_EDGE_BIT2[i]) continue;
+        const a = f.top[i], c = f.top[(i + 1) % 4];
+        ctx.moveTo(a[0], a[1]); ctx.lineTo(c[0], c[1]);
+      }
+      ctx.stroke();
       ctx.setLineDash([]);
     }
   }
@@ -3031,7 +3087,7 @@ function unsavedWork() {
     return !filed || JSON.stringify(filed.pieces) !== JSON.stringify(design.pieces);
   } catch (e) { return true; }
 }
-document.getElementById("homeLink").onclick = e => {
+document.querySelectorAll("a.leaveLink").forEach(link => { link.onclick = e => {
   if (!unsavedWork()) return;                 // nothing at stake. Just follow the link
   e.preventDefault();
   const href = e.currentTarget.getAttribute("href");
@@ -3044,7 +3100,7 @@ document.getElementById("homeLink").onclick = e => {
     [["Cancel", closeModal],
      ["Leave without saving", () => { closeModal(); location.href = href; }],
      ["Save & leave", () => { saveCurrent(); closeModal(); location.href = href; }, "warn"]]);
-};
+}; });
 async function tryDownload(data, filename, mime) {
   // On the published website, saves go through the viewer's confirmation prompt
   if (window.claude && window.claude.use) {

@@ -11,6 +11,7 @@ module.exports = `
    is squared, flat-apexed and wide, and Inter is none of those. Chakra Petch is the
    closest open face to the logo's character. It is not the logo, which is drawn
    lettering, so the ceiling here is close rather than same. */
+@font-face{font-family:"Chakra Petch";src:url(/fonts/chakrapetch-600.woff2)format("woff2");font-weight:600;font-display:swap}
 @font-face{font-family:"Chakra Petch";src:url(/fonts/chakrapetch-700.woff2)format("woff2");font-weight:700;font-display:swap}
 @font-face{font-family:Barlow;src:url(/fonts/barlow-400.woff2)format("woff2");font-weight:400;font-display:swap}
 @font-face{font-family:Barlow;src:url(/fonts/barlow-600.woff2)format("woff2");font-weight:600;font-display:swap}
@@ -40,10 +41,10 @@ a:hover{color:var(--yellow)}
 h1,h2.display{font-family:var(--display);font-weight:700;text-transform:uppercase;
   letter-spacing:0;line-height:.95;text-wrap:balance}
 h1{font-size:clamp(38px,7vw,84px);margin:0 0 18px}
-h2{font-family:var(--ui);font-weight:400;text-transform:uppercase;letter-spacing:.08em;
+h2{font-family:var(--display);font-weight:600;text-transform:uppercase;letter-spacing:.02em;
   font-size:clamp(24px,3vw,38px);margin:0 0 16px;text-wrap:balance}
 h2.display{font-size:clamp(30px,5vw,56px);letter-spacing:0}
-h3{font-family:var(--ui);font-weight:600;text-transform:uppercase;letter-spacing:.1em;
+h3{font-family:var(--display);font-weight:600;text-transform:uppercase;letter-spacing:.04em;
   font-size:14px;margin:0 0 8px}
 p,li{color:var(--dim2)}
 .lede{font-size:clamp(17px,1.6vw,21px);color:var(--text);max-width:56ch;line-height:1.45}

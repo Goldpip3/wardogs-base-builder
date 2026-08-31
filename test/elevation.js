@@ -219,5 +219,59 @@ check(/opt\.level > 0 \? "#ffc61a" : "#8b8b80"/.test(src),
     "the reported case no longer suppresses the edge it was suppressing before");
 }
 
+// ---------- the 3D view draws runs, not boxes ----------
+/* A perimeter is one wall to the person who built it and thirty outlined boxes to the
+   renderer, and it drew all thirty: the view came out as a field of lines with a base
+   somewhere inside it. An edge shared with a neighbour the plan already calls part of the
+   same wall is interior. It is not the shape of anything, so it is not drawn.
+ *
+ * The seam mask is in world directions and the two visible vertical faces depend on how the
+ * world is spun, so the spin has to pick which bit to ask about. Getting that pairing wrong
+ * suppresses the wrong side, which is the failure this pins.
+ */
+{
+  const iso = src.slice(src.indexOf("function draw3DNow"));
+  const body = iso.slice(0, iso.indexOf("\nfunction ", 10));
+
+  check(/getSeams\(\)/.test(body),
+    "the 3D view asks the plan which pieces are joined, rather than deciding again");
+  check(/nearXBit|nearYBit/.test(body),
+    "and pairs the spin with the world direction the mask is in");
+
+  /* the pairing itself, checked as arithmetic rather than by eye. Bits: 1 +x, 2 -x, 4 +y,
+     8 -y, and isoFaces takes x1 at spins 0 and 3, y1 at spins 0 and 1. */
+  const nearXBit = n => (n === 0 || n === 3) ? 1 : 2;
+  const nearYBit = n => (n === 0 || n === 1) ? 4 : 8;
+  const faceCode = src.slice(src.indexOf("function isoFaces"));
+  check(/nearX = n === 0 \|\| n === 3 \? x1 : x0/.test(faceCode) &&
+        /nearY = n === 0 \|\| n === 1 \? y1 : y0/.test(faceCode),
+    "the faces still turn on the spins these bits were derived from");
+  for (let n = 0; n < 4; n++) {
+    const want = "x" + (nearXBit(n) === 1 ? "+" : "-") + " y" + (nearYBit(n) === 4 ? "+" : "-");
+    const got = "x" + ((n === 0 || n === 3) ? "+" : "-") + " y" + ((n === 0 || n === 1) ? "+" : "-");
+    check(want === got, "at spin " + n + " the near faces are " + want);
+  }
+
+  // the roof is stroked edge by edge, or a run still shows every join across its top
+  check(/TOP_EDGE_BIT\s*=\s*\[8, 1, 4, 2\]/.test(body),
+    "the roof is stroked edge by edge, in the order its corners are built");
+  check(!/for \(const face of \[f\.side, f\.face, f\.top\]\)/.test(body),
+    "and no longer as three whole outlines whatever the neighbours are doing");
+
+  /* the climb marking is about a run too: it used to ring every block in a crossable wall */
+  const dash = body.slice(body.indexOf("setLineDash([5, 4])"));
+  check(/TOP_EDGE_BIT2|mask &/.test(dash.slice(0, 700)),
+    "the climb marking rings the run rather than every block in it");
+
+  /* a picked piece is filled. A hesco wall is already gold, so a gold outline on one is not
+     an answer to which one you clicked. */
+  check(/isoFill\(f\.top, shade\(tint, sel \?/.test(body),
+    "a selected piece is filled, not merely outlined");
+  check(/sel \? "#fff7ea"/.test(body),
+    "and outlined in a colour no buildable uses");
+  check(/const keepWhole = sel \|\| bad/.test(src) && /mask = keepWhole \? 0/.test(body),
+    "a selected or faulted piece keeps its whole outline, so it can be found in a crowd");
+}
+
 console.log("\n" + pass + " passed, " + fail + " failed");
 process.exit(fail ? 1 : 0);

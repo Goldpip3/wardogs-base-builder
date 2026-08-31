@@ -38,6 +38,32 @@ Reload came out of the panel. Nothing about it changes with where the gun or the
 so it was reference material sitting in a readout, and it is still on the platform card
 below where the rest of the reference lives.
 
+### The 3D view draws runs, not boxes
+
+A perimeter is one wall to the person who built it and thirty outlined boxes to the
+renderer, and it drew all thirty. The view came out as a field of lines with a base
+somewhere inside it, which is what got reported as it not looking clean.
+
+An edge shared with a neighbour that the plan already calls part of the same wall is
+interior: it is not the shape of anything. The two vertical faces are skipped outright when
+that side is joined, and the roof is stroked edge by edge rather than as one closed quad, so
+a run keeps only its own outline. Measured on a twenty six piece perimeter: 372 edges down
+to 240, a third fewer lines, and the walls read as slabs.
+
+The seam mask is in world directions and the two visible vertical faces depend on how the
+world is spun, so the spin picks which bit to ask about. `test/elevation.js` checks that
+pairing at all four spins as arithmetic rather than by eye, because suppressing the wrong
+side is the failure that would look almost right.
+
+The climb marking had the same shape of bug: it said a vehicle can get over this wall once
+per block, so a crossable perimeter came back as a dashed ladder. It rings the run now.
+
+**A picked piece is filled rather than outlined.** A hesco wall is already gold, so a gold
+outline on one answered nothing: measured, the chosen piece was within a few points of its
+neighbours. Its top face is now 73 luminance points brighter than the wall it sits in, and
+it is outlined in cream, which no buildable uses. A selected or faulted piece also keeps its
+whole outline, since there the point is to find one piece rather than to read a shape.
+
 ### How many players it takes to hold the base
 
 The one figure on a plan nobody can measure. Everything else here is read off the game or

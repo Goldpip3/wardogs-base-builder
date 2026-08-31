@@ -22,8 +22,9 @@ Get-ChildItem "$proj\assets\icons\*" -Include *.webp, *.svg, *.png | ForEach-Obj
 $iconsJson = ($iconMap.GetEnumerator() | Sort-Object Name | ForEach-Object { '"{0}":"{1}"' -f $_.Key, $_.Value }) -join ","
 
 # The site loads these fonts as files, but the planner has to work with no network at
-# all, so they are baked in as data URIs. Latin subsets, ~25 KB for all three.
+# all, so they are baked in as data URIs. Latin subsets, ~35 KB for all four.
 $faces = @(
+  @{ file = "chakrapetch-600.woff2"; family = "Chakra Petch"; weight = 600 },
   @{ file = "chakrapetch-700.woff2"; family = "Chakra Petch"; weight = 700 },
   @{ file = "barlow-400.woff2";      family = "Barlow";       weight = 400 },
   @{ file = "barlow-600.woff2";      family = "Barlow";       weight = 600 }
@@ -79,7 +80,8 @@ if ($adPub -and $adSlot) {
 # a newer build exists instead of quietly showing yesterday's.
 $stamp = (Get-Date).ToUniversalTime().ToString("yyyyMMdd-HHmmss")
 
-$offline = $out.Replace('/*__API__*/', '').Replace('/*__BUILD__*/', '').Replace('<!--__AD_HEAD__-->', '').Replace('<!--__AD_PANEL__-->', '')
+$toolNav = '<a class="leaveLink toolLink" href="/artillery/" title="Artillery calculator"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 13.5c2.5-6.5 7-9 13-9"/><circle cx="13.2" cy="4.2" r="1.5"/></svg><span>Artillery</span></a>'
+$offline = $out.Replace('/*__API__*/', '').Replace('/*__BUILD__*/', '').Replace('<!--__AD_HEAD__-->', '').Replace('<!--__AD_PANEL__-->', '').Replace('<!--__TOOLNAV__-->', '')
 [IO.File]::WriteAllText("$proj\WardogsBaseBuilder.html", $offline, $utf8)
 # Artifact variant (no HTML skeleton, the Artifact wrapper provides it)
 $art = $offline -replace '(?s)^.*?<title>', '<title>' -replace '</head>\s*<body>', '' -replace '</body>\s*</html>\s*$', ''
@@ -89,7 +91,7 @@ $art = $offline -replace '(?s)^.*?<title>', '<title>' -replace '</head>\s*<body>
 # afterwards by tools/build-site.js. GitHub Pages serves the whole docs/ folder.
 New-Item -ItemType Directory -Force "$proj\docs\planner" | Out-Null
 [IO.File]::WriteAllText("$proj\docs\planner\index.html",
-  $out.Replace('/*__API__*/', $apiBase).Replace('/*__BUILD__*/', $stamp).Replace('<!--__AD_HEAD__-->', $adHead).Replace('<!--__AD_PANEL__-->', $adPanel), $utf8)
+  $out.Replace('/*__API__*/', $apiBase).Replace('/*__BUILD__*/', $stamp).Replace('<!--__AD_HEAD__-->', $adHead).Replace('<!--__AD_PANEL__-->', $adPanel).Replace('<!--__TOOLNAV__-->', $toolNav), $utf8)
 [IO.File]::WriteAllText("$proj\docs\build.txt", $stamp, $utf8)
 if (Test-Path "$proj\release\og-1200x630.png") { Copy-Item "$proj\release\og-1200x630.png" "$proj\docs\preview.png" -Force }
 # Custom domain. Leave EMPTY until the domain's DNS actually resolves — claiming a
