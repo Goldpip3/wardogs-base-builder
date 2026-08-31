@@ -20,11 +20,27 @@ catalog exists so that you do not have to.
 Everything in this map is `live` unless its card says otherwise. Two things are worth
 knowing up front:
 
-- `assets/icons-drawn/` is **leftover**. Hand-drawn SVGs from before the game's own art was
-  used. Still on disk, not referenced by the build, kept only as a fallback if the art has
-  to come out. `build.ps1:13` reads `assets/icons/`, not this.
+- `assets/icons-drawn/` is **leftover**. The source SVGs behind the buildable icons. Still
+  on disk, referenced by nothing but this line, kept as a fallback. `build.ps1:18` reads
+  `assets/icons/`, not this.
 - `src/artifact.html` is **leftover**. A stripped variant for publishing as a Claude
   Artifact, regenerated every build at `build.ps1:55`. Nothing reads it.
+
+## Two sets of art, two different rules
+
+Easy to conflate, and the difference is the reason one of them is drawn by hand.
+
+| Set | What it is | Where it may go |
+|---|---|---|
+| `assets/icons/` | the **buildable** icons, drawn by `tools/make-icons.js` in one isometric projection | inlined into the planner, both builds |
+| `docs/game-icons/` | the **item** icons, the game's own art off the wardogs.zone wiki | the site only, never the planner |
+
+`make-icons.js` says of its own set: original artwork, no game assets, which matters
+because the project is public and may take donations. That is a statement about the
+buildables, not a rule the item icons broke. The item icons are the game's, they are used
+on a fan site the way the terrain tiles already are, and check 3e fails the build if the
+downloadable planner so much as names one, because that file's promise is that it reaches
+no network at all.
 
 ## Name collisions
 
@@ -42,10 +58,17 @@ Also: **`build` means three unrelated things** in this repo. Build Supplies (an 
 resource), the build process (`build.ps1`), and `tools/build-armory.js` /
 `tools/build-site.js` (generators). Read which one from context.
 
+And **`docs/` is not all generated**, which the entry files say twice because it is the
+easiest wrong assumption to act on. `docs/game-icons/` (495 icons) and `docs/maps/tiles/`
+(about 10,900 terrain tiles) are committed art. Nothing regenerates them, `build.ps1` never
+writes them, and between them they are the overwhelming majority of files under `docs/` by
+count. Deleting either expecting the build to put it back loses it.
+
 ## Status on a card
 
 `verified` requires a date and citations. `stale` is allowed and is honest. A confident
-wrong date is not. Cards below were verified against `main` on 2026-08-30.
+wrong date is not. Each card carries its own date; most were verified against `main` on
+2026-08-30, and the ones touched since say so themselves. Trust the card, not this line.
 
 ## What this map deliberately does not hold
 

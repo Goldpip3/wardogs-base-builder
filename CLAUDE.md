@@ -17,6 +17,7 @@ This file routes. It holds no content.
 | change a number | `data/`, never the markup |
 | change the planner | `src/app-template.html` |
 | change or add a page | `tools/site/pages/` |
+| add or refresh an item's icon | `tools/pull-game-icons.js`, by hand, never in the build |
 | change accounts, votes, saves | `worker/vote-worker.js` |
 
 ## Build, test, deploy
@@ -33,20 +34,19 @@ and the owner runs it. Command and the cmd.exe trap: [deploy.md](map/processes/d
 
 ## Seven things that catch people
 
-1. **`docs/` is generated.** Every file under it is overwritten. Edit the generator.
+1. **`docs/` is generated, apart from two committed asset trees**, `game-icons/` and
+   `maps/tiles/`. Generated pages are overwritten, so edit the generator; those two are not.
 2. **The planner ships twice** from one source, and the downloadable copy must have no
    network access at all. Checks enforce it.
 3. **`git push` does not deploy the worker.** That has been got wrong three times.
 4. **A number lives in one place.** Duplicating it into markup has drifted three times.
 5. **`wrangler kv` reads a local emulated store unless you pass `--remote`.** Without it the
-   real namespace looks empty and you will diagnose a bug that is not there. That cost a
-   whole diagnosis once: submissions were landing correctly the entire time.
+   real namespace looks empty. That cost a whole diagnosis: submissions were landing fine.
 6. **The share format lives in four places**, not two, and one of them is the worker.
    [share-code.md](map/objects/planner/share-code.md) has the list; miss one and saves fail
    silently, which they did for a day.
-7. **A push takes ten minutes to reach a browser.** GitHub Pages sends the planner with
-   `max-age=600`, so a fix can look unfixed to whoever asked for it. Check the live
-   `build.txt` against `docs/build.txt` before believing a bug report on a fresh deploy.
+7. **A push takes ten minutes to reach a browser.** GitHub Pages sends `max-age=600`, so a
+   fix looks unfixed. Check the live `build.txt` against `docs/build.txt` before believing it.
 
 ## Working style
 
