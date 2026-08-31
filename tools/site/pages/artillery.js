@@ -34,7 +34,8 @@ module.exports = ctx => {
       ["Reload", p.reloadSeconds + " s"],
       ["Shell", p.damage + " damage", p.blastRadius + " m blast radius"],
       ["Grouping", p.moa + " MOA",
-        spreadAt(p.maxRange, p.moa).toFixed(1) + " m across at maximum range"],
+        "about " + spreadAt(p.maxRange, p.moa).toFixed(1) +
+        " m of error at maximum range, and less the closer you shoot"],
       ["Round", "$" + num(p.roundCost) + " each", esc(p.roundName)],
     ];
     if (p.lowArcFrom) rows.splice(2, 0, ["Low arc from", num(p.lowArcFrom) + " m"]);
@@ -61,7 +62,7 @@ module.exports = ctx => {
     "<th class=\"n\">Spread</th></tr></thead><tbody>" +
     rows.map(function (r) {
       return "<tr><td>" + r.mils + '</td><td class="n">' + num(r.dist) + '</td>' +
-        '<td class="n"><span class="fine">&plusmn;' +
+        '<td class="n"><span class="fine">about ' +
         spreadAt(r.dist, moa).toFixed(1) + " m</span></td></tr>";
     }).join("") + "</tbody></table>";
 

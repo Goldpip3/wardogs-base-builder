@@ -44,6 +44,12 @@ It lives outside `.wrap`. That is load bearing: inside it, the tool was centred 
 - framing runs once, from a `ResizeObserver`, the first time the stage has a real size. It
   is never re-framed, so a resize cannot throw away wherever somebody has panned to
 - the URL fragment carries map, weapon and both points, and `hashchange` re-reads it
+- every label in the solution is a `why()` span: hover, tap or tab it and it says what the
+  number is, in the panel where the number is. The dial tip is written per arc, because more
+  mils is less range on the high arc and more on the low one, and telling a new player one
+  rule for both would be wrong half the time
+- the solution reports what varies with the shot. Reload and round cost do not, so they are
+  on the platform cards below the tool and not in the panel
 
 ## Connected to
 
@@ -64,7 +70,7 @@ It lives outside `.wrap`. That is load bearing: inside it, the tool was centred 
 | Surface | Role |
 |---|---|
 | `tools/site/pages/artillery.js` | calls it |
-| `tools/site/css.js` | styles it, every rule prefixed `amap-` |
+| `tools/site/css.js` | styles it, every rule prefixed `amap-`, tips included |
 | `tools/check-build.js` | parses the script it emits |
 
 ## See

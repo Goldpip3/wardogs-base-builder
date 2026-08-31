@@ -23,7 +23,7 @@ module.exports = ctx => {
     id: p.id, name: p.name, minRange: p.minRange, maxRange: p.maxRange,
     moa: p.moa, table: p.table || null, tableLow: p.tableLow || null,
     tableHigh: p.tableHigh || null, lowArcFrom: p.lowArcFrom || null,
-    reloadSeconds: p.reloadSeconds, roundCost: p.roundCost,
+    blastRadius: p.blastRadius,
   }));
 
   const maps = ARTILLERY_MAPS.maps.map(m => ({
@@ -155,9 +155,19 @@ function spreadAt(d){return d*(cur.moa/60)*Math.PI/180;}
 function line(k,v,note){
  return "<tr><td>"+k+"</td><td class=n><b>"+v+"</b>"+
   (note?" <span class=fine>"+note+"</span>":"")+"</td></tr>";}
-function dialLine(label,m,t){
+
+/* A label anyone can hover, tap or tab to and be told what the number is. The explanation
+   sits in the panel rather than in prose further down the page, because the moment somebody
+   wants to know what a mil is, is the moment they are looking at one. */
+function why(label,text){
+ return "<span class=amap-why tabindex=0>"+label+"<span class=amap-tip>"+text+
+  "</span></span>";}
+
+var MIL="Elevation to set on the gun, in mils. A full circle is 6,400 of them, so one mil"+
+ " is a small nudge of the barrel and the sight reads them directly.";
+function dialLine(label,m,t,tip){
  var mm=Math.round(m);
- return line(label,mm+" mil",
+ return line(why(label,tip),mm+" mil",
   onRow(t,mm)?"a measured point":"interpolated between two measured points");}
 
 function solution(){
@@ -171,9 +181,14 @@ function solution(){
  var dx=(tgt.x-gun.x)*UNIT, dy=(tgt.y-gun.y)*UNIT;
  var dist=Math.sqrt(dx*dx+dy*dy);
  var az=(Math.atan2(dx,dy)*180/Math.PI+360)%360;
- var rows=line("Bearing",az.toFixed(1)+"&deg;","from north");
- rows+=line("Range",Math.round(dist)+" m");
- var warn="";
+ var rows=line(why("Bearing","Which way to point the gun: degrees clockwise from north."+
+  " 0 is north, 90 east, 180 south, 270 west. Traverse to this first, then set the dial."),
+  az.toFixed(1)+"&deg;","from north");
+ rows+=line(why("Range","Flat map distance from gun to target. Every table on this page"+
+  " assumes both ends sit at the same height, and this ground is a river valley: a shot up"+
+  " onto high ground falls short of the table, a shot down off a ridge carries past it."),
+  Math.round(dist)+" m");
+ var warn="", inRange=false;
  if(dist<cur.minRange){
   rows+=line("Dial","no solution","inside the dead zone");
   warn="That is "+Math.round(cur.minRange-dist)+" m inside the closest this gun can drop a"+
@@ -185,14 +200,21 @@ function solution(){
   status.textContent="OUT OF RANGE";status.className="bad";
  } else {
   status.textContent="IN RANGE  "+Math.round(dist)+" m";status.className="good";
+  inRange=true;
   if(cur.table){
    var m=dialDesc(dist,cur.table);
    if(m===null)rows+=line("Dial","no solution");
-   else rows+=dialLine("Dial",m,cur.table);
+   else rows+=dialLine("Dial",m,cur.table,MIL+" This gun has one trajectory and it is"+
+    " already past the top of its throw, so more mils lands shorter, not further. If the"+
+    " round falls long, dial up.");
   } else if(cur.tableLow||cur.tableHigh){
    var lo=dialAsc(dist,cur.tableLow), hi=dialDesc(dist,cur.tableHigh);
-   if(lo!==null)rows+=dialLine("Dial, low arc",lo,cur.tableLow);
-   if(hi!==null)rows+=dialLine("Dial, high arc",hi,cur.tableHigh);
+   if(lo!==null)rows+=dialLine("Dial, low arc",lo,cur.tableLow,MIL+" The low arc throws"+
+    " flat and fast, so the round arrives sooner. Here more mils is more range. It needs"+
+    " the sky between you and the target to be clear.");
+   if(hi!==null)rows+=dialLine("Dial, high arc",hi,cur.tableHigh,MIL+" The high arc lobs"+
+    " the round up and over, so it clears a ridge but hangs in the air longer. Here more"+
+    " mils lands shorter. Either dial reaches this target: pick one.");
    if(lo===null&&hi===null)rows+=line("Dial","no solution");
    else if(lo===null)warn="Inside "+cur.lowArcFrom+" m only the high arc reaches. It hangs"+
     " longer, so lead a moving target accordingly.";
@@ -200,10 +222,35 @@ function solution(){
    rows+=line("Dial","not published","see below");
   }
  }
- rows+=line("Spread","&plusmn;"+spreadAt(dist).toFixed(1)+" m","at "+cur.moa+" MOA");
- rows+=line("Reload",cur.reloadSeconds+" s","$"+cur.roundCost+" a round");
- box.innerHTML="<h3 style='margin:0 0 10px'>Firing solution</h3>"+
-  "<table style='margin:0'><tbody>"+rows+"</tbody></table>"+
+ var sp=spreadAt(dist);
+ rows+=line(why("Spread","The gun does not point at a spot, it points inside a narrow"+
+  " cone. MOA is how wide that cone is: minutes of angle, 60 to a degree. "+cur.moa+
+  " MOA is about "+(cur.moa/60).toFixed(2)+" of a degree, which opens out to roughly "+
+  sp.toFixed(1)+" m by the time the round has flown "+Math.round(dist)+" m. Nobody has"+
+  " published whether that bounds a radius, a full width or a typical group, so read it"+
+  " as the size of the error and not a promise."),
+  "about "+sp.toFixed(1)+" m",cur.moa+" MOA at "+Math.round(dist)+" m");
+
+ /* The spread number on its own tells a new player nothing. What they want to know is
+    whether the shell still lands on the thing, and whether moving the gun would help. */
+ var detail="";
+ if(inRange){
+  detail="<p class=fine style='margin:10px 0 0'>The dashed circle on the target is that"+
+   " number drawn as a radius, the widest it can honestly be read. "+
+   (sp<=cur.blastRadius
+    ? "The shell bursts to "+cur.blastRadius+" m, so a round landing anywhere in that"+
+      " circle still catches the aim point."
+    : "The shell bursts to "+cur.blastRadius+" m, which is smaller than that circle, so a"+
+      " round out at the edge leaves the aim point untouched. Send one to range with,"+
+      " watch where it falls, correct, then fire for effect.")+
+   " Spread is an angle, so it grows with the shot: about "+
+   spreadAt(cur.minRange).toFixed(1)+" m at "+cur.minRange+" m and "+
+   spreadAt(cur.maxRange).toFixed(1)+" m at "+cur.maxRange+" m. Moving the gun closer"+
+   " tightens the group; dialling does not.</p>";}
+
+ box.innerHTML="<h3 style='margin:0 0 4px'>Firing solution</h3>"+
+  "<p class=fine style='margin:0 0 10px'>Hover or tap a label for what it means.</p>"+
+  "<table style='margin:0'><tbody>"+rows+"</tbody></table>"+detail+
   (warn?"<p class=fine style='margin:12px 0 0;color:var(--red-hot)'>"+warn+"</p>":"");
 }
 

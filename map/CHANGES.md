@@ -8,6 +8,29 @@ Newest first. One entry per decision, not per commit.
 
 ## 2026-08-31
 
+### The firing solution explains itself
+
+Every label in the solution panel now opens an explanation on hover, tap or tab, and the
+spread got most of the new words. It was one line, plus or minus a number of metres at a
+grouping angle, which is a sentence for somebody who already knows what MOA is and noise for
+everybody else. It now says what the cone is, what it opens out to at this range, that the
+dashed circle on the target is that figure drawn as a radius, and the one thing a player
+does with it: whether the shell's blast still covers the aim point from the edge of the
+group, and that moving the gun closer is the only thing that tightens it. Dialling does not.
+
+The dial tip is written per arc on purpose. More mils is less range on the mortar and on the
+high arc, and more range on the low arc, so one rule for both would mislead half the time.
+
+Spread is worded the same way everywhere now, "about N m" rather than a plus or minus, and
+the platform card no longer says "across". The data is explicit that nobody has published
+whether the angle bounds a radius, a full width or a typical group, so the page had been
+saying two different things about the same number and both were more confident than the
+source. The tip carries the uncertainty rather than hiding it.
+
+Reload came out of the panel. Nothing about it changes with where the gun or the target is,
+so it was reference material sitting in a readout, and it is still on the platform card
+below where the rest of the reference lives.
+
 ### The designs page stops spending space on nothing
 
 Three things on one page, all of them the same mistake in different clothes: a layout built
