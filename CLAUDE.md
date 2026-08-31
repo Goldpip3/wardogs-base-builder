@@ -17,6 +17,7 @@ This file routes. It holds no content.
 | change a number | `data/`, never the markup |
 | change the planner | `src/app-template.html` |
 | change or add a page | `tools/site/pages/` |
+| change the loadout calculator | `tools/site/pages/armory.js`. There is no loadouts page |
 | add or refresh an item's icon | `tools/pull-game-icons.js`, by hand, never in the build |
 | change accounts, votes, saves | `worker/vote-worker.js` |
 
@@ -42,9 +43,8 @@ and the owner runs it. Command and the cmd.exe trap: [deploy.md](map/processes/d
 4. **A number lives in one place.** Duplicating it into markup has drifted three times.
 5. **`wrangler kv` reads a local emulated store unless you pass `--remote`.** Without it the
    real namespace looks empty. That cost a whole diagnosis: submissions were landing fine.
-6. **The share format lives in four places**, not two, and one of them is the worker.
-   [share-code.md](map/objects/planner/share-code.md) has the list; miss one and saves fail
-   silently, which they did for a day.
+6. **The share format lives in four places**, one of them the worker. Miss one and saves fail
+   silently, as they did for a day. [share-code.md](map/objects/planner/share-code.md) lists them.
 7. **A push takes ten minutes to reach a browser.** GitHub Pages sends `max-age=600`, so a
    fix looks unfixed. Check the live `build.txt` against `docs/build.txt` before believing it.
 

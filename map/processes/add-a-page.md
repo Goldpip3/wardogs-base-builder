@@ -34,6 +34,23 @@ than a silent loss six months long.
 Add a nav link in `tools/site/shell.js` only if the page is for players rather than for you.
 `/account/` and `/moderate/` are `noindex` and deliberately unlinked.
 
+## Register
+
+Encyclopedic. A page answers, it does not perform. The owner rejected a first pass at the
+front page for reading like AI, and Wikipedia's Signs of AI writing named why: it broke five
+rules across eleven places.
+
+- No narrator and no anecdote. The game is the subject, not the site and not whoever built it.
+- No jokes standing in for information, and no telling the reader what they think.
+- No "X, not Y". State the claim and drop the foil.
+- No self-praise. Saying the figures are honest is not evidence that they are. Print the
+  counts of what is still unmeasured and let those stand as the claim.
+- Figures come from `data/` at build time, never typed into the copy, so a page cannot drift
+  away from the table it describes.
+
+The full list, and the audit that catches a relapse, sit at the head of
+`tools/site/pages/home.js`.
+
 ## If you change this
 
 - **Hits:** the sitemap, the footer if you add a link, and an inline-script parse check that
