@@ -29,7 +29,17 @@ Telling someone a worker change needs no deploy has been wrong twice in this pro
 
 1. `powershell -File build.ps1`. Never push without this.
 2. `git push`. Pages picks up `docs/` within a minute or two.
-3. Only if `worker/` changed: `cd worker` then `wrangler deploy`.
+3. Only if `worker/` changed, one command, no `cd`:
+
+   ```
+   wrangler deploy --config "C:\Users\colom\Claude Projects\Wardogs builder\worker\wrangler.toml"
+   ```
+
+   The owner's terminal is **cmd.exe**, where `;` is not a separator, so a `cd X; y`
+   one-liner is read as a single path and fails with "the system cannot find the path
+   specified". That has been handed over wrong once. Give cmd-safe commands, one per block.
+   `wrangler deploy --dry-run --config <same>` builds without shipping, which is worth
+   running before handing the real one over.
 4. Verify against the live URL, not localhost, and bypass the cache. A stale render in a
    browser tab has twice looked like a broken deploy when the served bytes were correct.
 

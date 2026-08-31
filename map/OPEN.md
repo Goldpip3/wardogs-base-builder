@@ -3,7 +3,36 @@
 A catalog, like everything else in this map. It points; the detail lives with the thing it
 is about. If this file and a card disagree, the card is right.
 
-Last swept 2026-08-30.
+Last swept 2026-08-30, end of the session that shipped short share links, the account
+control in the planner toolbar and one-button submission.
+
+## The community loop works. It has never been finished by hand.
+
+Submitting from the planner, saving online and signing in all work end to end, verified
+against the live worker. Three real submissions are sitting in KV right now with
+`status: pending`, one of them a genuine base:
+
+```
+design:new-fob-qv11    pending    AVGVSTVS    391 char v2 code
+design:new-fob-bbrz    pending
+design:new-fob-2-7he8  pending
+```
+
+**Nobody has ever approved one.** The next step is a person at [/moderate/](https://www.wardogsbuilder.com/moderate/)
+with the `ADMIN_TOKEN`, approving or deleting those three. Approval is enough on its own:
+`/designs/` fetches the list from the worker at runtime, so no rebuild and no push. Until
+that happens the voting half of this site has never actually run with real data, and two of
+those three are probably test submissions to delete rather than keep.
+
+**One decision is waiting on the owner.** Their own submissions queue up behind their own
+approval, which is right for strangers and pointless for the one person who runs the site.
+Making a submission from the owner's Discord id publish immediately was offered and not yet
+answered.
+
+A warning that cost an evening, now on the worker card too: `wrangler kv` reads a **local
+emulated store** unless you pass `--remote`. Without it the namespace looks empty. Those
+three pending designs were reported as "nothing ever reached storage" on the strength of a
+listing that was reading nothing at all.
 
 ## Start here if you are picking artillery back up
 

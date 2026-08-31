@@ -18,22 +18,33 @@ This file routes. It holds no content.
 | change or add a page | `tools/site/pages/` |
 | change accounts, votes, saves | `worker/vote-worker.js` |
 
-## Build and test
+## Build, test, deploy
 
 ```
 powershell -File build.ps1     # inlines, generates, checks, tests. Never push without it
-node test/run.js               # the eight suites on their own, about half a second
+node test/run.js               # the suites on their own, about half a second
 ```
 
 `build.ps1` fails on any broken check. That is intended: nothing ships past it.
 
-## Four things that catch people
+Two deploys, and they are separate. `git push` publishes the site; the worker ships only
+with wrangler and the owner runs it. Command, and the cmd.exe gotcha that has bitten a
+handover once: [map/processes/deploy.md](map/processes/deploy.md).
+
+## Six things that catch people
 
 1. **`docs/` is generated.** Every file under it is overwritten. Edit the generator.
 2. **The planner ships twice** from one source, and the downloadable copy must have no
-   network access at all. Two checks enforce it.
-3. **`git push` does not deploy the worker.** That is `wrangler deploy`, from `worker/`.
+   network access at all. Checks enforce it.
+3. **`git push` does not deploy the worker.** That has been got wrong three times.
 4. **A number lives in one place.** Duplicating it into markup has drifted three times.
+5. **`wrangler kv` reads a local emulated store unless you pass `--remote`.** Without it the
+   real namespace looks empty and you will diagnose a bug that is not there. That cost a
+   whole diagnosis once: submissions were landing correctly the entire time.
+
+6. **The share format lives in four places**, not two, and one of them is the worker.
+   [share-code.md](map/objects/planner/share-code.md) has the list; miss one and saves fail
+   silently, which they did for a day.
 
 ## Working style
 
@@ -41,3 +52,6 @@ No em dashes anywhere, in code, comments, commits or prose. The build fails on t
 
 When a class of bug gets out, add a check rather than only fixing the instance, and prove
 the check fails on that bug before trusting it.
+
+Numbers get measured, not assumed. A figure that cannot be worked out honestly is left out
+and said so on the page, never filled with a plausible guess.

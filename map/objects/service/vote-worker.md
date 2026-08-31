@@ -60,7 +60,23 @@ per account.
 |---|---|
 | hosted planner, site pages | read and write over HTTPS |
 | `tools/pull-community.js` | reads approved designs |
-| `test/worker.mjs` | 57 checks against a fake KV, no Cloudflare involved |
+| `test/worker.mjs` | checks against a fake KV, no Cloudflare involved |
+
+## Looking inside it
+
+```
+wrangler kv key list --namespace-id <id> --remote --config worker/wrangler.toml
+wrangler kv key get "design:<slug>" --namespace-id <id> --remote --config worker/wrangler.toml
+```
+
+**`--remote` is not optional.** Without it wrangler reads a local emulated store, which on
+a machine that has never run `wrangler dev` is empty, and reports that emptiness with no
+warning. That happened: a submission that had worked perfectly was diagnosed as never having
+reached storage, on the strength of a listing that was reading nothing at all. If a KV query
+says empty, check the flag before you believe it.
+
+`wrangler deployments list` and `wrangler secret list` are the other two read-only ways to
+see what is actually live. Neither needs `--remote`.
 
 ## See
 
