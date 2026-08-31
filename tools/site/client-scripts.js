@@ -107,6 +107,11 @@ function voteWidget(slug) {
    none of those and the list would carry the whole catalog to every reader for nothing. */
 const SHARED_VIEW = fs.readFileSync(
   path.join(ROOT, "src/shared/design-view.js"), "utf8");
+const CREW_LABELS = JSON.stringify(
+  (((ctx.catalog.crewSizes || {}).options) || []).reduce((m, o) => {
+    m[o.id] = o.label;
+    return m;
+  }, {}));
 const THUMB_DEFS = JSON.stringify(
   (ctx.catalog.buildables || []).reduce((m, b) => {
     m[b.id] = { footprint: b.footprint, role: b.role, tier: b.tier };
@@ -116,6 +121,7 @@ const THUMB_DEFS = JSON.stringify(
 
 const COMMUNITY_SCRIPT = !VOTE_API ? "" : `<script>${SHARED_VIEW}
 var THUMB_DEFS = ${THUMB_DEFS};
+var CREW_LABELS = ${CREW_LABELS};
 </script><script>
 (function(){
 var API=${JSON.stringify(VOTE_API)};
@@ -292,6 +298,11 @@ if(list){
         (d.note?'<p>'+esc(d.note)+'</p>':'')+
         '<div class="stats"><span>by</span>'+esc(d.author)+
         (d.mine?'<span style="color:var(--accent)">yours</span>':'')+
+        /* Who it takes to hold the base. It travels inside the share code rather than
+           beside it, so there is one copy of the answer and it survives being passed on as
+           a link. The card has already decoded the code to paint the picture, so this costs
+           nothing extra; the slot is filled when that lands. */
+        '<span class="crew" data-crew-for="'+esc(d.slug)+'" hidden></span>'+
         '<span>score</span><b data-role="score">'+score+'</b>'+
         '<span>'+ago(d.submitted)+'</span></div>'+
         '<div class="vote" data-design="'+esc(d.slug)+'" style="margin-top:14px">'+
@@ -337,6 +348,12 @@ if(list){
         .then(function(d){
           var ok=WardogsDesignView.drawThumb(cv, d.pieces, function(t){ return THUMB_DEFS[t]; });
           if(!ok) cv.style.display="none";
+          var slot=cv.closest(".card").querySelector("[data-crew-for]");
+          if(slot && d.crew && CREW_LABELS[d.crew]){
+            // same shape as the other stats: a dim label, then the value
+            slot.innerHTML='<span>players</span><b>'+esc(CREW_LABELS[d.crew])+'</b>';
+            slot.hidden=false;
+          }
         })
         .catch(function(){ cv.style.display="none"; });
     };

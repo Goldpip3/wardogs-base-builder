@@ -34,6 +34,14 @@
   }
   function unzig(v) { return v & 1 ? -(v + 1) / 2 : v / 2; }
 
+  /* How many players a base is built to be held by. It rides in the head, which is JSON on
+     both versions of the format, so an old code simply has no key here and an old reader
+     ignores a new one: the alphabet does not change, which is the part that would have
+     needed a worker deploy. Anything unrecognised is treated as not set rather than kept,
+     so a bad code cannot put a value on a page that has no label for it. */
+  var CREW = ["s", "m", "l"];
+  function crewOf(v) { return CREW.indexOf(v) > -1 ? v : null; }
+
   async function inflate(bytes) {
     var s = new DecompressionStream("deflate-raw");
     var w = s.writable.getWriter();
@@ -54,7 +62,8 @@
       if (a.length > 5) p.zone = a[5];
       return p;
     }).filter(function (p) { return p.type && known(p.type); });
-    return { name: String(o.n || "Shared design").slice(0, 80), pieces: pieces, nextId: id };
+    return { name: String(o.n || "Shared design").slice(0, 80), pieces: pieces, nextId: id,
+             crew: crewOf(o.c) };
   }
 
   /* v2: a JSON head, then column-major varints with the coordinates delta coded, deflated.
@@ -81,7 +90,7 @@
     }
     return { name: String(head.n || "Shared design").slice(0, 80),
              pieces: pieces.filter(function (p) { return p.type && known(p.type); }),
-             nextId: id };
+             nextId: id, crew: crewOf(head.c) };
   }
 
   /* A leading tilde marks v2. It is outside the base64url alphabet on purpose, so telling

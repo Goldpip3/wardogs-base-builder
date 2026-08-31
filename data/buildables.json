@@ -27,6 +27,26 @@
       }
     ]
   },
+  "crewSizes": {
+    "_note": "How many players a base is built to be held by. Chosen by whoever made it, not measured: it is an intention, not a game figure. Required on a submission so the community list can say who a base is for.",
+    "options": [
+      {
+        "id": "s",
+        "label": "1 to 2",
+        "hint": "A duo hold. Tight, few angles to watch."
+      },
+      {
+        "id": "m",
+        "label": "3 to 5",
+        "hint": "A squad. The usual."
+      },
+      {
+        "id": "l",
+        "label": "6 to 10",
+        "hint": "A full team, several fronts to man."
+      }
+    ]
+  },
   "support": {
     "label": "☕ Tip the dev",
     "url": ""

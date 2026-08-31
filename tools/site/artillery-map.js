@@ -19,11 +19,20 @@ module.exports = ctx => {
   const { esc, ARTILLERY, ARTILLERY_MAPS, adSlot } = ctx;
   const A = ARTILLERY;
 
+  /* The tables' own ends, which is where the stated mil envelope comes from too. Derived
+     rather than read off a second field, so there is one place it can be wrong. */
+  const milEnds = p => {
+    const all = [].concat(p.table || [], p.tableLow || [], p.tableHigh || [])
+      .map(r => r.mils);
+    return [Math.min.apply(null, all), Math.max.apply(null, all)];
+  };
+
   const platforms = A.platforms.map(p => ({
     id: p.id, name: p.name, minRange: p.minRange, maxRange: p.maxRange,
     moa: p.moa, table: p.table || null, tableLow: p.tableLow || null,
     tableHigh: p.tableHigh || null, lowArcFrom: p.lowArcFrom || null,
-    blastRadius: p.blastRadius,
+    blastRadius: p.blastRadius, confidence: p.confidence,
+    milFrom: milEnds(p)[0], milTo: milEnds(p)[1],
   }));
 
   const maps = ARTILLERY_MAPS.maps.map(m => ({
@@ -163,8 +172,16 @@ function why(label,text){
  return "<span class=amap-why tabindex=0>"+label+"<span class=amap-tip>"+text+
   "</span></span>";}
 
-var MIL="Elevation to set on the gun, in mils. A full circle is 6,400 of them, so one mil"+
- " is a small nudge of the barrel and the sight reads them directly.";
+function mil(){
+ return "Barrel elevation, in the mils these firing tables are written in: "+cur.milFrom+
+  " to "+cur.milTo+" on this gun. What its sight actually reads has not been checked"+
+  " against them, and the mil scale is one of the things still open at the foot of this"+
+  " page."+
+  (/unfired/.test(cur.confidence||"")
+   ? " These tables are transcribed from one source and nobody here has fired a row of"+
+     " them."
+   : "")+
+  " Range with a round before you trust the number.";}
 function dialLine(label,m,t,tip){
  var mm=Math.round(m);
  return line(why(label,tip),mm+" mil",
@@ -204,15 +221,15 @@ function solution(){
   if(cur.table){
    var m=dialDesc(dist,cur.table);
    if(m===null)rows+=line("Dial","no solution");
-   else rows+=dialLine("Dial",m,cur.table,MIL+" This gun has one trajectory and it is"+
+   else rows+=dialLine("Dial",m,cur.table,mil()+" This gun has one trajectory and it is"+
     " already past the top of its throw, so more mils lands shorter, not further. If the"+
     " round falls long, dial up.");
   } else if(cur.tableLow||cur.tableHigh){
    var lo=dialAsc(dist,cur.tableLow), hi=dialDesc(dist,cur.tableHigh);
-   if(lo!==null)rows+=dialLine("Dial, low arc",lo,cur.tableLow,MIL+" The low arc throws"+
+   if(lo!==null)rows+=dialLine("Dial, low arc",lo,cur.tableLow,mil()+" The low arc throws"+
     " flat and fast, so the round arrives sooner. Here more mils is more range. It needs"+
     " the sky between you and the target to be clear.");
-   if(hi!==null)rows+=dialLine("Dial, high arc",hi,cur.tableHigh,MIL+" The high arc lobs"+
+   if(hi!==null)rows+=dialLine("Dial, high arc",hi,cur.tableHigh,mil()+" The high arc lobs"+
     " the round up and over, so it clears a ridge but hangs in the air longer. Here more"+
     " mils lands shorter. Either dial reaches this target: pick one.");
    if(lo===null&&hi===null)rows+=line("Dial","no solution");

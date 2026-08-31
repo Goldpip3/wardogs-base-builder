@@ -148,7 +148,7 @@ check(new Set(shades).size === 6, "all six storeys draw in a different shade");
 
 /* ---- and the badge still states the number outright ---- */
 check(/ctx\.fillRect\(-tw \/ 2 - padX/.test(src), "the storey badge is drawn on a filled chip");
-check(/opt\.level > 0 \? "#ff5b47" : "#8b8b80"/.test(src),
+check(/opt\.level > 0 \? "#ffc61a" : "#8b8b80"/.test(src),
   "stacked reads accent, merely-tall reads grey, so the two cannot be confused");
 
 /* ---- the shadow is the one thing allowed outside, and it cannot land on a body ---- */

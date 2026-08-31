@@ -39,6 +39,7 @@
     --text: #fff7ea;
     --dim: rgba(255, 247, 234, .44);
     --accent: #ffc61a;          /* 12.4 on the ground here. The brand red managed 3.1 */
+    --accent-dim: #d9a521;      /* 8.7. A step down, for provisional rather than certain */
     --accent-ink: #14100e;      /* 12.0 the other way, so a filled chip reads both ways */
     --accent2: #9ec46a;
     --danger: #f30000;
@@ -283,7 +284,12 @@
   #selProps input[type=number] { width: 62px; }
   .size-edit { display: flex; align-items: center; gap: 4px; }
   .size-edit input[type=number] { width: 44px; }
-  .unsized { color: var(--danger); }
+  /* An estimated size is a caution, not a fault, and 8 of the 20 buildables carry one.
+     In --danger that put full red on nearly half the catalog, which is how red stops
+     meaning anything. Dim gold instead: legible as provisional, and a step down from
+     the bright accent the cost sits in right beside it. The "?" carries the same
+     meaning without relying on hue, which is what the help text always claimed. */
+  .unsized { color: var(--accent-dim); }
   .budget-track {
     height: 7px; background: #12140d; border: 1px solid var(--border);
     border-radius: 0; overflow: hidden; margin-top: 6px;
@@ -472,6 +478,16 @@
       </div>
     </div>
 
+    <!-- How many players this base is built to be held by. It is a fact about the design
+         rather than about a piece, so it sits with the design's other totals and travels in
+         the share link. Nobody can measure it, so it is the one thing on this panel that is
+         asked for rather than worked out. -->
+    <div class="rp-section">
+      <h3>Who holds it</h3>
+      <div class="seg" id="crewStrip" role="group" aria-label="Players needed to hold this base"></div>
+      <div id="crewNote" style="font-size:11.5px;color:var(--dim);margin-top:6px"></div>
+    </div>
+
     <div class="rp-section">
       <h3>Hauling it there</h3>
       <div class="hero">
@@ -581,6 +597,14 @@
   }
   function unzig(v) { return v & 1 ? -(v + 1) / 2 : v / 2; }
 
+  /* How many players a base is built to be held by. It rides in the head, which is JSON on
+     both versions of the format, so an old code simply has no key here and an old reader
+     ignores a new one: the alphabet does not change, which is the part that would have
+     needed a worker deploy. Anything unrecognised is treated as not set rather than kept,
+     so a bad code cannot put a value on a page that has no label for it. */
+  var CREW = ["s", "m", "l"];
+  function crewOf(v) { return CREW.indexOf(v) > -1 ? v : null; }
+
   async function inflate(bytes) {
     var s = new DecompressionStream("deflate-raw");
     var w = s.writable.getWriter();
@@ -601,7 +625,8 @@
       if (a.length > 5) p.zone = a[5];
       return p;
     }).filter(function (p) { return p.type && known(p.type); });
-    return { name: String(o.n || "Shared design").slice(0, 80), pieces: pieces, nextId: id };
+    return { name: String(o.n || "Shared design").slice(0, 80), pieces: pieces, nextId: id,
+             crew: crewOf(o.c) };
   }
 
   /* v2: a JSON head, then column-major varints with the coordinates delta coded, deflated.
@@ -628,7 +653,7 @@
     }
     return { name: String(head.n || "Shared design").slice(0, 80),
              pieces: pieces.filter(function (p) { return p.type && known(p.type); }),
-             nextId: id };
+             nextId: id, crew: crewOf(head.c) };
   }
 
   /* A leading tilde marks v2. It is outside the base64url alphabet on purpose, so telling
@@ -761,6 +786,26 @@ const CATALOG_DEFAULT = {
       {
         "name": "Helicopter",
         "pallets": 1
+      }
+    ]
+  },
+  "crewSizes": {
+    "_note": "How many players a base is built to be held by. Chosen by whoever made it, not measured: it is an intention, not a game figure. Required on a submission so the community list can say who a base is for.",
+    "options": [
+      {
+        "id": "s",
+        "label": "1 to 2",
+        "hint": "A duo hold. Tight, few angles to watch."
+      },
+      {
+        "id": "m",
+        "label": "3 to 5",
+        "hint": "A squad. The usual."
+      },
+      {
+        "id": "l",
+        "label": "6 to 10",
+        "hint": "A full team, several fronts to man."
       }
     ]
   },
@@ -1396,7 +1441,7 @@ function renderPalette() {
       `<span class="cost">${b.cost}${COST_ICON}</span>`;
     card.innerHTML = `${ic}<div class="info">
       <div class="name"><span class="role-dot" style="background:${pieceColor(b)}" title="${ROLE_LABEL[b.isFob?'fob':b.role] || 'Other'}"></span>${b.name}${b.isFob?"":`<span class="tier-badge tier-${b.tier}">${b.tier[0].toUpperCase()}</span>`}</div>
-      <div class="meta">${costTxt} · <span class="${b.sizeConfirmed===false?'unsized':''}" title="${b.sizeConfirmed===false?'Estimated size. Select a placed one to correct it':'Confirmed size'}">${b.footprint.w}×${b.footprint.d}${b.height>1?`×${b.height}`:""}</span>${b.requiresFob===false&&!b.isFob?" · no FOB":""}</div>
+      <div class="meta">${costTxt} · <span class="${b.sizeConfirmed===false?'unsized':''}" title="${b.sizeConfirmed===false?'Estimated size. Select a placed one to correct it':'Confirmed size'}">${b.footprint.w}×${b.footprint.d}${b.height>1?`×${b.height}`:""}${b.sizeConfirmed===false?"?":""}</span>${b.requiresFob===false&&!b.isFob?" · no FOB":""}</div>
     </div>`;
     card.onclick = () => startPlacing(b.id);
     holder.appendChild(card);
@@ -1849,7 +1894,7 @@ function draw3DNow() {
 
     // one path for all three faces rather than three stroke calls
     ctx.lineWidth = sel || bad ? 2 : 1;
-    ctx.strokeStyle = bad ? "#f04a2e" : sel ? "#ff5b47" : shade(base, -74);
+    ctx.strokeStyle = bad ? "#f04a2e" : sel ? "#ffc61a" : shade(base, -74);
     ctx.beginPath();
     for (const face of [f.side, f.face, f.top]) {
       ctx.moveTo(face[0][0], face[0][1]);
@@ -2162,7 +2207,7 @@ function drawRect(r, def, opt) {
   /* Each storey is a clear step lighter than the one under it. The old ramp moved ten
      points and stopped at the third storey, so L3, L4 and L5 all came out the same. */
   ctx.fillStyle = shade(base, -62 + 13 * Math.min(opt.level || 0, 5));
-  ctx.strokeStyle = opt.issue ? "#f04a2e" : (opt.selected ? "#ff5b47" : (opt.hovered ? "#fff7ea"
+  ctx.strokeStyle = opt.issue ? "#f04a2e" : (opt.selected ? "#ffc61a" : (opt.hovered ? "#fff7ea"
     : (opt.onThisLevel === false ? shade(base, -20) : base)));
   ctx.lineWidth = (opt.selected || opt.issue ? 2.5 : 1.6) * uiScale;
   const seams = localSeams(opt.seams || 0, r.rot);
@@ -2272,7 +2317,7 @@ function drawRect(r, def, opt) {
       const tw = ctx.measureText(txt).width;
       const padX = 4 * uiScale, chipH = 13 * uiScale;
       const chipY = -halfUp - 4 * uiScale - chipH;
-      ctx.fillStyle = opt.level > 0 ? "#ff5b47" : "#8b8b80";
+      ctx.fillStyle = opt.level > 0 ? "#ffc61a" : "#8b8b80";
       ctx.fillRect(-tw / 2 - padX, chipY, tw + padX * 2, chipH);
       ctx.fillStyle = "#0c0c0c";
       ctx.textBaseline = "middle";
@@ -3073,6 +3118,7 @@ function afterChange(save = true) {
   if (save) saveCurrent();
   if (viewLevel !== null && !levelsInUse().includes(viewLevel)) viewLevel = null;
   renderLevelStrip();
+  renderCrewStrip();
   updateRightPanel();
   draw();                                 // draw decides the empty state, so it cannot lag
 }
@@ -3357,6 +3403,32 @@ function renderLevelStrip() {
      >${o.label}${o.n ? ` <span class="n">${o.n}</span>` : ""}</button>`).join("");
   strip.querySelectorAll("button").forEach(b => b.onclick = () =>
     setViewLevel(b.dataset.lvl === "" ? null : +b.dataset.lvl));
+}
+/* The crew buckets come from the catalog, like every other figure in this file. They are an
+   intention rather than a measurement, so the panel says who a base is for and never guesses
+   it from the piece count: a tight duo hold and a sprawling half-built perimeter can carry
+   the same number of walls. */
+function crewOptions() { return ((catalog.crewSizes || {}).options) || []; }
+function crewLabel(id) {
+  const o = crewOptions().find(c => c.id === id);
+  return o ? o.label : null;
+}
+function renderCrewStrip() {
+  const strip = document.getElementById("crewStrip");
+  if (!strip) return;
+  const opts = crewOptions();
+  strip.innerHTML = opts.map(o =>
+    `<button data-crew="${o.id}" class="${design.crew === o.id ? "active" : ""}"
+       title="${esc(o.hint || "")}">${esc(o.label)}</button>`).join("");
+  strip.querySelectorAll("button").forEach(b => b.onclick = () => {
+    // pressing the one already chosen clears it, so a wrong answer is undoable
+    design.crew = design.crew === b.dataset.crew ? null : b.dataset.crew;
+    afterChange();
+  });
+  const chosen = opts.find(o => o.id === design.crew);
+  document.getElementById("crewNote").textContent = chosen
+    ? chosen.hint || ""
+    : "Players needed. Pick one before you submit it for voting.";
 }
 function updateHint() {
   const el = document.getElementById("hint");
@@ -3891,7 +3963,9 @@ function encodeDesign(d) {
     if (p.type === "__fob__") a.push(p.zone || 100);
     return a;
   });
-  return b64urlEncode(JSON.stringify({ v: 1, n: d.name || "Shared design", t: types, p: pieces }));
+  const o = { v: 1, n: d.name || "Shared design", t: types, p: pieces };
+  if (d.crew) o.c = d.crew;
+  return b64urlEncode(JSON.stringify(o));
 }
 /* ---------- v2: the same design, about a tenth of the characters ----------
  *
@@ -3919,7 +3993,10 @@ function packDesign(d) {
   const idx = t => { let i = types.indexOf(t); if (i < 0) { i = types.length; types.push(t); } return i; };
   const rows = d.pieces.map(p => [idx(p.type), Math.round(p.x * 2), Math.round(p.y * 2),
                                   ((Math.round((p.rot || 0) / 90) % 4) + 4) % 4, p.level || 0, p.zone]);
-  const head = new TextEncoder().encode(JSON.stringify({ n: d.name || "Shared design", t: types }));
+  // crew only when it is set: an absent key costs nothing and keeps old codes byte identical
+  const headObj = { n: d.name || "Shared design", t: types };
+  if (d.crew) headObj.c = d.crew;
+  const head = new TextEncoder().encode(JSON.stringify(headObj));
   const body = [];
   putVarint(body, rows.length);
   for (const r of rows) putVarint(body, r[0]);
@@ -4168,6 +4245,12 @@ async function loadCloudSection() {
       msg.innerHTML = `<span style="color:var(--danger)">Give the design a name of at least three characters first, in the toolbar.</span>`;
       return;
     }
+    /* Nobody can work this out from the layout, and the list shows it against every design,
+       so it is asked for once here rather than left blank on everyone else's screen. */
+    if (!design.crew) {
+      msg.innerHTML = `<span style="color:var(--danger)">Pick how many players it takes to hold this, under <b>Who holds it</b> in the panel, then submit.</span>`;
+      return;
+    }
     msg.textContent = "Submitting...";
     try {
       await cloudCall("/submit", { name, code: await encodeDesignShort(design) });
@@ -4309,7 +4392,7 @@ document.getElementById("btnHelp").onclick = () => {
     <ul style="font-size:12.5px;line-height:1.6;padding-left:18px;color:var(--text)">
       <li>1 grid cell = 1 small Hesco block (≈1.2 m). Heights are in blocks too.</li>
       <li><b>Height shows on the plan</b>, and always inside the piece's own footprint: the top face is inset in proportion to how tall it is, the fill steps lighter with every storey, and the <b>▲</b> badge gives the exact block count. Press <b>3</b> for the 3D view when you want to look at it properly.</li>
-      <li>Sizes marked <span class="unsized">red with a “?”</span> are estimates from beta footage. Select a placed piece and edit its <b>Footprint &amp; height</b> to correct it. The change sticks for every piece of that type, in every design.</li>
+      <li>Sizes that end in a <span class="unsized">“?”</span> are estimates from beta footage. Select a placed piece and edit its <b>Footprint &amp; height</b> to correct it. The change sticks for every piece of that type, in every design.</li>
       <li>Sandbags are meant to sit on top of hesco walls, so overlapping one is <b>not</b> flagged as a problem. Bremer walls still refuse anything on top, as in game.</li>
     </ul>
     <h3 style="margin:14px 0 6px;color:var(--accent);font-size:13px">Building upwards</h3>

@@ -98,7 +98,10 @@ function packDesign(d) {
   const idx = t => { let i = types.indexOf(t); if (i < 0) { i = types.length; types.push(t); } return i; };
   const rows = d.pieces.map(p => [idx(p.type), Math.round(p.x * 2), Math.round(p.y * 2),
                                   ((Math.round((p.rot || 0) / 90) % 4) + 4) % 4, p.level || 0, p.zone]);
-  const head = Buffer.from(JSON.stringify({ n: d.name || "Shared design", t: types }), "utf8");
+  // crew rides in the head, same key and same omission rule as the planner
+  const headObj = { n: d.name || "Shared design", t: types };
+  if (d.crew) headObj.c = d.crew;
+  const head = Buffer.from(JSON.stringify(headObj), "utf8");
   const body = [];
   putVarint(body, rows.length);
   for (const r of rows) putVarint(body, r[0]);
@@ -149,7 +152,9 @@ function encodeDesignV1(d) {
      back. Without it an unnamed design encoded here and an unnamed design encoded there
      produce different codes for the same base, which is the whole failure mode this
      duplicated encoder invites. test/share-links.js compares the two directly. */
-  const json = JSON.stringify({ v: 1, n: d.name || "Shared design", t: types, p: pieces });
+  const o = { v: 1, n: d.name || "Shared design", t: types, p: pieces };
+  if (d.crew) o.c = d.crew;
+  const json = JSON.stringify(o);
   return Buffer.from(json, "utf8").toString("base64")
     .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
