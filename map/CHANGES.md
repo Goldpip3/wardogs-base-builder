@@ -88,6 +88,31 @@ Reload came out of the panel. Nothing about it changes with where the gun or the
 so it was reference material sitting in a readout, and it is still on the platform card
 below where the rest of the reference lives.
 
+### The draw order was sorted by the middle of each piece
+
+Reported as a yellow wall not carrying on through: a notch bitten out of a hesco run where a
+bremer stood behind it. Pieces were drawn in order of how far the middle of each was from the
+camera, and `docs/3d-view-design.md` said in as many words that this was exact. It is not. A
+four cell wall reaches two cells past its own middle, so a single block behind one end had the
+larger depth, sorted in front of the whole wall, and painted over it.
+
+Sorting by one number cannot answer this, because the answer is an order rather than a value.
+For boxes square on the world axes the rule is exact: A is behind B if A lies wholly on the
+far side of B along one axis. `paintOrder` builds that as a graph and walks it, seeded from
+the depth order so ties stay stable and nothing flickers as the camera moves. Only pairs that
+overlap on screen are asked, found through a coarse screen grid, so the cost tracks what the
+base looks like rather than the square of how many pieces are in it: 0.7 ms for 117 pieces,
+3.2 ms for 624, against a sixteen millisecond frame.
+
+Measured on the reported arrangement: four pairs drawn over something they stood behind,
+now none. On a 624 piece base, 3,066 overlapping pairs and none wrong. `test/elevation.js`
+audits the real order against the rule at all four spins, and reverting to the old sort fails
+six of its checks.
+
+The doc has been corrected rather than quietly fixed around it: it claimed a box further away
+always has a smaller x + y, which is only true of its own middle, and a piece is not its
+middle.
+
 ### The 3D drew a box around the piece, not the piece
 
 Reported as random shapes near the FOB. A turned piece was drawn from its axis aligned

@@ -41,14 +41,32 @@ For axis-aligned boxes on a grid, drawing far to near is exact, and far to near 
 
     sort by (x + y) ascending, then by storey ascending
 
-A box further from the camera along the view axis always has a smaller `x + y`. A box on a
-lower storey is always behind one above it at the same footprint. No cycles are possible
-because the boxes do not interpenetrate, which the overlap check already enforces.
+**That was wrong, and it shipped for months.** "A box further from the camera has a smaller
+`x + y`" is only true of its own middle, and a piece is not its middle. A four cell wall
+reaches two cells past its centre, so a single bremer standing behind one end of a hesco run
+had the larger `x + y` and was drawn in front of the whole wall, painting over it. On screen
+that is a notch bitten out of the wall. It was reported as the wall not carrying on through,
+and the reporter was right.
 
-The one case this does not handle is a piece rotated off ninety degrees. Its footprint is
-no longer axis-aligned and the sort can pick the wrong order against a neighbour. Those
-are rare, they are already called out in the plan view as their own thing, and the fallback
-is a wrong-looking edge rather than a crash. Worth knowing, not worth a BSP tree.
+Sorting by any one number cannot answer this, because the answer is an order and not a
+value. For boxes standing square on the world axes the rule is exact: A is behind B if A lies
+wholly on the far side of B along one axis, meaning B is nearer in the spun x, or nearer in
+the spun y, or sits above it. `paintOrder` builds that as a graph and walks it, seeding from
+the depth order so ties stay stable and the result does not flicker as the camera moves.
+
+Only pairs that overlap on screen are asked, found through a coarse screen grid, so the cost
+tracks what the base looks like rather than the square of how many pieces are in it. Measured
+at 0.7 ms for 117 pieces and 3.2 ms for 624, against a sixteen millisecond frame.
+
+Two honest limits remain. A piece rotated off ninety degrees is compared by the box around
+it, which is the same approximation this view makes everywhere else, so it can still order
+wrongly against a close neighbour. And interlocking pieces can form a loop that no order
+satisfies; whatever the graph cannot drain falls back to depth order. Past `PAINT_MAX`
+pieces the whole thing is skipped, because being slightly wrong is better than being slow
+while somebody is dragging the view, and a base that size is read on the plan anyway.
+
+`test/elevation.js` audits the real ordering against that rule on every overlapping pair, at
+all four spins. Reverting to the old sort fails six of its checks.
 
 ## Rotation
 

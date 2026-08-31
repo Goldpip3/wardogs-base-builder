@@ -1110,11 +1110,22 @@ function isoBoxes() {
        tower turned forty five degrees has a box 5.66 across, so it was drawn half again too
        wide and square-on when the piece is a diamond: the plan and the 3D disagreed about
        the footprint, which is the one thing this tool exists to be right about. */
+    /* The box in the spun frame, where nearer is simply larger on both axes. This is what
+       decides who covers whom, and it has to be the extent of the piece rather than its
+       middle. */
+    let sx0 = Infinity, sy0 = Infinity, sx1 = -Infinity, sy1 = -Infinity;
+    for (const cx of [box.x0, box.x1]) for (const cy of [box.y0, box.y1]) {
+      const [ux, uy] = isoSpin(cx, cy);
+      if (ux < sx0) sx0 = ux;
+      if (ux > sx1) sx1 = ux;
+      if (uy < sy0) sy0 = uy;
+      if (uy > sy1) sy1 = uy;
+    }
     out.push({ p, def, box, quad: rectCorners(r), cx: r.cx, cy: r.cy,
-               z0, z1: z0 + h, depth: sx + sy, lvl: z0 });
+               z0, z1: z0 + h, depth: sx + sy, lvl: z0, sx0, sx1, sy0, sy1 });
   }
   out.sort((a, b) => (a.depth - b.depth) || (a.lvl - b.lvl));
-  return out;
+  return paintOrder(out);
 }
 
 /* Which world direction a side of the piece looks along, as a seam bit: 1 +x, 2 -x, 4 +y,
@@ -1127,6 +1138,94 @@ function faceBit(ox, oy) {
   if (ay > ax * 8) return oy > 0 ? 4 : 8;
   return 0;
 }
+/* Who covers whom.
+ *
+ * Sorting by how far the middle of a piece is from the camera is only right when every piece
+ * is the same size. A four cell wall reaches two cells past its own middle, so a single
+ * block standing behind one end of it sorted in front of the whole wall and painted over it.
+ * On screen that is a notch bitten out of the wall, and it was reported as the wall not
+ * carrying on through.
+ *
+ * For boxes that stand square on the world axes the question has an exact answer: A is
+ * behind B if A lies wholly on the far side of B along one axis, meaning B is nearer in the
+ * spun x, or nearer in the spun y, or sits above it. That gives an order rather than a
+ * number, so this walks it as a graph instead of sorting by a key: pieces with nothing left
+ * behind them go first, and the depth order breaks every tie so the result is stable.
+ *
+ * Only pairs that actually overlap on screen are asked, because an order between two pieces
+ * that never touch cannot be seen and is not worth the comparison. They are found through a
+ * coarse screen grid, so a base costs about what it looks like rather than the square of how
+ * many pieces are in it.
+ *
+ * A rotated piece is compared by the box around it, which is the same approximation the rest
+ * of this view makes for stacking, and interlocking pieces can still form a loop no order can
+ * satisfy: whatever is left when the graph stops draining falls back to depth order. Both are
+ * written up in docs/3d-view-design.md. */
+const PAINT_MAX = 700;
+function paintOrder(boxes) {
+  /* Past this it is cheaper to be slightly wrong than to be slow while somebody is dragging
+     the view around. The plan is where a big base gets read anyway. */
+  if (boxes.length > PAINT_MAX) return boxes;
+
+  const CELL = 96;
+  const grid = new Map();
+  const rect = [];
+  for (let i = 0; i < boxes.length; i++) {
+    const b = boxes[i];
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (const cx of [b.box.x0, b.box.x1]) for (const cy of [b.box.y0, b.box.y1])
+      for (const cz of [b.z0, b.z1]) {
+        const q = isoPt(cx, cy, cz);
+        if (q[0] < x0) x0 = q[0];
+        if (q[0] > x1) x1 = q[0];
+        if (q[1] < y0) y0 = q[1];
+        if (q[1] > y1) y1 = q[1];
+      }
+    rect.push({ x0, y0, x1, y1 });
+    for (let gx = Math.floor(x0 / CELL); gx <= Math.floor(x1 / CELL); gx++)
+      for (let gy = Math.floor(y0 / CELL); gy <= Math.floor(y1 / CELL); gy++) {
+        const k = gx + "," + gy;
+        let cellList = grid.get(k);
+        if (!cellList) grid.set(k, cellList = []);
+        cellList.push(i);
+      }
+  }
+
+  const behind = (a, b) =>
+    a.sx1 <= b.sx0 + 1e-9 || a.sy1 <= b.sy0 + 1e-9 || a.z1 <= b.z0 + 1e-9;
+
+  const after = boxes.map(() => []);       // i must be drawn before everything in after[i]
+  const indeg = boxes.map(() => 0);
+  const seen = new Set();
+  for (const cellList of grid.values()) {
+    for (let m = 0; m < cellList.length; m++) for (let n = m + 1; n < cellList.length; n++) {
+      const i = cellList[m], j = cellList[n];
+      const key = i < j ? i * boxes.length + j : j * boxes.length + i;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const ri = rect[i], rj = rect[j];
+      if (!(ri.x0 < rj.x1 && rj.x0 < ri.x1 && ri.y0 < rj.y1 && rj.y0 < ri.y1)) continue;
+      if (behind(boxes[i], boxes[j])) { after[i].push(j); indeg[j]++; }
+      else if (behind(boxes[j], boxes[i])) { after[j].push(i); indeg[i]++; }
+    }
+  }
+
+  // boxes arrive in depth order, so taking them in index order keeps ties stable
+  const out = [], ready = [];
+  for (let i = 0; i < boxes.length; i++) if (!indeg[i]) ready.push(i);
+  while (ready.length) {
+    ready.sort((a, b) => a - b);
+    const i = ready.shift();
+    out.push(boxes[i]);
+    for (const j of after[i]) if (--indeg[j] === 0) ready.push(j);
+  }
+  if (out.length === boxes.length) return out;
+  // a loop: draw what could be ordered, then the rest by depth, which is where it started
+  const done = new Set(out.map(b => b.p.id));
+  for (const b of boxes) if (!done.has(b.p.id)) out.push(b);
+  return out;
+}
+
 function isoFaces(b) {
   const { quad, z0, z1, cx, cy } = b;
   const top = quad.map(q => isoPt(q[0], q[1], z1));

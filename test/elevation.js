@@ -526,5 +526,111 @@ check(/opt\.level > 0 \? "#ffc61a" : "#8b8b80"/.test(src),
     "and the catalog height it now uses is a real one", String(cat.fob.height));
 }
 
+// ---------- who covers whom ----------
+/* Reported as a wall not carrying on through: a notch bitten out of a hesco run where a
+   bremer stood behind it. The pieces were drawn in order of how far the middle of each was
+   from the camera, which is only right when every piece is the same size. A four cell wall
+   reaches two cells past its own middle, so a single block behind one end sorted in front of
+   the whole wall and painted over it.
+ *
+ * For boxes standing square on the world axes the question has an exact answer: A is behind
+ * B if A lies wholly on the far side of B along one axis. That is an order, not a number, so
+ * it is walked as a graph. This runs the real thing and checks the answer against that rule
+ * on every pair that actually overlaps on screen, because an order between two pieces that
+ * never touch cannot be seen.
+ */
+{
+  const iso = { rot: 0, zoom: 18, x: 0, y: 0 };
+  const box = { console, Math, Map, Set, Infinity, iso, ISO_K: 0.866, ISO_TILT: 0.68,
+                ISO_Z: 1.45, canvas: { clientWidth: 900, clientHeight: 600 },
+                byId: {}, design: { pieces: [] } };
+  const cat = JSON.parse(fs.readFileSync(ROOT + "/data/buildables.json", "utf8"));
+  for (const b of cat.buildables) box.byId[b.id] = b;
+  vm.createContext(box);
+  vm.runInContext([lift("isoSpin"), lift("isoPt"), lift("pieceRect"), lift("rectCorners"),
+                   lift("rectAABB"), lift("paintOrder"), lift("isoBoxes"),
+                   lift("faceBit"), lift("isoFaces")].join("\n") +
+    // the cap the shipped file sets, read from it rather than repeated here
+    "\nvar PAINT_MAX = " + src.match(/PAINT_MAX = (\d+)/)[1] + ";", box);
+
+  const build = pieces => {
+    box.design.pieces = pieces.map((p, i) => Object.assign({ id: i + 1, rot: 0, level: 0 }, p));
+    return vm.runInContext("isoBoxes()", box);
+  };
+  const screenBox = b => vm.runInContext(`(function(){
+    var b = arguments0, x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    var xs = [b.box.x0, b.box.x1], ys = [b.box.y0, b.box.y1], zs = [b.z0, b.z1];
+    for (var i=0;i<2;i++) for (var j=0;j<2;j++) for (var k=0;k<2;k++) {
+      var q = isoPt(xs[i], ys[j], zs[k]);
+      if (q[0] < x0) x0 = q[0]; if (q[0] > x1) x1 = q[0];
+      if (q[1] < y0) y0 = q[1]; if (q[1] > y1) y1 = q[1];
+    }
+    return { x0:x0, y0:y0, x1:x1, y1:y1 };
+  })()`.replace("arguments0", JSON.stringify(b)), box);
+
+  const audit = boxes => {
+    const pos = new Map(boxes.map((b, i) => [b.p.id, i]));
+    const rect = new Map(boxes.map(b => [b.p.id, screenBox(b)]));
+    const overlaps = (a, b) => {
+      const A = rect.get(a.p.id), B = rect.get(b.p.id);
+      return A.x0 < B.x1 && B.x0 < A.x1 && A.y0 < B.y1 && B.y0 < A.y1;
+    };
+    const behind = (a, b) =>
+      a.sx1 <= b.sx0 + 1e-9 || a.sy1 <= b.sy0 + 1e-9 || a.z1 <= b.z0 + 1e-9;
+    let seen = 0, wrong = 0;
+    for (const a of boxes) for (const b of boxes) {
+      if (a === b || !overlaps(a, b)) continue;
+      seen++;
+      if (behind(a, b) && pos.get(a.p.id) > pos.get(b.p.id)) wrong++;
+    }
+    return { seen, wrong };
+  };
+
+  /* the reported shape: a long run with short pieces standing behind it */
+  {
+    const pieces = [];
+    for (let i = -4; i <= 4; i++) pieces.push({ type: "hesco-wall", x: i * 4, y: 0 });
+    for (let i = 0; i < 5; i++) pieces.push({ type: "bremer-wall", x: -4 + i, y: -1 });
+    const a = audit(build(pieces));
+    check(a.seen > 0, "the reported arrangement really does have pieces overlapping on screen",
+      a.seen + " overlapping pairs");
+    check(a.wrong === 0, "and none of them is drawn in front of something it is behind",
+      a.wrong + " wrong");
+  }
+
+  /* every spin, because the answer depends on which way the world is turned */
+  for (let spin = 0; spin < 4; spin++) {
+    iso.rot = spin;
+    const pieces = [];
+    for (let i = -3; i <= 3; i++) pieces.push({ type: "hesco-wall", x: i * 4, y: 0 });
+    for (let i = -3; i <= 3; i++) pieces.push({ type: "hesco-wall", x: 0, y: i * 4, rot: 90 });
+    for (let i = 0; i < 6; i++) pieces.push({ type: "bremer-wall", x: -3 + i, y: -2 });
+    pieces.push({ type: "recon-tower", x: 6, y: -6 });
+    const a = audit(build(pieces));
+    check(a.wrong === 0, "at spin " + spin + " nothing is painted over what stands in front of it",
+      a.wrong + " wrong of " + a.seen + " overlapping");
+  }
+  iso.rot = 0;
+
+  /* stacking: a piece on an upper storey is above what it stands on and must come after it */
+  {
+    const pieces = [{ type: "hesco-wall", x: 0, y: 0 },
+                    { type: "hesco-small", x: 0, y: 0, level: 1 }];
+    const boxes = build(pieces);
+    const order = boxes.map(b => b.p.id);
+    check(order.indexOf(2) > order.indexOf(1),
+      "what is stacked on a piece is drawn after the piece it stands on");
+  }
+
+  /* and the honest limit, stated rather than discovered later */
+  check(/PAINT_MAX = (\d+)/.test(src), "there is a size past which this stops trying");
+  {
+    const cap = +src.match(/PAINT_MAX = (\d+)/)[1];
+    check(cap >= 500, "and it is high enough to cover a real base", String(cap));
+    check(/if \(boxes\.length > PAINT_MAX\) return boxes;/.test(src),
+      "past which it falls back to the depth order rather than to nothing");
+  }
+}
+
 console.log("\n" + pass + " passed, " + fail + " failed");
 process.exit(fail ? 1 : 0);

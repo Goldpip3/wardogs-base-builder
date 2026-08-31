@@ -135,9 +135,13 @@ the tools exist so that it is a data job rather than a rebuild.
 
 ## Known and deliberately not fixed
 
-- **A piece rotated off ninety degrees can sort wrong against a neighbour in the 3D view.**
-  A wrong-looking edge, not a crash. Written up in `docs/3d-view-design.md` rather than left
-  in anyone's head. Fixing it properly means a BSP tree, which is not worth it.
+- **A piece rotated off ninety degrees can still sort wrong against a close neighbour in the
+  3D view.** Much smaller than it was: the draw order is worked out as a graph now rather
+  than sorted by how far the middle of each piece is from the camera, which was drawing short
+  pieces over long ones and was reported as a wall not carrying on through. What is left is
+  that a turned piece is compared by the box around it, the same approximation this view
+  makes everywhere. A wrong-looking edge, not a crash, and written up in
+  `docs/3d-view-design.md` rather than left in anyone's head.
 - **No range rings on the plan.** Blocked on the cell-to-metre scale above. The rings
   themselves live on `/artillery/`, where coordinates are the game's own and a metre is a
   metre; the plan joins them the day the scale is confirmed.
