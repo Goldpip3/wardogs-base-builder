@@ -63,11 +63,23 @@ in name only, and the rest do nothing from a meta tag at all.
 Asset protection is in the same position and is worth less than it looks. `docs/game-icons/`
 and `docs/maps/tiles/` are 132 MB of the game's own art, held here so the project does not
 hotlink anyone (`data/artillery-maps.json:3`). Every address is enumerable from data that
-ships in the page. The only original artwork, `assets/icons/`, is base64 inlined into the
-planner and is never served as a file at all, which is the one asset measure that actually
-holds. `docs/robots.txt` asks the training crawlers to stay out; that is a request to parties
-who mostly honour it, not a control, and it is written down as such in
+ships in the page. `docs/robots.txt` asks the training crawlers to stay out; that is a request
+to parties who mostly honour it, not a control, and it is written down as such in
 `tools/site/pages/sitemap.js`.
+
+The original artwork in `assets/icons/` is the one asset that is not the game's, and it is
+worth knowing where it actually sits. The planner inlines it as base64 because it has to open
+with no network at all, so the downloaded file genuinely does not fetch an icon from anywhere.
+The site does not: the buildables page loads the same icons as files from `/build-icons/`
+(`tools/site/pages/buildables.js:22`), because inlining them cost that page 600 KB of base64
+its default view never painted.
+
+So "the original art is never served as a file" was true and is not any more, and this card
+said so for about a day. That is a page-weight decision rather than a security one and reads
+as a fair trade, but it should be made with the eyes open: `tools/make-icons.js:10` is where
+the note lives that this is original work, which matters because the repository is public and
+the project may take donations. There is no measure protecting those files. Each is one
+predictable URL, and on GitHub Pages there is nothing that could turn a request for one away.
 
 ## The follow-up, not yet run
 

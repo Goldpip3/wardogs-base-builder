@@ -8,6 +8,40 @@ Newest first. One entry per decision, not per commit.
 
 ## 2026-08-31
 
+### The buildables page uses the armory's rail, and serves its icons as files
+
+Two problems in one page, and both had already been solved elsewhere.
+
+**The layout was the pattern the armory had abandoned.** Eight purposes rendered as eight
+filled chips in a full width band, the selected one a solid yellow slab, stacked above a
+second band holding one small search box and a third holding two view buttons. Three
+stripes across the page at three different heights, each with dead space trailing off its
+right. The cause is worth naming because it looks like a styling bug and is not: `.cat-bar`
+and `.cat-count` were written into the markup and **never given any CSS at all**, so those
+controls were plain block siblings and stacked. The armory hit the same wall at ten
+categories and answered it with `.cat-layout`: a rail you read down, counts aligned so they
+compare, selection marked by an edge rather than a slab. That answer is now used twice
+instead of a second one being invented. Nothing in the CSS was added for this except
+`.cat-main{min-width:0}` and `.cat-tablebox{overflow-x:auto}`, which a five column table
+needs and the armory's three column one did not: a grid column is `min-width:auto` by
+default, so the description column pushed the rail off the page instead of scrolling.
+
+**The icons were 585 KB of base64 that the default view never painted.** They were inlined
+so that a row and its picture would arrive together, which made this the second heaviest
+page on the site at 660 KB, behind only the planner. The default view was the table, and
+the table has no icons: you got the whole payload and saw none of it unless you clicked
+Grid. They are files under `/build-icons/` now, lazily loaded, the way the armory has
+always loaded its 331. The page is **87 KB**.
+
+`assets/icons/` now feeds two consumers and the difference between them is the point:
+`build.ps1` inlines it into the planner as data URIs because that file has to open with no
+network, and copies it to `docs/build-icons/` for the site, which has one. Do not
+"consolidate" those. Four checks in `tools/check-build.js` hold it: every buildable icon
+has its file, every `/build-icons/` reference resolves, the downloadable planner never
+names one by URL, and the buildables page carries no `src="data:image` at all. That last
+one exists because re-inlining is the tempting thing to do next time somebody wants a row
+and its picture to arrive together, and it is how the weight came back.
+
 ### The worker refuses to run on a secret anybody could read
 
 The session signing key and the identity salt both ended in `|| "wardogs"`. That string is
@@ -56,11 +90,20 @@ tag are left out rather than added for the look of it.
 
 Asset protection was asked about and is mostly not a real category here. The 132 MB under
 `docs/game-icons/` and `docs/maps/tiles/` is the game's own art, held so the project does not
-hotlink anyone; every address is enumerable from data that ships in the page. The only
-original artwork is base64 inlined into the planner and never served as a file, which is the
-one measure that actually holds. `docs/robots.txt` now asks the training crawlers to stay out,
-and `tools/site/pages/sitemap.js` writes down that this is a request to parties who mostly
-honour it and not a control.
+hotlink anyone; every address is enumerable from data that ships in the page.
+`docs/robots.txt` now asks the training crawlers to stay out, and
+`tools/site/pages/sitemap.js` writes down that this is a request to parties who mostly honour
+it and not a control.
+
+This entry first said the one measure that actually held was the original artwork in
+`assets/icons/`, base64 inlined into the planner and never served as a file. That was true
+when it was written and stopped being true the same day, in a change made alongside it for
+unrelated reasons: the buildables page now loads those icons as files from `/build-icons/`
+rather than carrying 600 KB of base64 its default view never painted. The planner still
+inlines them, so the offline promise is untouched. Corrected here rather than left standing,
+because a security note that has quietly gone stale is worse than none: the next reader would
+have taken "never served as a file" as a fact about the site and it is now a fact about the
+planner only.
 
 Raising the ceiling needs Cloudflare proxying the domain rather than only holding its DNS.
 That is dashboard work, not a commit, so it is written up as a follow-up in
