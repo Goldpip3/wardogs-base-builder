@@ -38,9 +38,10 @@ adds or updates; removing an icon is done by hand, entry and file together.
 
 ## If you change this
 
-- **Hits:** `/loadouts/`, an icon per slot. Check 3e in `tools/check-build.js` fails on a
-  slug with no file, a page reference with no file, a file outside the catalog, or a
-  catalog entry claiming a file that is absent.
+- **Hits:** `/loadouts/`, an icon per slot, and `/ballistics/`, the weapon art and the
+  ranking rows. Check 3e in `tools/check-build.js` fails on a slug with no file, a page
+  reference with no file, a file outside the catalog, or a catalog entry claiming a file
+  that is absent.
 - **Does not hit:** the planner, which must never name one. Also 3e: a planner fetching an
   image is a planner that is no longer offline.
 

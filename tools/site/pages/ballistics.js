@@ -48,6 +48,8 @@ module.exports = ctx => {
      Matching on a prefix instead looked tidier and quietly lost buckshot its price. */
   const ammoByName = {};
   ARMORY.items.forEach(it => { if (it.cat === "ammunition") ammoByName[it.name] = it; });
+  const weaponByName = {};
+  ARMORY.items.forEach(it => { if (it.cat === "weapons") weaponByName[it.name] = it; });
 
   const priceOf = {};        // priceOf[calibreId][roundId] = dollars per single round
   B.calibres.forEach(c => {
@@ -199,6 +201,9 @@ module.exports = ctx => {
         '<div class="calc-ctl">' +
           '<p class="ctl"><label for="wpn">Weapon</label>' +
             '<select id="wpn">' + weaponOptions + "</select></p>" +
+          /* The gun you are reading the numbers for, shown the way the vendor shows it.
+             An option list cannot carry a picture, so the picture sits beside it. */
+          '<p class="wpn-art"><img id="wpnart" alt="" width="150" height="60" hidden></p>' +
           '<p class="ctl"><label>Load</label><span class="chips" id="rounds"></span></p>' +
           '<p class="ctl"><label>Helmet</label><span class="chips">' + tierChips("helmet") + "</span></p>" +
           '<p class="ctl"><label>Body armour</label><span class="chips">' + tierChips("vest") + "</span></p>" +
@@ -362,6 +367,14 @@ module.exports = ctx => {
       armour: B.armour,
       bands: B.ttkBands,
       price: priceOf,
+      /* Weapon name to icon slug, joined off the armory the same way prices are. The slug
+         is never written down here: it lives on the armory item, and a weapon the wiki has
+         no icon for simply does not appear, which is what keeps this honest. */
+      icon: B.weapons.reduce((m, w) => {
+        const it = weaponByName[w.name];
+        if (it && it.icon) m[w.name] = it.icon;
+        return m;
+      }, {}),
     };
     return "" +
       "var B=" + JSON.stringify(blob) + ";" +
@@ -448,6 +461,9 @@ module.exports = ctx => {
 
       "function renderCalc(){" +
       " var w=weapon(),c=cal(),z=zoneById[S.zone],r=loadFor(w);" +
+      " var art=el('wpnart'),slug=B.icon[S.w];" +
+      " if(slug){art.src='/game-icons/'+slug+'.png';art.alt=S.w;art.hidden=false;}" +
+      " else{art.hidden=true;art.removeAttribute('src');}" +
       " var s=shot(w,z,r,tiers(),pellets(w));" +
       " var k=toKill(s.damage,w.rpm,B.health);" +
       " var band=bandFor(B.bands,k.stk,k.ttk);" +
@@ -524,7 +540,11 @@ module.exports = ctx => {
       "  var v=val(o),pct=max>0&&isFinite(v)?Math.max(1.5,(v/max)*100):1.5;" +
       "  var row=document.createElement('div');row.className='rrow';" +
       "  var sub=o.r.id!==S.r?(' <em class=\"fine\">no '+S.r+'</em>'):'';" +
-      "  row.innerHTML='<span class=\"rname\">'+o.w.name+' <span class=\"fine\">'+o.w.class" +
+      "  var ic=B.icon[o.w.name];" +
+      "  row.innerHTML='<span class=\"rname\">'" +
+      "   +(ic?'<img class=\"ricon\" src=\"/game-icons/'+ic+'.png\" alt=\"\" width=\"34\"'" +
+      "    +' height=\"20\" loading=\"lazy\">':'')" +
+      "   +o.w.name+' <span class=\"fine\">'+o.w.class" +
       "    +'</span></span>'" +
       "   +'<span class=\"rtrack\"><span class=\"rbar\" style=\"width:'+pct.toFixed(1)" +
       "    +'%;background:'+o.r.tint+'\"></span></span>'" +

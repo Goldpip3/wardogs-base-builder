@@ -26,6 +26,16 @@ The art is 495 icons off the wardogs.zone wiki, fetched by `tools/pull-game-icon
 The damage page can take the same icons next, since armory items now carry the slug and
 ballistics already joins on the armory name.
 
+### The damage page shows the gun it is talking about
+
+The weapon art sits under the picker, and every ranking row carries its weapon. All 28
+weapons and 30 vendor round names joined first try: the slug rides on the armory item and
+this page already joins the armory by exact vendor name for prices.
+
+**`.rname` must not be a flex row.** Making it one to hold the icon turned every wrapped
+name into two columns. The icon is inline with a baseline nudge, and the name column went
+168px to 210px to pay for it.
+
 ### A generated file that its generator no longer makes
 
 `data/armory.json` was committed carrying 323 icon slugs without the `tools/build-armory.js`
@@ -86,33 +96,19 @@ elevation, so it has ground under it in a way the spread never did.
 
 ### The firing solution explains itself
 
-Every label in the solution panel now opens an explanation on hover, tap or tab, and the
-spread got most of the new words. It was one line, plus or minus a number of metres at a
-grouping angle, which is a sentence for somebody who already knows what MOA is and noise for
-everybody else. It now says what the cone is, what it opens out to at this range, that the
-dashed circle on the target is that figure drawn as a radius, and the one thing a player
-does with it: whether the shell's blast still covers the aim point from the edge of the
-group, and that moving the gun closer is the only thing that tightens it. Dialling does not.
+Every label in the solution panel opens an explanation on hover, tap or tab. The spread half
+of this is superseded: the grouping angle came off the page entirely, above.
 
-The dial tip is written per arc on purpose. More mils is less range on the mortar and on the
-high arc, and more range on the low arc, so one rule for both would mislead half the time.
+**The dial tip is written per arc on purpose.** More mils is less range on the mortar and on
+the high arc, and more range on the low arc, so one rule for both misleads half the time.
 
-It does not say a full circle is 6,400 mils, and it does not say the gun's sight reads the
-number directly. Both are true of the NATO mil and neither has been checked here: the open
-list says two sources read different scales off this mortar and that nobody has noted what
-the sight shows. So the tip claims only what the tables are written in, quotes the envelope
-derived from the tables' own ends, and points at the open list. Do not add the 6,400 back
-without firing the gun first.
+**It does not say a full circle is 6,400 mils, and it must not.** That is true of the NATO
+mil and unchecked here: two sources read different scales off this mortar and nobody has
+noted what the sight shows. The tip claims only what the tables are written in. Do not add
+the 6,400 back without firing the gun first.
 
-Spread is worded the same way everywhere now, "about N m" rather than a plus or minus, and
-the platform card no longer says "across". The data is explicit that nobody has published
-whether the angle bounds a radius, a full width or a typical group, so the page had been
-saying two different things about the same number and both were more confident than the
-source. The tip carries the uncertainty rather than hiding it.
-
-Reload came out of the panel. Nothing about it changes with where the gun or the target is,
-so it was reference material sitting in a readout, and it is still on the platform card
-below where the rest of the reference lives.
+Reload came out of the panel: nothing about it changes with where the gun or target is, so
+it was reference material sitting in a readout. It lives on the platform card.
 
 ### Design cards are the same size as each other
 

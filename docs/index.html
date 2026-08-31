@@ -406,10 +406,17 @@ tr[data-on="1"] td{background:var(--panel2);color:var(--text)}
 .rrow .rstk{grid-area:stk}
 .rrow .rttk{grid-area:ttk}
 @media(min-width:760px){
-  .rrow{grid-template-columns:168px minmax(80px,1fr) 132px 56px 72px 128px;
+  .rrow{grid-template-columns:210px minmax(80px,1fr) 132px 56px 72px 128px;
     grid-template-areas:"name track load dmg stk ttk";padding:7px 10px}
 }
+/* the selected weapon, pictured beside its own numbers */
+.wpn-art{margin:0 0 16px;min-height:60px;display:flex;align-items:center}
+.wpn-art img{max-width:100%;max-height:60px;object-fit:contain;object-position:left center}
+/* Inline, not a flex row: the name and its class label have to keep wrapping as ordinary
+   text, and making the container a flex box turned a wrapped name into two columns. */
 .rname{font-weight:600;color:var(--text)}
+.ricon{width:34px;height:20px;object-fit:contain;opacity:.9;vertical-align:-5px;
+  margin-right:7px}
 .rtrack{background:var(--panel2);height:13px;display:block;min-width:40px}
 .rbar{display:block;height:13px;border-radius:0 3px 3px 0}
 .rload{font-size:11px;font-weight:600;color:var(--dim2);display:inline-flex;align-items:center;gap:6px}
