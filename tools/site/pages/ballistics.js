@@ -87,26 +87,35 @@ module.exports = ctx => {
      the shoulders started at the jaw and the whole thing looked hunched. The neck now has
      20 units of its own before the chest begins, and the deltoid sits below the collar
      rather than beside the ear. */
+  /* The figure is traced from the reference the owner drew, not drawn by hand from
+     looking at it. tools/site/pages/ballistics.js used to carry my approximation of that
+     picture and it never got close.
+
+     The plates in that image are separated by black seams on a black ground, so a
+     connected component pass isolates each one on its own. Every plate was labelled,
+     opened with a 3x3 to take off the one pixel bevel spurs that made the outline zigzag,
+     boundary traced, simplified with Douglas-Peucker at 2.2px, and scaled into this
+     viewBox. The head and the neck touch, so they arrive as one component and are split
+     on brightness: the neck is the bright band under the jaw.
+
+     Two consequences worth knowing. The shoulder is a separate plate from the arm in the
+     artwork, so upper-arm carries two paths rather than one, which is why a zone holds a
+     list. And only the left side is stored: the renderer mirrors it, so the figure is
+     symmetrical even though the drawing is not quite. */
   const FIGURE = [
-    ["head", "M100 12C111 12 121 19 121 31L121 47C121 59 112 68 100 68" +
-             "C88 68 79 59 79 47L79 31C79 19 89 12 100 12Z"],
-    ["neck", "M91 64L109 64L109 84C103 88 97 88 91 84Z"],
-    ["upper-torso", "M82 86C90 83 95 82 100 82C105 82 110 83 118 86" +
-             "C126 90 131 98 132 108L132 148L68 148L68 108C69 98 74 90 82 86Z"],
-    ["middle-torso", "M68 151L132 151C131 164 130 178 129 190L71 190C70 178 69 164 68 151Z"],
-    ["lower-torso", "M71 193L129 193C128 204 127 216 125 228L75 228C73 216 72 204 71 193Z"],
-    ["pelvis", "M75 231L125 231C125 243 123 254 119 262C112 270 106 274 100 274" +
-             "C94 274 88 270 81 262C77 254 75 243 75 231Z"],
-    ["upper-arm", "M67 92C58 96 51 104 49 114C47 126 47 144 49 160L50 172L66 172" +
-             "C67 152 67 122 67 92Z"],
-    ["lower-arm", "M50 175L66 175C67 194 67 214 66 232L52 236C50 218 49 196 50 175Z"],
-    ["hand", "M50 236L67 233C69 245 69 259 66 269C63 278 57 282 52 280" +
-             "C48 276 47 254 50 236Z"],
-    ["upper-leg", "M72 277L99 279C99 301 98 327 96 350L78 350C75 327 72 301 72 277Z"],
-    ["lower-leg", "M78 353L96 353C97 371 96 389 94 405C93 410 93 414 92 416L80 416" +
-             "C79 414 79 410 78 405C76 389 76 371 78 353Z"],
-    ["foot", "M80 419L92 419C93 424 95 428 97 431C99 435 94 438 85 438" +
-             "C75 438 70 436 70 432C72 427 76 422 80 419Z"],
+    ["head", ["M99.5 10L111.4 11.6L119 28.5L119 48.1L116.3 56.2L113.1 60.1L86.4 60.1L81 48.1L81 29L85.9 16.5L88.6 11.6Z"]],
+    ["neck", ["M86.9 61.7L98.4 64.4L113.6 61.7L113.1 74.2L88 74.7Z"]],
+    ["upper-torso", ["M78.2 76.4L122.3 76.4L137 83.4L137 128.1L133.2 126.4L63.5 127.5L63.5 83.4Z"]],
+    ["middle-torso", ["M65.7 136.2L136.5 136.2L136.5 138.9L133.7 138.9L131.6 148.7L131.6 150.9L133.7 151.5L132.6 159.1L129.9 157.4L69.5 157.4L67.4 159.1L66.3 149.8L67.9 150.9L68.4 148.2L66.8 140.6L64.1 139.5L64.1 136.8Z"]],
+    ["lower-torso", ["M68.4 167.8L131.6 167.8L134.3 189.5L65.7 189.5Z"]],
+    ["pelvis", ["M65.2 197.7L135.4 198.2L137 213.5L134.3 212.4L103.8 232L96.2 232L66.3 212.4L63.5 213.5Z"]],
+    ["upper-arm", ["M54.8 85.1L57.6 85.6L56.5 125.9L44 112.8L43.4 115.5L41.2 113.9L41.2 101.4L47.8 89.4Z",
+      "M39.1 122.6L57 140L54.3 140L46.7 157.4L33.6 157.4L30.9 160.2L34.7 131.9Z"]],
+    ["lower-arm", ["M28.2 167.8L49.9 168.3L49.4 180.8L46.1 180.3L38.5 197.7L40.7 199.9L38.5 211.3L28.7 209.7L26.6 211.8L26 178.1Z"]],
+    ["hand", ["M26.6 218.9L39.6 218.9L42.3 221.6L44 229.8L42.9 239L41.2 236.9L41.2 229.8L38 227.1L34.7 228.2L36.9 230.3L35.8 246.7L39.6 257L33.1 249.9L29.3 240.1L26.6 240.1Z"]],
+    ["upper-leg", ["M60.3 222.7L95.6 244.5L94 246.1L95.6 259.7L94 260.3L92.9 257.5L90.8 297.8L88 308.1L65.7 308.7L65.2 302.7L67.4 302.7L67.9 300.5L63.5 284.2L62.5 289.1L60.8 286.9L58.7 262.4Z"]],
+    ["lower-leg", ["M65.2 317.4L89.7 317.9L91.3 360.9L88 362L83.1 382.7L83.1 385.9L85.9 387L85.3 407.2L73.3 405.5L65.2 352.2L62.5 352.2L65.2 320.1L66.8 319.6Z"]],
+    ["foot", ["M84.2 414.2L86.4 415.3L86.4 428.9L82.6 433.3L60.3 434.9L59.7 428.9L72.3 414.8Z"]],
   ];
   const SYMMETRIC = ["upper-arm", "lower-arm", "hand", "upper-leg", "lower-leg", "foot"];
 
@@ -124,20 +133,21 @@ module.exports = ctx => {
       '<rect width="200" height="446" fill="url(#bgrid)" opacity=".45" pointer-events="none"/>';
     FIGURE.forEach(entry => {
       const id = entry[0];
-      const d = entry[1];
       const zone = zoneById[id];
       const sides = SYMMETRIC.indexOf(id) >= 0
         ? ["", ' transform="translate(200,0) scale(-1,1)"']
         : [""];
       sides.forEach((tf, i) => {
         const label = zone.name + (SYMMETRIC.indexOf(id) >= 0 ? (i ? " (right)" : " (left)") : "");
-        out += '<path class="bz" data-zone="' + id + '" d="' + d + '"' + tf + ' ' +
-          'tabindex="0" role="button" aria-label="' + esc(label) + '"><title>' +
-          esc(label) + "</title></path>";
-        if (zone.armour) {
-          out += '<path class="bp" data-plate="' + zone.armour + '" d="' + d + '"' + tf +
-            ' fill="url(#plate)" pointer-events="none"/>';
-        }
+        entry[1].forEach((d, j) => {
+          out += '<path class="bz" data-zone="' + id + '" d="' + d + '"' + tf +
+            (j ? "" : ' tabindex="0" role="button"') +
+            ' aria-label="' + esc(label) + '"><title>' + esc(label) + "</title></path>";
+          if (zone.armour) {
+            out += '<path class="bp" data-plate="' + zone.armour + '" d="' + d + '"' + tf +
+              ' fill="url(#plate)" pointer-events="none"/>';
+          }
+        });
       });
     });
     return out + "</svg>";
