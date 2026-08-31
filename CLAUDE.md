@@ -13,6 +13,7 @@ This file routes. It holds no content.
 | know what a change will break | [map/effects/CONTEXT.md](map/effects/CONTEXT.md) |
 | pick up where the last session stopped | [map/OPEN.md](map/OPEN.md) |
 | see what changed lately, and why | [map/CHANGES.md](map/CHANGES.md) |
+| see what is still guessed | `/todo/`, owner only, from `data/todo.json` |
 | orient as a human, not an agent | [README.md](README.md) |
 | change a number | `data/`, never the markup |
 | change the planner | `src/app-template.html` |
@@ -33,12 +34,10 @@ node test/run.js               # the suites on their own, about half a second
 Two deploys, separate: `git push` publishes the site, the worker ships only with wrangler
 and the owner runs it. Command and the cmd.exe trap: [deploy.md](map/processes/deploy.md).
 
-## Seven things that catch people
+## Eight things that catch people
 
-1. **`docs/` is generated, apart from two committed asset trees**, `game-icons/` and
-   `maps/tiles/`. Generated pages are overwritten, so edit the generator; those two are not.
-2. **The planner ships twice** from one source, and the downloadable copy must have no
-   network access at all. Checks enforce it.
+1. **`docs/` is generated, so edit the generator.** `game-icons/` and `maps/tiles/` are the exception.
+2. **The planner ships twice** from one source, and the download must reach no network at all.
 3. **`git push` does not deploy the worker.** That has been got wrong three times.
 4. **A number lives in one place.** Duplicating it into markup has drifted three times.
 5. **`wrangler kv` reads a local emulated store unless you pass `--remote`.** Without it the
@@ -47,6 +46,7 @@ and the owner runs it. Command and the cmd.exe trap: [deploy.md](map/processes/d
    silently, as they did for a day. [share-code.md](map/objects/planner/share-code.md) lists them.
 7. **A push takes ten minutes to reach a browser.** GitHub Pages sends `max-age=600`, so a
    fix looks unfixed. Check the live `build.txt` against `docs/build.txt` before believing it.
+8. **The damage figure is traced, not drawn.** Edit the art and re-run `node tools/trace-figure.js`.
 
 ## Working style
 
