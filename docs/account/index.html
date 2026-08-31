@@ -299,6 +299,27 @@ th.sortable[data-dir="desc"]::after{content:"↓";opacity:1;color:var(--yellow)}
   font-variant-numeric:tabular-nums}
 .cat-card .facts span{color:var(--dim);font-family:var(--ui);margin-right:4px}
 .cat-card p{font-size:12.5px;color:var(--dim);margin-top:8px;line-height:1.45}
+/* --- armory: the catalogue as cards ---
+   A row per item was fine when an item was a name and a number. Every item has its art
+   now, so the default view shows it, and the table stays for comparing a column of prices.
+   Both are the same elements reordered, so hidden has to be spelled out for the card. */
+.acards{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);
+  grid-template-columns:repeat(auto-fill,minmax(250px,1fr));margin-top:18px}
+.acard{background:var(--panel);padding:14px;display:flex;gap:13px;align-items:center}
+.acard[hidden]{display:none}
+.acard:hover{background:var(--panel2)}
+.acard-art{flex:0 0 auto;width:64px;height:64px;background:var(--bg);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center}
+.acard-art img{max-width:56px;max-height:56px;object-fit:contain}
+.acard-body{flex:1;min-width:0}
+.acard-body b{display:block;font-weight:600;color:var(--text);font-size:13.5px;line-height:1.3}
+.acard-cat{display:block;font-size:10px;font-weight:600;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--dim);margin-top:5px}
+.acard-price{flex:0 0 auto;font-family:var(--num);font-size:13px;color:var(--text);
+  font-variant-numeric:tabular-nums;text-align:right}
+.cat-sorts{margin-top:14px}
+.cat-sorts .chip[data-dir="asc"]::after{content:" ↑"}
+.cat-sorts .chip[data-dir="desc"]::after{content:" ↓"}
 .cat-empty{padding:34px;text-align:center;color:var(--dim);border:1px dashed var(--line2)}
 /* --- account control in the header --- */
 .acct{display:none;align-items:center;gap:8px;font-weight:600;font-size:11px;white-space:nowrap;
