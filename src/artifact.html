@@ -1873,27 +1873,65 @@ function isoBoxes() {
     const def = byId[p.type];
     if (!def) continue;
     const r = pieceRect(p);
-    const box = rectAABB(r);                       // square-on pieces: this is the rect
+    const box = rectAABB(r);                       // kept for culling and for the fit
     const z0 = p.level || 0;
-    const h = def.isFob ? 0.35 : (def.height || 1);
-    const [sx, sy] = isoSpin((box.x0 + box.x1) / 2 - iso.x, (box.y0 + box.y1) / 2 - iso.y);
-    out.push({ p, def, box, z0, z1: z0 + h, depth: sx + sy, lvl: z0 });
+    /* The FOB was drawn a third of a block tall while the catalog calls it two, so the one
+       piece the whole base is built around lay flat on the floor in the view whose job is
+       height. It stands up like everything else now. */
+    const h = def.height || 1;
+    const [sx, sy] = isoSpin(r.cx - iso.x, r.cy - iso.y);
+    /* The four corners of the piece as it actually sits, not of the box around it. A 4x4
+       tower turned forty five degrees has a box 5.66 across, so it was drawn half again too
+       wide and square-on when the piece is a diamond: the plan and the 3D disagreed about
+       the footprint, which is the one thing this tool exists to be right about. */
+    out.push({ p, def, box, quad: rectCorners(r), cx: r.cx, cy: r.cy,
+               z0, z1: z0 + h, depth: sx + sy, lvl: z0 });
   }
   out.sort((a, b) => (a.depth - b.depth) || (a.lvl - b.lvl));
   return out;
 }
 
+/* Which world direction a side of the piece looks along, as a seam bit: 1 +x, 2 -x, 4 +y,
+   8 -y. A square-on piece answers this exactly; a turned one is between two of them and gets
+   no bit, which is right, because a seam is a shared edge and a turned piece does not share
+   one with the axis-aligned grid the mask is drawn on. */
+function faceBit(ox, oy) {
+  const ax = Math.abs(ox), ay = Math.abs(oy);
+  if (ax > ay * 8) return ox > 0 ? 1 : 2;
+  if (ay > ax * 8) return oy > 0 ? 4 : 8;
+  return 0;
+}
 function isoFaces(b) {
-  const { x0, y0, x1, y1 } = b.box, { z0, z1 } = b;
-  // which two side faces point at the camera depends on how the world is spun
-  const n = iso.rot & 3;
-  const nearX = n === 0 || n === 3 ? x1 : x0;
-  const nearY = n === 0 || n === 1 ? y1 : y0;
-  return {
-    top:  [isoPt(x0, y0, z1), isoPt(x1, y0, z1), isoPt(x1, y1, z1), isoPt(x0, y1, z1)],
-    side: [isoPt(x0, nearY, z0), isoPt(x1, nearY, z0), isoPt(x1, nearY, z1), isoPt(x0, nearY, z1)],
-    face: [isoPt(nearX, y0, z0), isoPt(nearX, y1, z0), isoPt(nearX, y1, z1), isoPt(nearX, y0, z1)],
-  };
+  const { quad, z0, z1, cx, cy } = b;
+  const top = quad.map(q => isoPt(q[0], q[1], z1));
+  /* Depth grows with rx + ry after the spin, so the camera is out at large rx + ry and a
+     side is looking at it when the way out of the piece does too. For a rectangle the line
+     from the middle to the middle of an edge is along that edge's own normal, so it is the
+     direction to ask about, and it works whatever the piece is turned to. */
+  /* Every side first, so an upright knows which sides it stands between: the upright at the
+     start of side i is shared with side i-1, the one at its end with side i+1. Whichever of
+     those is against a neighbour takes the upright with it. */
+  const bits = [], facing = [];
+  for (let i = 0; i < 4; i++) {
+    const p0 = quad[i], p1 = quad[(i + 1) % 4];
+    const ox = (p0[0] + p1[0]) / 2 - cx, oy = (p0[1] + p1[1]) / 2 - cy;
+    bits.push(faceBit(ox, oy));
+    const [rx, ry] = isoSpin(ox, oy);
+    facing.push(rx + ry > 1e-9);
+  }
+  const sides = [];
+  for (let i = 0; i < 4; i++) {
+    if (!facing[i]) continue;                      // pointing away, so nobody can see it
+    const p0 = quad[i], p1 = quad[(i + 1) % 4];
+    sides.push({
+      bit: bits[i],
+      startBit: bits[(i + 3) % 4],
+      endBit: bits[(i + 1) % 4],
+      quad: [isoPt(p0[0], p0[1], z0), isoPt(p1[0], p1[1], z0),
+             isoPt(p1[0], p1[1], z1), isoPt(p0[0], p0[1], z1)],
+    });
+  }
+  return { top, sides, topBits: bits };
 }
 const isoFill = (pts, col) => {
   ctx.beginPath();
@@ -1939,18 +1977,15 @@ function draw3DNow() {
   const seams = getSeams();          // the same joins the plan draws, so the two agree
   const boxes = isoBoxes();
 
-  /* Which two vertical faces point at the camera depends on how the world is spun, and the
-     seam mask is in world directions, so the spin decides which bit to ask about. */
-  const n3 = iso.rot & 3;
-  const nearXBit = (n3 === 0 || n3 === 3) ? 1 : 2;      // +x : -x
-  const nearYBit = (n3 === 0 || n3 === 1) ? 4 : 8;      // +y : -y
+  /* Which sides face the camera is worked out per piece now, from where they point, so a
+     turned piece is handled the same way a square-on one is. */
 
   let drawn = 0;
   for (const b of boxes) {
     const f = isoFaces(b);
     // A big base is mostly off screen. Reject on the box outline before touching a path.
     let minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9;
-    for (const face of [f.top, f.side, f.face])
+    for (const face of [f.top].concat(f.sides.map(x => x.quad)))
       for (const q of face) {
         if (q[0] < minX) minX = q[0];
         if (q[0] > maxX) maxX = q[0];
@@ -1969,8 +2004,14 @@ function draw3DNow() {
        box in a crowd of boxes is not an answer to "which one did I click", and in 3D it can
        be behind something. */
     const tint = sel ? "#ffc61a" : base;
-    isoFill(f.side, shade(tint, sel ? 6 : -46));
-    isoFill(f.face, shade(tint, sel ? -16 : -64));
+    /* Two shades for the sides so a corner still reads as a corner: the one pointing more
+       along +x catches the light, the other sits in shadow. Worked out from where the side
+       points rather than from which named face it is, because a turned piece has neither. */
+    f.sides.forEach(sd => {
+      const lit = sd.bit === 1 || sd.bit === 2 ||
+        (!sd.bit && Math.abs(sd.quad[0][0] - sd.quad[1][0]) < Math.abs(sd.quad[0][1] - sd.quad[1][1]));
+      isoFill(sd.quad, shade(tint, sel ? (lit ? -16 : 6) : (lit ? -64 : -46)));
+    });
     isoFill(f.top, shade(tint, sel ? 40 : (b.def.isFob ? 6 : -4)));
 
     /* Thirty walls in a row used to draw thirty outlined boxes, so a perimeter came out as a
@@ -1985,19 +2026,16 @@ function draw3DNow() {
     ctx.lineWidth = keepWhole ? 2 : 1;
     ctx.strokeStyle = bad ? "#f04a2e" : sel ? "#fff7ea" : shade(base, -74);
     ctx.beginPath();
-    if (keepWhole) {
-      traceFace(f.side); traceFace(f.face);
-    } else {
-      /* side sits at nearY and spans x0..x1, so its uprights stand on +x and -x.
-         face sits at nearX and spans y0..y1, so its uprights stand on +y and -y.
-         Neither draws its top edge: that is the same line the roof draws below. */
-      if (!(mask & nearYBit)) sideEdges(f.side, mask, 1, 2);
-      if (!(mask & nearXBit)) sideEdges(f.face, mask, 4, 8);
-    }
-    // top quad corners run x0y0, x1y0, x1y1, x0y1, so its edges face -y, +x, +y, -x
-    const TOP_EDGE_BIT = [8, 1, 4, 2];
+    f.sides.forEach(sd => {
+      if (keepWhole) { traceFace(sd.quad); return; }
+      if (sd.bit && (mask & sd.bit)) return;       // this whole side is against a neighbour
+      /* The two uprights of a side stand on the sides either end of it, so each goes when
+         that one is joined. Its top edge is the line the roof draws, so it never draws it. */
+      sideEdges(sd.quad, mask, sd.endBit || 0, sd.startBit || 0);
+    });
     for (let i = 0; i < 4; i++) {
-      if (mask & TOP_EDGE_BIT[i]) continue;
+      const bit = f.topBits[i];
+      if (bit && (mask & bit)) continue;
       const a = f.top[i], c = f.top[(i + 1) % 4];
       ctx.moveTo(a[0], a[1]); ctx.lineTo(c[0], c[1]);
     }
@@ -2061,7 +2099,7 @@ function fit3D() {
   let top = 0;
   for (const p of design.pieces) {
     const def = byId[p.type]; if (!def) continue;
-    top = Math.max(top, (p.level || 0) + (def.isFob ? 0.35 : (def.height || 1)));
+    top = Math.max(top, (p.level || 0) + (def.height || 1));
   }
 
   // the eight corners of the volume, projected at zoom 1, so the fit sees what it will draw
@@ -2189,7 +2227,12 @@ function drawNow() {
     ctx.restore();
   }
 
-  for (const p of visible) drawPiece(p, issueIds.has(p.id));
+  /* Bodies first, then everything written about them. A name or a height chip drawn as its
+     own piece was drawn could be painted over by the next piece along, which is worst
+     exactly when you are pointing at something to find out what it is. */
+  const annotations = [];
+  for (const p of visible) drawPiece(p, issueIds.has(p.id), annotations);
+  for (const f of annotations) f();
   lastDrawn = visible.length;
 
   // ghost
@@ -2238,7 +2281,7 @@ function drawNow() {
   }
 }
 
-function drawPiece(p, hasIssue) {
+function drawPiece(p, hasIssue, after) {
   const def = byId[p.type]; if (!def) return;
   const rel = viewLevel === null ? 0 : (p.level || 0) - viewLevel;
   // the storey you're on reads solid; the ones below show through as an underlay
@@ -2254,6 +2297,7 @@ function drawPiece(p, hasIssue) {
     issue: hasIssue,
     level: p.level || 0,
     note: p.note,
+    after,
     isFob: def.isFob,
     alpha,
     onThisLevel: rel === 0
@@ -2396,8 +2440,9 @@ function drawRect(r, def, opt) {
     ctx.restore();
   }
 
-  // label & badges (unrotated)
+  // label & badges (unrotated), and always above every body on the plan
   if (z > 9 * uiScale && !opt.ghost && (opt.onThisLevel !== false || opt.selected || opt.hovered)) {
+    const annotate = () => {
     ctx.save();
     ctx.translate(sx, sy);
     // A ten-block run does not need its name ten times. Inside a run only the ends and
@@ -2451,6 +2496,9 @@ function drawRect(r, def, opt) {
       ctx.fillText("✎", Math.max(r.w, r.h) * z / 2 + 6 * uiScale, 0);
     }
     ctx.restore();
+    };
+    // the ghost and the 3D view have no queue, so those draw where they always did
+    if (opt.after) opt.after.push(annotate); else annotate();
   }
 }
 /* Scaling an SVG on every draw makes the browser re-rasterise it each time. Bake each

@@ -235,26 +235,69 @@ check(/opt\.level > 0 \? "#ffc61a" : "#8b8b80"/.test(src),
 
   check(/getSeams\(\)/.test(body),
     "the 3D view asks the plan which pieces are joined, rather than deciding again");
-  check(/nearXBit|nearYBit/.test(body),
-    "and pairs the spin with the world direction the mask is in");
+  /* Run it, rather than read it. A piece is a prism over its own four corners now, so which
+     sides can be seen and which way each looks has one answer that works turned or square
+     on, and that is worth checking as behaviour rather than as a pairing written down. */
+  const box = { console, Math, iso: { rot: 0, zoom: 10, x: 0, y: 0 }, ISO_K: 0.866,
+                ISO_TILT: 0.68, ISO_Z: 1.45,
+                canvas: { clientWidth: 800, clientHeight: 600 } };
+  vm.createContext(box);
+  vm.runInContext([lift("isoSpin"), lift("isoPt"), lift("faceBit"), lift("isoFaces"),
+                   lift("rectCorners")].join("\n"), box);
 
-  /* the pairing itself, checked as arithmetic rather than by eye. Bits: 1 +x, 2 -x, 4 +y,
-     8 -y, and isoFaces takes x1 at spins 0 and 3, y1 at spins 0 and 1. */
-  const nearXBit = n => (n === 0 || n === 3) ? 1 : 2;
-  const nearYBit = n => (n === 0 || n === 1) ? 4 : 8;
-  const faceCode = src.slice(src.indexOf("function isoFaces"));
-  check(/nearX = n === 0 \|\| n === 3 \? x1 : x0/.test(faceCode) &&
-        /nearY = n === 0 \|\| n === 1 \? y1 : y0/.test(faceCode),
-    "the faces still turn on the spins these bits were derived from");
-  for (let n = 0; n < 4; n++) {
-    const want = "x" + (nearXBit(n) === 1 ? "+" : "-") + " y" + (nearYBit(n) === 4 ? "+" : "-");
-    const got = "x" + ((n === 0 || n === 3) ? "+" : "-") + " y" + ((n === 0 || n === 1) ? "+" : "-");
-    check(want === got, "at spin " + n + " the near faces are " + want);
+  const facesOf = (rotDeg, w, d) => {
+    const rot = (rotDeg * Math.PI) / 180;
+    box.b = { quad: vm.runInContext(
+                "rectCorners({cx:0, cy:0, w:" + w + ", h:" + d + ", rot:" + rot + "})", box),
+              cx: 0, cy: 0, z0: 0, z1: 2 };
+    return vm.runInContext("isoFaces(b)", box);
+  };
+
+  for (let spin = 0; spin < 4; spin++) {
+    box.iso.rot = spin;
+    const f = facesOf(0, 4, 4);
+    check(f.sides.length === 2,
+      "at spin " + spin + " a square-on piece shows exactly two sides",
+      f.sides.length + " shown");
+    const bits = f.sides.map(x => x.bit);
+    check(bits.some(v => v === 1 || v === 2) && bits.some(v => v === 4 || v === 8),
+      "one looking along x and one along y, whichever pair the spin makes it",
+      "bits " + bits.join(","));
+  }
+  box.iso.rot = 0;
+
+  /* the case the whole rewrite was for */
+  {
+    const f = facesOf(45, 4, 4);
+    /* One, not two: turned to exactly forty five degrees, one side faces the camera square
+       on and the two beside it are edge on, projecting to nothing. Drawing a sliver of a
+       face nobody can see is how a renderer ends up with stray triangles in it. */
+    check(f.sides.length === 1,
+      "a piece turned square to the camera shows the one side that faces it",
+      f.sides.length + " shown");
+    check(f.sides.every(x => x.bit === 0),
+      "which claims no world direction, so nothing is suppressed against a grid it does " +
+      "not sit on");
+
+    /* and the roof is the piece. Measured in the world rather than on screen, because the
+       projection squashes one axis and would muddy the comparison. */
+    const q = box.b.quad;
+    const d = (p, r) => Math.hypot(p[0] - r[0], p[1] - r[1]);
+    check(Math.abs(d(q[0], q[1]) - 4) < 1e-9, "a 4x4 turned forty five degrees still has 4 sides",
+      d(q[0], q[1]).toFixed(3) + " long");
+    const wide = Math.max.apply(null, q.map(p => p[0])) - Math.min.apply(null, q.map(p => p[0]));
+    check(Math.abs(wide - 4 * Math.SQRT2) < 1e-9,
+      "while the box around it is half again wider, which is what used to get drawn",
+      wide.toFixed(2) + " against the piece's 4");
+    check(f.top.every((p, i) => {
+      const want = vm.runInContext("isoPt(" + q[i][0] + "," + q[i][1] + ",2)", box);
+      return Math.abs(p[0] - want[0]) < 1e-9 && Math.abs(p[1] - want[1]) < 1e-9;
+    }), "and the roof drawn is the piece's own four corners, not the box's");
   }
 
   // the roof is stroked edge by edge, or a run still shows every join across its top
-  check(/TOP_EDGE_BIT\s*=\s*\[8, 1, 4, 2\]/.test(body),
-    "the roof is stroked edge by edge, in the order its corners are built");
+  check(/f\.topBits\[i\]/.test(body),
+    "the roof is stroked edge by edge, each looking the way its own side does");
   check(!/for \(const face of \[f\.side, f\.face, f\.top\]\)/.test(body),
     "and no longer as three whole outlines whatever the neighbours are doing");
 
@@ -348,10 +391,10 @@ check(/opt\.level > 0 \? "#ffc61a" : "#8b8b80"/.test(src),
   const helper = src.slice(src.indexOf("function sideEdges"));
   const fn = helper.slice(0, helper.indexOf("\n}") + 2);
 
-  check(/sideEdges\(f\.side, mask, 1, 2\)/.test(body),
-    "the long side drops the upright standing on a joined +x or -x");
-  check(/sideEdges\(f\.face, mask, 4, 8\)/.test(body),
-    "and the near face drops the one standing on a joined +y or -y");
+  check(/sideEdges\(sd\.quad, mask, sd\.endBit \|\| 0, sd\.startBit \|\| 0\)/.test(body),
+    "an upright goes when the side it stands on is joined, whichever side that is");
+  check(/if \(sd\.bit && \(mask & sd\.bit\)\) return;/.test(body),
+    "and a whole side goes when it is the one against the neighbour");
   check(/seg\(0, 1\)/.test(fn) && !/seg\(2, 3\)/.test(fn),
     "a vertical face never draws its top edge, because the roof already draws that line");
 
@@ -455,6 +498,32 @@ check(/opt\.level > 0 \? "#ffc61a" : "#8b8b80"/.test(src),
     "a base full of towers pulls back further than the same footprint of low walls",
     "zoom " + towers.toFixed(1) + " against " + flat.toFixed(1));
   check(30 * ISO_K * flat < W, "and a wide flat base still fits across");
+}
+
+// ---------- the plan draws its writing last ----------
+/* Names, height chips and note marks were drawn as each piece was drawn, so any piece drawn
+   after one of them painted over it. On a real base that means the label of the thing you
+   are pointing at can be underneath a tower somebody dropped beside it, which is exactly
+   when you wanted to read it. They are writing about the plan, not part of it.
+ */
+{
+  const draw = src.match(/function drawNow\(\)[\s\S]*?\n\}/)[0];
+  check(/const annotations = \[\]/.test(draw), "the plan collects its writing while it draws");
+  check(draw.indexOf("for (const f of annotations)") > draw.indexOf("drawPiece(p,"),
+    "and lays it over the finished plan, after every body");
+  check(/drawPiece\(p, issueIds\.has\(p\.id\), annotations\)/.test(draw),
+    "every piece writes into the same queue");
+  check(/if \(opt\.after\) opt\.after\.push\(annotate\); else annotate\(\)/.test(src),
+    "and anything with no queue, like the ghost, still draws where it always did");
+}
+
+/* The FOB is the piece the whole base is built around, and it was drawn a third of a block
+   tall in the view whose job is height, while the catalog called it two. */
+{
+  const cat = JSON.parse(fs.readFileSync(ROOT + "/data/buildables.json", "utf8"));
+  check(!/isFob \? 0\.35/.test(src), "the FOB is not flattened in the 3D view any more");
+  check((cat.fob.height || 0) >= 2,
+    "and the catalog height it now uses is a real one", String(cat.fob.height));
 }
 
 console.log("\n" + pass + " passed, " + fail + " failed");

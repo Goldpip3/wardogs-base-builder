@@ -65,6 +65,30 @@ Reload came out of the panel. Nothing about it changes with where the gun or the
 so it was reference material sitting in a readout, and it is still on the platform card
 below where the rest of the reference lives.
 
+### The 3D drew a box around the piece, not the piece
+
+Reported as random shapes near the FOB. A turned piece was drawn from its axis aligned
+bounding box: a 4x4 recon tower at forty five degrees has a box 5.66 across, so it came out
+half again too wide and square on when the piece is a diamond. The plan and the 3D disagreed
+about the footprint, which is the one thing this tool exists to be right about.
+
+A piece is a prism over its own four corners now. Which sides face the camera is worked out
+per piece from where each one points rather than from the spin, so a turned piece is handled
+the same way a square on one is, and the seam suppression follows: a side only claims a world
+direction when it really looks along one, so a turned piece suppresses nothing against a grid
+it does not sit on. At exactly forty five degrees one side faces the camera and the two beside
+it are edge on, which is why only one is drawn.
+
+**The FOB stood a third of a block tall** while the catalog calls it two, so the piece the
+whole base is built around lay flat on the floor in the view whose job is height. It stands
+up like everything else, and the fit was given the same number so the two cannot disagree.
+
+**And the plan draws its writing last.** Names, height chips and note marks were drawn as
+each piece was drawn, so any piece drawn afterwards painted over them: the label of the thing
+you were pointing at could be underneath a tower dropped beside it, which is exactly when you
+wanted to read it. They are writing about the plan rather than part of it, so they go on last,
+over all of it.
+
 ### The camera sits higher
 
 The textbook isometric puts the eye about thirty degrees above the ground, which is a low
