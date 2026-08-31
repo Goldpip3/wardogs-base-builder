@@ -162,13 +162,6 @@ module.exports = ctx => {
       '<span class="chip-note fine">' + esc(a.name) + "</span>";
   };
 
-  const weaponOptions = classes.map(c =>
-    '<optgroup label="' + esc(c) + '">' +
-    B.weapons.filter(w => w.class === c).map(w =>
-      '<option value="' + esc(w.name) + '"' + (w.name === "M4" ? " selected" : "") + ">" +
-      esc(w.name) + "</option>").join("") +
-    "</optgroup>").join("");
-
   const legend = B.rounds.map(r =>
     '<span class="lg"><i style="background:' + r.tint + '"></i>' + esc(r.name) +
     ' <span class="fine">' + esc(r.long) + "</span></span>").join("") +
@@ -199,8 +192,11 @@ module.exports = ctx => {
         "</div>" +
 
         '<div class="calc-ctl">' +
-          '<p class="ctl"><label for="wpn">Weapon</label>' +
-            '<select id="wpn">' + weaponOptions + "</select></p>" +
+          /* The weapon is chosen by picking the weapon, not by reading its name in a list.
+             The shelf opens under the calculator with every gun's art, filtered by class. */
+          '<p class="ctl"><label>Weapon</label></p>' +
+          '<button type="button" class="wpn-open" id="wpnOpen" aria-expanded="false"' +
+          ' aria-controls="wpnShelf"><b id="wpnName">M4</b><span>Change weapon</span></button>' +
           /* The gun you are reading the numbers for, shown the way the vendor shows it.
              An option list cannot carry a picture, so the picture sits beside it. */
           '<p class="wpn-art"><img id="wpnart" alt="" width="150" height="60" hidden></p>' +
@@ -224,6 +220,31 @@ module.exports = ctx => {
           '<p class="fine" id="flight"></p>' +
           '<p class="fine" id="cost"></p>' +
           '<p style="margin-top:14px"><button class="btn sm" id="copy">Copy this setup as a link</button></p>' +
+        "</div>" +
+      "</div>" +
+
+      '<div class="vpicker" id="wpnShelf" hidden>' +
+        '<p class="vpicker-head">Pick a weapon' +
+        '<button type="button" class="vpicker-x" id="wpnClose">Close</button></p>' +
+        '<div class="chips" role="group" aria-label="Filter by class" style="margin-bottom:12px">' +
+          '<button class="chip" data-wcls="" aria-pressed="true">All</button>' +
+          classes.map(function (c) {
+            return '<button class="chip" data-wcls="' + esc(c) + '" aria-pressed="false">' +
+              esc(c) + "</button>";
+          }).join("") +
+        "</div>" +
+        '<div class="vgrid">' +
+          B.weapons.map(function (w) {
+            const it = weaponByName[w.name];
+            return '<button type="button" class="vcard" data-wpick="' + esc(w.name) + '"' +
+              ' data-wclass="' + esc(w.class) + '"' +
+              ' aria-pressed="' + (w.name === "M4" ? "true" : "false") + '">' +
+              '<span class="vcard-tag">' + esc(w.calibre) + "</span>" +
+              '<span class="vcard-art">' +
+              (it && it.icon ? '<img src="/game-icons/' + it.icon + '.png" alt="" width="52" height="52" loading="lazy">' : "") +
+              "</span>" +
+              '<span class="vcard-name">' + esc(w.name) + "</span></button>";
+          }).join("") +
         "</div>" +
       "</div>" +
 
@@ -554,7 +575,7 @@ module.exports = ctx => {
       "   +'<span class=\"n rstk\">'+o.k.stk+(o.k.stk===1?' shot':' shots')+'</span>'" +
       "   +'<span class=\"n rttk\"><span class=\"band\" style=\"--bd:'+o.band.tint+'\">'" +
       "    +secs(o.k.stk,o.k.ttk)+' '+o.band.name.toLowerCase()+'</span></span>';" +
-      "  row.addEventListener('click',function(){S.w=o.w.name;el('wpn').value=o.w.name;render();});" +
+      "  row.addEventListener('click',function(){setWeapon(o.w.name);render();});" +
       "  box.appendChild(row);});" +
       " var unit=by==='dmg'?'damage at the '+z.name.toLowerCase():" +
       "  by==='stk'?'shots to kill':by==='rpm'?'rounds per minute':" +
@@ -595,8 +616,34 @@ module.exports = ctx => {
       "group('vest',function(v){S.vest=+v;});" +
       "group('cls',function(v){S.cls=v;});" +
       "group('by',function(v){S.by=v;});" +
-      "el('wpn').addEventListener('change',function(e){" +
-      " S.w=e.target.value;S.pellets=calById[byName[S.w].calibre].pellets||8;render();});" +
+      /* Picking a weapon is a click on the weapon. setWeapon is the one way S.w changes, so
+         the shelf, the name and the art can never disagree about what is equipped. */
+      "function setWeapon(n){" +
+      " if(!byName[n])return;" +
+      " S.w=n;S.pellets=calById[byName[n].calibre].pellets||8;" +
+      " el('wpnName').textContent=n;" +
+      " Array.prototype.forEach.call(document.querySelectorAll('[data-wpick]'),function(b){" +
+      "  b.setAttribute('aria-pressed',b.getAttribute('data-wpick')===n?'true':'false');});}" +
+      "function shelf(open){" +
+      " el('wpnShelf').hidden=!open;" +
+      " el('wpnOpen').setAttribute('aria-expanded',open?'true':'false');" +
+      " if(open)el('wpnShelf').scrollIntoView({block:'nearest'});}" +
+      "el('wpnOpen').addEventListener('click',function(){shelf(el('wpnShelf').hidden);});" +
+      "el('wpnClose').addEventListener('click',function(){shelf(false);el('wpnOpen').focus();});" +
+      "document.addEventListener('keydown',function(e){" +
+      " if(e.key==='Escape'&&!el('wpnShelf').hidden){shelf(false);el('wpnOpen').focus();}});" +
+      "Array.prototype.forEach.call(document.querySelectorAll('[data-wpick]'),function(b){" +
+      " b.addEventListener('click',function(){" +
+      "  setWeapon(b.getAttribute('data-wpick'));shelf(false);render();});});" +
+      /* Class chips narrow the shelf. Same hidden versus display trap as the vendor: .vcard
+         is display:flex, so .vcard[hidden] in the stylesheet is what makes this work. */
+      "Array.prototype.forEach.call(document.querySelectorAll('[data-wcls]'),function(b){" +
+      " b.addEventListener('click',function(){" +
+      "  var want=b.getAttribute('data-wcls');" +
+      "  Array.prototype.forEach.call(document.querySelectorAll('[data-wcls]'),function(o){" +
+      "   o.setAttribute('aria-pressed',o===b?'true':'false');});" +
+      "  Array.prototype.forEach.call(document.querySelectorAll('[data-wpick]'),function(c){" +
+      "   c.hidden=!!want&&c.getAttribute('data-wclass')!==want;});});});" +
       "el('pellets').addEventListener('input',function(e){S.pellets=+e.target.value;render();});" +
       "el('dist').addEventListener('input',function(e){S.dist=+e.target.value;render();});" +
       "Array.prototype.forEach.call(document.querySelectorAll('.bz'),function(p){" +
@@ -616,10 +663,10 @@ module.exports = ctx => {
          so nothing would happen without this. Pasting a link into the address bar of the
          open page, and the back button, both land here. */
       "window.addEventListener('hashchange',function(){" +
-      " readHash();if(byName[S.w])el('wpn').value=S.w;render();});" +
+      " readHash();setWeapon(S.w);render();});" +
 
       "readHash();" +
-      "if(byName[S.w])el('wpn').value=S.w;" +
+      "setWeapon(S.w);" +
       "render();";
   }
 };

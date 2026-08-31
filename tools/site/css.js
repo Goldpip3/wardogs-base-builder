@@ -414,8 +414,20 @@ tr[data-on="1"] td{background:var(--panel2);color:var(--text)}
   .rrow{grid-template-columns:210px minmax(80px,1fr) 132px 56px 72px 128px;
     grid-template-areas:"name track load dmg stk ttk";padding:7px 10px}
 }
+/* the equipped weapon as a control: its name, and the way to change it */
+.wpn-open{display:flex;width:100%;align-items:baseline;justify-content:space-between;gap:10px;
+  background:var(--panel2);color:var(--text);border:1px solid var(--line2);cursor:pointer;
+  padding:10px 12px;font-family:var(--ui);text-align:left}
+.wpn-open b{font-family:var(--display);font-weight:700;font-size:17px;letter-spacing:.02em;
+  text-transform:uppercase}
+.wpn-open span{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--dim)}
+.wpn-open:hover{border-color:var(--yellow)}
+.wpn-open:hover span{color:var(--text)}
+.wpn-open[aria-expanded="true"]{border-color:var(--yellow);background:var(--yellow);color:var(--bg)}
+.wpn-open[aria-expanded="true"] span{color:var(--bg)}
 /* the selected weapon, pictured beside its own numbers */
-.wpn-art{margin:0 0 16px;min-height:60px;display:flex;align-items:center}
+.wpn-art{margin:14px 0 16px;min-height:60px;display:flex;align-items:center}
 .wpn-art img{max-width:100%;max-height:60px;object-fit:contain;object-position:left center}
 /* Inline, not a flex row: the name and its class label have to keep wrapping as ordinary
    text, and making the container a flex box turned a wrapped name into two columns. */
