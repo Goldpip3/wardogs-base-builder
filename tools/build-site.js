@@ -21,6 +21,7 @@ for (const name of [
   "artillery",
   "armory",
   "community",
+  "todo",
   "sitemap",
   "legal",
 ]) {
