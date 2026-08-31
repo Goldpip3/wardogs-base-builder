@@ -273,5 +273,61 @@ check(/opt\.level > 0 \? "#ffc61a" : "#8b8b80"/.test(src),
     "a selected or faulted piece keeps its whole outline, so it can be found in a crowd");
 }
 
+// ---------- a tower is not a wall ----------
+/* Bunker and recon tower were painted the same gold as the hesco walls they stand behind, so
+   a five block tower read as a tall wall. That is only wrong where height is the thing you
+   are looking at, which is the 3D view, and it was reported from there.
+ *
+ * Four things have to move together or the colour key lies: the role on the piece, the
+ * colour for that role, the label, and the list the key is built from. Each of these has
+ * been the one that got left behind in some project or other.
+ */
+{
+  const cat = JSON.parse(fs.readFileSync(ROOT + "/data/buildables.json", "utf8"));
+  const V = vm.runInContext("WardogsDesignView", sandbox);
+  const byRole = r => cat.buildables.filter(b => b.role === r).map(b => b.id).sort();
+
+  check(byRole("tower").join(",") === "bunker,recon-tower",
+    "the things you get inside or on top of are their own role",
+    byRole("tower").join(",") || "none");
+  check(!byRole("cover").includes("bunker") && !byRole("cover").includes("recon-tower"),
+    "and are no longer counted as cover");
+  check(byRole("cover").length > 0, "while the walls stay cover", byRole("cover").join(","));
+
+  check(!!V.ROLE_COLOR.tower, "the role has a colour");
+  check(V.ROLE_COLOR.tower !== V.ROLE_COLOR.cover,
+    "and it is not the wall colour, which is the whole point");
+
+  /* far enough apart to tell at a glance, measured rather than eyeballed */
+  const rgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+  const gap = (a, b) => {
+    const [p, q] = [rgb(a), rgb(b)];
+    return Math.round(Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]));
+  };
+  check(gap(V.ROLE_COLOR.tower, V.ROLE_COLOR.cover) > 45,
+    "by a wide margin against the wall it stands next to",
+    gap(V.ROLE_COLOR.tower, V.ROLE_COLOR.cover) + " apart in rgb");
+
+  /* and not so close to another role that it swaps one confusion for another */
+  let worst = null, worstGap = 1e9;
+  for (const [role, hex] of Object.entries(V.ROLE_COLOR)) {
+    if (role === "tower") continue;
+    const g = gap(V.ROLE_COLOR.tower, hex);
+    if (g < worstGap) { worstGap = g; worst = role; }
+  }
+  check(worstGap > 45, "and against every other role too",
+    "nearest is " + worst + " at " + worstGap);
+
+  /* the key has to name it, or a colour appears on the plan with nothing to explain it */
+  check(/tower:"Tower & bunker"/.test(src), "the key has a label for it");
+  check(/"cover","tower"/.test(src), "and lists it, next to the cover it was split from");
+
+  /* nothing is left pointing at a role with no colour */
+  const orphans = cat.buildables
+    .filter(b => b.role && !V.ROLE_COLOR[b.role]).map(b => b.id + " (" + b.role + ")");
+  check(orphans.length === 0, "every piece paints a colour the key explains",
+    orphans.join(", "));
+}
+
 console.log("\n" + pass + " passed, " + fail + " failed");
 process.exit(fail ? 1 : 0);

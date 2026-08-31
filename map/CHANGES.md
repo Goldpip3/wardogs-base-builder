@@ -38,6 +38,20 @@ Reload came out of the panel. Nothing about it changes with where the gun or the
 so it was reference material sitting in a readout, and it is still on the platform card
 below where the rest of the reference lives.
 
+### A tower is not a wall
+
+Bunker and recon tower were painted the same gold as the hesco walls they stand behind, so a
+five block tower read as a tall wall. That is only wrong where height is the thing you are
+looking at, which is the 3D view, and that is where it was reported from. They are their own
+role now, in concrete rather than gold: deliberately desaturated, because a structure you get
+inside should not compete with the wall in front of it.
+
+Four things had to move together or the key would lie: the role on the piece, the colour for
+that role, the label, and the list the key is built from. `test/elevation.js` checks all
+four, that the new colour is far enough from the wall colour to tell at a glance, that it is
+far enough from every other role too, and that no piece is left pointing at a role the key
+cannot explain.
+
 ### The 3D view draws runs, not boxes
 
 A perimeter is one wall to the person who built it and thirty outlined boxes to the

@@ -129,13 +129,16 @@
   }
   #topbar a.toolLink:hover { background: var(--accent); color: var(--accent-ink); }
   #topbar a.toolLink:hover svg { stroke: var(--accent-ink); }
-  /* The bar is one row at 1440 and 69px over at 1280, and this tool spends its vertical
-     space on the map. So the words give way, not the row: below 1400 the link keeps its
-     icon and the wordmark keeps WARDOGS, which is 81px back and one row again. */
+  /* Adding this link put the bar 69px over at 1280, and a second row costs 36px of map in
+     a tool whose whole point is the map. Below 1400 the label gives way to its icon, which
+     is 59px, and the gap drops a pixel, which is 21 more across 22 children. That is one
+     row again with room to spare. Hiding the wordmark's subtitle looks like it would help
+     and does not: it sits under WARDOGS, so it costs height rather than width. */
   @media (max-width: 1400px) {
+    #topbar { gap: 7px; }
     #topbar a.toolLink span { display: none; }
     #topbar a.toolLink { padding: 0 7px; }
-    #topbar h1 span { display: none; }
+    #designName { width: 118px; }
   }
   #topbar h1 {
     font-family: var(--display); font-weight: 700; font-size: 17px; letter-spacing: .01em;
@@ -695,7 +698,13 @@
 
   var TIER_COLOR = { small: "#5d8a4a", medium: "#b08d2a", large: "#b05c3a" };
   var ROLE_COLOR = {
-    cover:       "#c2a132",  // hesco, sandbag, bremer, bunker, shelters
+    cover:       "#c2a132",  // hesco, sandbag, bremer, the shelter: things you get behind
+    /* Concrete rather than gold, because a bunker and a recon tower are things you get
+       inside or on top of, and they were painted the same as the walls around them. A five
+       block tower reading as a tall wall is the kind of wrong that only shows up in the 3D
+       view, where height is the thing you are looking at. Desaturated on purpose: it is the
+       one structural colour that should not compete with the wall it stands behind. */
+    tower:       "#9c9484",
     entry:       "#5fa855",  // doors and gates
     offense:     "#9c5ec4",  // indirect fire at ground targets
     antiair:     "#3f9fb5",
@@ -1153,7 +1162,7 @@ const CATALOG_DEFAULT = {
     },
     {
       "id": "bunker",
-      "role": "cover",
+      "role": "tower",
       "name": "Bunker",
       "tier": "large",
       "page": 2,
@@ -1197,7 +1206,7 @@ const CATALOG_DEFAULT = {
     },
     {
       "id": "recon-tower",
-      "role": "cover",
+      "role": "tower",
       "name": "Recon Tower",
       "tier": "large",
       "page": 2,
@@ -1424,7 +1433,7 @@ const TIER_COLOR = SHARED.TIER_COLOR;              // fallback for custom entrie
    same pieces the same colours and two tables would have drifted the first time one moved. */
 const ROLE_COLOR = SHARED.ROLE_COLOR;
 const ROLE_LABEL = {
-  cover:"Cover & structure", entry:"Entryway", offense:"Offensive fire", antiair:"Anti-air",
+  cover:"Cover", tower:"Tower & bunker", entry:"Entryway", offense:"Offensive fire", antiair:"Anti-air",
   antivehicle:"Anti-vehicle",
   denial:"Area denial", support:"Support & logistics", objective:"Objective", fob:"FOB"
 };
@@ -4504,7 +4513,7 @@ function renderSupport() {
 }
 function renderLegend() {
   document.getElementById("legend").innerHTML =
-    ["fob","cover","entry","denial","offense","antiair","antivehicle","support","objective"]
+    ["fob","cover","tower","entry","denial","offense","antiair","antivehicle","support","objective"]
       .map(r => `<span class="sw" style="background:${ROLE_COLOR[r]}"></span><span>${ROLE_LABEL[r]}</span>`)
       .join("");
 }

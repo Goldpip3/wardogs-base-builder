@@ -364,7 +364,7 @@
     },
     {
       "id": "bunker",
-      "role": "cover",
+      "role": "tower",
       "name": "Bunker",
       "tier": "large",
       "page": 2,
@@ -408,7 +408,7 @@
     },
     {
       "id": "recon-tower",
-      "role": "cover",
+      "role": "tower",
       "name": "Recon Tower",
       "tier": "large",
       "page": 2,

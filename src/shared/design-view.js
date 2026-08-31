@@ -105,7 +105,13 @@
 
   var TIER_COLOR = { small: "#5d8a4a", medium: "#b08d2a", large: "#b05c3a" };
   var ROLE_COLOR = {
-    cover:       "#c2a132",  // hesco, sandbag, bremer, bunker, shelters
+    cover:       "#c2a132",  // hesco, sandbag, bremer, the shelter: things you get behind
+    /* Concrete rather than gold, because a bunker and a recon tower are things you get
+       inside or on top of, and they were painted the same as the walls around them. A five
+       block tower reading as a tall wall is the kind of wrong that only shows up in the 3D
+       view, where height is the thing you are looking at. Desaturated on purpose: it is the
+       one structural colour that should not compete with the wall it stands behind. */
+    tower:       "#9c9484",
     entry:       "#5fa855",  // doors and gates
     offense:     "#9c5ec4",  // indirect fire at ground targets
     antiair:     "#3f9fb5",
