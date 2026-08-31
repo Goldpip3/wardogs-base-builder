@@ -69,24 +69,26 @@ module.exports = ctx => {
      appears only when that armour is actually set. */
   const mirror = pts => pts.map(p => [200 - p[0], p[1]]);
   const poly = pts => pts.map(p => p[0] + "," + p[1]).join(" ");
-  /* Proportioned rather than blocky. The first pass was a stack of near rectangles and it
-     read as a robot, which matters here: the game shows these zones on a soldier, and a
-     reader is matching what is on this page against what they saw in the killfeed. So the
-     head is cut at the jaw, the chest carries shoulders, the arms hang away from the body
-     at the angle arms actually hang, and everything tapers. */
+  /* Traced off the reference the owner supplied on 2026-08-31: a plated figure, faceted
+     rather than rounded, each zone its own armour panel with a dark seam between. Torso in
+     three bands, hips as a brief with a notch, a pauldron cap flaring off the top of each
+     upper arm, mitten hands and wedge boots.
+
+     An earlier pass copied the figure off a different fan site on the understanding it came
+     from the game. It did not, and this replaces it. */
   const FIGURE = [
-    ["head",         [[[89, 10], [111, 10], [117, 20], [117, 38], [112, 49], [88, 49], [83, 38], [83, 20]]]],
-    ["neck",         [[[93, 51], [107, 51], [108, 64], [92, 64]]]],
-    ["upper-torso",  [[[70, 70], [84, 63], [116, 63], [130, 70], [133, 114], [67, 114]]]],
-    ["middle-torso", [[[67, 116], [133, 116], [130, 158], [70, 158]]]],
-    ["lower-torso",  [[[70, 160], [130, 160], [125, 198], [75, 198]]]],
-    ["pelvis",       [[[75, 200], [125, 200], [119, 234], [81, 234]]]],
-    ["upper-arm",    [[[46, 78], [66, 70], [70, 140], [52, 147]]]],
-    ["lower-arm",    [[[52, 150], [69, 143], [71, 208], [55, 213]]]],
-    ["hand",         [[[55, 215], [71, 210], [71, 238], [57, 241]]]],
-    ["upper-leg",    [[[79, 236], [98, 236], [97, 320], [80, 320]]]],
-    ["lower-leg",    [[[81, 322], [97, 322], [95, 398], [83, 398]]]],
-    ["foot",         [[[71, 400], [96, 400], [97, 421], [71, 421]]]],
+    ["head",         [[[82, 10], [118, 10], [124, 23], [124, 46], [113, 60], [87, 60], [76, 46], [76, 23]]]],
+    ["neck",         [[[89, 62], [111, 62], [111, 78], [89, 78]]]],
+    ["upper-torso",  [[[64, 79], [136, 79], [139, 128], [61, 128]]]],
+    ["middle-torso", [[[62, 131], [138, 131], [136, 161], [64, 161]]]],
+    ["lower-torso",  [[[64, 163], [136, 163], [133, 198], [67, 198]]]],
+    ["pelvis",       [[[67, 200], [133, 200], [130, 222], [100, 233], [70, 222]]]],
+    ["upper-arm",    [[[40, 88], [48, 80], [64, 79], [66, 152], [44, 157]]]],
+    ["lower-arm",    [[[44, 159], [66, 154], [64, 206], [42, 212]]]],
+    ["hand",         [[[42, 214], [64, 208], [62, 240], [52, 252], [41, 246]]]],
+    ["upper-leg",    [[[68, 235], [99, 237], [97, 303], [73, 303]]]],
+    ["lower-leg",    [[[74, 305], [96, 305], [93, 389], [77, 389]]]],
+    ["foot",         [[[70, 391], [93, 391], [95, 412], [80, 423], [70, 414]]]],
   ];
   const SYMMETRIC = ["upper-arm", "lower-arm", "hand", "upper-leg", "lower-leg", "foot"];
 

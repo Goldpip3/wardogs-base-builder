@@ -250,7 +250,6 @@ tbody tr:hover td{background:var(--panel)}
 details.design summary{cursor:pointer;list-style:none}
 details.design summary::-webkit-details-marker{display:none}
 /* --- catalogue: chips, search, grid and table --- */
-.cat-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:28px 0 6px}
 .chips{display:flex;flex-wrap:wrap;gap:1px;background:var(--line);border:1px solid var(--line)}
 /* A filter bar spans its column because it sits next to a search box that wants the rest of
    the width. Three sort tabs have nothing to sit next to, so a full width band left a grey
@@ -265,8 +264,45 @@ details.design summary::-webkit-details-marker{display:none}
 .cat-search{flex:1 1 210px;min-width:180px;background:var(--panel);color:var(--text);
   border:1px solid var(--line2);padding:10px 13px;font-family:var(--ui);font-size:14px}
 .cat-search:focus{outline:none;border-color:var(--yellow)}
+
+/* --- the armory rail ---
+   Ten categories used to be ten filled chips over two rows, with the chosen one a solid
+   yellow block: the loudest mark on the page was the filter you had already set. A rail
+   reads down in one pass, the counts line up so they compare, and the selection is an edge
+   and a colour rather than a slab. Below 900px it lays back down as a scrolling row,
+   because a 200px rail on a phone is most of the phone. --- */
+.cat-layout{display:grid;grid-template-columns:1fr;gap:22px;margin:28px 0 0}
+@media(min-width:900px){.cat-layout{grid-template-columns:196px 1fr}}
+.cat-rail{border:1px solid var(--line);background:var(--panel);padding:5px 0;align-self:start;
+  display:flex;flex-direction:column}
+.rail-item{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;
+  background:transparent;border:0;border-left:2px solid transparent;cursor:pointer;
+  font-family:var(--ui);font-weight:600;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--dim2);padding:9px 13px;text-align:left}
+.rail-item b{font-family:var(--num);font-weight:400;font-size:11px;color:var(--dim)}
+.rail-item:hover{background:var(--panel2);color:var(--text)}
+.rail-item[aria-pressed="true"]{background:var(--panel2);color:var(--yellow);
+  border-left-color:var(--yellow)}
+.rail-item[aria-pressed="true"] b{color:var(--yellow)}
+.cat-top{display:flex;gap:10px;align-items:stretch;flex-wrap:wrap}
+.cat-meta{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:12px 0 16px}
+.cat-meta #count{margin:0}
+.cat-sorts{display:flex;align-items:center;gap:14px;margin-left:auto;font-weight:600;
+  font-size:10px;letter-spacing:.16em;text-transform:uppercase}
+.cat-sorts>span{color:var(--dim)}
+.cat-sorts button{background:transparent;border:0;cursor:pointer;padding:0 0 3px;
+  font-family:var(--ui);font-weight:600;font-size:10px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--dim2);border-bottom:2px solid transparent}
+.cat-sorts button:hover{color:var(--text)}
+.cat-sorts button[aria-pressed="true"]{color:var(--yellow);border-bottom-color:var(--yellow)}
+.cat-sorts button[data-dir="asc"]::after{content:" ↑"}
+.cat-sorts button[data-dir="desc"]::after{content:" ↓"}
+@media(max-width:899px){
+  .cat-rail{flex-direction:row;overflow-x:auto;padding:0}
+  .rail-item{width:auto;white-space:nowrap;border-left:0;border-bottom:2px solid transparent}
+  .rail-item[aria-pressed="true"]{border-left:0;border-bottom-color:var(--yellow)}
+}
 .view-toggle{display:flex;gap:1px;background:var(--line);border:1px solid var(--line)}
-.cat-count{font-size:12px;color:var(--dim);margin:4px 0 16px}
 th.sortable{cursor:pointer;user-select:none;white-space:nowrap}
 th.sortable:hover{color:var(--text)}
 th.sortable::after{content:"";opacity:.35;margin-left:6px}
@@ -300,9 +336,6 @@ th.sortable[data-dir="desc"]::after{content:"↓";opacity:1;color:var(--yellow)}
   text-transform:uppercase;color:var(--dim);margin-top:5px}
 .acard-price{flex:0 0 auto;font-family:var(--num);font-size:13px;color:var(--text);
   font-variant-numeric:tabular-nums;text-align:right}
-.cat-sorts{margin-top:14px}
-.cat-sorts .chip[data-dir="asc"]::after{content:" ↑"}
-.cat-sorts .chip[data-dir="desc"]::after{content:" ↓"}
 .cat-empty{padding:34px;text-align:center;color:var(--dim);border:1px dashed var(--line2)}
 /* --- account control in the header --- */
 .acct{display:none;align-items:center;gap:8px;font-weight:600;font-size:11px;white-space:nowrap;

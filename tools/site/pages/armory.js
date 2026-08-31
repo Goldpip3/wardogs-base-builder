@@ -135,31 +135,45 @@ module.exports = ctx => {
       ' load actually do to somebody, and to what they are wearing, the' +
       ' <a href="/ballistics/" style="text-decoration:underline">damage calculator</a>' +
       ' takes the same catalogue and shoots people with it.</p>' +
-      '<div class="cat-bar">' +
-        '<div class="chips" role="group" aria-label="Filter by category">' +
-          '<button class="chip" data-filter="" aria-pressed="true">All<small>' + A.items.length + "</small></button>" +
+      /* Ten categories were ten filled chips wrapping onto two rows, and the selected one
+         was a solid yellow slab, so the loudest thing on a page of 331 items was the filter
+         you had already chosen. They are a rail now: one column you read down, counts right
+         aligned so they compare, and the selection marked by an edge. Same attributes, so
+         the filter script did not have to change. */
+      '<div class="cat-layout">' +
+        '<nav class="cat-rail" aria-label="Filter by category">' +
+          '<button class="rail-item" data-filter="" aria-pressed="true">' +
+            "<span>All</span><b>" + A.items.length + "</b></button>" +
           A.categories.map(function (c) {
-            return '<button class="chip" data-filter="' + c.id + '" aria-pressed="false">' + esc(c.name) +
-              "<small>" + A.items.filter(function (i) { return i.cat === c.id; }).length + "</small></button>";
+            return '<button class="rail-item" data-filter="' + c.id + '" aria-pressed="false">' +
+              "<span>" + esc(c.name) + "</span><b>" +
+              A.items.filter(function (i) { return i.cat === c.id; }).length + "</b></button>";
           }).join("") +
-        "</div>" +
-        '<input class="cat-search" id="q" type="search" placeholder="Search the catalogue">' +
-        '<div class="view-toggle" role="group" aria-label="View">' +
-          '<button class="chip" data-view="grid" aria-pressed="true">Grid</button>' +
-          '<button class="chip" data-view="table" aria-pressed="false">Table</button>' +
+        "</nav>" +
+        '<div class="cat-main">' +
+          '<div class="cat-top">' +
+            '<input class="cat-search" id="q" type="search" placeholder="Search the catalogue">' +
+            '<div class="view-toggle" role="group" aria-label="View">' +
+              '<button class="chip" data-view="grid" aria-pressed="true">Grid</button>' +
+              '<button class="chip" data-view="table" aria-pressed="false">Table</button>' +
+            "</div>" +
+          "</div>" +
+          '<div class="cat-meta">' +
+            '<p class="fine" id="count"></p>' +
+            '<div class="cat-sorts" role="group" aria-label="Sort">' +
+              "<span>Sort</span>" +
+              '<button data-sort="name" aria-pressed="true">Name</button>' +
+              '<button data-sort="price" aria-pressed="false">Price</button>' +
+            "</div>" +
+          "</div>" +
+          '<div id="catGrid" class="acards">' + cards + "</div>" +
+          '<div id="catTable" hidden>' +
+          '<table id="cat"><thead><tr><th class="sortable" data-sort="name" data-dir="asc">Item</th>' +
+          '<th>Category</th><th class="n sortable" data-sort="price">Price</th></tr></thead>' +
+          "<tbody>" + rows + "</tbody></table></div>" +
+          '<p class="cat-empty" id="catEmpty" hidden>Nothing matches that.</p>' +
         "</div>" +
       "</div>" +
-      '<div class="cat-sorts chips sorts" role="group" aria-label="Sort">' +
-        '<button class="chip" data-sort="name" aria-pressed="true">Name</button>' +
-        '<button class="chip" data-sort="price" aria-pressed="false">Price</button>' +
-      "</div>" +
-      '<p class="fine" id="count" style="margin:10px 0 0"></p>' +
-      '<div id="catGrid" class="acards">' + cards + "</div>" +
-      '<div id="catTable" hidden>' +
-      '<table id="cat"><thead><tr><th class="sortable" data-sort="name" data-dir="asc">Item</th>' +
-      '<th>Category</th><th class="n sortable" data-sort="price">Price</th></tr></thead>' +
-      "<tbody>" + rows + "</tbody></table></div>" +
-      '<p class="cat-empty" id="catEmpty" hidden>Nothing matches that.</p>' +
       '<p style="margin-top:34px"><a class="btn primary" href="/ballistics/">Damage calculator</a> ' +
       '<a class="btn" href="/loadouts/">Price up a loadout</a></p>' +
       adSlot("inArticle") +
