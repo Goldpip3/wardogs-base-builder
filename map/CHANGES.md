@@ -6,6 +6,44 @@ that pins it. If this file and the code disagree, the code is right and this is 
 
 Newest first. One entry per decision, not per commit.
 
+## 2026-08-31
+
+### A run steps along the piece, not down the drag
+
+Three separate things all made a diagonal wall come out ragged, and fixing the first two was
+not enough, so the whole path is written down here.
+
+**Where a click lands.** `snapVal` rounded every placement to the world half-cell grid. A
+1x1 turned forty five degrees has to step 0.707 to meet its neighbour and 0.707 is not on
+that grid, so each block sat about an eighth of a cell out. `snapPoint` snaps in the
+piece own frame instead. At 0, 90, 180 and 270 that is the world grid, so square-on
+placement is unchanged.
+
+**Which line it lands on.** The frame snap left the sideways axis on half cells, and half a
+cell sideways is invisible on a diagonal until the wall is built. `snapPlace` measures from
+the nearest piece of the same kind and angle and steps by that piece own footprint, and
+treats leaving the line as something you have to mean: three quarters of a block off it, not
+the half a block plain rounding asks for. Only for pieces turned off square.
+
+**How a drag lays a run.** `stampPositions` spaced pieces by their extent along the drag,
+which gets the distance right and the wall wrong. Unless the piece happened to sit square-on
+to the drag, the blocks met at one corner and the run was a chain of points. Only a piece
+turned to exactly match the drag ever came out solid. It now walks the two moves the piece
+can make and still touch, a whole width along its own length or a whole depth across it,
+picking whichever keeps the run closest to the drag line: a staircase. A run stops when the
+best move would put it further off the line than its longest leg, which is what used to make
+the last few pieces crab off sideways.
+
+**And the complaint about it.** `wallGap` measured upright bounding boxes, so a genuinely
+flush turned wall read as a third of a cell apart and the plan reported a break that was not
+there. `hairlineGapOf` measures the real rectangles when either piece is turned.
+
+Pinned in `test/runs.js`: a 1x1 at seven different rotations dragged diagonally must make a
+solid wall, hand-placed diagonals must not staircase, square-on placement must land exactly
+where it always did, and a deliberate second row must still start. Three of those checks
+also assert the old behaviour fails, because the first two fixes each looked right and were
+not.
+
 ## 2026-08-30
 
 ### A way in is a run, and only where somebody can stand (`e9868d9`)

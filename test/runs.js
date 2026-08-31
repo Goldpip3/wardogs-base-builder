@@ -91,13 +91,34 @@ for (const [label, rot, dir] of [
     g.count + " pieces, worst gap " + g.worst.toFixed(4));
 }
 
-/* --- a square-on piece dragged diagonally steps by its own diagonal --- */
+/* --- a drag lays a wall at every angle, not only at the one that happened to work ---
+ *
+ * This check used to say the opposite: that a square-on block dragged diagonally stepping
+ * corner to corner was "correct for it". It is not. Blocks meeting at a point are a chain,
+ * not a wall, and only a piece turned to exactly match the drag ever came out solid. That
+ * assumption is what got reported as a run that does not follow the line. A run now steps
+ * along the piece's own edges and staircases toward the drag, so every block shares a whole
+ * edge with the one before it whatever the piece is turned to.
+ */
+for (const rot of [0, 15, 30, 45, 60, 90, 135]) {
+  const pts = run("hesco-small", rot, 45, 10);
+  let worst = 0;
+  for (let i = 1; i < pts.length; i++)
+    worst = Math.max(worst,
+      Math.hypot(pts[i].cx - pts[i - 1].cx, pts[i].cy - pts[i - 1].cy));
+  check(pts.length > 3 && worst <= 1 + 1e-9,
+    "a 1x1 turned " + rot + " and dragged diagonally makes a solid wall",
+    pts.length + " pieces, longest step " + worst.toFixed(4) +
+    (worst > 1 + 1e-9 ? " so they only touch at a corner" : ""));
+}
+
+/* and the run still ends up going where it was dragged */
 {
-  const pts = run("hesco-small", 0, 45, 10);
-  const d = Math.hypot(pts[1].cx - pts[0].cx, pts[1].cy - pts[0].cy);
-  check(Math.abs(d - Math.SQRT2) < 1e-9,
-    "an unturned block dragged diagonally steps corner to corner, which is correct for it",
-    "step " + d.toFixed(4));
+  const pts = run("hesco-small", 30, 45, 10);
+  const last = pts[pts.length - 1];
+  const off = Math.abs(last.cx - last.cy);            // distance from the 45 degree line
+  check(off < 1.5, "and it still tracks the line it was dragged along",
+    "ends " + off.toFixed(2) + " off it");
 }
 
 /* --- all eight directions are reachable, not just two --- */

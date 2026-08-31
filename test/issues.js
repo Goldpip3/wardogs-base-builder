@@ -36,6 +36,7 @@ vm.runInContext([
   lift("pieceRect"), lift("rectCorners"), lift("rectAABB"), lift("aabbOverlap"),
   lift("rectsOverlap"), lift("canOverlay"), lift("buildIndex"), lift("neighbours"),
   lift("touches"), lift("seamFamily"), lift("wallGap"), lift("hairlineGap"),
+  lift("rectGap"), lift("hairlineGapOf"),
   lift("computeIssues"),
 ].join("\n"), sb);
 
@@ -67,7 +68,8 @@ vm.runInContext([
   "      continue;",
   "    }",
   "    if (seamFamily(da) !== seamFamily(db)) continue;",
-  "    const g = hairlineGap(rectAABB(pieceRect(a)), rectAABB(pieceRect(b)));",
+  "    const ra = pieceRect(a), rb = pieceRect(b);",
+  "    const g = hairlineGapOf({ rect: ra, box: rectAABB(ra) }, { rect: rb, box: rectAABB(rb) });",
   "    if (g) issues.push(da.name + ' vs ' + db.name + ': ' + g.toFixed(2) +",
   "      ' of a cell apart, so the run breaks here. Align to grid closes it|' + a.id);",
   "  }",

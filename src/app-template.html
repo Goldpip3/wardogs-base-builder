@@ -872,22 +872,54 @@ function stampPositions(d) {
   const dir = Math.round(Math.atan2(dy, dx) / quarter) * quarter;
   const ux = Math.cos(dir), uy = Math.sin(dir);
 
-  /* The step is the piece's own extent along the way it is travelling, measured in the
-     piece's frame rather than the world's. A w by d box seen along a direction sitting at
-     angle t to its own axes is w|cos t| + d|sin t| across. The old bounding box is the
-     special case where the two frames happen to agree, which is why it only ever worked on
-     square-on walls. A turned wall laid along its own edge now steps by that edge, so the
-     pieces sit flush. */
+  /* A run steps along the piece's own edges, never straight down the drag.
+     Spacing pieces by their extent along the drag direction gets the distance right and the
+     wall wrong: unless the piece happens to sit square-on to the way it is travelling, the
+     blocks meet at one corner and the run is a chain of points, not a wall. Only a piece
+     turned to exactly match the drag came out solid, which is why a run laid at anything
+     else looked ragged.
+
+     So take the two moves the piece can make and still touch: a whole width along its own
+     length, and a whole depth across it. Walk toward the drag direction by whichever of the
+     two keeps the run closest to the line, the way a staircase approximates a diagonal.
+     Every block then shares a full edge with the one before it. A wall laid straight is the
+     case where one move is along the line and the other is not, so it is chosen every time
+     and the run is what it always was. */
   const rot = ((ghost.rot || 0) * Math.PI) / 180;
-  const t = dir - rot;
-  const step = Math.max(0.25,
-    def.footprint.w * Math.abs(Math.cos(t)) + def.footprint.d * Math.abs(Math.sin(t)));
+  const e1x = Math.cos(rot), e1y = Math.sin(rot);      // the piece's own axes
+  const w = Math.max(0.25, def.footprint.w), dp = Math.max(0.25, def.footprint.d);
+  const legs = [
+    { x: w * e1x, y: w * e1y },
+    { x: dp * -e1y, y: dp * e1x },
+  ].map(l => ((l.x * ux + l.y * uy) < 0 ? { x: -l.x, y: -l.y } : l));
+  const maxLeg = Math.max(w, dp);
 
   const dist = Math.abs(dx * ux + dy * uy);            // how far along that direction
-  const n = Math.min(STAMP_MAX, Math.floor(dist / step + 1e-6) + 1);
-  const out = [];
-  for (let i = 0; i < n; i++)
-    out.push({ cx: d.x0 + i * step * ux, cy: d.y0 + i * step * uy });
+  const out = [{ cx: d.x0, cy: d.y0 }];
+  let cx = d.x0, cy = d.y0;
+  while (out.length < STAMP_MAX) {
+    const curAlong = (cx - d.x0) * ux + (cy - d.y0) * uy;
+    let best = null, bestOff = Infinity, bestAlong = -Infinity;
+    for (const l of legs) {
+      const nx = cx + l.x - d.x0, ny = cy + l.y - d.y0;
+      const along = nx * ux + ny * uy;
+      if (along > dist + 1e-9) continue;
+      // a move straight across the drag gets you nowhere, and would walk off sideways
+      if (along <= curAlong + 1e-9) continue;
+      const off = Math.abs(nx * -uy + ny * ux);        // how far off the drag line it lands
+      /* At the far end the long leg overshoots and only the short one is left, so the run
+         used to crab off sideways for its last few pieces. A staircase never needs to be
+         further off the line than its longest leg, so past that it has stopped following
+         the drag and the run ends. */
+      if (off > maxLeg + 1e-9) continue;
+      if (off < bestOff - 1e-9 || (Math.abs(off - bestOff) < 1e-9 && along > bestAlong)) {
+        best = l; bestOff = off; bestAlong = along;
+      }
+    }
+    if (!best) break;
+    cx += best.x; cy += best.y;
+    out.push({ cx, cy });
+  }
   return out;
 }
 function commitStamp(d) {
@@ -1576,6 +1608,37 @@ function hairlineGap(a, b) {
   const gap = wallGap(a, b);
   return gap > SEAM_EPS && gap <= HAIRLINE ? gap : 0;
 }
+/* A turned piece cannot be measured by its upright box. A 1x1 turned thirty degrees has a
+   box a third wider than the piece, so a wall that is genuinely flush reads as a third of a
+   cell apart and the plan reports a break that is not there. Push the two real rectangles
+   apart along the axes of their own edges instead, and take the widest push needed: that is
+   the gap, negative where they overlap. */
+function rectGap(a, b) {
+  let gap = -Infinity;
+  for (const r of [a, b]) {
+    const axes = [[Math.cos(r.rot), Math.sin(r.rot)], [-Math.sin(r.rot), Math.cos(r.rot)]];
+    for (const ax of axes) {
+      const proj = pts => {
+        let mn = Infinity, mx = -Infinity;
+        for (const [x, y] of pts) {
+          const d = x * ax[0] + y * ax[1];
+          mn = Math.min(mn, d); mx = Math.max(mx, d);
+        }
+        return [mn, mx];
+      };
+      const [a1, a2] = proj(rectCorners(a)), [b1, b2] = proj(rectCorners(b));
+      gap = Math.max(gap, Math.max(b1 - a2, a1 - b2));
+    }
+  }
+  return gap;
+}
+function hairlineGapOf(m, mq) {
+  const turned = r => Math.abs(Math.sin(2 * r.rot)) > 1e-6;
+  const gap = (turned(m.rect) || turned(mq.rect))
+    ? rectGap(m.rect, mq.rect)
+    : wallGap(m.box, mq.box);
+  return gap > SEAM_EPS && gap <= HAIRLINE ? gap : 0;
+}
 
 function computeIssues() {
   const issues = [];
@@ -1622,7 +1685,7 @@ function computeIssues() {
         }
         // pieces that would have been one wall if they met, and miss by a hair
         if (seamFamily(def) === seamFamily(qdef)) {
-          const gap = hairlineGap(m.box, mq.box);
+          const gap = hairlineGapOf(m, mq);
           if (gap) {
             reported.add(key);
             const issue = { pieceId: p.id, ids: [p.id, q.id],
