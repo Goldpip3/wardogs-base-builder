@@ -3,48 +3,179 @@
   "confirmed": false,
   "checkOn": "2026-09-02",
   "tracks": [
-    { "id": "assault", "name": "Assault" },
-    { "id": "medic", "name": "Medic" },
-    { "id": "recon", "name": "Recon" },
-    { "id": "support", "name": "Support" },
-    { "id": "driver", "name": "Driver" },
-    { "id": "pilot", "name": "Pilot" },
-    { "id": "career", "name": "Career" }
+    {
+      "id": "assault",
+      "name": "Assault"
+    },
+    {
+      "id": "medic",
+      "name": "Medic"
+    },
+    {
+      "id": "recon",
+      "name": "Recon"
+    },
+    {
+      "id": "support",
+      "name": "Support"
+    },
+    {
+      "id": "driver",
+      "name": "Driver"
+    },
+    {
+      "id": "pilot",
+      "name": "Pilot"
+    },
+    {
+      "id": "career",
+      "name": "Career"
+    }
   ],
-  "trackNote": "Six class ladders plus the career level, which is the sum of the six. One write-up calls the first ladder Infantry and another calls it Assault; that disagreement is itself unconfirmed.",
+  "trackNote": "Six class ladders plus the career level, which is the sum of the six. The first ladder is Assault: a write-up calling it Infantry is wrong, confirmed by the owner 2026-08-31.",
   "weapons": [
-    { "name": "Bushmaster M17S", "track": "assault" },
-    { "name": "T-21", "track": "assault" },
-    { "name": "AK74", "track": "assault", "level": 3 },
-    { "name": "Galil", "track": "assault", "level": 10, "unlock": 35000 },
-    { "name": "M4", "track": "assault", "level": 20 },
-    { "name": "FAL", "track": "assault", "level": 35 },
-    { "name": "A-91", "track": "assault" },
-    { "name": "KH-2002", "track": "assault" },
-
-    { "name": "AMP-9", "track": "medic" },
-    { "name": "PP-19 Vityaz", "track": "medic", "unlock": 25000 },
-    { "name": "MP5", "track": "medic", "level": 15 },
-    { "name": "Super-45", "track": "medic", "level": 35 },
-
-    { "name": "MP43", "track": "support" },
-    { "name": "M500", "track": "support", "level": 10 },
-    { "name": "M249 SAW", "track": "support", "level": 15 },
-    { "name": "PKM", "track": "support", "level": 30 },
-
-    { "name": "SKS", "track": "recon", "level": 5 },
-    { "name": "SVD", "track": "recon", "unlock": 50000 },
-    { "name": "BMR-308", "track": "recon", "level": 30 },
-    { "name": "Scout Rifle TD", "track": "recon" },
-    { "name": "Mosin Nagant", "track": "recon" },
-    { "name": "SV98", "track": "recon", "level": 19 },
-    { "name": "MK22", "track": "recon", "level": 25 },
-    { "name": "AMR 50", "track": "recon", "level": 35, "unlock": 200000 },
-
-    { "name": "GGX 17", "track": "career", "level": 1, "unlock": 5000 },
-    { "name": "Judge", "track": "career", "level": 18, "unlock": 15000 },
-    { "name": "M1911", "track": "career", "level": 40, "unlock": 25000 },
-    { "name": "GGX 18", "track": "career", "level": 70 },
-    { "name": "Deagle", "track": "career", "level": 90, "unlock": 75000 }
+    {
+      "name": "Bushmaster M17S",
+      "track": "assault"
+    },
+    {
+      "name": "T-21",
+      "track": "assault"
+    },
+    {
+      "name": "AK74",
+      "track": "assault",
+      "level": 3
+    },
+    {
+      "name": "Galil",
+      "track": "assault",
+      "level": 10,
+      "unlock": 35000
+    },
+    {
+      "name": "M4",
+      "track": "assault",
+      "level": 20
+    },
+    {
+      "name": "FAL",
+      "track": "assault",
+      "level": 35
+    },
+    {
+      "name": "A-91",
+      "track": "assault"
+    },
+    {
+      "name": "KH-2002",
+      "track": "assault"
+    },
+    {
+      "name": "AMP-9",
+      "track": "medic"
+    },
+    {
+      "name": "PP-19 Vityaz",
+      "track": "medic",
+      "unlock": 25000
+    },
+    {
+      "name": "MP5",
+      "track": "medic",
+      "level": 15
+    },
+    {
+      "name": "Super-45",
+      "track": "medic",
+      "level": 35
+    },
+    {
+      "name": "MP43",
+      "track": "support"
+    },
+    {
+      "name": "M500",
+      "track": "support",
+      "level": 10
+    },
+    {
+      "name": "M249 SAW",
+      "track": "support",
+      "level": 15
+    },
+    {
+      "name": "PKM",
+      "track": "support",
+      "level": 30
+    },
+    {
+      "name": "SKS",
+      "track": "recon",
+      "level": 5
+    },
+    {
+      "name": "SVD",
+      "track": "recon",
+      "unlock": 50000
+    },
+    {
+      "name": "BMR-308",
+      "track": "recon",
+      "level": 30
+    },
+    {
+      "name": "Scout Rifle TD",
+      "track": "recon"
+    },
+    {
+      "name": "Mosin Nagant",
+      "track": "recon"
+    },
+    {
+      "name": "SV98",
+      "track": "recon",
+      "level": 19
+    },
+    {
+      "name": "MK22",
+      "track": "recon",
+      "level": 25
+    },
+    {
+      "name": "AMR 50",
+      "track": "recon",
+      "level": 35,
+      "unlock": 200000
+    },
+    {
+      "name": "GGX 17",
+      "track": "career",
+      "level": 1,
+      "unlock": 5000
+    },
+    {
+      "name": "Judge",
+      "track": "career",
+      "level": 18,
+      "unlock": 15000
+    },
+    {
+      "name": "M1911",
+      "track": "career",
+      "level": 40,
+      "unlock": 25000
+    },
+    {
+      "name": "GGX 18",
+      "track": "career",
+      "level": 70
+    },
+    {
+      "name": "Deagle",
+      "track": "career",
+      "level": 90,
+      "unlock": 75000
+    }
   ]
 }

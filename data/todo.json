@@ -6,7 +6,7 @@
   "confirm": [
     {
       "what": "Weapon progression: which track and level unlocks each weapon, and the one-time cost",
-      "why": "Carried as unconfirmed. Gathered from public write-ups before launch and never verified in game. The tracks themselves are also unsettled: one source lists Assault, another calls the same ladder Infantry.",
+      "why": "Carried as unconfirmed. Gathered from public write-ups before launch and never verified in game. The track names are settled, the rows are not: read the buy screen for each weapon.",
       "where": "data/progression.json"
     },
     {
