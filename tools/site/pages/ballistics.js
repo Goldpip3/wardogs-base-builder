@@ -23,7 +23,7 @@
  * Bar length carries time to kill as well, so the ranking survives being printed in grey.
  */
 module.exports = ctx => {
-  const { fs, path, ROOT, esc, BALLISTICS, ARMORY, DAMAGE, adSlot, page, write } = ctx;
+  const { fs, path, ROOT, esc, BALLISTICS, ARMORY, DAMAGE, loadsFor, adSlot, page, write } = ctx;
   const B = BALLISTICS;
   const MODEL = fs.readFileSync(path.join(ROOT, "tools/site/ballistics-model.js"), "utf8");
 
@@ -64,20 +64,6 @@ module.exports = ctx => {
      The join is resolved here rather than in the browser so that it is a build-time fact:
      a weapon whose class has no row for its calibre is listed as a gap on the page instead
      of rendering as a zero, and tools/check-build.js fails if the count moves. */
-  const CAL_LABEL = {
-    "556": "5.56", "545": "5.45", "308": "308 Win", "762": "7.62x39", "762x54": "7.62x54",
-    "9mm": "9mm", "45acp": "45acp", "45colt": "45colt", "50ae": "50AE", "50cal": "50cal",
-  };
-  const loadsFor = w => {
-    const inClass = DAMAGE.classes[w.class];
-    if (!inClass) return null;
-    const label = CAL_LABEL[w.calibre];
-    const names = Object.keys(inClass).filter(n => !label || n.indexOf(label) === 0);
-    if (!names.length) return null;
-    const out = {};
-    names.forEach(n => { out[n] = inClass[n]; });
-    return out;
-  };
   const WEAPON_LOADS = {};
   const noDamage = [];
   B.weapons.forEach(w => {

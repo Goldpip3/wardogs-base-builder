@@ -2,7 +2,7 @@
    Body sits at column zero deliberately. Indenting it would add whitespace inside
    these template literals, and that whitespace is page content. */
 module.exports = ctx => {
-  const { esc, ARMORY, ARMORY_STATS, BALLISTICS, adSlot, page, write } = ctx;
+  const { esc, ARMORY, ARMORY_STATS, ITEM_STATS, MEASURED, BALLISTICS, adSlot, page, write } = ctx;
 
 /* ---------- armory, loadouts and vehicles ----------
    One transcribed vendor catalogue behind all three. The armory browses it, the loadout
@@ -14,7 +14,7 @@ module.exports = ctx => {
   /* Weight, footprint, stack and unlock, joined by exact name. Every key in the file is a
      catalogue name, which tools/check-build.js holds it to, so a lookup that misses means
      the source simply publishes nothing for that item rather than that the join broke. */
-  const ST = ARMORY_STATS.items;
+  const ST = ITEM_STATS;
   const statOf = function (name) { return ST[name] || {}; };
   const slotsIn = function (grid) { return grid ? grid[0] * grid[1] : 0; };
   const money = function (n) { return "$" + n.toLocaleString("en-US"); };
@@ -560,7 +560,21 @@ module.exports = ctx => {
       '<span class="vcard-art">' +
       (it.icon ? '<img src="/game-icons/' + it.icon + '.png" alt="" width="52" height="52" loading="lazy">' : "") +
       "</span>" +
-      '<span class="vcard-name">' + esc(it.name) + "</span></button>";
+      '<span class="vcard-name">' + esc(it.name) + "</span>" +
+      /* How much a bag holds, on the card you choose it from. Without it the only way to
+         compare two bags was to pick one, read the count, pick the other and read it again,
+         which is how three bags that really are 15 slots read as "they are all the same".
+         It also puts a wrong figure where somebody can see it: the whole point of measuring
+         these is that the pulled ones are suspect. */
+      (function (st) {
+        if (!st.storage) return "";
+        const n = st.storage[0] * st.storage[1];
+        const seen = st.measured && st.measured.storage;
+        return '<span class="vcard-sub"' + (seen ? ' data-measured="1"' : "") +
+          ' title="' + (seen ? "Measured in game " + esc(seen) : "From the item database, not measured") +
+          '">' + st.storage[0] + "x" + st.storage[1] + ", " + n + " slots</span>";
+      }(statOf(it.name))) +
+      "</button>";
   };
   const noneCard = function (slotId, label) {
     return '<button type="button" class="vcard vcard-none" data-pick="' + slotId + '"' +
@@ -799,7 +813,8 @@ module.exports = ctx => {
       " measured in game: a bag is counted as squares, and the game packs shapes, so a bag" +
       " with room left in it can still refuse a long item. A kit that carries something the" +
       " database has no weight for says so with a plus on the total rather than quietly" +
-      " leaving it out.</p>" +
+      " leaving it out. Anything somebody has since counted in game is marked on its card" +
+      " and used ahead of the database.</p>" +
 
       adSlot("inArticle") +
 

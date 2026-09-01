@@ -111,6 +111,41 @@ check(!mojibake, "no mojibake from a codepage mismatch",
    wherever in the file it lives, and check the file exists as well as that it was inlined:
    a name pointing at nothing inlines nothing and would otherwise fail silently. */
 {
+  /* ---- what somebody measured outranks what was pulled ----
+     data/measured.json is the one file on the site that beats every other source, so a line
+     in it that lands on nothing is worse than no line: it reads as done and changes nothing.
+     tools/measure.js refuses both mistakes on the way in; this is the half that catches a
+     name that drifted afterwards, and it prints what the measurements disagree with so the
+     pull's errors are visible rather than silently overwritten. */
+  {
+    const measured = JSON.parse(fs.readFileSync(path.join(proj, "data", "measured.json"), "utf8"));
+    const stats = JSON.parse(fs.readFileSync(path.join(proj, "data", "armory-stats.json"), "utf8"));
+    const armoury = JSON.parse(fs.readFileSync(path.join(proj, "data", "armory.json"), "utf8"));
+    const names = new Set(armoury.items.map(i => i.name));
+    const entries = Object.entries(measured.items || {});
+    const strays = entries.filter(([n]) => !names.has(n)).map(([n]) => n);
+    check(strays.length === 0, `all ${entries.length} measured figures land on a real item`,
+      strays.join(", "));
+    const undated = entries.filter(([, v]) => !v.on).map(([n]) => n);
+    check(undated.length === 0, "every measured figure says the day it was read",
+      undated.join(", "));
+
+    const same = (a, b) => Array.isArray(a) ? Array.isArray(b) && a.join() === b.join() : a === b;
+    const disagrees = [];
+    entries.forEach(([n, v]) => {
+      const pulled = stats.items[n] || {};
+      Object.keys(v).forEach(k => {
+        if (k === "on" || k === "note") return;
+        if (pulled[k] !== undefined && !same(pulled[k], v[k]))
+          disagrees.push(n + " " + k + ": measured " +
+            (Array.isArray(v[k]) ? v[k].join("x") : v[k]) + ", pulled " +
+            (Array.isArray(pulled[k]) ? pulled[k].join("x") : pulled[k]));
+      });
+    });
+    check(true, `${entries.length} measured, ${disagrees.length} disagreeing with the pull`);
+    disagrees.forEach(d => console.log("       " + d));
+  }
+
   /* ---- the pulled item stats join the catalogue by name ----
      data/armory-stats.json carries weight, footprint, stack size and unlock level, read in
      bulk from the same database the prices were typed from. It is keyed by item name, so a

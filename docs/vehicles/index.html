@@ -793,6 +793,12 @@ tr[data-on="1"] td{background:var(--panel2);color:var(--text)}
 .vcard[aria-pressed="true"]{border-color:var(--yellow)}
 /* The level a thing opens at, opposite its price: what it costs and what it takes to be
    allowed to buy it are two different questions and the shelf answers both. */
+/* What a bag holds, under its name on the shelf. A measured figure is marked, because the
+   difference between one somebody counted in game and one pulled off a database is the
+   whole reason the measured file exists. */
+.vcard-sub{display:block;font-family:var(--num);font-size:10px;color:var(--dim);
+  padding:0 8px 8px;text-align:center}
+.vcard-sub[data-measured="1"]{color:var(--good)}
 .vcard-lvl{position:absolute;top:5px;left:5px;font-family:var(--num);font-size:9px;
   color:var(--dim2);background:var(--panel2);border:1px solid var(--line2);padding:1px 4px;
   line-height:1.4;z-index:1}
@@ -903,6 +909,12 @@ ul,ol{padding-left:22px}li{margin:6px 0}
 .amap-btn[aria-pressed="true"]{background:var(--yellow);border-color:var(--yellow);color:var(--bg)}
 .amap-lay[aria-pressed="true"]{background:var(--line2);color:var(--text)}
 .amap-body{flex:1;display:grid;grid-template-columns:290px 1fr;min-height:0}
+/* The right rail only exists when there is a unit to put in it, so the third track is a
+   modifier and not the default. 300px because that is the widest rail unit AdSense sells,
+   and the map keeps the rest. */
+.amap-body.has-rail{grid-template-columns:290px 1fr 300px}
+.amap-rail{border-left:1px solid var(--line);padding:14px;overflow-y:auto}
+.amap-rail .ad-slot{margin:0}
 .amap-side{border-right:1px solid var(--line);padding:14px;display:flex;
   flex-direction:column;gap:12px;overflow-y:auto;overflow-x:hidden;background:var(--panel)}
 .amap-pick{display:flex;gap:8px}
@@ -965,9 +977,19 @@ ul,ol{padding-left:22px}li{margin:6px 0}
   font-size:11px;color:var(--dim)}
 .amap-status .good{color:var(--good)}
 .amap-status .bad{color:var(--red-hot)}
+/* Three columns below about this width leave the map some 600px, and that is not a map you
+   can read a solution off. The rail moves under it rather than being hidden: a unit that is
+   requested and then display:none'd is an impression nobody can see, which is both worthless
+   and against the rules it is served under. */
+@media(max-width:1280px){
+  .amap-body.has-rail{grid-template-columns:290px 1fr;grid-template-rows:1fr auto}
+  .amap-rail{grid-column:1/-1;border-left:0;border-top:1px solid var(--line)}
+}
 @media(max-width:900px){
   .amap-app{height:auto}
-  .amap-body{grid-template-columns:1fr}
+  /* .has-rail is two classes and beats a bare .amap-body even from inside a media query,
+     so the collapsed layout has to name it or the rail keeps its own column on a phone. */
+  .amap-body,.amap-body.has-rail{grid-template-columns:1fr}
   .amap-side{border-right:0;border-bottom:1px solid var(--line)}
   .amap-stage{height:60vh;min-height:380px}
 }

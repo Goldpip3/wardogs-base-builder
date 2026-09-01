@@ -130,8 +130,8 @@
   "_unfiguredNote": "Everything the vendor sells that this page cannot put a damage figure on. Listed rather than dropped, because a weapon missing from a ranking reads as a weapon that does not exist, and the honest answer is that it exists and nobody has published enough about it.",
 
   "unfiguredWeapons": [
-    { "name": "PKM", "calibre": "7.62x51mm", "kind": "Small arm",
-      "why": "No published shots-to-kill row, and 7.62x51mm has no published damage either, so there is nothing to solve from." },
+    { "name": "PKM", "calibre": "7.62x54mm", "kind": "Light machine gun", "class": "LMG",
+      "why": "The one weapon here that is a measurement away. It was listed as a 7.62x51mm small arm, which is why it was excluded: the item database says 7.62x54mm and a light machine gun, and the measured sheet has LMG rows for that calibre. All that is missing is a rate of fire, and a measured one brings it in on its own." },
     { "name": "GGX 17", "calibre": null, "kind": "Small arm",
       "why": "In the vendor list at $200 with no calibre stated and no ranking row. Not enough to place it." },
     { "name": "RPG-7", "calibre": "93mm", "kind": "Launcher",
@@ -147,10 +147,10 @@
   "unfiguredLoads": [
     { "name": "12g Rifled Slug", "round": "Slug", "chamberedBy": "M500, MP43",
       "why": "Every shotgun row that was solved is buckshot, so the slug is a separate unknown wearing the same shell." },
-    { "name": "7.62x51mm Standard (FMJ)", "round": "FMJ", "chamberedBy": "PKM",
-      "why": "The only weapon that chambers it has no ranking row." },
-    { "name": "7.62x51mm Armor Piercing (AP)", "round": "AP", "chamberedBy": "PKM",
-      "why": "Same as the standard load in that calibre: the only weapon firing it has no ranking row." },
+    { "name": "7.62x51mm Standard (FMJ)", "round": "FMJ", "chamberedBy": "nothing in the vendor list",
+      "why": "Sold, and fired by nothing. It was down as the PKM's load, which was wrong on both counts: the PKM is 7.62x54mm, and no weapon in the item database chambers 7.62x51mm at all." },
+    { "name": "7.62x51mm Armor Piercing (AP)", "round": "AP", "chamberedBy": "nothing in the vendor list",
+      "why": "Same as the standard load in that calibre: sold, with nothing to fire it." },
     { "name": ".338", "round": "FMJ", "chamberedBy": "nothing in the vendor list",
       "why": "Sold with no price, no damage and no weapon to fire it. Almost certainly a launch calibre arriving early." },
     { "name": ".338 AP", "round": "AP", "chamberedBy": "nothing in the vendor list",

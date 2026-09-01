@@ -40,13 +40,18 @@
     },
     {
       "what": "The pulled item stats: weight, footprint, stack size, bag grids and unlock levels",
-      "why": "data/armory-stats.json was read out of the MetaForge database on 2026-08-31, the same source the prices were typed from, and every price in the pull matched the catalogue, which is how the join was checked. It is still a transcription and not a measurement. The ones worth checking first are the ones the loadout page leans on: the bag grids, since the Field Backpack comes out 3x3 where one fan site says 6x2, and the stack sizes, since a frag grenade is listed as not stacking at all.",
+      "why": "data/armory-stats.json was read out of the MetaForge database on 2026-08-31, the same source the prices were typed from, and every price in the pull matched the catalogue, which is how the join was checked. It is still a transcription and not a measurement. The ones worth checking first are the ones the loadout page leans on: the bag grids, since the Field Backpack comes out 3x3 where one fan site says 6x2, and the stack sizes, since a frag grenade is listed as not stacking at all. Since 2026-08-31 there is a way in: node tools/measure.js \"Assault Backpack\" storage 4x5 writes a measured figure that beats the pull, and node tools/measure.js --list storage says which bags and rigs are still unmeasured.",
       "where": "data/armory-stats.json"
     },
     {
       "what": "Whether the first ladder is called Assault or Infantry",
       "why": "data/progression.json says Assault, confirmed by the owner on 2026-08-31 against a write-up that said Infantry. The MetaForge unlock data pulled into data/armory-stats.json calls that same ladder Infantry on every item. One of them is out of date rather than wrong, and the loadout shelves order by level so nothing depends on the name yet.",
       "where": "data/progression.json, data/armory-stats.json"
+    },
+    {
+      "what": "The PKM rate of fire",
+      "why": "The last figure between the PKM and a full row on the damage page. Its calibre and class are settled, and the measured damage sheet covers LMG 7.62x54. Count rounds against a stopwatch, then node tools/measure.js \"PKM\" rpm <number>, and it joins the tables on the next build with no code change.",
+      "where": "data/measured.json"
     }
   ],
   "work": [

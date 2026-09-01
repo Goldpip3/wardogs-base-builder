@@ -58,6 +58,19 @@ const AD_FORMATS = {
      rest of the session. So it is sized to be wholly visible on load or not worth having. */
   artillery:   { minHeight: 150, style: "display:block",
     attrs: `data-ad-format="auto" data-full-width-responsive="true"` },
+  /* The right rail, added because the map had width to spare that the firing solution did
+     not need. The column is 300px so the widest unit AdSense sells for a rail can fit, and
+     it is as tall as the tool, so a 300x600 can fill it where a 300x250 is the floor.
+     Reserved at the floor rather than the ceiling: reserving 600 leaves a tall empty hole
+     under every fill that comes back smaller, and this one is beside the map, where a hole
+     is the most visible thing on the page. */
+  artilleryRight: { minHeight: 250, style: "display:block",
+    attrs: `data-ad-format="auto" data-full-width-responsive="true"` },
+  /* Directly under the tool and above the reference, so it is the first thing anyone meets
+     on the way off the map. Same shape and same reserved height as the leaderboard, because
+     it is the same job in a different place. */
+  artilleryFoot: { minHeight: 90, style: "display:block",
+    attrs: `data-ad-format="auto" data-full-width-responsive="true"` },
 };
 function adSlot(which) {
   const slot = (ADS.slots || {})[which] || "";
@@ -206,9 +219,46 @@ const ARMORY = JSON.parse(fs.readFileSync(path.join(ROOT, "data/armory.json"), "
    checked in tools/check-build.js rather than assumed. */
 const ARMORY_STATS = JSON.parse(
   fs.readFileSync(path.join(ROOT, "data/armory-stats.json"), "utf8"));
+/* What somebody has read off the running game, which outranks the pull above and the
+   solver's figures in ballistics.json alike. Merged here rather than in each page, so the
+   order of precedence is stated once and no page can end up preferring the other way
+   round. Per field rather than per item: a bag whose size was measured keeps the weight
+   the pull gave it until somebody measures that too. */
+const MEASURED = JSON.parse(fs.readFileSync(path.join(ROOT, "data/measured.json"), "utf8"));
+const ITEM_STATS = {};
+for (const [name, pulled] of Object.entries(ARMORY_STATS.items)) ITEM_STATS[name] = { ...pulled };
+for (const [name, seen] of Object.entries(MEASURED.items)) {
+  const into = ITEM_STATS[name] || (ITEM_STATS[name] = {});
+  const from = into.measured = {};
+  for (const [k, v] of Object.entries(seen)) {
+    if (k === "on" || k === "note") continue;
+    into[k] = v;
+    from[k] = seen.on;
+  }
+}
 const DAMAGE = JSON.parse(fs.readFileSync(path.join(ROOT, "data/damage.json"), "utf8"));
 const ARTILLERY = JSON.parse(fs.readFileSync(path.join(ROOT, "data/artillery.json"), "utf8"));
 const ARTILLERY_MAPS = JSON.parse(fs.readFileSync(path.join(ROOT, "data/artillery-maps.json"), "utf8"));
+
+/* A weapon joins the damage tables on its class and its calibre, and a measured rate of
+   fire brings an unfigured one in. Both rules live in ./weapon-join so a test can run them
+   against stub data: the promotion only fires when somebody has measured something, so with
+   an empty data/measured.json nothing here is exercised by a build at all. */
+const { loadsFor: loadsWith, promote } = require("./weapon-join");
+const loadsFor = w => loadsWith(DAMAGE, w);
+const promotedWeapons = promote(BALLISTICS, DAMAGE, MEASURED);
+
+
+/* ---------- a weapon joins the damage tables on its class and its calibre ----------
+   The measured sheet is a table per weapon class, and a weapon fires one calibre, so its
+   loads are the rows in its class whose name starts with that calibre. Shotguns and the bow
+   have one set of rows and no calibre prefix to match on, so they take all of them.
+
+   This lives here rather than on the damage page because the promotion below needs the same
+   rule, and a second copy of it is how a weapon ends up figured on one page and not the
+   other. */
+
+
 const DESIGNS = (COMMUNITY.designs || []).filter(d => d.slug && d.code);
 
 /* ---------- design tags ----------
@@ -346,7 +396,7 @@ const VOTE_API = (COMMUNITY.voteApi || "").replace(/\/$/, "");
     fs, path, ROOT, DOCS, SITE, catalog, byId, esc,
     ADS, adsOn, adScript, adSlot,
     encodeDesign, P, run, ring, pit,
-    COMMUNITY, BALLISTICS, ARMORY, ARMORY_STATS, DAMAGE, ARTILLERY, ARTILLERY_MAPS, DESIGNS, stats,
+    COMMUNITY, BALLISTICS, ARMORY, ARMORY_STATS, MEASURED, ITEM_STATS, loadsFor, DAMAGE, ARTILLERY, ARTILLERY_MAPS, DESIGNS, stats,
     CSS, write, written, sweepDesignPages,
     decodeShared, withStats, designCard, VOTE_API,
     TAG_GROUPS, TAG_BY_ID, tagPills,

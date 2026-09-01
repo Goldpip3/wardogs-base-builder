@@ -35,6 +35,13 @@ in the solver and let it re-derive.
 
 ## Steps
 
+0. Measured in game beats all of it. `node tools/measure.js "Field Backpack" storage 4x3`
+   writes one reading into `data/measured.json`, which the loadout page prefers over the
+   pull and marks as measured on the card. It refuses a name that is not in the catalogue
+   and a value in a shape nothing reads. `--list storage` says what is still unmeasured. A
+   measured `rpm` on a weapon in `unfiguredWeapons` promotes it into the damage tables on
+   its own, which is how the PKM comes in; `test/weapon-join.js` pins that rule, because an
+   empty measured file means a build exercises none of it.
 1. Armory: edit the `RAW` block in `tools/build-armory.js`, run it. It refuses to write on a
    duplicate, an unparseable price or an empty category. Prices only: weight, footprint,
    stack size, bag grids and unlock levels are the same source read in bulk and live in

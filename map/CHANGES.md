@@ -8,6 +8,29 @@ Newest first. One entry per decision. Keep entries short.
 
 ## 2026-08-31
 
+### Measured beats pulled, and one number brings a weapon in
+
+`data/measured.json` is the new top of the pile: a figure somebody read off the running game
+outranks the MetaForge pull and the solver alike, per field, so a bag whose size was measured
+keeps the pulled weight until that is measured too. Written only through
+`node tools/measure.js "<item>" <field> <value>`, which refuses a name that is not in the
+catalogue and a value in a shape nothing reads. `tools/check-build.js` prints every
+measurement that disagrees with the pull rather than letting the override hide it.
+
+**A measured `rpm` promotes a weapon out of the gap list by itself.** The rule and the
+class-and-calibre join both live in `tools/site/weapon-join.js` so `test/weapon-join.js` can
+run them on stubs: with the measured file empty a build exercises none of this, and it
+shipped broken within the hour on the order the data files load in.
+
+**The PKM was the missing LMG, and the reason was a wrong calibre.** It was listed as a
+7.62x51mm small arm, so it was excluded for having no damage; it is a 7.62x54mm light machine
+gun, and the measured sheet has LMG rows for that calibre. One measured rate of fire brings it
+in. The 7.62x51mm loads said the PKM chambers them: nothing in the item database does.
+
+**Every bag says its size on the shelf card**, measured ones marked. Three bags really are
+3x5, which is why they read as "all the same" when the only way to compare was to pick each
+one and read the count.
+
 ### The armour rows stop repeating their own label
 
 Each armour strip on the damage calculator ended with the piece's name out of
