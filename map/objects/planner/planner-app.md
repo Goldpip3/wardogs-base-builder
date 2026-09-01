@@ -53,7 +53,15 @@ a single offline file and a library would be paid for on every download.
 - `walkPush` is collision: a circle against a rotated rect, not an axis-aligned box, since
   angled wall runs are the case this view exists to look at
 - `walkSolids` rebuilds every frame off `standHeights`, so raised pieces sit at their storey
-- Doors and gates are solid here. Opening them is stage two, and the hint says so
+- `walkLeaves` swings an entry open. A leaf is a rect like any other, so collision and
+  drawing both get the swing for free from `walkSolids`. It is `WALK_LEAF` thick, **not the
+  footprint depth**: a footprint's depth is the wall the entry sits in, and swinging all of
+  it lands back across the corner of its own doorway. That is invisible on the 4 wide Gate
+  and impassable on the 1 wide Door
+- `walkDoors` opens them on approach, not on a key, because the Door's description says
+  "Auto-closes". Two distances, so a door you stand in does not chatter
+- Open state lives in `walk.doors` and is deliberately **not** in the design. A door left
+  ajar is not something anyone meant to save, and the share format is already in four places
 
 Citations: substitution at `build.ps1:34`, outputs at `build.ps1:52` and `:60`.
 

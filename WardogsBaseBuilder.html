@@ -2406,7 +2406,21 @@ const WALK_R = 0.38 / CELL_M;     // shoulder half width, so a 0.76 m walker
 const WALK_WALK = 4.0 / CELL_M;   // 4 m/s, a shooter's walk rather than a real one
 const WALK_RUN = 6.5 / CELL_M;    // 6.5 m/s sprint. 9 cells/s was 10.8 m/s, which is a world record
 const WALK_SKY = [0.085, 0.090, 0.075];   // fog and clear are one colour on purpose
-const walk = { on: false, x: 0, y: 0, yaw: 0, pitch: 0, keys: {}, gl: null, last: 0 };
+
+/* Doors open on approach rather than on a key, because the catalog says they do: the
+   Door's own description is "team-only. Auto-closes." A key to open a door that the game
+   opens for you would be inventing a control the game does not have.
+
+   Two distances, not one. A single threshold makes a door flutter the moment you stand
+   on it, since the leaf swinging past can nudge you back across the line. */
+const WALK_DOOR_OPEN = 3.2 / CELL_M;    // 3.2 m out it starts opening
+const WALK_DOOR_SHUT = 4.4 / CELL_M;    // and it does not shut again until 4.4 m
+const WALK_DOOR_SWING = 1 / 0.55;       // shut to wide open in 0.55 s
+const WALK_LEAF = 0.18 / CELL_M;        // 18 cm of armoured door panel
+const walk = { on: false, x: 0, y: 0, yaw: 0, pitch: 0, keys: {}, gl: null, last: 0,
+               doors: {} };   // piece id to how far open, 0 to 1. Not part of the design:
+                              // a door left ajar is not a thing anyone meant to save, and
+                              // the share format is already spread over four places.
 
 /* ---- small matrix helpers, column major, enough for one camera and a lot of boxes ---- */
 function m4mul(a, b) {
@@ -2536,16 +2550,73 @@ function hex3(hex) {
   return [(n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255];
 }
 
+/* How far a point is from a rotated rect, 0 when it is inside. Same closest-point work
+   walkPush does. Distance is to the rect and not to its centre so that walking up to the
+   end of a four wide gate opens it, rather than only walking up to its middle. */
+function rectDist(r, x, y) {
+  const c = Math.cos(-r.rot), sn = Math.sin(-r.rot);
+  const dx = x - r.cx, dy = y - r.cy;
+  const lx = dx * c - dy * sn, ly = dx * sn + dy * c;
+  const ox = Math.max(0, Math.abs(lx) - r.w / 2), oy = Math.max(0, Math.abs(ly) - r.h / 2);
+  return Math.sqrt(ox * ox + oy * oy);
+}
+
+/* An entry's moving parts, swung open by t, where 0 is shut and 1 is ninety degrees.
+
+   Both entries swing rather than slide, and that is the catalog talking, not a guess: the
+   Door "needs back-wall clearance to swing" and the Gate "swings through". A four wide
+   vehicle gate is two leaves opening apart; a one wide door is a single leaf.
+
+   A leaf is just another rotated rect, which is the whole reason this is cheap. Collision
+   and drawing both read walkSolids, so a leaf standing half open is solid exactly where it
+   is, with no second code path to keep in step. Swing it about its hinge and the doorway
+   it was filling becomes walkable on its own.
+
+   The leaf is a panel, not the footprint. A footprint's depth is the thickness of the wall
+   the entry sits in, and swinging that whole depth open leaves it sticking a full cell back
+   across the corner of its own doorway. On a four wide gate that goes unnoticed, because two
+   cells of the middle stay clear. On a one wide door it takes a quarter of the opening, and
+   what is left is 0.5 cells against a walker 0.64 wide: the door opens and you still cannot
+   get through it. So the leaf is WALK_LEAF thick and hangs at the back of the recess, which
+   is where "needs back-wall clearance to swing" says it hangs anyway.
+
+   Hinge geometry, in the entry's own frame before the piece's rotation. The hinge sits at
+   the outer end of the leaf, x = side * w/2, at the back of the recess. Shut, the leaf's
+   centre is lw/2 back along x from there; open, that offset has turned about the hinge. */
+function walkLeaves(r, t) {
+  const a = t * Math.PI / 2;
+  const twin = r.w >= 3;                 // a vehicle gate is a double gate
+  const lw = twin ? r.w / 2 : r.w;
+  const ld = Math.min(r.h, WALK_LEAF);
+  const y0 = r.h / 2 - ld / 2;           // hung at the back, so it swings clear
+  const c = Math.cos(r.rot), sn = Math.sin(r.rot);
+  const out = [];
+  for (const side of (twin ? [-1, 1] : [-1])) {
+    const lx = side * r.w / 2 - side * (lw / 2) * Math.cos(a);
+    const ly = y0 + (lw / 2) * Math.sin(a);
+    out.push({ cx: r.cx + lx * c - ly * sn, cy: r.cy + lx * sn + ly * c,
+               w: lw, h: ld, rot: r.rot - side * a });
+  }
+  return out;
+}
+
 /* Every solid piece as a rect in cells plus the band of height it occupies. Built once per
-   frame rather than per test, because collision asks about all of them on every step. */
+   frame rather than per test, because collision asks about all of them on every step.
+   An entry contributes its leaves where they currently stand, not its doorway. */
 function walkSolids() {
   const z = standHeights(), out = [];
   for (const p of design.pieces) {
     const d = byId[p.type]; if (!d) continue;
     const r = pieceRect(p); if (!r) continue;
-    out.push({ r: r, base: (z.get(p.id) || 0) * WALK_BLOCK,
-               top: ((z.get(p.id) || 0) + (d.height || 1)) * WALK_BLOCK,
-               role: d.role, fob: !!d.isFob });
+    const lvl = z.get(p.id) || 0;
+    const band = { base: lvl * WALK_BLOCK, top: (lvl + (d.height || 1)) * WALK_BLOCK,
+                   role: d.role, fob: !!d.isFob };
+    if (d.role === "entry") {
+      for (const leaf of walkLeaves(r, walk.doors[p.id] || 0))
+        out.push(Object.assign({ r: leaf }, band));
+      continue;
+    }
+    out.push(Object.assign({ r: r }, band));
   }
   return out;
 }
@@ -2640,10 +2711,25 @@ function walkDraw() {
   }
 }
 
+/* Every entry eased toward open or shut. Hysteresis on the two distances, so a door you
+   are standing in does not chatter. */
+function walkDoors(dt) {
+  for (const p of design.pieces) {
+    const d = byId[p.type]; if (!d || d.role !== "entry") continue;
+    const r = pieceRect(p); if (!r) continue;
+    const was = walk.doors[p.id] || 0;
+    const dist = rectDist(r, walk.x, walk.y);
+    const want = dist < WALK_DOOR_OPEN ? 1 : (dist > WALK_DOOR_SHUT ? 0 : (was > 0.5 ? 1 : 0));
+    const by = WALK_DOOR_SWING * dt;
+    walk.doors[p.id] = want > was ? Math.min(want, was + by) : Math.max(want, was - by);
+  }
+}
+
 function walkStep(now) {
   if (!walk.on) return;
   const dt = Math.min(0.05, (now - walk.last) / 1000 || 0);
   walk.last = now;
+  walkDoors(dt);
   const k = walk.keys;
   let fwd = (k.w ? 1 : 0) - (k.s ? 1 : 0), side = (k.d ? 1 : 0) - (k.a ? 1 : 0);
   if (fwd || side) {
@@ -2681,6 +2767,7 @@ function setWalk(on) {
   if (on) {
     if (!walkGL()) { walk.on = false; cv.style.display = "none";
       document.getElementById("canvas").style.display = ""; alert("This browser has no WebGL, so the walkthrough cannot run."); return; }
+    walk.doors = {};        // every entry shut again on the way in
     walkResize(); walkSpawn();
     walk.last = performance.now();
     requestAnimationFrame(walkStep);
@@ -4200,7 +4287,7 @@ function updateHint() {
   if (walk.on) {
     el.innerHTML = "Standing in it. <b>W A S D</b> to move &middot; mouse to look &middot; <b>Shift</b> to run &middot; " +
       "<b>Esc</b> frees the mouse and clicking takes it back &middot; <b>3</b> or the button returns to the plan. " +
-      "Doors and gates are solid in this pass, so walk round them.";
+      "Doors and gates open as you walk up to them, the way they do in the game.";
     return;
   }
   if (view3d) {

@@ -350,5 +350,88 @@ check(!/emptyState"\)\.style\.display/.test(src.replace(lift("syncEmptyState"), 
     "and the sprint is not faster than a human being");
 }
 
+/* A door that opens and still will not let you through.
+
+   Stage two swings the leaf out of the doorway. The first cut swung the whole footprint,
+   and a footprint depth is the thickness of the wall the entry sits in, not the thickness
+   of the panel. Swung ninety degrees, that full depth lands back across the corner of its
+   own opening. On the four wide Gate nobody would ever notice, because two clear cells
+   remain up the middle. On the one wide Door it eats a quarter of the doorway, and the
+   0.5 cells left over are narrower than the 0.64 cell walker: the gate looked fine, the
+   door opened, and you bounced off the empty air inside it.
+
+   So this walks a body through both of them rather than sampling a point. A point test is
+   what missed it: the middle of the doorway is clear in both cases, and clearance is the
+   thing that is not.
+*/
+{
+  const constOf = n => {
+    const m = src.match(new RegExp("const " + n + " = [^;]+;"));
+    if (!m) throw new Error("could not lift const " + n);
+    return m[0];
+  };
+  vm.runInContext([constOf("CELL_M"), constOf("WALK_LEAF"), constOf("WALK_R"),
+                   constOf("WALK_EYE"), constOf("WALK_BLOCK"),
+                   lift("walkLeaves"), lift("walkPush")].join("\n"), sandbox);
+
+  /* An entry at the origin, sealed either side, walked at from three cells out. */
+  vm.runInContext(`
+    function tryEntry(w, d, t) {
+      const gap = { cx: 0, cy: 0, w: w, h: d, rot: 0 };
+      const wall = x => ({ r: { cx: x, cy: 0, w: 6, h: d, rot: 0 }, base: 0, top: 2 });
+      const solids = [wall(w / 2 + 3), wall(-w / 2 - 3)];
+      for (const leaf of walkLeaves(gap, t)) solids.push({ r: leaf, base: 0, top: 2 });
+      let x = 0, y = -3;
+      for (let i = 0; i < 240; i++) {
+        const o = walkPush(x, y + 0.025, solids);
+        x = o[0]; y = o[1];
+      }
+      return y;
+    }`, sandbox);
+  const got = (w, d, t) => vm.runInContext("tryEntry(" + w + "," + d + "," + t + ")", sandbox);
+
+  for (const id of ["door", "gate"]) {
+    const b = byId[id];
+    check(!!b && b.role === "entry", id + " is still an entry in the catalog");
+    if (!b) continue;
+    const w = b.footprint.w, d = b.footprint.d;
+    /* Shut stops you in the doorway, not before it: the leaf hangs at the back of the
+       recess, so you get to stand in the opening and no further. Far side is what counts. */
+    check(got(w, d, 0) < 0.5, "a shut " + b.name + " stops you in the doorway");
+    check(got(w, d, 1) > 2, "an open " + b.name + " lets a whole walker through, not just a point");
+  }
+
+  /* An open entry must open by moving the leaf, not by deleting it. Deleting one also makes
+     everything above pass, and it is the shortcut anyone would reach for on a door that will
+     not let you through. It would leave a gate you can walk over the top of and a leaf that
+     disappears from the view mid swing. */
+  vm.runInContext(`
+    function leafStillSolid(w, d) {
+      const open = walkLeaves({ cx: 0, cy: 0, w: w, h: d, rot: 0 }, 1);
+      if (open.length !== walkLeaves({ cx: 0, cy: 0, w: w, h: d, rot: 0 }, 0).length) return -1;
+      let moved = 0;
+      for (const leaf of open) {
+        const o = walkPush(leaf.cx, leaf.cy, [{ r: leaf, base: 0, top: 2 }]);
+        if (Math.abs(o[0] - leaf.cx) > 0.01 || Math.abs(o[1] - leaf.cy) > 0.01) moved++;
+      }
+      return moved === open.length ? open.length : -1;
+    }`, sandbox);
+  for (const id of ["door", "gate"]) {
+    const b = byId[id]; if (!b) continue;
+    const n = vm.runInContext("leafStillSolid(" + b.footprint.w + "," + b.footprint.d + ")", sandbox);
+    check(n > 0, "an open " + b.name + " has swung its leaf aside, not deleted it");
+  }
+  check(vm.runInContext("walkLeaves({cx:0,cy:0,w:4,h:1,rot:0},1).length", sandbox) === 2,
+    "a four wide gate is a double gate");
+  check(vm.runInContext("walkLeaves({cx:0,cy:0,w:1,h:1,rot:0},1).length", sandbox) === 1,
+    "and a one wide door is a single leaf");
+
+  /* the cause, pinned on its own: a leaf is a panel and the footprint is a wall */
+  const leaf = vm.runInContext("walkLeaves({cx:0,cy:0,w:1,h:1,rot:0},0)[0]", sandbox);
+  check(leaf.h < 0.5, "a leaf is a thin panel, not the whole footprint depth");
+  check(/WALK_LEAF = [\d.]+ \/ CELL_M/.test(src),
+    "and its thickness comes from CELL_M like every other walk dimension");
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

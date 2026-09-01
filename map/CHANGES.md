@@ -8,6 +8,29 @@ Newest first. One entry per decision. Keep entries short.
 
 ## 2026-08-31
 
+### Doors and gates open, and you can walk through them
+
+**They swing, and that is the catalog talking.** The Door "needs back-wall clearance to
+swing", the Gate "swings through". Four wide gate is two leaves apart, one wide door is
+one leaf. Nothing here was picked by eye.
+
+**A leaf is a panel, not the footprint.** Footprint depth is the wall the entry sits in.
+Swinging all of it puts the leaf back across the corner of its own doorway: unnoticeable
+on the gate, since two cells stay clear up the middle, and fatal on the door, where 0.5
+cells are left for a 0.64 cell walker. The door opened and you still bounced off it.
+
+**They open on approach, not on a key.** The Door's description says "Auto-closes", so a
+key would be inventing a control the game does not have. Two distances, 3.2 m to open and
+4.4 m to shut, so a door you are standing in does not chatter.
+
+**Open state is not saved.** It lives in `walk.doors`. A door left ajar is not something
+anyone meant to keep, and the share format is already spread over four places.
+
+**Pinned by walking a body through, not sampling a point.** A point test is exactly what
+missed this: the middle of the doorway is clear either way, and clearance is what is not.
+`test/planner-tools.js`, proven red on a full-depth leaf, a leaf that never swings, and a
+leaf deleted instead of moved.
+
 ### You can stand in the base and walk round it
 
 **Third state on the 3D button, not a fourth button.** The toolbar is capped at ten and
