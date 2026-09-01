@@ -8,6 +8,21 @@ Newest first. One entry per decision. Keep entries short.
 
 ## 2026-09-01
 
+### Ground and air are two fleets, and an unlock is not a price
+
+The vehicle list was 20 rows you read past each other in, and the only thing that knew a
+Havoc from a Bobcat was a regex over the names that held while every airframe happened to be
+called AH, MH, UH or Havoc. The vendor files each one as Ground or Air, and that is pulled
+into `data/armory-stats.json` with the rest. The armory rail hangs Ground, 14, and Air, 6,
+under Vehicles, and the regex survives only as the fallback for a vehicle the source says
+nothing about. Pinned in `test/site.js`: every vehicle has to carry a pulled class.
+
+**The unlock is the bigger number.** The L2A6 is $14,000 at the vendor and career level 35
+plus $500,000 to open, and only the $14,000 was on the site. The unlock role, level and cash
+are pulled for 198 items now and printed as the last row of the detail panel. The five
+vehicles the source publishes nothing for say so, because a missing row on an otherwise full
+panel reads as "there is no unlock", and for a tank that is a lie somebody plans around.
+
 ### An AK stops being offered GGX magazines
 
 Fitment was read off the name: a leading token that pointed at exactly one weapon owned the
