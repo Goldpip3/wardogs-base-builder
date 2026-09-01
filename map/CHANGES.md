@@ -8,6 +8,17 @@ Newest first. One entry per decision. Keep entries short.
 
 ## 2026-09-01
 
+### The front page leads with what the site is for
+
+The kicker read "Fan-made reference for WARDOGS", which is the disclaimer, and the footer
+already carries that in the place that has to. It reads **Everything WARDOGS**. Two words:
+every longer version came out in the same shape, a noun phrase and a snappy fragment after a
+comma, which the owner reads as machine-written.
+
+The "Where the figures come from" banner is off the front page. Every page that carries a
+figure says where that figure came from beside the figure, which is where it gets read, and
+the two counts in it are still on the pages they describe.
+
 ### A weapon with no rate of fire stops looking broken
 
 The PKM has measured damage and no measured rate of fire, so the figure was painting all

@@ -28,13 +28,12 @@
    caveat about measurement reads as a warning about the contents. Do not move it back up. */
 module.exports = ctx => {
   const { catalog, run, page, write, withStats, designCard, ranked, FORWARD_SHARED,
-          ARMORY, BALLISTICS, ARTILLERY, COMMUNITY_SCRIPT } = ctx;
+          ARMORY, BALLISTICS, COMMUNITY_SCRIPT } = ctx;
 
 const nBuildables = catalog.buildables.length;
 const nPrices     = ARMORY.items.length;
 const nWeapons    = BALLISTICS.weapons.length;
 const nUnfigured  = (BALLISTICS.unfiguredWeapons || []).length;
-const nOpen       = (ARTILLERY.open || []).length;
 const perPallet   = catalog.logistics.suppliesPerPallet.toLocaleString();
 const palletCash  = catalog.logistics.palletCash;
 
@@ -52,7 +51,12 @@ write("index.html", page({
   </video>
   <div class="hero-scrim"></div>
   <div class="wrap">
-  <span class="eyebrow">Fan-made reference for WARDOGS</span>
+  ${/* "Fan-made reference" is what the footer already says, in the place that has to say it:
+        it is the disclaimer, and a disclaimer is a poor thing to lead with.
+
+        Two words, because every longer version came out in the same shape, a noun phrase
+        and a snappy fragment after a comma, which reads as written by a machine. */""}
+  <span class="eyebrow">Everything WARDOGS</span>
   ${/* No hard break. It was splitting a four word heading into two fixed lines, and with
         "worked out" gone the line it was breaking no longer exists. Left to wrap, the
         heading breaks where the column actually ends instead of where it used to. */""}
@@ -137,15 +141,7 @@ write("index.html", page({
   </div>
 </div></section>
 
-<section><div class="wrap">
-  <div class="note"><strong>Where the figures come from.</strong> Each one is read from the
-  game or taken from a source cited on the page that carries it, and estimates are marked as
-  estimates. Where something has not been measured the page says so rather than filling it
-  in: ${nOpen} questions are open on the artillery page, and ${nUnfigured} weapons have no
-  damage figures yet. Figures are current as of the last time somebody checked them. Report
-  an error on the <a href="/feedback/">feedback page</a> and it is corrected for
-  everyone.</div>
-</div></section>${COMMUNITY_SCRIPT}`,
+${COMMUNITY_SCRIPT}`,
 }));
 
 // --- buildables reference ---
