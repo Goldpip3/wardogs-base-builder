@@ -150,6 +150,40 @@ check(!!rd && rd.includes("data-role=more") && /PAGE=[0-9]+/.test(rd),
 check(!!rd && rd.includes("data-pick") && rd.includes("tags:tags"),
   "the card that sends a design up asks for tags and sends them");
 
+// ---------- the loadout calculator's bag ----------
+/* Two rules the page is built on, both of which read as fine in the markup and wrong on the
+   screen if they slip: the Pouch is a backpack rather than a rig, and nothing is carried
+   before there is something to carry it in. */
+const kit = fs.readFileSync(DOCS + "loadouts/index.html", "utf8");
+const between = (html, from, to) => {
+  const a = html.indexOf(from);
+  if (a < 0) return "";
+  const b = html.indexOf(to, a + from.length);
+  return html.slice(a, b < 0 ? html.length : b);
+};
+const bagShelf = between(kit, 'id="bag-grid"', "</div></div>");
+const rigShelf = between(kit, 'id="vest-grid"', "</div></div>");
+check(bagShelf.includes('data-name="Pouch"'),
+  "the Pouch is on the backpack shelf, where the free option belongs");
+check(!rigShelf.includes('data-name="Pouch"') && rigShelf.includes("Tac Vest"),
+  "the rig shelf is tac vests only");
+const gearPanel = between(kit, 'data-panel="gear"', 'data-panel="items"');
+check(!gearPanel.includes('id="bag-slot"'),
+  "the backpack is not filed under gear with the helmet and the armour");
+const storage = between(kit, '<div class="vend-pack">', "<div class=\"vend-shelf\"");
+check(storage.includes('id="bag-slot"') && storage.includes('id="cells"'),
+  "storage is its own column, with the bag slot and the grid that fills as you build");
+check(kit.includes("function gateBag") && kit.includes("Pick a backpack before you buy"),
+  "the items shelf locks until a backpack is chosen");
+/* Nothing in the catalogue carries a weight, so the page says the figure is not measured.
+   The day one does, this goes red and the sentence saying it is unmeasured is what has to
+   change: a page carrying both the figure and the disclaimer would be the worse of the two
+   states, because the disclaimer is what people read. */
+const anyKg = require(ROOT + "/data/armory.json").items.some(i => typeof i.kg === "number");
+check(anyKg ? !kit.includes("reads as not measured") : kit.includes("reads as not measured"),
+  anyKg ? "the catalogue has weights, so the page no longer calls them unmeasured"
+        : "weight is stated as unmeasured while nothing in the catalogue carries one");
+
 // ---------- the planner still ships intact ----------
 check(app.includes("btnShare") && app.includes("buildIndex") && app.length > 100000,
   "planner page is the full app");

@@ -420,7 +420,9 @@
   <div class="sep"></div>
   <button id="btnSnap" class="active" title="Toggle grid snap (B). Same key as in-game">⌗ Snap</button>
   <button id="btnFit" title="Zoom to fit (F)">⛶ Fit</button>
-  <button id="btn3d" title="Switch between the flat plan and a 3D view (3). Rotate with Q and E.">◲ 3D</button>
+  <button id="btn3d" title="Switch between the flat plan and a 3D view (3). Turn it with Q and E.">◲ 3D</button>
+  <button id="btnSpinL" style="display:none" title="Turn the view 15° anticlockwise (Q)">↺</button>
+  <button id="btnSpinR" style="display:none" title="Turn the view 15° clockwise (E)">↻</button>
   <div class="sep"></div>
   <span class="group-label">Storey</span>
   <span id="levelStrip" class="seg" title="Everything is shown by default. Pick a storey to work on it on its own."></span>
@@ -1886,7 +1888,13 @@ function toScreen(wx, wy) { return [ (wx - view.x) * view.zoom + canvas.clientWi
    Placing stays in the plan. A piece dropped in 3D lands where the eye guessed rather than
    where the grid is, and being exact is the point of this tool. */
 let view3d = false;
-const iso = { rot: 0, zoom: 15, x: 0, y: 0 };
+/* Which way the world is turned, in degrees. It was a count of quarter turns, which is four
+   angles and every one of them square on, so a wall along an axis was either flat to the
+   camera or edge on and never showed its length and its face at once. Fifteen degrees is
+   fine enough to look around a corner and coarse enough that a whole number of clicks
+   always brings the view back to square. */
+const iso = { yaw: 0, zoom: 15, x: 0, y: 0 };
+const ISO_STEP = 15;
 const ISO_K = 0.866;
 /* A block is 0.866 of a cell across and was one cell tall, so a two block wall and a five
    block tower differed by three faint steps and the view answered the one question the plan
@@ -1904,12 +1912,19 @@ const ISO_Z = 1.45;
 const ISO_TILT = 0.68;
 
 function isoSpin(x, y) {
-  switch (iso.rot & 3) {
-    case 1:  return [y, -x];
-    case 2:  return [-x, -y];
-    case 3:  return [-y, x];
-    default: return [x, y];
-  }
+  const t = iso.yaw * Math.PI / 180, c = Math.cos(t), s = Math.sin(t);
+  return [x * c + y * s, -x * s + y * c];
+}
+function isoUnspin(rx, ry) {
+  const t = iso.yaw * Math.PI / 180, c = Math.cos(t), s = Math.sin(t);
+  return [rx * c - ry * s, rx * s + ry * c];
+}
+/* Where the camera lies, in world axes. Depth is rx + ry after the spin, so this is what
+   that sum weighs x and y by, and the signs of it are what "further along this axis" means
+   at whatever angle the view is turned to. */
+function isoView() {
+  const t = iso.yaw * Math.PI / 180, c = Math.cos(t), s = Math.sin(t);
+  return [c - s, c + s];
 }
 function isoPt(x, y, z) {
   const [rx, ry] = isoSpin(x - iso.x, y - iso.y);
@@ -1920,15 +1935,53 @@ function isoPt(x, y, z) {
   ];
 }
 
+/* How high off the ground a piece actually stands, in blocks.
+ *
+ * A storey is a count, not a height. Drop a piece on a two block hesco wall and it is on
+ * storey 1, and this view read that 1 as a height and drew the piece sunk a block into the
+ * wall it stands on: a CIWS on a wall came out buried in it, with the wall painted over the
+ * gun, because two boxes that run through each other have no order that can be right. So
+ * work out what each piece stands on and add the real heights up.
+ *
+ * Nothing underneath means it sits on the ground. A storey number on its own says nothing
+ * about how high it is, and the FOB is not something you stack on, which is the same rule
+ * autoLevelAt places by. Cached, because it only changes when the design does. */
+let standCache = null;
+function standHeights() {
+  if (standCache) return standCache;
+  const z = new Map(), upper = [];
+  for (const p of design.pieces) {
+    z.set(p.id, 0);
+    if (p.level) upper.push(p);
+  }
+  if (upper.length) {
+    const rect = new Map();
+    for (const p of design.pieces) rect.set(p.id, pieceRect(p));
+    upper.sort((a, b) => a.level - b.level);       // a support is always resolved first
+    for (const p of upper) {
+      let base = 0;
+      for (const q of design.pieces) {
+        const qd = byId[q.type];
+        if (!qd || qd.isFob || (q.level || 0) >= p.level) continue;
+        if (!rectsOverlap(rect.get(p.id), rect.get(q.id))) continue;
+        base = Math.max(base, z.get(q.id) + (qd.height || 1));
+      }
+      z.set(p.id, base);
+    }
+  }
+  return (standCache = z);
+}
+
 /* Every piece as an axis-aligned box, already in draw order. */
 function isoBoxes() {
   const out = [];
+  const stand = standHeights();
   for (const p of design.pieces) {
     const def = byId[p.type];
     if (!def) continue;
     const r = pieceRect(p);
-    const box = rectAABB(r);                       // kept for culling and for the fit
-    const z0 = p.level || 0;
+    const box = rectAABB(r);                       // the ordering, the culling and the fit
+    const z0 = stand.get(p.id) || 0;
     /* The FOB was drawn a third of a block tall while the catalog calls it two, so the one
        piece the whole base is built around lay flat on the floor in the view whose job is
        height. It stands up like everything else now. */
@@ -1938,19 +1991,8 @@ function isoBoxes() {
        tower turned forty five degrees has a box 5.66 across, so it was drawn half again too
        wide and square-on when the piece is a diamond: the plan and the 3D disagreed about
        the footprint, which is the one thing this tool exists to be right about. */
-    /* The box in the spun frame, where nearer is simply larger on both axes. This is what
-       decides who covers whom, and it has to be the extent of the piece rather than its
-       middle. */
-    let sx0 = Infinity, sy0 = Infinity, sx1 = -Infinity, sy1 = -Infinity;
-    for (const cx of [box.x0, box.x1]) for (const cy of [box.y0, box.y1]) {
-      const [ux, uy] = isoSpin(cx, cy);
-      if (ux < sx0) sx0 = ux;
-      if (ux > sx1) sx1 = ux;
-      if (uy < sy0) sy0 = uy;
-      if (uy > sy1) sy1 = uy;
-    }
     out.push({ p, def, box, quad: rectCorners(r), cx: r.cx, cy: r.cy,
-               z0, z1: z0 + h, depth: sx + sy, lvl: z0, sx0, sx1, sy0, sy1 });
+               z0, z1: z0 + h, depth: sx + sy, lvl: z0 });
   }
   out.sort((a, b) => (a.depth - b.depth) || (a.lvl - b.lvl));
   return paintOrder(out);
@@ -2019,8 +2061,17 @@ function paintOrder(boxes) {
       }
   }
 
+  /* Which end of an axis is the far end depends on where the camera is, so the test asks
+     the view for that rather than assuming the world is turned a quarter at a time. An axis
+     the camera looks straight down the sides of answers nothing, and says so: at that angle
+     the projection separates those two pieces on screen anyway. */
+  const [vx, vy] = isoView(), AXIS = 1e-6;
   const behind = (a, b) =>
-    a.sx1 <= b.sx0 + 1e-9 || a.sy1 <= b.sy0 + 1e-9 || a.z1 <= b.z0 + 1e-9;
+    (vx > AXIS ? a.box.x1 <= b.box.x0 + 1e-9
+     : vx < -AXIS ? a.box.x0 + 1e-9 >= b.box.x1 : false) ||
+    (vy > AXIS ? a.box.y1 <= b.box.y0 + 1e-9
+     : vy < -AXIS ? a.box.y0 + 1e-9 >= b.box.y1 : false) ||
+    a.z1 <= b.z0 + 1e-9;
 
   const after = boxes.map(() => []);       // i must be drawn before everything in after[i]
   const indeg = boxes.map(() => 0);
@@ -2249,10 +2300,11 @@ function fit3D() {
   }
   iso.x = (x0 + x1) / 2; iso.y = (y0 + y1) / 2;
 
+  const stand = standHeights();
   let top = 0;
   for (const p of design.pieces) {
     const def = byId[p.type]; if (!def) continue;
-    top = Math.max(top, (p.level || 0) + (def.height || 1));
+    top = Math.max(top, (stand.get(p.id) || 0) + (def.height || 1));
   }
 
   // the eight corners of the volume, projected at zoom 1, so the fit sees what it will draw
@@ -2270,10 +2322,20 @@ function fit3D() {
                                                canvas.clientHeight * 0.72 / spanY)));
 }
 
+/* Turning the view is a 3D idea, so the two buttons for it only exist while you are in it.
+   Snap goes the other way for the same reason: it is a placing setting and 3D does not
+   place, so the bar swaps one button for two rather than growing. */
+function spin3D(deg) {
+  iso.yaw = ((iso.yaw + deg) % 360 + 360) % 360;
+  draw();
+}
 function set3D(on) {
   view3d = on;
   document.getElementById("btn3d").classList.toggle("active", on);
   document.getElementById("btn3d").textContent = on ? "▦ Plan" : "◲ 3D";
+  for (const id of ["btnSpinL", "btnSpinR"])
+    document.getElementById(id).style.display = on ? "" : "none";
+  document.getElementById("btnSnap").style.display = on ? "none" : "";
   if (on) fit3D();
   updateHint();
   draw();
@@ -2907,7 +2969,9 @@ function getIssues() {
   if (!issuesCache) issuesCache = computeIssues();
   return issuesCache;
 }
-function invalidateIssues() { issuesCache = null; seamCache = null; climbCache = null; }
+function invalidateIssues() {
+  issuesCache = null; seamCache = null; climbCache = null; standCache = null;
+}
 
 /* ---------- who can get over what ----------
    Two ways in, needing different heights to stop.
@@ -3449,8 +3513,8 @@ function afterChange(save = true) {
 /* ============ MOUSE / KEYS ============ */
 canvas.addEventListener("contextmenu", e => e.preventDefault());
 canvas.addEventListener("mousedown", e => {
-  /* 3D is for looking, not building. Left-drag orbits the four orientations by panning,
-     and a click selects whatever you actually clicked on. */
+  /* 3D is for looking, not building. Left-drag moves the ground under the pointer, the
+     buttons and Q and E turn it, and a click selects whatever you actually clicked on. */
   if (view3d) {
     if (e.button === 2) { selection.clear(); afterChange(false); return; }
     dragging = { mode: "pan3d", sx: e.offsetX, sy: e.offsetY, vx: iso.x, vy: iso.y, moved: false };
@@ -3495,16 +3559,12 @@ canvas.addEventListener("mousemove", e => {
     if (dragging && dragging.mode === "pan3d") {
       dragging.moved = true;
       const dx = (e.offsetX - dragging.sx) / iso.zoom, dy = (e.offsetY - dragging.sy) / iso.zoom;
-      // undo the projection so a drag moves the ground under the pointer, not the axes
-      const wx2 = (dx / ISO_K + dy * 2) / 2, wy2 = (dy * 2 - dx / ISO_K) / 2;
-      const [ux, uy] = (function (x, y) {
-        switch (iso.rot & 3) {
-          case 1:  return [-y, x];
-          case 2:  return [-x, -y];
-          case 3:  return [y, -x];
-          default: return [x, y];
-        }
-      })(wx2, wy2);
+      /* Undo the projection so a drag moves the ground under the pointer, not the axes.
+         Screen x is (rx - ry) * ISO_K and screen y is (rx + ry) * ISO_TILT, so both come
+         back out of the pair. The tilt used to be read as a half here whatever it was set
+         to, which slid the ground a little faster than the pointer. */
+      const rx = (dx / ISO_K + dy / ISO_TILT) / 2, ry = (dy / ISO_TILT - dx / ISO_K) / 2;
+      const [ux, uy] = isoUnspin(rx, ry);
       iso.x = dragging.vx - ux; iso.y = dragging.vy - uy;
       draw();
     }
@@ -3652,10 +3712,7 @@ window.addEventListener("keydown", e => {
   else if (k === "delete" || k === "backspace") deleteSelection();
   else if (k === "f") { view3d ? fit3D() : zoomFit(); draw(); }
   else if (k === "3") set3D(!view3d);           // was V, which read as Ctrl+V's letter
-  else if (view3d && (k === "q" || k === "e")) {
-    iso.rot = (iso.rot + (k === "q" ? 3 : 1)) & 3;
-    draw();
-  }
+  else if (view3d && (k === "q" || k === "e")) spin3D(k === "q" ? -ISO_STEP : ISO_STEP);
   else if (["arrowup","arrowdown","arrowleft","arrowright"].includes(k)) {
     e.preventDefault();
     const ax = k === "arrowleft" ? -1 : k === "arrowright" ? 1 : 0;
@@ -3756,8 +3813,9 @@ function renderCrewStrip() {
 function updateHint() {
   const el = document.getElementById("hint");
   if (view3d) {
-    el.innerHTML = "Looking at it in 3D. Drag to move · wheel to zoom · <b>Q</b> and <b>E</b> to spin it · " +
-      "click a piece to select it · <b>V</b> or the button to go back to the plan, which is where you build.";
+    el.innerHTML = "Looking at it in 3D. Drag to move · wheel to zoom · <b>Q</b> and <b>E</b> or the " +
+      "<b>↺ ↻</b> buttons turn it 15° at a time · click a piece to select it · " +
+      "<b>3</b> or the button to go back to the plan, which is where you build.";
     return;
   }
   if (placing) {
@@ -3834,6 +3892,8 @@ function stepUiScale(dir) {
 document.getElementById("btnSnap").onclick = toggleSnap;
 document.getElementById("btnFit").onclick = () => { view3d ? fit3D() : zoomFit(); draw(); };
 document.getElementById("btn3d").onclick = () => set3D(!view3d);
+document.getElementById("btnSpinL").onclick = () => spin3D(-ISO_STEP);
+document.getElementById("btnSpinR").onclick = () => spin3D(ISO_STEP);
 document.getElementById("btnUndo").onclick = undo;
 document.getElementById("btnRedo").onclick = redo;
 document.getElementById("btnDel").onclick = deleteSelection;
@@ -4772,7 +4832,7 @@ document.getElementById("btnHelp").onclick = () => {
       <span><kbd>Arrows</kbd></span><span>Pan the map. Works whether or not something is selected (<kbd>Ctrl</kbd> for big steps)</span>
       <span><kbd>Shift</kbd>+<kbd>Arrows</kbd></span><span>Nudge the selected pieces</span>
       <span><kbd>F</kbd></span><span>Zoom to fit</span>
-      <span><kbd>3</kbd></span><span>Flat plan ↔ 3D view. <kbd>Q</kbd> / <kbd>E</kbd> turn it</span>
+      <span><kbd>3</kbd></span><span>Flat plan ↔ 3D view. <kbd>Q</kbd> / <kbd>E</kbd> turn it 15°</span>
       <span><kbd>Page Up</kbd> / <kbd>Page Down</kbd></span><span>Change the storey you're building on</span>
       <span><kbd>[</kbd> / <kbd>]</kbd></span><span>Interface size. Turn it up on a big or 4K monitor (also the <b>Size</b> box in the toolbar)</span>
       <span><kbd>Space</kbd>+drag / middle-drag</span><span>Pan · <kbd>Wheel</kbd> zoom</span>

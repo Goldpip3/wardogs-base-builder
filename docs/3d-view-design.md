@@ -50,9 +50,29 @@ and the reporter was right.
 
 Sorting by any one number cannot answer this, because the answer is an order and not a
 value. For boxes standing square on the world axes the rule is exact: A is behind B if A lies
-wholly on the far side of B along one axis, meaning B is nearer in the spun x, or nearer in
-the spun y, or sits above it. `paintOrder` builds that as a graph and walks it, seeding from
-the depth order so ties stay stable and the result does not flicker as the camera moves.
+wholly on the far side of B along one axis, meaning B is nearer along x, or nearer along y,
+or sits above it. Which end of an axis is the far end is read off the camera direction, so
+the rule holds at any angle rather than only at the square ones. `paintOrder` builds that as
+a graph and walks it, seeding from the depth order so ties stay stable and the result does
+not flicker as the camera moves.
+
+Two boxes that only touch are separated along two planes at once, each naming the other the
+far one. Neither answer is wrong, because a shared boundary hides nothing, and the graph
+takes whichever it asks about first.
+
+## How high a piece stands
+
+**A storey is a count, not a height, and this view read it as one.** `p.level` is the number
+of things stacked under a piece, so a gun dropped on a two block hesco wall is on storey 1
+and was drawn at z=1, sunk a block into the wall holding it up. Two boxes running through
+each other have no draw order that is right about both, so the wall was painted over the gun.
+Reported from a real base as a Vanguard CIWS on a wall coming out broken.
+
+`standHeights` resolves it instead: work up the storeys, and a piece starts at the tallest
+top among the pieces it overlaps on any storey below. It is cached against the design, like
+the issues and the seams, because it only changes when the design does. The FOB is not
+something you stack on, the same rule `autoLevelAt` places by, and a piece with nothing under
+it stands on the ground, because a storey number on its own says nothing about how high it is.
 
 Only pairs that overlap on screen are asked, found through a coarse screen grid, so the cost
 tracks what the base looks like rather than the square of how many pieces are in it. Measured
@@ -66,16 +86,30 @@ pieces the whole thing is skipped, because being slightly wrong is better than b
 while somebody is dragging the view, and a base that size is read on the plan anyway.
 
 `test/elevation.js` audits the real ordering against that rule on every overlapping pair, at
-all four spins. Reverting to the old sort fails six of its checks.
+every angle the view turns to. Reverting to the old sort fails six of its checks, and reading
+the storey as a height fails five more.
 
 ## Rotation
 
-Four orientations, ninety degrees apart, applied to the world before projection:
+A yaw in degrees, in fifteen degree steps, applied to the world before projection:
 
-    n=0 (x, y)    n=1 (y, -x)    n=2 (-x, -y)    n=3 (-y, x)
+    rx = x cos t + y sin t    ry = -x sin t + y cos t
 
-That is enough to see behind anything without free-orbiting, and it keeps the sort exact,
-which a free camera would not.
+It was four orientations a quarter turn apart. Four angles are all square on, so a wall that
+runs along an axis is either flat to the camera or edge on and never shows its length and its
+face at once, and the one thing you go into this view to read is how a wall stands. Fifteen
+degrees is fine enough to look around a corner, coarse enough that a whole number of clicks
+always comes back to square, and it costs the sort nothing: the rule above asks the camera
+which way it is looking rather than assuming a quarter turn.
+
+Q and E turn it, and so do the two buttons the top bar shows only in 3D. Snap goes the other
+way while they are there, because it is a placing setting and nothing is placed in 3D, so the
+bar swaps one button for two rather than growing past the ten it is capped at.
+
+Turned to exactly a corner, 45 degrees and its multiples, a square-on piece shows one side
+and the two beside it project to nothing. That is not a bug to fix; it is what standing on
+the diagonal looks like, and drawing a sliver of a face nobody can see is how a renderer ends
+up with stray triangles in it.
 
 ## Picking
 

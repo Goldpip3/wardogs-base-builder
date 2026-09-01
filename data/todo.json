@@ -37,6 +37,11 @@
       "what": "Range falloff",
       "why": "Every damage figure on the site is point blank, because nobody has published enough to work out the curve honestly. This is the single biggest gap.",
       "where": "the damage page states it in the lede"
+    },
+    {
+      "what": "What every item weighs, and how much each backpack holds",
+      "why": "The game puts weight at the top of the inventory screen beside the value and it decides how fast you move, and a bag is chosen for what fits in it. Neither is in the source the prices came from. The loadout page says both are not measured rather than guessing. Weight goes on the line in tools/build-armory.js as 3.4kg after the price and nothing else changes; capacity has nowhere to live yet.",
+      "where": "tools/build-armory.js, RAW"
     }
   ],
   "work": [

@@ -48,6 +48,9 @@ It lives outside `.wrap`. That is load bearing: inside it, the tool was centred 
   zone; a shared link opens on its own two points; Fit is the whole terrain
 - framing runs once, from a `ResizeObserver`, the first time the stage has a real size. It
   is never re-framed, so a resize cannot throw away wherever somebody has panned to
+- four layer toggles, not five: Terrain, Grid, Zone, Towers. **The spawns are always drawn.**
+  Where the three factions come in is part of reading the map rather than a preference about
+  it, and the only thing the toggle achieved was hiding it by accident
 - the URL fragment carries map, weapon and both points, and `hashchange` re-reads it
 - every label in the solution is a `why()` span: hover, tap or tab it and it says what the
   number is, in the panel where the number is. The dial tip is written per arc, because more

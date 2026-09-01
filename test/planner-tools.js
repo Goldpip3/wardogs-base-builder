@@ -191,9 +191,16 @@ const topbar = html.match(/<div id="topbar">([\s\S]*?)\n<\/div>/);
 check(!!topbar, "the top bar is still findable in the markup");
 // what is actually on the bar, so tucking things into the menu counts as tucking them away
 const onBar = topbar[1].replace(/<div id="shareMenu"[\s\S]*?<\/div>/, "");
-const topButtons = (onBar.match(/<button /g) || []).length;
-check(topButtons <= 10,
-  `the top bar shows ten buttons or fewer (shows ${topButtons})`);
+const topButtons = (onBar.match(/<button [^>]*>/g) || []);
+/* What the bar shows at once is the thing worth capping, and a control that only exists in
+   one view is not on the bar in the other. The 3D pair ships hidden and the view swaps them
+   in for the Snap button, which places nothing in 3D, so neither view shows more than ten. */
+const atRest = topButtons.filter(b => !/display:\s*none/.test(b)).length;
+const in3d = atRest + topButtons.filter(b => /id="btnSpin/.test(b)).length - 1;
+check(atRest <= 10, `the top bar shows ten buttons or fewer (shows ${atRest})`);
+check(in3d <= 10, `and no more than that in the 3D view either (shows ${in3d})`);
+check(/getElementById\("btnSnap"\)\.style\.display = on \? "none" : ""/.test(html),
+  "which holds because 3D swaps Snap out for the two it turns the view with");
 
 // the three ways out live under Share, not beside it
 const menu = html.match(/<div id="shareMenu"[\s\S]*?<\/div>/);

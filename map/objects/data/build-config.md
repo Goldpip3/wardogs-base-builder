@@ -28,8 +28,17 @@ carry one ad, and is allowed exactly one outside origin.
 
 ## Shape
 
-- `community.json`: `voteApi` (worker origin), `designs[]` (slug + share code)
+- `community.json`: `voteApi` (worker origin), `designs[]` (slug + share code),
+  `designTags.groups[]` (the tag vocabulary)
 - `ads.json`: `publisherId`, `slots{}`
+
+**`designTags` is the only list of design tags there is**, and it goes two ways: the site
+reads it through `tools/site/context.js` for the filter bar on `/designs/` and the pills on a
+card, and `build.ps1` inlines the same array into the planner beside the catalog, for the
+picker its Submit button opens. The worker never sees it and validates shape only, so a tag
+added here is live at the next build with no deploy behind it. Everything under `groups` is
+inlined wholesale, so a comment key added there would ship to every player. `test/tags.js`
+fails on one, and on a map in `data/artillery-maps.json` with no tag of its own.
 
 Three slots, and they are not all placed the same way, which is the thing to know before
 adding a fourth.

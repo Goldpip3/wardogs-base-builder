@@ -58,6 +58,15 @@ how you stop hearing about bugs.
 Rate limits: 5 submits a day, 10 comments an hour, 6 feedback an hour, 40 saved designs
 per account. A request body over `LIMITS.bodyBytes` is refused before it is parsed.
 
+**Tags are checked for shape and never against a list.** The vocabulary is in
+`data/community.json`, which this file cannot read: it deploys on its own. A copy here would
+make every new tag a worker deploy somebody forgets, and a forgotten one leaves the site
+offering a tag the server refuses. So `tagsProblem()` checks the id pattern, a cap of eight,
+and one rule that is about the submission rather than the vocabulary: at least one tag
+starting with `map-`, because a design that does not say where it works is a design no
+filter can find. Anything else is stored as sent, and the site draws only what it knows.
+`test/tags.js` lifts that regex out of this file and holds the vocabulary to it.
+
 Responses name the fields that go out rather than deleting the ones that must not. `by`, the
 Discord id on a design or a comment, never leaves.
 

@@ -642,6 +642,7 @@ module.exports = ctx => {
           '<button class="vend-tab" role="tab" data-tab="gear" aria-selected="false">Gear</button>' +
           '<button class="vend-tab" role="tab" data-tab="items" aria-selected="false">Items</button>' +
         "</span>" +
+        '<span class="vend-cash"><i>Weight</i><b id="weight">--</b></span>' +
         '<span class="vend-cash"><i>Cost per life</i><b id="total">$0</b></span>' +
       "</div>" +
 
@@ -707,7 +708,6 @@ module.exports = ctx => {
             '<div class="vslots">' +
               slot("hel", "Helmet", "Bare head") +
               slot("arm", "Body armour", "No armour") +
-              slot("bag", "Backpack", "None") +
               slot("vest", "Rig", "None") +
             "</div>" +
             picker("hel", "Helmet", nameHas(byCat("armour"), "helmet").concat(nameHas(byCat("armour"), "headwear")), "Bare head") +
@@ -715,8 +715,7 @@ module.exports = ctx => {
               const n = i.name.toLowerCase();
               return n.indexOf("helmet") < 0 && n.indexOf("headwear") < 0;
             }), "No armour") +
-            picker("bag", "Backpack", nameHas(byCat("storage"), "backpack"), "None") +
-            picker("vest", "Rig", nameHas(byCat("storage"), "tac vest").concat(nameHas(byCat("storage"), "pouch")), "None") +
+            picker("vest", "Rig", rigs, "None") +
           "</div>" +
 
           /* Three shelves, not one wall. Throwables, medical and equipment were a single
@@ -740,10 +739,24 @@ module.exports = ctx => {
 
         "</div>" +
 
+        /* Storage, in its own column beside the slots rather than under them, because
+           that is where the game puts it and because it is not equipment: a helmet is worn
+           and a backpack is what everything else goes into. The grid under it is the bag,
+           filled as you build the kit: one cell per magazine and one per item, the way the
+           game lays its own out. Nothing goes in until a bag is chosen, which is the rule
+           this column exists to make visible. */
         '<div class="vend-pack">' +
-          '<p class="vend-head">Backpack<span id="packcount">Empty</span></p>' +
-          '<ul class="vpack" id="pack"></ul>' +
+          '<p class="vend-head">Storage<span class="vend-hint">What it all goes in</span></p>' +
+          slot("bag", "Backpack", "None") +
+          '<div class="vcells" id="cells" data-locked="1"></div>' +
+          '<p class="vpack-foot"><span id="packcount">Empty</span>' +
+          '<span id="packnote">Pick a backpack</span></p>' +
         "</div>" +
+
+        /* The bag shelf spans the whole width under both columns. The column it belongs to
+           is 268px wide and ten backpacks in it would be a column of ten rows you scroll,
+           which is the dropdown this page was built to stop being. */
+        '<div class="vend-shelf" hidden>' + picker("bag", "Backpack", bags, "None") + "</div>" +
 
       "</div>" +
 
@@ -753,6 +766,16 @@ module.exports = ctx => {
       "</div>" +
 
       "</div>" +
+
+      /* Two figures this screen wants and nobody has. Saying so is the point: a weight of
+         0.0 kg and a bag that never fills would both look like answers, and the second one
+         is the sort of thing somebody plans a kit around. */
+      '<p class="fine" style="margin-top:18px;max-width:70ch">Two things the game shows that' +
+      " this page does not. <strong>Weight</strong> is not published anywhere the prices came" +
+      " from, so it reads as not measured until every piece of a kit has a figure read off" +
+      " the inventory screen. <strong>How much each backpack holds</strong> is the same:" +
+      " the shelf is ordered by price because that is the number that is known, and the bag" +
+      " here takes whatever you put in it.</p>" +
 
       adSlot("inArticle") +
 
@@ -776,8 +799,21 @@ module.exports = ctx => {
       }())) + ';' +
       'var ATTFIT=' + JSON.stringify(attOwner) + ';' +
       'var WSLOTS=' + JSON.stringify(weaponSlots) + ';' +
+      /* What each thing weighs, which the game puts at the top of this very screen next to
+         the value and which decides how fast you move under it. Nothing in the catalogue
+         carries one yet: the vendor database this was transcribed from does not publish a
+         weight, so every figure would have to be read off the inventory screen item by item.
+         That is in data/todo.json under confirm.
+
+         The map is emitted empty rather than left out, and the page says the figure is not
+         measured rather than adding up the ones it happens to have. Filling in kg on the
+         lines in tools/build-armory.js is the whole job: nothing here changes. */
+      'var KG=' + JSON.stringify(A.items.reduce(function (m, i) {
+        if (typeof i.kg === "number") m[i.name] = i.kg;
+        return m;
+      }, {})) + ';' +
       'var SLOTS=["w","sec","opt","muz","grip","mag","ammo","hel","arm","bag","vest"];' +
-      'var extras={},chosen={},openSlot=null;' +
+      'var extras={},chosen={},openSlot=null,hadBag=false;' +
       'function el(id){return document.getElementById(id);}' +
       'function money(n){return "$"+n.toLocaleString("en-US");}' +
       'function attr(c,a){return c?c.getAttribute(a):null;}' +
@@ -786,9 +822,14 @@ module.exports = ctx => {
       /* One shelf open at a time. Two open at once and the slots they belong to are off
          the top of the screen, which is how a picker stops looking like it belongs to
          anything. */
+      /* A shelf that lives in its own full width row has to take the row with it, or the
+         grid keeps drawing an empty band and the hairline above it. */
+      'function shelfOf(g){return g&&g.parentNode&&' +
+      ' g.parentNode.className.indexOf("vend-shelf")>=0?g.parentNode:null;}' +
       'function closePicker(){' +
       ' if(!openSlot)return;' +
-      ' var g=el(openSlot+"-grid");if(g)g.hidden=true;' +
+      ' var g=el(openSlot+"-grid");if(g){g.hidden=true;' +
+      '  var sh=shelfOf(g);if(sh)sh.hidden=true;}' +
       ' var b=document.querySelector("[data-open="+openSlot+"]");' +
       ' if(b)b.setAttribute("aria-expanded","false");' +
       ' openSlot=null;}' +
@@ -797,6 +838,7 @@ module.exports = ctx => {
       ' if(was===id)return;' +
       ' var g=el(id+"-grid");if(!g)return;' +
       ' g.hidden=false;openSlot=id;' +
+      ' var sh2=shelfOf(g);if(sh2)sh2.hidden=false;' +
       ' var b=document.querySelector("[data-open="+id+"]");' +
       ' if(b)b.setAttribute("aria-expanded","true");' +
       ' var f=g.querySelector(".vcard:not([hidden])");if(f)f.focus();}' +
@@ -890,33 +932,63 @@ module.exports = ctx => {
       /* You buy rounds in packs, so a part pack still costs a whole one. */
       ' return {cost:Math.ceil(rounds/per)*price,rounds:rounds};}' +
 
-      /* The kit listed back to you, the way the vendor shows what is going in the bag. */
-      'function fillPack(){' +
-      ' var ul=el("pack");ul.textContent="";var n=0;' +
-      ' SLOTS.forEach(function(id){' +
-      '  var c=chosen[id];if(!c)return;' +
-      '  n++;' +
-      '  var li=document.createElement("li");' +
-      '  var slug=attr(c,"data-icon");' +
-      '  if(slug){var im=document.createElement("img");im.src="/game-icons/"+slug+".png";' +
-      '   im.alt="";im.width=26;im.height=26;li.appendChild(im);}' +
-      '  var nm=document.createElement("span");nm.textContent=attr(c,"data-name");' +
-      '  li.appendChild(nm);' +
-      '  var pr=document.createElement("b");' +
-      '  pr.textContent=attr(c,"data-unknown")?"?":money(+attr(c,"data-price")||0);' +
-      '  li.appendChild(pr);ul.appendChild(li);});' +
+      /* ---- the bag itself ----
+         The old version listed the whole kit back as words, weapon and helmet included,
+         which is a receipt rather than a bag: the rifle is in your hands and the helmet is
+         on your head, and neither is taking up room in anything. This draws what the game
+         draws on the right of that screen, in cells: a cell per magazine with its round
+         count, and a cell per item you are carrying with how many.
+
+         Icons come from the cards already on the page rather than from a second table of
+         slugs, so a cell can never show art the shelf does not. */
+      'function cell(src,label,sub){' +
+      ' var d=document.createElement("div");d.className="vcell";' +
+      ' if(src){var im=document.createElement("img");im.src=src;im.alt="";' +
+      '  im.width=44;im.height=44;im.loading="lazy";d.appendChild(im);}' +
+      ' if(sub){var b=document.createElement("b");b.textContent=sub;d.appendChild(b);}' +
+      ' d.title=label;' +
+      ' var s=document.createElement("span");s.textContent=label;d.appendChild(s);' +
+      ' return d;}' +
+      'function iconOf(c){var g=c&&attr(c,"data-icon");' +
+      ' return g?"/game-icons/"+g+".png":"";}' +
+      'function fillCells(){' +
+      ' var box=el("cells");box.textContent="";' +
+      ' var bag=chosen.bag,n=0;' +
+      ' box.setAttribute("data-locked",bag?"0":"1");' +
+      ' if(!bag){' +
+      '  var p=document.createElement("p");p.className="vcells-none";' +
+      '  p.textContent="Nothing can be carried until you pick a backpack.";' +
+      '  box.appendChild(p);' +
+      '  el("packcount").textContent="Empty";' +
+      '  el("packnote").textContent="Pick a backpack";' +
+      '  return;}' +
+      /* One cell per magazine, labelled with what is in it, which is the thing the game's
+         own grid says and the thing three magazines of one round and three of another
+         cannot say as a single line of text. */
+      ' var mags=+el("mags").value||0,mc=chosen.mag,ac=chosen.ammo;' +
+      ' if(mc&&mags){' +
+      '  var size=MAGSIZE[nameOf("mag")]||30;' +
+      '  var load=ac?nameOf("ammo"):"empty";' +
+      '  for(var i=0;i<mags;i++){n++;' +
+      '   box.appendChild(cell(iconOf(mc),nameOf("mag")+", "+load,size+"/"+size));}}' +
+      ' else if(ac&&mags){' +
+      '  var r=ammoCost().rounds;' +
+      '  if(r){n++;box.appendChild(cell(iconOf(ac),nameOf("ammo"),String(r)));}}' +
       ' Object.keys(extras).forEach(function(k){' +
       '  n+=extras[k].q;' +
-      '  var li=document.createElement("li");' +
-      '  var b=document.querySelector("[data-extra=\\""+k.replace(/"/g,"")+"\\"]");' +
-      '  var im0=b&&b.querySelector("img");' +
-      '  if(im0){var im=document.createElement("img");im.src=im0.src;im.alt="";' +
-      '   im.width=26;im.height=26;li.appendChild(im);}' +
-      '  var nm=document.createElement("span");' +
-      '  nm.textContent=(extras[k].q>1?extras[k].q+" × ":"")+k;li.appendChild(nm);' +
-      '  var pr=document.createElement("b");pr.textContent=money(extras[k].q*extras[k].p);' +
-      '  li.appendChild(pr);ul.appendChild(li);});' +
-      ' el("packcount").textContent=n?n+(n>1?" items":" item"):"Empty";}' +
+      '  var card=document.querySelector("[data-extra=\\""+k.replace(/"/g,"")+"\\"]");' +
+      '  var im0=card&&card.querySelector("img");' +
+      '  box.appendChild(cell(im0?im0.src:"",k,extras[k].q>1?"×"+extras[k].q:""));});' +
+      /* Empty cells to the end of the row, so a part-filled bag reads as a bag with room in
+         it rather than as a ragged edge. They say nothing about how much it holds: that is
+         not measured, and the note under the grid says so rather than a made up cell count. */
+      ' var per=window.matchMedia&&window.matchMedia("(max-width:599px)").matches?4:3;' +
+      ' var cells=box.querySelectorAll(".vcell").length;' +
+      ' var fill=cells?(per-(cells%per))%per:per;' +
+      ' for(var j=0;j<fill;j++){var e=document.createElement("div");' +
+      '  e.className="vcell vcell-empty";box.appendChild(e);}' +
+      ' el("packcount").textContent=n?n+" in the bag":"Empty";' +
+      ' el("packnote").textContent=nameOf("bag");}' +
 
       'function render(){' +
       ' var total=0,unknown=0,parts=[];' +
@@ -936,7 +1008,61 @@ module.exports = ctx => {
       ' el("warn").textContent=unknown?' +
       '  unknown+" item"+(unknown>1?"s have":" has")+" no confirmed price yet and counts as zero."' +
       '  :"";' +
-      ' fillPack();}' +
+      ' weigh();fillCells();}' +
+
+      /* The other number the game puts at the top of this screen, and the one that decides
+         how fast you move under the kit. Nothing has a measured weight yet, so this says so
+         instead of adding up an empty set and printing a confident 0.0 kg. The sum is
+         written anyway and works the moment a single kg exists: what it will not do is
+         report a total while some of the kit has no figure, since a light total and an
+         unweighed rifle look identical on a readout. */
+      'function weigh(){' +
+      ' var out=el("weight");' +
+      ' var have=0,miss=0,kg=0;' +
+      ' var add=function(name,q){ if(!name)return;' +
+      '  if(typeof KG[name]==="number"){have++;kg+=KG[name]*q;} else miss++; };' +
+      ' SLOTS.forEach(function(id){ if(id!=="ammo")add(nameOf(id),1); });' +
+      ' Object.keys(extras).forEach(function(k){ add(k,extras[k].q); });' +
+      ' if(!have&&!miss){out.textContent="--";out.setAttribute("data-soft","1");return;}' +
+      ' if(miss){out.textContent="not measured";out.setAttribute("data-soft","1");return;}' +
+      ' out.removeAttribute("data-soft");' +
+      ' out.textContent=(Math.round(kg*10)/10)+" kg";}' +
+
+      /* ---- nothing is bought that nothing can carry ----
+         The items shelf sold grenades and bandages to somebody with no bag, which is a kit
+         that cannot exist: in the game they go in the backpack and there is no backpack.
+         The shelf locks until one is chosen, and choosing None again empties what was in it
+         rather than leaving paid-for items floating with nowhere to be. Spare magazines are
+         the same thing under a different name, so the magazine count locks with it.
+
+         The weapon, the sidearm, the helmet, the armour and the rig are deliberately not
+         gated: they are held or worn, not carried, and a rifle in your hands does not need
+         a bag to exist. */
+      'function gateBag(){' +
+      ' var open=!!chosen.bag;' +
+      ' var panel=document.querySelector("[data-panel=items]");' +
+      ' if(panel){panel.setAttribute("data-locked",open?"0":"1");' +
+      '  Array.prototype.forEach.call(panel.querySelectorAll("button"),function(b){' +
+      '   b.disabled=!open;});' +
+      '  var hint=panel.querySelector(".vend-hint");' +
+      '  if(hint)hint.textContent=open?"Set how many of each you carry"' +
+      '   :"Pick a backpack before you buy any of this";}' +
+      ' var mg=el("mags");if(mg)mg.disabled=!open;' +
+      ' Array.prototype.forEach.call(document.querySelectorAll("[data-mags]"),function(b){' +
+      '  b.disabled=!open;});' +
+      ' var step=document.querySelector(".veq-qty");' +
+      ' if(step)step.setAttribute("data-locked",open?"0":"1");' +
+      /* Emptying the bag happens when a bag is taken away, not merely whenever there is
+         none. Clearing on every call meant the page loaded with no bag, wiped the three
+         magazines the markup starts with, and handed the first person to choose a backpack
+         a kit with no ammunition in it and no sign of why. */
+      ' if(!open&&hadBag){' +
+      '  Object.keys(extras).forEach(function(k){delete extras[k];});' +
+      '  Array.prototype.forEach.call(document.querySelectorAll("[data-extra]"),function(c){' +
+      '   c.setAttribute("data-qty","0");' +
+      '   var n=c.querySelector(".vitem-n");if(n)n.textContent="0";});' +
+      '  el("mags").value="0";}' +
+      ' hadBag=open;}' +
 
       /* One listener for the whole vendor. Every control says what it is in an attribute,
          so adding a slot or an item is markup and nothing here has to learn about it. */
@@ -948,6 +1074,7 @@ module.exports = ctx => {
       ' var p=t.closest("[data-pick]");' +
       ' if(p){var id=p.getAttribute("data-pick");' +
       '  setSlot(id,p);if(id==="w"){setGates();filterAtts();filterAmmo();}' +
+      '  if(id==="bag")gateBag();' +
       '  closePicker();render();return;}' +
       /* The stepper is read before the card, because both are under the cursor when the
          minus is clicked and the card would otherwise add one while the minus took one
@@ -976,7 +1103,7 @@ module.exports = ctx => {
       '  closePicker();if(b)b.focus();}});' +
       'el("mags").addEventListener("input",render);' +
       'SLOTS.forEach(function(id){setSlot(id,null);});' +
-      'setGates();filterAtts();filterAmmo();render();' +
+      'setGates();gateBag();filterAtts();filterAmmo();render();' +
       '}());<\/script>',
   }));
 

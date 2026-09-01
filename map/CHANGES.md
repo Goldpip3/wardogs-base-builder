@@ -8,17 +8,36 @@ Newest first. One entry per decision, not per commit.
 
 ## 2026-08-31
 
+### A storey is a count, and the 3D view was reading it as a height
+
+Reported from a real base: a Vanguard CIWS on a hesco wall came out with the wall painted
+over the gun. `p.level` is how many things are stacked under a piece, not how far off the
+ground it is. On a two block wall the gun sat at z=1 while the wall filled 0 to 2, so the
+boxes ran through each other, and **no draw order is right about a pair that runs through
+another**, which is why this looked like a sorting bug and was not one. `standHeights` works
+the real height out from what a piece stands on, cached against the design beside issues and
+seams; nothing under it means the ground. `test/elevation.js` pins that stacked pieces never
+share a block of height, five ways the old code fails.
+
+### The 3D view turns fifteen degrees at a time
+
+It turned in quarters, and all four of those angles are square on, so a wall along an axis
+was either flat to the camera or edge on and never showed its length and its face at once.
+Now a yaw in degrees stepping 15, with **↺ and ↻ buttons beside the 3D toggle** as well as Q
+and E. The exact sort survives it: "wholly on the far side along one axis" holds at any angle
+once the test asks the camera which end of an axis is the far one, and the audit runs at all
+twenty four. **The bar swaps Snap out for the two turn buttons** rather than growing, Snap
+being a placing setting in a view that places nothing. Dragging also tracks the pointer now;
+the inverse projection had the tilt hardcoded at a half while the view uses 0.68.
+
 ### The nav is one group, centred
 
-A `.nav-gap` span held Planner and Artillery apart from the other five. At full width that
-spacer took every pixel the row did not need, so it opened a hole most of a column wide
-between Artillery and Designs, which reads as a broken row rather than as a grouping. It is
-gone; the seven sit together at one 14px gap and centre in what the brand leaves.
-
-**Nothing in the nav ranks the tools above the references any more.** The boxes stopped
-doing it when every link got one, and this was the last thing carrying it. If they need to
-lead again, lead with order or with a different treatment on those two, not by pushing the
-other five away.
+A `.nav-gap` span held Planner and Artillery apart from the other five, and being `flex:1`
+it took every pixel the row did not need, opening a hole most of a column wide between
+Artillery and Designs. The seven sit together at one 14px gap now, centred in what the brand
+leaves. **Nothing in the nav ranks the tools above the references any more:** the boxes
+stopped doing that when every link got one, and this was the last thing carrying it. To make
+them lead again use order or a different treatment, not a gap.
 
 ### The kit has a bag, and nothing is bought without one
 
@@ -165,53 +184,41 @@ page and a regression would look identical to the owner.
 
 ### The armory holds the vehicles, and every item opens
 
-**Clicking an item now opens a panel** with its art at full size and whatever is actually
-known about it. The art was always there and always shown at 64 px; the files are 512 px
-square, so this is the first place on the site that shows an item properly.
+**Clicking an item opens a panel** with its art at full size and whatever is known about it.
+The art was always shown at 64 px and the files are 512 px square, so this is the first place
+on the site that shows an item properly. The stats are a join, not new data:
+`data/ballistics.json` already held them under other keys. **72 items of 331 have real stats.
+The other 259 are told plainly that nothing is published**, rather than shown a panel of
+empty rows, which reads like missing data rather than absent data.
 
-The stats are a join, not new data: `data/ballistics.json` already held them under different
-keys and the panel reads across. **72 items of 331 have real stats. The other 259 are told
-plainly that nothing is published**, rather than shown a panel of empty rows, which reads
-like missing data rather than absent data.
-
-**Its torso damage is now the superseded figure.** That number is the solved one, and the
-damage page moved to measurements on 2026-08-31. The panel was not migrated with it, so the
-armory and `/ballistics/` can disagree about the same gun. Listed in `OPEN.md`.
+**Its torso damage is the superseded figure.** That is the solved number, and the damage page
+moved to measurements on 2026-08-31 without the panel following, so the two can disagree
+about the same gun. Listed in `OPEN.md`.
 
 Three things a later reader should not undo:
 
-- **The stored armour figure is what armour takes, and the panel prints what gets through.**
-  Printing `blocks` straight would say a hollow point is at its best against a level 4 vest,
-  which is the exact opposite of true.
+- **The stored armour figure is what armour takes; the panel prints what gets through.**
+  Printing `blocks` straight would say a hollow point is at its best against a level 4 vest.
 - **The two weapon lists spell a calibre differently.** A figured weapon stores the id, so an
-  M4 carries `556`; an unfigured one stores the label, `7.62x51mm`. The panel resolves ids
-  and passes labels through, or it prints "556" where the rest of the site says "5.56mm".
-- **The attachment slot is the one figure here that was never transcribed.** `slotOf` reads
-  it off the name because the source publishes no compatibility field, so the panel says so.
-  In the same type as a measured muzzle velocity it would be a reading passed off as a record.
+  M4 carries `556`; an unfigured one stores the label, `7.62x51mm`. The panel resolves ids and
+  passes labels through, or it prints "556" where the rest of the site says "5.56mm".
+- **The attachment slot is the one figure never transcribed.** `slotOf` reads it off the name
+  because the source publishes no compatibility field, so the panel says so. In the same type
+  as a measured muzzle velocity it would be a reading passed off as a record.
 
-The joins have no foreign key between the two files, so a rename on either side would stop
-them landing silently, leaving a page that still builds and still looks right with the stats
-quietly gone. `tools/check-build.js` asserts all four joins by exact count, plus that every
-calibre id resolves and that all 331 items carry an opener in both views.
+The joins have no foreign key, so a rename on either side lands nothing silently and leaves a
+page that still builds and still looks right. `tools/check-build.js` asserts all four by exact
+count, that every calibre id resolves, and that all 331 items carry an opener in both views.
 
 **On `<dialog>`.** Native, for the backdrop and the focus trap. Its `close` event never fires
 in the browser this was built against, checked in isolation, so the focus restore cannot hang
 off it and `shut()` does it directly. Escape could not be tested there at all, since that
 browser delivers no key events; nothing is claimed about it and it gets a handler anyway.
-Closing twice is a no-op.
 
-**The vehicles page is a doorway now, and the tab is gone.** `/vehicles/` is a zero-delay
-meta refresh to `/armory/`, canonical pointed there and `noindex` on it, **because GitHub
-Pages cannot send a 301 and a deleted page is a permanent 404 for everyone holding the
-link.** The build fails if that refresh tag goes missing. Weight was measured, not assumed:
-45 KB gzipped, which is what Pages serves.
-
-**Every nav link is boxed now**, which is the owner's call. The two tools were boxed and the
-references were plain; the owner reads the box as finished rather than as primary, and these
-are finished. The consequence, written down because the code cannot say it: a box on
-everything marks nothing, so nothing in the nav ranks the tools above the references. A
-`.nav-gap` spacer carried that split until it came out the same day, below.
+**The vehicles page is a doorway now, and the tab is gone.** `/vehicles/` is a zero-delay meta
+refresh to `/armory/`, canonical pointed there and `noindex` on it, **because GitHub Pages
+cannot send a 301 and a deleted page is a permanent 404 for everyone holding the link.** The
+build fails if that refresh tag goes missing. Weight was measured, not assumed: 45 KB gzipped.
 
 ### The buildables page uses the armory's rail, and serves its icons as files
 
@@ -527,7 +534,7 @@ follows the piece rather than the grid.
 the renderer. A side joined to a neighbour the plan already calls the same wall is interior
 and goes, uprights included: 612 edges down to 209 on a fifty one piece base. The seam mask
 is in world directions and the visible faces depend on the spin, which is checked as
-arithmetic at all four spins, because suppressing the wrong side looks almost right.
+arithmetic at every angle, because suppressing the wrong side looks almost right.
 
 **Height is the whole job of this view**, so a block stands 1.45 times the ground scale
 rather than one cell against a cell 0.866 wide, the FOB stands its catalog two blocks rather
@@ -683,66 +690,60 @@ reasonable alone.
 ### Turning a selection turns the group, and nothing is stranded pending
 
 `rotateSelection` spun every piece where it stood, so a copied corner came back facing a
-different way. It turns the selection about its own centre now: the average of the pieces,
-which a turn maps to itself, put on the grid first so a quarter turn goes grid to grid, and
-four of them land exactly back. Pinned in `test/planner-tools.js`.
+different way. It turns the selection about its own centre: the average of the pieces, which
+a turn maps to itself, put on the grid first so four quarter turns land exactly back.
+`test/planner-tools.js`.
 
-In the worker, `/designs` listed what had once been approved, stranding three real
-submissions in the old queue state. It lists what is not hidden instead. Needed a wrangler
-deploy; `git push` does not ship the worker.
+In the worker, `/designs` lists what is not hidden rather than what was once approved, which
+had stranded three real submissions. Needed a wrangler deploy; `git push` does not ship the
+worker.
 
 ### A run steps along the piece, not down the drag
 
 A diagonal wall came out ragged for three reasons, and fixing the first two was not enough.
 `snapPoint` snaps in the piece's own frame, because a 1x1 turned forty five degrees steps
-0.707 to meet its neighbour; at 0, 90, 180 and 270 that is the world grid, so square-on
-placement is unchanged. `snapPlace` then measures from the nearest piece of the same kind
-and angle, so leaving the line takes three quarters of a block rather than the half plain
-rounding asks for. And a run spaced its pieces by their extent along the drag, so unless the
-piece sat square-on the blocks met at one corner: it walks the two moves a piece can make
-and still touch, takes whichever stays nearest the drag line, and stops when the best move
-would put it further off that line than its own longest leg. `wallGap` was measuring upright
-boxes too, so a flush turned wall reported a break that was not there.
+0.707 to meet its neighbour, and at the square angles that is the world grid, so square-on
+placement is unchanged. `snapPlace` measures from the nearest piece of the same kind and
+angle, so leaving the line costs three quarters of a block. And a run spaced its pieces by
+their extent along the drag, so a turned piece met the next at one corner: it walks the two
+moves a piece can make and still touch, takes whichever stays nearest the drag line, and
+stops when the best move would leave that line by more than its own longest leg. `wallGap`
+was measuring upright boxes too, so a flush turned wall reported a break that was not there.
 
-Pinned in `test/runs.js`, including three checks that assert the old behaviour fails: the
-first two fixes each looked right and were not.
+Pinned in `test/runs.js`, with three checks that assert the old behaviour fails: the first
+two fixes each looked right and were not.
 
 ### A way in is a run, and only where somebody can stand (`e9868d9`)
 
-`climbRuns` groups touching pieces of one verdict so a run counts once;
-`reachableFromOutside` floods from beyond the bounds. Wire and hedgehogs do not stop the
-flood, or one line of wire would hide a perimeter. Past the cell budget everything is called
-reachable: **over-reporting is the safe way to be wrong about a way in**. `test/planner.js`.
+`climbRuns` groups touching pieces of one verdict so a run counts once; `reachableFromOutside`
+floods from beyond the bounds, and wire and hedgehogs do not stop the flood or one line of
+wire would hide a perimeter. Past the cell budget everything is called reachable:
+**over-reporting is the safe way to be wrong about a way in**. `test/planner.js`.
 
 ### A gap you cannot see is named, not merged away (`e9868d9`)
 
 `hairlineGap` states the distance rather than closing it: **widening the merge tolerance
 would make the plan lie about a hole in a wall**. `HAIRLINE` widens the spatial index too,
-since a rule about pieces that do not touch cannot come from an index that only pairs ones
-that do. Anything past it is a firing slit. `test/issues.js`.
+or a rule about pieces that do not touch would be asked of an index that only pairs ones
+that do. `test/issues.js`.
 
 ### The panel leads with pallets, and stopped asking (`592ad7c`)
 
-`pallets = ceil((supplies - startingSupplies) / suppliesPerPallet)` is the headline, and
-`tools/site/context.js` computes it identically for design pages, since the planner and the
-page about the same base must not disagree. Help text said 1,900 while the catalog said
-1,800 for months, so prose interpolates and `tools/check-build.js` fails on any supply
-figure the catalog does not state. Reload cost stays unpublished, not guessed.
+`pallets = ceil((supplies - startingSupplies) / suppliesPerPallet)`, computed identically in
+`tools/site/context.js`, since the planner and the page about one base must not disagree.
+Prose interpolates its figures and `tools/check-build.js` fails on any supply number the
+catalog does not state, after help text said 1,900 against a catalog saying 1,800 for months.
 
 ### One wall draws as one wall (`615fab9`, completed by `41488cb`)
 
-`seamFamily` merges anything tagged `wall` with another wall of its role; gates, bunkers and
-towers carry cover without being walls and stay separate. Labels key off the buildable, not
-the family. **`41488cb` is the half that matters: seam bits are worked out in world space
-and drawn inside `ctx.rotate()`, so a rotated wall suppressed the wrong edges. Read that
-commit before touching either.** The icon cap moved to about two cells, since a pixel cap
-shrinks the art the further you zoom in.
+`seamFamily` merges anything tagged `wall` with another wall of its role. **`41488cb` is the
+half that matters: seam bits are worked out in world space and drawn inside `ctx.rotate()`,
+so a rotated wall suppressed the wrong edges. Read that commit before touching either.**
 
 ### The front page says what the site is for (`c5e57bf`)
 
-Hero states what the site is rather than sloganeering about pallets. **Guides were removed
-in full, generator and prose and sitemap entries, so `/guides/` and the four guide URLs
-return 404. That was a deliberate call, not an oversight.**
+**Guides were removed in full, generator and prose and sitemap entries, so `/guides/` and the
+four guide URLs return 404. That was a deliberate call, not an oversight.**
 
 ## Where the rest lives
 

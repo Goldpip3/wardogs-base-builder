@@ -10,11 +10,19 @@
  * with no price is one the source does not have confirmed yet, and it stays blank rather
  * than being guessed at. Checked 30 August 2026 against the closed beta build.
  *
- * Line format:  Name | price
+ * Line format:  Name | price | weight
  *   $1,600      a price
  *   Free        costs nothing
  *   (blank)     not confirmed yet
  *   $15/10      a price for a pack of ten
+ *   3.2kg       what it weighs, optional and absent from every line so far
+ *
+ * The weight is the figure the game puts at the top of the inventory screen beside the
+ * value, and it decides how fast you move under the kit. The database these prices came
+ * from does not publish one, so no line carries a weight yet and the loadout page says the
+ * figure is not measured rather than adding up the empty set. Reading them off the game
+ * item by item is the whole job; it is listed in data/todo.json under confirm. Write it
+ * here when it is measured and nothing else has to change.
  */
 const fs = require("fs");
 const path = require("path");
@@ -467,10 +475,19 @@ const problems = [];
 for (const [cat, block] of Object.entries(RAW)) {
   const lines = block.trim().split("\n").map(l => l.trim()).filter(Boolean);
   for (const line of lines) {
-    const bar = line.lastIndexOf("|");
+    /* The weight is taken off the end first, so the price is still the last field of what
+       is left and a line without a weight parses exactly as it always did. */
+    let body = line, kg = null;
+    const wm = body.match(/\|\s*([\d.]+)\s*kg\s*$/i);
+    if (wm) {
+      kg = Number(wm[1]);
+      if (!(kg > 0)) { problems.push("bad weight on " + line); continue; }
+      body = body.slice(0, wm.index);
+    }
+    const bar = body.lastIndexOf("|");
     if (bar < 0) { problems.push("no separator: " + line); continue; }
-    const name = line.slice(0, bar).trim();
-    const raw = line.slice(bar + 1).trim();
+    const name = body.slice(0, bar).trim();
+    const raw = body.slice(bar + 1).trim();
 
     let price = null, per = 1, free = false;
     if (raw === "Free") { price = 0; free = true; }
@@ -482,6 +499,7 @@ for (const [cat, block] of Object.entries(RAW)) {
     }
     const item = { name, cat, price, per };
     if (free) item.free = true;
+    if (kg !== null) item.kg = kg;
     if (cat === "weapons" && WEAPON_CALIBRE[name]) item.calibre = WEAPON_CALIBRE[name];
     const slug = iconFor(name);
     if (slug) item.icon = slug;

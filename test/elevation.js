@@ -238,7 +238,7 @@ check(/opt\.level > 0 \? "#ffc61a" : "#8b8b80"/.test(src),
   /* Run it, rather than read it. A piece is a prism over its own four corners now, so which
      sides can be seen and which way each looks has one answer that works turned or square
      on, and that is worth checking as behaviour rather than as a pairing written down. */
-  const box = { console, Math, iso: { rot: 0, zoom: 10, x: 0, y: 0 }, ISO_K: 0.866,
+  const box = { console, Math, iso: { yaw: 0, zoom: 10, x: 0, y: 0 }, ISO_K: 0.866,
                 ISO_TILT: 0.68, ISO_Z: 1.45,
                 canvas: { clientWidth: 800, clientHeight: 600 } };
   vm.createContext(box);
@@ -253,18 +253,23 @@ check(/opt\.level > 0 \? "#ffc61a" : "#8b8b80"/.test(src),
     return vm.runInContext("isoFaces(b)", box);
   };
 
-  for (let spin = 0; spin < 4; spin++) {
-    box.iso.rot = spin;
+  /* Every angle the buttons can reach, not just the four square ones. Turned to exactly a
+     corner the piece shows one side and the two beside it project to nothing, which is the
+     same thing that happens to a piece turned 45 degrees at a square spin. */
+  for (let yaw = 0; yaw < 360; yaw += 15) {
+    box.iso.yaw = yaw;
     const f = facesOf(0, 4, 4);
-    check(f.sides.length === 2,
-      "at spin " + spin + " a square-on piece shows exactly two sides",
+    const want = yaw % 90 === 45 ? 1 : 2;
+    check(f.sides.length === want,
+      "at " + yaw + " degrees a square-on piece shows " + want + " side(s)",
       f.sides.length + " shown");
+    if (want !== 2) continue;
     const bits = f.sides.map(x => x.bit);
     check(bits.some(v => v === 1 || v === 2) && bits.some(v => v === 4 || v === 8),
       "one looking along x and one along y, whichever pair the spin makes it",
       "bits " + bits.join(","));
   }
-  box.iso.rot = 0;
+  box.iso.yaw = 0;
 
   /* the case the whole rewrite was for */
   {
@@ -540,21 +545,25 @@ check(/opt\.level > 0 \? "#ffc61a" : "#8b8b80"/.test(src),
  * never touch cannot be seen.
  */
 {
-  const iso = { rot: 0, zoom: 18, x: 0, y: 0 };
+  const iso = { yaw: 0, zoom: 18, x: 0, y: 0 };
   const box = { console, Math, Map, Set, Infinity, iso, ISO_K: 0.866, ISO_TILT: 0.68,
                 ISO_Z: 1.45, canvas: { clientWidth: 900, clientHeight: 600 },
                 byId: {}, design: { pieces: [] } };
   const cat = JSON.parse(fs.readFileSync(ROOT + "/data/buildables.json", "utf8"));
   for (const b of cat.buildables) box.byId[b.id] = b;
   vm.createContext(box);
-  vm.runInContext([lift("isoSpin"), lift("isoPt"), lift("pieceRect"), lift("rectCorners"),
-                   lift("rectAABB"), lift("paintOrder"), lift("isoBoxes"),
+  vm.runInContext([lift("isoSpin"), lift("isoUnspin"), lift("isoView"), lift("isoPt"),
+                   lift("pieceRect"), lift("rectCorners"), lift("rectAABB"),
+                   lift("rectsOverlap"), lift("standHeights"),
+                   lift("paintOrder"), lift("isoBoxes"),
                    lift("faceBit"), lift("isoFaces")].join("\n") +
+    "\nvar standCache = null;" +
     // the cap the shipped file sets, read from it rather than repeated here
     "\nvar PAINT_MAX = " + src.match(/PAINT_MAX = (\d+)/)[1] + ";", box);
 
   const build = pieces => {
     box.design.pieces = pieces.map((p, i) => Object.assign({ id: i + 1, rot: 0, level: 0 }, p));
+    vm.runInContext("standCache = null;", box);      // the design moved, as the app says
     return vm.runInContext("isoBoxes()", box);
   };
   const screenBox = b => vm.runInContext(`(function(){
@@ -575,13 +584,25 @@ check(/opt\.level > 0 \? "#ffc61a" : "#8b8b80"/.test(src),
       const A = rect.get(a.p.id), B = rect.get(b.p.id);
       return A.x0 < B.x1 && B.x0 < A.x1 && A.y0 < B.y1 && B.y0 < A.y1;
     };
+    /* The rule, written out here rather than borrowed from the app, so this is a check and
+       not an echo: A is behind B when it lies wholly on the far side of B along one axis,
+       and which end of an axis is the far one is decided by where the camera is. */
+    const t = iso.yaw * Math.PI / 180;
+    const vx = Math.cos(t) - Math.sin(t), vy = Math.cos(t) + Math.sin(t);
+    const far = (v, a0, a1, b0, b1) =>
+      v > 1e-6 ? a1 <= b0 + 1e-9 : v < -1e-6 ? a0 + 1e-9 >= b1 : false;
     const behind = (a, b) =>
-      a.sx1 <= b.sx0 + 1e-9 || a.sy1 <= b.sy0 + 1e-9 || a.z1 <= b.z0 + 1e-9;
+      far(vx, a.box.x0, a.box.x1, b.box.x0, b.box.x1) ||
+      far(vy, a.box.y0, a.box.y1, b.box.y0, b.box.y1) ||
+      a.z1 <= b.z0 + 1e-9;
     let seen = 0, wrong = 0;
     for (const a of boxes) for (const b of boxes) {
       if (a === b || !overlaps(a, b)) continue;
       seen++;
-      if (behind(a, b) && pos.get(a.p.id) > pos.get(b.p.id)) wrong++;
+      /* Two boxes that merely touch are separated along two planes at once, one saying
+         each is the far one, and a shared boundary hides nothing either way. Only a rule
+         that answers in one direction is an order to be got wrong. */
+      if (behind(a, b) && !behind(b, a) && pos.get(a.p.id) > pos.get(b.p.id)) wrong++;
     }
     return { seen, wrong };
   };
@@ -598,19 +619,25 @@ check(/opt\.level > 0 \? "#ffc61a" : "#8b8b80"/.test(src),
       a.wrong + " wrong");
   }
 
-  /* every spin, because the answer depends on which way the world is turned */
-  for (let spin = 0; spin < 4; spin++) {
-    iso.rot = spin;
+  /* every angle the view can be turned to, because the answer depends on where the camera
+     is, and fifteen degree steps make that twenty four angles rather than four */
+  let turned = 0, wrongAt = [];
+  for (let yaw = 0; yaw < 360; yaw += 15) {
+    iso.yaw = yaw;
     const pieces = [];
     for (let i = -3; i <= 3; i++) pieces.push({ type: "hesco-wall", x: i * 4, y: 0 });
     for (let i = -3; i <= 3; i++) pieces.push({ type: "hesco-wall", x: 0, y: i * 4, rot: 90 });
     for (let i = 0; i < 6; i++) pieces.push({ type: "bremer-wall", x: -3 + i, y: -2 });
     pieces.push({ type: "recon-tower", x: 6, y: -6 });
+    pieces.push({ type: "vanguard-ciws", x: -8, y: 0, level: 1 });   // up on the wall run
     const a = audit(build(pieces));
-    check(a.wrong === 0, "at spin " + spin + " nothing is painted over what stands in front of it",
-      a.wrong + " wrong of " + a.seen + " overlapping");
+    turned++;
+    if (a.wrong) wrongAt.push(yaw + " degrees, " + a.wrong + " of " + a.seen);
   }
-  iso.rot = 0;
+  iso.yaw = 0;
+  check(turned === 24, "the view turns to twenty four angles, not four", String(turned));
+  check(wrongAt.length === 0, "and at none of them is anything painted over what stands in front of it",
+    wrongAt.join(" · "));
 
   /* stacking: a piece on an upper storey is above what it stands on and must come after it */
   {
@@ -620,6 +647,57 @@ check(/opt\.level > 0 \? "#ffc61a" : "#8b8b80"/.test(src),
     const order = boxes.map(b => b.p.id);
     check(order.indexOf(2) > order.indexOf(1),
       "what is stacked on a piece is drawn after the piece it stands on");
+  }
+
+  /* ---- a storey is a count, not a height ----
+   * Reported from a real base: a Vanguard CIWS standing on a hesco wall came out with the
+   * wall drawn over the gun. This view read the storey number as a height, so a piece on
+   * storey 1 sat at z=1 while the two block wall under it filled 0 to 2. The two boxes ran
+   * through each other, and no draw order is right about a pair that interpenetrates.
+   */
+  {
+    const boxes = build([{ type: "hesco-wall", x: 0, y: 0 },              // two blocks tall
+                         { type: "vanguard-ciws", x: 0, y: 0, level: 1 }]);
+    const wall = boxes.find(b => b.p.id === 1), gun = boxes.find(b => b.p.id === 2);
+    check(gun.z0 === wall.z1,
+      "a piece on the storey above starts where the piece under it stops",
+      "gun at " + gun.z0 + ", wall top at " + wall.z1);
+    check(gun.z0 >= 2, "which over a two block wall is two blocks up, not one storey up",
+      String(gun.z0));
+    const order = boxes.map(b => b.p.id);
+    check(order.indexOf(2) > order.indexOf(1),
+      "so the gun is painted after the wall it stands on, not under it");
+  }
+  /* and it adds up through a stack rather than counting storeys */
+  {
+    const boxes = build([{ type: "bremer-wall", x: 0, y: 0 },             // three blocks
+                         { type: "hesco-tall", x: 0, y: 0, level: 1 },    // two blocks
+                         { type: "hesco-small", x: 0, y: 0, level: 2 }]);
+    const top = boxes.find(b => b.p.id === 3);
+    check(top.z0 === 5, "three storeys of three and two blocks put the third at five",
+      String(top.z0));
+  }
+  /* nothing under it means the ground, because a storey number on its own says nothing */
+  {
+    const boxes = build([{ type: "hesco-small", x: 0, y: 0, level: 2 }]);
+    check(boxes[0].z0 === 0, "a piece with nothing under it stands on the ground",
+      String(boxes[0].z0));
+  }
+  /* footprints that overlap never share a block of height, whatever storeys they are on */
+  {
+    const boxes = build([{ type: "hesco-wall", x: 0, y: 0 },
+                         { type: "bremer-wall", x: 2, y: 0 },
+                         { type: "vanguard-ciws", x: 0, y: 0, level: 1 },
+                         { type: "hesco-small", x: 1, y: 0, level: 2 }]);
+    let through = 0;
+    for (const a of boxes) for (const b of boxes) {
+      if (a === b || (a.p.level || 0) === (b.p.level || 0)) continue;
+      const over = vm.runInContext("rectsOverlap(pieceRect(" + JSON.stringify(a.p) +
+                                   "), pieceRect(" + JSON.stringify(b.p) + "))", box);
+      if (over && a.z0 < b.z1 - 1e-9 && b.z0 < a.z1 - 1e-9) through++;
+    }
+    check(through === 0, "no two stacked pieces are drawn running through each other",
+      through + " pairs sharing height");
   }
 
   /* and the honest limit, stated rather than discovered later */
