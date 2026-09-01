@@ -546,6 +546,17 @@ module.exports = ctx => {
       ' aria-pressed="false">' +
       '<span class="vcard-tag">' +
         (it.price === null ? "no price" : it.price === 0 ? "free" : money(it.price)) + "</span>" +
+      /* What it takes to have the thing at all, which the price does not say: a $2,800 M4
+         is level 20 on a ladder and $100,000 to open. Only the level goes on the card,
+         because the card is a shelf and the ladder is the part that decides whether the
+         shelf is real for you yet. */
+      (function (u) {
+        return u && u.level
+          ? '<span class="vcard-lvl" title="' +
+            esc(u.role + " level " + u.level + (u.cash ? ", " + money(u.cash) + " to unlock" : "")) +
+            '">Lv ' + u.level + "</span>"
+          : "";
+      }(statOf(it.name).unlock)) +
       '<span class="vcard-art">' +
       (it.icon ? '<img src="/game-icons/' + it.icon + '.png" alt="" width="52" height="52" loading="lazy">' : "") +
       "</span>" +
@@ -576,22 +587,15 @@ module.exports = ctx => {
      Sorting by price is a stand-in for sorting by how much each holds, which is the figure
      this shelf actually wants and which nobody has measured. It is in data/todo.json under
      confirm; when it exists, sort on it and say the capacity on the card. */
-  /* The order you get them in, which is what the shelf is for: the free one you start with
-     first, then by the level that opens it, and anything with no stated level by price. A
-     bag with no unlock is one you have from the start. */
-  const openOrder = function (i) {
-    const u = statOf(i.name).unlock;
-    return u ? u.level : 0;
-  };
+  /* Cheapest first, which is the order you come to them in: the free Pouch, then up. The
+     unlock level is on each card rather than deciding the order, because two of these bags
+     have no level published and sorting on a missing figure put a $15,000 bag third. Where
+     both are known the two orders agree anyway. */
   const bags = nameHas(byCat("storage"), "backpack")
     .concat(nameHas(byCat("storage"), "pouch"))
-    .sort(function (a, b) {
-      return openOrder(a) - openOrder(b) || (a.price || 0) - (b.price || 0);
-    });
+    .sort(function (a, b) { return (a.price || 0) - (b.price || 0); });
   const rigs = nameHas(byCat("storage"), "tac vest")
-    .sort(function (a, b) {
-      return openOrder(a) - openOrder(b) || (a.price || 0) - (b.price || 0);
-    });
+    .sort(function (a, b) { return (a.price || 0) - (b.price || 0); });
   /* The rest of the storage category is crates and supply pallets, which are things you
      drive to a base rather than things you wear. They belong to the planner, not to a kit,
      and neither shelf offers them. */

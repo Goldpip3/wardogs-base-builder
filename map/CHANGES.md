@@ -8,6 +8,28 @@ Newest first. One entry per decision. Keep entries short.
 
 ## 2026-08-31
 
+### The bag is the game's bag now, pulled from the database the prices came from
+
+Weight, footprint, stack size, bag grids and unlock levels are in `data/armory-stats.json`,
+291 items read from MetaForge's `/api/wardogs/database` on 2026-08-31. Same source as the
+prices, and every price in the pull matched the catalogue, which is how the join was checked;
+`tools/check-build.js` holds every key in it to a catalogue name. No generator: the API
+answers a browser and 403s a script, so the file carries `_howToRefresh`.
+
+The bag draws on its own grid, Pouch 3x2 to Arsenal 5x6, a magazine a 1x2 tile and a drum
+2x2, and counts "6 of 15 slots". It counts squares where the game packs shapes, so a full
+bag can still refuse a long item: the note under the vendor says so.
+
+**Stacking is per item and it is not five.** Bandage 5, C4 and adrenaline 3, 5.56 eighty,
+12 gauge 24, and a frag grenade does not stack at all. The guess of five for anything
+throwable was wrong the way that makes a bag look emptier than it is. `test/site.js` pins
+the bandage and the grenade against each other.
+
+Weight totals for real, with a plus and a tooltip when part of a kit has no published weight.
+Shelves stay in price order, with the unlock level on each card: two bags publish no level,
+and sorting on the missing figure put a $15,000 bag third. None of this is measured in game,
+which the page says and `data/todo.json` tracks.
+
 ### Map: zoom out stops at the fit, tiles stop over-fetching
 
 Zoom bottomed out at `cam.k` 1, far past the whole map fitting, so it shrank into black and

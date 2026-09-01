@@ -790,6 +790,11 @@ tr[data-on="1"] td{background:var(--panel2);color:var(--text)}
 .vcard[hidden]{display:none}
 .vcard:hover{border-color:var(--line2);color:var(--text)}
 .vcard[aria-pressed="true"]{border-color:var(--yellow)}
+/* The level a thing opens at, opposite its price: what it costs and what it takes to be
+   allowed to buy it are two different questions and the shelf answers both. */
+.vcard-lvl{position:absolute;top:5px;left:5px;font-family:var(--num);font-size:9px;
+  color:var(--dim2);background:var(--panel2);border:1px solid var(--line2);padding:1px 4px;
+  line-height:1.4;z-index:1}
 .vcard-tag{position:absolute;top:5px;right:5px;background:var(--good);color:var(--bg);
   font-family:var(--num);font-size:10px;font-weight:600;padding:2px 5px}
 .vcard-art{height:52px;display:flex;align-items:center;justify-content:center}

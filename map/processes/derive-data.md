@@ -36,10 +36,11 @@ in the solver and let it re-derive.
 ## Steps
 
 1. Armory: edit the `RAW` block in `tools/build-armory.js`, run it. It refuses to write on a
-   duplicate, an unparseable price or an empty category. A line is `Name|price`, and takes an
-   optional weight after it: `M4|$2,800|3.4kg`. No line carries one yet, which is why
-   `/loadouts/` says weight is not measured rather than adding up an empty set; writing the
-   kg here is the whole job and nothing downstream changes.
+   duplicate, an unparseable price or an empty category. Prices only: weight, footprint,
+   stack size, bag grids and unlock levels are the same source read in bulk and live in
+   `data/armory-stats.json`, which has no generator because the API answers a browser and
+   returns 403 to a script. The file's `_howToRefresh` says how the pull is repeated, and
+   `tools/check-build.js` holds every key in it to a catalogue name.
 2. Ballistics: edit the `ROWS` table in `tools/solve-ballistics.js`, then update
    `data/ballistics.json` to match what it derives, and run it again until it passes.
 3. `powershell -File build.ps1`.
