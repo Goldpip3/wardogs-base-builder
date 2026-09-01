@@ -395,5 +395,43 @@ check(fs.existsSync(DOCS + "CNAME") &&
   fs.readFileSync(DOCS + "CNAME", "utf8").trim() === "www.wardogsbuilder.com",
   "custom domain claim survives the rebuild");
 
+// ---------- the bar is on every page, the planner included ----------
+/* The planner was the one page you could not leave from: a wordmark and one link to the
+   artillery calculator, and the other five pages did not exist from inside it. */
+const bar = (app.match(/<div id="sitebar">[\s\S]*?<\/nav><\/div>/) || [""])[0];
+check(!!bar, "the hosted planner carries the site bar");
+["/artillery/", "/designs/", "/armory/", "/ballistics/", "/loadouts/", "/feedback/"]
+  .forEach(href => check(bar.includes('href="' + href + '"'),
+    "and it reaches " + href));
+/* Every link out of the planner offers to save first. A nav that walks somebody off an
+   unsaved design is worse than no nav, and the guard is opt in by class, so a link added
+   without it fails quietly and only for people with work on the canvas. */
+const barLinks = bar.match(/<a [^>]*href="[^"]*"/g) || [];
+check(barLinks.length > 0 && barLinks.every(a => a.includes("leaveLink")),
+  `all ${barLinks.length} links out of the planner go through the unsaved-work guard`);
+check(bar.includes('<a aria-current="page">Planner</a>'),
+  "and the page you are on is named rather than linked to itself");
+/* The download must not carry it: nothing in it fetches, but every href points at the
+   website and none of them work from a file on a disk. */
+const offlineApp = fs.readFileSync(PROJ + "WardogsBaseBuilder.html", "utf8");
+check(!offlineApp.includes('<div id="sitebar">') && !offlineApp.includes("__SITENAV__"),
+  "the downloadable copy carries none of it");
+
+// ---------- moving between pages ----------
+/* A full document load blinks white and redraws, which is what makes a set of static pages
+   feel like a set of files. The browser's own cross document transition needs the opt in on
+   both documents, so the planner carries it as well as the site. */
+const cssSrc = fs.readFileSync(PROJ + "tools/site/css.js", "utf8");
+check(cssSrc.includes("@view-transition{navigation:auto}") &&
+  fs.readFileSync(DOCS + "index.html", "utf8").includes("@view-transition{navigation:auto}"),
+  "the site opts into the page turn");
+check(/@view-transition\s*\{\s*navigation:\s*auto/.test(app),
+  "and so does the planner, or leaving it would not turn");
+check(cssSrc.includes("header.site{view-transition-name:wd-head}") &&
+  app.includes("#sitebar { view-transition-name: wd-head; }"),
+  "the bar has its own name on both, so it sits still while the page turns");
+check(/prefers-reduced-motion:\s*reduce\)\s*\{\s*\n?\s*::view-transition-old\(root\)/.test(cssSrc),
+  "somebody who asked for less motion gets the plain crossfade");
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

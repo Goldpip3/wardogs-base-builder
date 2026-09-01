@@ -102,6 +102,36 @@ nav.site a.cta{display:inline-flex;align-items:center;justify-content:center;gap
   padding:0 10px;min-width:100px;height:40px;letter-spacing:.14em}
 nav.site a.cta:hover{background:var(--yellow);border-color:var(--yellow);color:var(--bg)}
 
+/* --- moving between pages ---
+   Every page here is a full document load, and a full document load blinks white and then
+   redraws, which is the one thing that makes a set of static pages feel like a set of files
+   rather than like an app. This is the browser's own cross document transition: the old
+   page turns away and the new one turns in behind it, about a quarter of a second, no
+   JavaScript and nothing to wait for.
+
+   It needs the opt in on both documents, so the planner carries the same block in
+   src/app-template.html. Browsers without it navigate exactly as they did before, which is
+   the whole reason this is done in CSS rather than by holding the click and animating.
+
+   The header keeps its own name and no animation, so the banner sits still while the page
+   turns under it. That is what makes it read as one app with a bar across the top rather
+   than as two pages that happen to share a design. */
+@view-transition{navigation:auto}
+@keyframes wd-turn-out{to{opacity:0;transform:perspective(1400px) translateX(-2.5%) rotateY(-5deg)}}
+@keyframes wd-turn-in{from{opacity:0;transform:perspective(1400px) translateX(2.5%) rotateY(5deg)}}
+::view-transition-old(root){animation:wd-turn-out .2s cubic-bezier(.4,0,1,1) both;
+  mix-blend-mode:normal}
+::view-transition-new(root){animation:wd-turn-in .28s cubic-bezier(0,0,.2,1) both;
+  mix-blend-mode:normal}
+header.site{view-transition-name:wd-head}
+::view-transition-old(wd-head),::view-transition-new(wd-head){animation:none;
+  mix-blend-mode:normal}
+/* A page that turns is decoration. Somebody who has asked for less of it gets the plain
+   crossfade the browser does on its own. */
+@media(prefers-reduced-motion:reduce){
+  ::view-transition-old(root),::view-transition-new(root){animation:none}
+}
+
 /* --- buttons --- */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:11px;height:52px;padding:0 26px;
   border:1px solid var(--text);color:var(--text);background:transparent;font-family:var(--ui);

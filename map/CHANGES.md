@@ -8,20 +8,41 @@ Newest first. One entry per decision. Keep entries short.
 
 ## 2026-09-01
 
+### The bar is on the planner too, and pages turn instead of blinking
+
+The planner was the one page you could not leave from: a wordmark, a link home, one boxed
+link to the artillery calculator, and the other five pages did not exist from inside it. The
+site's nav sits above the tool bar now as `#sitebar`, 28px and no boxes, and every link
+carries `leaveLink` so the planner still offers to save unsaved work first. **It cannot go
+inside `#topbar`**, which was 69px over at 1280 with one link in it, which is why the
+artillery link came out rather than six more going in.
+
+The nav is written twice, in `tools/site/shell.js` and in `build.ps1`, because the planner
+is built before the site generator runs. `tools/check-build.js` holds the two lists to each
+other. **The download gets none of it**: every href points at the website, and dead links in
+a file somebody keeps on a disk are worse than no nav. The placeholder is the seam, and an
+unreplaced one fails the build the way the ad placeholders do.
+
+**Pages turn rather than blinking white.** `@view-transition{navigation:auto}` in
+`tools/site/css.js` and the same block in the planner template, because it needs the opt in
+on both documents. No JavaScript, and a browser without it navigates as before. The header
+carries a `view-transition-name` and no animation, so the bar sits still while the page
+turns under it. It cannot be watched in the preview pane: a hidden document skips every view
+transition.
+
 ### Ground and air are two fleets, and an unlock is not a price
 
-The vehicle list was 20 rows you read past each other in, and the only thing that knew a
-Havoc from a Bobcat was a regex over the names that held while every airframe happened to be
-called AH, MH, UH or Havoc. The vendor files each one as Ground or Air, and that is pulled
-into `data/armory-stats.json` with the rest. The armory rail hangs Ground, 14, and Air, 6,
-under Vehicles, and the regex survives only as the fallback for a vehicle the source says
-nothing about. Pinned in `test/site.js`: every vehicle has to carry a pulled class.
+The only thing that knew a Havoc from a Bobcat was a regex over the names, which held while
+every airframe happened to be called AH, MH, UH or Havoc. The vendor files each one as
+Ground or Air, pulled into `data/armory-stats.json` with the rest, and the armory rail hangs
+Ground, 14, and Air, 6, under Vehicles. The regex survives as the fallback for a vehicle the
+source says nothing about. `test/site.js` holds every vehicle to carrying a pulled class.
 
 **The unlock is the bigger number.** The L2A6 is $14,000 at the vendor and career level 35
-plus $500,000 to open, and only the $14,000 was on the site. The unlock role, level and cash
-are pulled for 198 items now and printed as the last row of the detail panel. The five
-vehicles the source publishes nothing for say so, because a missing row on an otherwise full
-panel reads as "there is no unlock", and for a tank that is a lie somebody plans around.
+plus $500,000 to open, and only the $14,000 was on the site. Role, level and cash are pulled
+for 198 items and printed as the last row of the panel. The five vehicles nothing is
+published for say so, because a missing row on an otherwise full panel reads as "there is no
+unlock", and for a tank that is a lie somebody plans around.
 
 ### An AK stops being offered GGX magazines
 
@@ -617,36 +638,24 @@ asks training crawlers out; that is a request, not a control.
 Raising the ceiling needs Cloudflare proxying the domain, not just holding DNS. Dashboard
 work, written up in [security](processes/security.md), not done.
 
-### Loadout page is the vendor, with the game's icons
+### Nothing is chosen from a dropdown, and the loadout page is the vendor
 
-Was ten dropdowns with no pictures. Now shaped after the in-game equipment vendor, checked
-against beta footage: Equipment, Gear, Items tabs, a card per slot with art and price, and
-the magazine built mag plus round times count. Every panel is in the page whatever the script
-does.
+Ten dropdowns with no pictures became the in-game equipment vendor, checked against beta
+footage: Equipment, Gear and Items tabs, a card per slot with art and price, and the
+magazine built mag plus round times count. A dropdown hides every option and shows words,
+which is wrong for a shelf where recognising the item is the task, so all three catalogue
+pages click the thing. Armory keeps a card grid with the table behind a toggle, over one
+filter and one sort, and **an unconfirmed price sorts to the bottom in both directions**:
+a blank is not the cheapest thing. On the damage page `setWeapon` is the only way `S.w`
+changes.
 
 **Weight and a cash balance are deliberately missing.** No weight is confirmed, and no
-planner knows your wallet.
-
-495 icons from the wardogs.zone wiki via `tools/pull-game-icons.js`. See
-[game-icons](objects/data/game-icons.md).
-
-### Nothing is chosen from a dropdown
-
-A dropdown hides every option and shows words, which is wrong for a shelf where recognising
-the item is the task. All three catalogue pages click the thing now.
-
-Loadouts: a slot opens its shelf, a card equips and closes it. One shelf at a time, Escape
-closes, the round shelf shows only what the weapon chambers.
-
-Armory: card grid by default, table behind a toggle. One filter and one sort over the same
-elements, so switching never reshuffles. **An unconfirmed price sorts to the bottom in both
-directions**: a blank is not the cheapest thing.
-
-Damage: the weapon control is the weapon. `setWeapon` is the only way `S.w` changes.
+planner knows your wallet. 495 icons come from the wardogs.zone wiki via
+`tools/pull-game-icons.js`; see [game-icons](objects/data/game-icons.md).
 
 **The trap, twice.** `.vcard` and `.acard` are `display:flex`, which beats the `hidden`
-attribute's UA `display:none`. Filtered-out cards stayed visible while the script believed
-otherwise. Anything given a display must say what hidden means for it, like `.ctl[hidden]`.
+attribute UA `display:none`. Filtered-out cards stayed visible while the script believed
+otherwise. Anything given a display must say what hidden means for it.
 
 ### Damage page shows the gun
 
@@ -696,11 +705,6 @@ on the low arc. One rule for both misleads half the time.
 **Do not say a full circle is 6,400 mils.** True of the NATO mil, unchecked here: two sources
 read different scales and nobody has noted what the sight shows. Fire the gun first.
 
-### Design cards are the same size
-
-Cards sized by their contents came out ragged. Rows stretch, the action row drops to the
-bottom. The last of it was an inline `style="margin-top:14px"` beating the stylesheet.
-
 ### Planner says PLANNER, build zone is 200
 
 Zone went 100 to 200 on the owner's word, and stays `radiusConfirmed:false` because nobody
@@ -709,23 +713,6 @@ has counted. That flag keeps range rings off the plan.
 Eight copies of `|| 100` became one `fobZone()`. **Two literals stay in the share encoders:**
 100 is the wire format default and `test/share-links.js` needs both encoders to emit identical
 bytes. Reading the catalog there ties the format to a value a player can edit.
-
-### Vehicle dash picked against every wall it lands on
-
-The amber vanished on hesco gold at the top of the storey shading: 13.7 apart at the sixth
-storey. Now chosen against all six storeys of all six wall roles, for the worst case: 28.3.
-A wider search offered better numbers by leaving the warm family; not taken, because the two
-ways in reading as siblings is worth more.
-
-### A fault and a way in stop looking the same
-
-Fault outline and foot climb dash were 5.5 apart in Lab, which nobody can see. Fault is the
-danger colour; the two ways in take a warm pair, 34.9 from the fault and 33.5 apart. The
-legend had drifted off the canvas colours; one constant each now.
-
-Worth writing down: a first pass compared the dash to the role colour and got 13.9. **The
-role colour is not what gets painted.** A piece is filled with `shade(base, -62 + 13 per
-storey)`, so the real ground gap is 30.2.
 
 ### 3D view, six passes condensed
 
@@ -759,21 +746,6 @@ head of both formats is JSON, so old codes lack the key and old readers ignore a
 the alphabet is unchanged, which would have made it a worker deploy. Unknown values dropped.
 `test/crew.js`.
 
-### Two bugs found alongside
-
-**A chosen chip was invisible.** `.seg button` set a transparent background after
-`button.active` at equal specificity. Restated at a winning specificity.
-
-**A reopened base showed zero build cost.** `loadCurrent` is reached from a promise, so it
-lands after startup computed everything from an empty design. It recomputes now.
-
-### Designs page stops spending space on nothing
-
-A layout for a full rectangle used for a list that usually is not one. `.chips.sorts` is the
-width of its contents; the grid is centred rows carrying their own edges. The submit form
-went, **and the line promising submissions are read before they go up went with it: that
-stopped being true when the queue was removed.**
-
 ### Community list shows the base, one decoder both sides
 
 Every card carries an overhead picture of its layout, colour and footprint only.
@@ -785,17 +757,6 @@ deleted, not left unused.
 
 Pictures paint when a card is about to be seen. A code that will not decode leaves no picture.
 `test/thumbnails.js`.
-
-### Sign out moved under your name
-
-It was a second header link level with everything else, putting the one destructive account
-action in the busiest row. Your name is a control; Your designs and Sign out open under it.
-
-### "Plan your FOB" stops sitting on your base
-
-The invitation was hidden only in `afterChange`, which a design arriving at boot never enters,
-so a share link drew the base with the invitation over it. Reported twice. `drawNow` decides
-it now. `test/planner-tools.js`.
 
 ### Your own work is yours to take back
 
@@ -815,66 +776,61 @@ Pages serves the planner with `max-age=600`, so `location.reload()` can answer f
 return the same build. It refetches with cache "reload", on focus and every five minutes.
 Hence the rule about comparing live `build.txt` to local before believing a bug report.
 
-### Ctrl+V pastes
+### Older entries, condensed
 
-Plain letters were matched before Ctrl combinations in one if-else chain, so Ctrl+V toggled
-3D. Modified keys are handled first, in a block **that returns**: without the return a plain
-branch further down still catches them. 3D moved to 3. `test/planner-tools.js`.
+Each one carries the file that pins it, and `git show` still has the full story.
 
-### Fewer buttons up top
-
-Fifteen controls, four doing one job. Share, Export and PNG became one menu; Import moved into
-Designs; the catalog editor into Help. Nine show. `test/planner-tools.js` counts what shows
-rather than names, because buttons creep back one at a time.
-
-### Turning a selection turns the group
-
-`rotateSelection` spun every piece where it stood. It turns about the selection's centre, put
-on the grid first so four quarter turns land back exactly. `test/planner-tools.js`.
-
-In the worker, `/designs` lists what is not hidden rather than what was approved, which had
-stranded three submissions. Needed a wrangler deploy; `git push` does not ship the worker.
-
-### A run steps along the piece, not down the drag
-
-Three causes. `snapPoint` snaps in the piece's own frame, because a 1x1 at 45 degrees steps
-0.707; at square angles that is the world grid, so square-on placement is unchanged.
-`snapPlace` measures from the nearest same kind and angle, so leaving the line costs three
-quarters of a block. And a run spaced pieces by extent along the drag, so a turned piece met
-the next at a corner; it now walks the two moves a piece can make and still touch. `wallGap`
-measured upright boxes, so a flush turned wall reported a break.
-
-`test/runs.js`, with three checks that assert the old behaviour fails.
-
-### A way in is a run, and only where somebody can stand (`e9868d9`)
-
-`climbRuns` groups touching pieces of one verdict. `reachableFromOutside` floods from beyond
-the bounds; wire and hedgehogs do not stop it, or one line of wire hides a perimeter. Past the
-cell budget everything is called reachable: **over-reporting is the safe way to be wrong about
-a way in.** `test/planner.js`.
-
-### A gap you cannot see is named, not merged away (`e9868d9`)
-
-`hairlineGap` states the distance rather than closing it: **widening the merge tolerance would
-make the plan lie about a hole in a wall.** `HAIRLINE` widens the spatial index too.
-`test/issues.js`.
-
-### The panel leads with pallets (`592ad7c`)
-
-`pallets = ceil((supplies - startingSupplies) / suppliesPerPallet)`, computed identically in
-`tools/site/context.js`. `tools/check-build.js` fails on any supply number the catalog does
-not state, after help text said 1,900 against a catalog saying 1,800 for months.
-
-### One wall draws as one wall (`615fab9`, then `41488cb`)
-
-`seamFamily` merges anything tagged `wall` with another wall of its role. **`41488cb` is the
-half that matters: seam bits are worked out in world space and drawn inside `ctx.rotate()`,
-so a rotated wall suppressed the wrong edges. Read that commit before touching either.**
-
-### The front page says what the site is for (`c5e57bf`)
-
-**Guides were removed in full, generator and prose and sitemap, so `/guides/` and the four
-guide URLs return 404. Deliberate, not an oversight.**
+- **Design cards are the same size.** Cards sized by their contents came out ragged. Rows
+  stretch and the action row drops to the bottom; the last of it was an inline
+  `style="margin-top:14px"` beating the stylesheet.
+- **Two colours that meant different things looked the same.** The vehicle dash vanished on
+  hesco gold and the climb dash sat 5.5 from the fault outline in Lab. Both are now chosen
+  against all six storeys of all six wall roles, worst case 28.3 and 33.5. **A role colour is
+  not what gets painted:** a piece is filled with `shade(base, -62 + 13 per storey)`, and
+  comparing against the role colour gives a number that is not the one on screen.
+- **The designs page stopped spending space on nothing**, and **the line promising
+  submissions are read before they go up went with it: that stopped being true when the queue
+  was removed.**
+- **Sign out moved under your name**, out of the busiest row: the one destructive account
+  action was a header link level with everything else.
+- **"Plan your FOB" stopped sitting on your base.** The invitation was hidden only in
+  `afterChange`, which a design arriving at boot never enters, so a share link drew the base
+  with the invitation over it. `drawNow` decides it. `test/planner-tools.js`.
+- **Two bugs found alongside a redesign.** A chosen chip was invisible: `.seg button` set a
+  transparent background after `button.active` at equal specificity. And a reopened base
+  showed zero build cost, because `loadCurrent` is reached from a promise and lands after
+  startup has computed everything from an empty design.
+- **Ctrl+V pastes.** Plain letters were matched before Ctrl combinations in one if-else
+  chain, so Ctrl+V toggled 3D. Modified keys are handled first, in a block **that returns**.
+  3D moved to 3. `test/planner-tools.js`.
+- **Fewer buttons up top.** Fifteen controls, four doing one job, became nine. Share, Export
+  and PNG are one menu; Import is in Designs; the catalog editor is in Help.
+  `test/planner-tools.js` counts what shows rather than names, because buttons creep back one
+  at a time.
+- **Turning a selection turns the group.** `rotateSelection` spun every piece where it stood.
+  It turns about the selection's centre, put on the grid first so four quarter turns land back
+  exactly. `test/planner-tools.js`. In the worker, `/designs` lists what is not hidden rather
+  than what was approved, which had stranded three submissions; that needed a wrangler deploy.
+- **A run steps along the piece, not down the drag.** Three causes: `snapPoint` snaps in the
+  piece's own frame, `snapPlace` measures from the nearest same kind and angle, and a run walks
+  the two moves a piece can make and still touch rather than spacing by extent along the drag.
+  `wallGap` measured upright boxes, so a flush turned wall reported a break. `test/runs.js`.
+- **A way in is a run, and only where somebody can stand** (`e9868d9`). `climbRuns` groups
+  touching pieces of one verdict; `reachableFromOutside` floods from beyond the bounds, and
+  wire does not stop it. Past the cell budget everything is called reachable: **over-reporting
+  is the safe way to be wrong about a way in.** `test/planner.js`.
+- **A gap you cannot see is named, not merged away** (`e9868d9`). `hairlineGap` states the
+  distance rather than closing it: **widening the merge tolerance would make the plan lie about
+  a hole in a wall.** `test/issues.js`.
+- **The panel leads with pallets** (`592ad7c`). `pallets = ceil((supplies - startingSupplies)
+  / suppliesPerPallet)`, computed identically in `tools/site/context.js`, after help text said
+  1,900 against a catalog saying 1,800 for months.
+- **One wall draws as one wall** (`615fab9`, then `41488cb`). **`41488cb` is the half that
+  matters: seam bits are worked out in world space and drawn inside `ctx.rotate()`, so a
+  rotated wall suppressed the wrong edges. Read that commit before touching either.**
+- **The front page says what the site is for** (`c5e57bf`). **Guides were removed in full,
+  generator and prose and sitemap, so `/guides/` and the four guide URLs return 404.
+  Deliberate, not an oversight.**
 
 ## Where the rest lives
 

@@ -118,6 +118,52 @@
     color: var(--dim); margin-right: -2px;
   }
 
+  /* The site's own bar, above the tool's.
+     The planner was the one page on the site you could not leave without going back to the
+     home page first: it had a wordmark and one link to the artillery calculator, and the
+     other five pages did not exist from in here. This is the same nav the rest of the site
+     carries, cut down to fit a tool: 28px rather than 74, no account name, no boxes. It
+     cannot go inside #topbar, which was already 69px over at 1280 with one link in it.
+
+     The offline download gets none of this. Every href here points at the website, and a
+     row of dead links is worse than no row at all in a file somebody keeps on a disk, so
+     build.ps1 leaves the placeholder empty there. */
+  #sitebar {
+    zoom: var(--s);
+    display: flex; align-items: center; gap: 14px; padding: 0 12px; height: 28px;
+    background: #0c0c0c; border-bottom: 1px solid var(--border); overflow: hidden;
+  }
+  #sitebar .sb-brand {
+    font-family: var(--display); font-weight: 700; font-size: 13px; letter-spacing: .01em;
+    text-transform: uppercase; color: var(--text); text-decoration: none; white-space: nowrap;
+  }
+  #sitebar nav { display: flex; align-items: center; gap: 13px; min-width: 0; }
+  #sitebar nav a {
+    font-family: var(--ui); font-weight: 600; font-size: 10px; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--dim); text-decoration: none; white-space: nowrap;
+  }
+  #sitebar nav a:hover, #sitebar .sb-brand:hover { color: var(--accent); }
+  /* The page you are on is named rather than linked away from, and it is the one item in
+     the row that is not dimmed. */
+  #sitebar nav a[aria-current] { color: var(--text); }
+  @media (max-width: 720px) {
+    #sitebar { gap: 10px; }
+    #sitebar nav { gap: 10px; overflow-x: auto; }
+  }
+
+  /* The same page turn the rest of the site uses. It only does anything on the hosted copy,
+     because it only fires on a navigation and the download never makes one. */
+  @view-transition { navigation: auto; }
+  @keyframes wd-turn-out { to { opacity: 0; transform: perspective(1400px) translateX(-2.5%) rotateY(-5deg); } }
+  @keyframes wd-turn-in { from { opacity: 0; transform: perspective(1400px) translateX(2.5%) rotateY(5deg); } }
+  ::view-transition-old(root) { animation: wd-turn-out .2s cubic-bezier(.4,0,1,1) both; mix-blend-mode: normal; }
+  ::view-transition-new(root) { animation: wd-turn-in .28s cubic-bezier(0,0,.2,1) both; mix-blend-mode: normal; }
+  #sitebar { view-transition-name: wd-head; }
+  ::view-transition-old(wd-head), ::view-transition-new(wd-head) { animation: none; mix-blend-mode: normal; }
+  @media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
+  }
+
   /* Top bar */
   #topbar {
     zoom: var(--s);
@@ -127,27 +173,12 @@
   #topbar a#homeLink { text-decoration: none; border-radius: 0; padding: 2px 5px; margin-left: -5px; }
   #topbar a#homeLink:hover { background: var(--panel2, #2a2f2a); }
   #topbar a#homeLink:hover h1 { color: var(--accent); }
-  #topbar a.toolLink {
-    display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px;
-    border: 1px solid var(--accent); color: var(--text); text-decoration: none;
-    font-family: var(--display); font-weight: 600; font-size: 11px;
-    letter-spacing: .1em; text-transform: uppercase; white-space: nowrap;
-  }
-  #topbar a.toolLink svg {
-    width: 13px; height: 13px; fill: none; stroke: var(--accent);
-    stroke-width: 1.6; stroke-linecap: round; flex: 0 0 auto;
-  }
-  #topbar a.toolLink:hover { background: var(--accent); color: var(--accent-ink); }
-  #topbar a.toolLink:hover svg { stroke: var(--accent-ink); }
-  /* Adding this link put the bar 69px over at 1280, and a second row costs 36px of map in
-     a tool whose whole point is the map. Below 1400 the label gives way to its icon, which
-     is 59px, and the gap drops a pixel, which is 21 more across 22 children. That is one
-     row again with room to spare. Hiding the wordmark's subtitle looks like it would help
-     and does not: it sits under WARDOGS, so it costs height rather than width. */
+  /* One boxed link to the artillery calculator used to live in this bar, and it put the bar
+     69px over at 1280 on its own. Six more was never going to fit, so the whole nav moved
+     up into #sitebar and this row went back to being the tool's own controls. The width
+     rules below stay: the bar was tight before the link was ever added. */
   @media (max-width: 1400px) {
     #topbar { gap: 7px; }
-    #topbar a.toolLink span { display: none; }
-    #topbar a.toolLink { padding: 0 7px; }
     #designName { width: 118px; }
     /* the select next to it reads "100%", which says what it is without the word */
     #topbar label.sizeLabel { display: none; }
@@ -401,9 +432,9 @@
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7658713831499963" crossorigin="anonymous"></script>
 </head>
 <body>
+<div id="sitebar"><a class="leaveLink sb-brand" href="/">WARDOGS</a><nav aria-label="Site"><a aria-current="page">Planner</a><a class="leaveLink" href="/artillery/">Artillery</a><a class="leaveLink" href="/designs/">Designs</a><a class="leaveLink" href="/armory/">Armory</a><a class="leaveLink" href="/ballistics/">Damage</a><a class="leaveLink" href="/loadouts/">Loadouts</a><a class="leaveLink" href="/feedback/">Feedback</a></nav></div>
 <div id="topbar">
   <a id="homeLink" class="leaveLink" href="/" title="Back to wardogsbuilder.com"><h1>WARDOGS <span>PLANNER</span></h1></a>
-  <a class="leaveLink toolLink" href="/artillery/" title="Artillery calculator"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 13.5c2.5-6.5 7-9 13-9"/><circle cx="13.2" cy="4.2" r="1.5"/></svg><span>Artillery</span></a>
   <input id="designName" placeholder="Design name" value="New FOB">
   <button id="btnNew" title="New design">✚ New</button>
   <button id="btnDesigns" title="Saved designs">🗂 Designs</button>
@@ -1426,7 +1457,7 @@ const CLOUD_API = "https://wardogs-votes.wardogsbuilder.workers.dev";
    but it is inlined into both builds so the two differ in what they can reach and never in
    what they contain. */
 const DESIGN_TAGS = [{"id":"map","label":"Where it works","hint":"At least one. Pick the map it is laid out for, or Any map if the ground does not matter.","required":true,"tags":[{"id":"map-bakurani","label":"Bakurani"},{"id":"map-ozeti","label":"Ozeti"},{"id":"map-any","label":"Any map","exclusive":true}]},{"id":"role","label":"What it is for","hint":"Optional, as many as fit. This is what somebody scrolling the list is actually choosing between.","required":false,"tags":[{"id":"anti-infantry","label":"Anti-infantry","hint":"Built to stop people on foot: cover, wire, firing positions."},{"id":"anti-vehicle","label":"Anti-vehicle","hint":"Stingray, hedgehogs, anything that turns armour away."},{"id":"anti-air","label":"Anti-air","hint":"Vanguard CIWS or Talon 9K-SAM covering the sky above it."},{"id":"artillery","label":"Artillery","hint":"Built around a mortar and its shelter."},{"id":"zone-control","label":"Zone control","hint":"Meant to be planted on the objective and held."},{"id":"recon","label":"Recon","hint":"Towers, radio, eyes on ground you do not hold."},{"id":"starter","label":"Starter","hint":"Cheap and quick, for the first build of a match."}]}];
-const BUILD_STAMP = "20260901-171853";
+const BUILD_STAMP = "20260901-172843";
 const LS_TOKEN = "wardogs.token";
 
 const LS_DESIGNS = "wardogs.designs";

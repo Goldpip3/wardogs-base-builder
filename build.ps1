@@ -89,8 +89,32 @@ if ($adPub -and $adSlot) {
 # a newer build exists instead of quietly showing yesterday's.
 $stamp = (Get-Date).ToUniversalTime().ToString("yyyyMMdd-HHmmss")
 
-$toolNav = '<a class="leaveLink toolLink" href="/artillery/" title="Artillery calculator"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 13.5c2.5-6.5 7-9 13-9"/><circle cx="13.2" cy="4.2" r="1.5"/></svg><span>Artillery</span></a>'
-$offline = $out.Replace('/*__API__*/', '').Replace('/*__BUILD__*/', '').Replace('<!--__AD_HEAD__-->', '').Replace('<!--__AD_PANEL__-->', '').Replace('<!--__TOOLNAV__-->', '')
+# The site's nav, on the planner too. It is the same seven destinations the rest of the
+# site carries, in the same order, and the source of that order is tools/site/shell.js: two
+# copies of a nav is how a page goes missing from one of them. This one is written here
+# because the planner is built by this script and never touches the site generator, and
+# test/site.js holds the two lists to each other.
+#
+# leaveLink is not decoration: the planner offers to save unsaved work before following any
+# link with that class, and a nav that walks you off a design you have not saved is worse
+# than no nav. The current page is marked and not linked to itself.
+$siteLinks = @(
+  @{ href = "/planner/";    label = "Planner" },
+  @{ href = "/artillery/";  label = "Artillery" },
+  @{ href = "/designs/";    label = "Designs" },
+  @{ href = "/armory/";     label = "Armory" },
+  @{ href = "/ballistics/"; label = "Damage" },
+  @{ href = "/loadouts/";   label = "Loadouts" },
+  @{ href = "/feedback/";   label = "Feedback" }
+)
+$navLinks = ($siteLinks | ForEach-Object {
+  if ($_.href -eq "/planner/") { '<a aria-current="page">{0}</a>' -f $_.label }
+  else { '<a class="leaveLink" href="{0}">{1}</a>' -f $_.href, $_.label }
+}) -join ""
+$siteNav = '<div id="sitebar"><a class="leaveLink sb-brand" href="/">WARDOGS</a><nav aria-label="Site">' +
+  $navLinks + '</nav></div>'
+
+$offline = $out.Replace('/*__API__*/', '').Replace('/*__BUILD__*/', '').Replace('<!--__AD_HEAD__-->', '').Replace('<!--__AD_PANEL__-->', '').Replace('<!--__SITENAV__-->', '')
 [IO.File]::WriteAllText("$proj\WardogsBaseBuilder.html", $offline, $utf8)
 # Artifact variant (no HTML skeleton, the Artifact wrapper provides it)
 $art = $offline -replace '(?s)^.*?<title>', '<title>' -replace '</head>\s*<body>', '' -replace '</body>\s*</html>\s*$', ''
@@ -100,7 +124,7 @@ $art = $offline -replace '(?s)^.*?<title>', '<title>' -replace '</head>\s*<body>
 # afterwards by tools/build-site.js. GitHub Pages serves the whole docs/ folder.
 New-Item -ItemType Directory -Force "$proj\docs\planner" | Out-Null
 [IO.File]::WriteAllText("$proj\docs\planner\index.html",
-  $out.Replace('/*__API__*/', $apiBase).Replace('/*__BUILD__*/', $stamp).Replace('<!--__AD_HEAD__-->', $adHead).Replace('<!--__AD_PANEL__-->', $adPanel).Replace('<!--__TOOLNAV__-->', $toolNav), $utf8)
+  $out.Replace('/*__API__*/', $apiBase).Replace('/*__BUILD__*/', $stamp).Replace('<!--__AD_HEAD__-->', $adHead).Replace('<!--__AD_PANEL__-->', $adPanel).Replace('<!--__SITENAV__-->', $siteNav), $utf8)
 [IO.File]::WriteAllText("$proj\docs\build.txt", $stamp, $utf8)
 if (Test-Path "$proj\release\og-1200x630.png") { Copy-Item "$proj\release\og-1200x630.png" "$proj\docs\preview.png" -Force }
 # Custom domain. Leave EMPTY until the domain's DNS actually resolves — claiming a
