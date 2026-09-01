@@ -22,6 +22,15 @@ delete now they are visible.
 `/designs/` also carries **your own saved designs under the community's**, with the button
 that sends one up; [publish-a-design](processes/publish-a-design.md) is the whole loop.
 
+**Tags need one worker deploy, and until it runs every new submission loses them.** The
+site and the planner both ask for tags now and send them; the deployed worker was written
+before they existed, builds its record field by field, and drops the field it does not know.
+Nothing errors and nothing says so: a design published today comes back untagged and matches
+no filter. The vocabulary, the pickers, the filter bar and the pills are all in the repo and
+green, so this is the one command between them and being true.
+
+    wrangler deploy --config "<repo>/worker/wrangler.toml"
+
 A warning that cost an evening, now on the worker card too: `wrangler kv` reads a **local
 emulated store** unless you pass `--remote`. Without it the namespace looks empty. Those
 three designs were reported as "nothing ever reached storage" on the strength of a listing
@@ -72,20 +81,39 @@ plan's footprint on the artillery map, so a design's own mortar gets its reach d
 real terrain. That is the join between the planner and this page, and it is one confirmed
 number away.
 
-## Ballistics is now a calculator, and it has one hole worth closing
+## Ballistics runs on measurements now, and three things are open
 
 `/ballistics/` is the damage calculator and the ranking on one page: pick a weapon, a load,
-a helmet tier, a vest tier and a hit zone on a clickable figure, and every weapon in the
-game re-sorts underneath to match. The URL fragment carries the setup, so a comparison is a
-link. Read [derived-data](objects/data/derived-data.md), then `docs/ballistics-sources.md`.
+a helmet tier, a vest tier and a hit zone on a clickable figure, and every weapon re-sorts
+underneath to match. The URL fragment carries the setup, so a comparison is a link. It reads
+`data/damage.json`, pulled from the owner's sheet by `tools/pull-damage-sheet.js`. Read
+[game-icons](objects/data/game-icons.md)'s sibling card and `map/CHANGES.md` for why it
+stopped being derived.
 
-**The one thing to close with the game open: what flesh damage does to an unarmoured zone.**
-Every armour figure for HP is published and used. Its bare-flesh damage is published
-nowhere, so the page uses the standard figure and calls it a floor in three places. The
-vendor charges $7.00 a round for .308 HP against $4.00 for standard, so the real number is
-higher and nobody knows by how much. One magazine into an unarmoured target, counting hits,
-closes it. It is the largest wrong number on the site and it is wrong in a knowable
-direction.
+**The flesh damage hole is closed.** It used to be the largest wrong number on the site: HP
+against a bare zone was published nowhere, so the page used the standard figure and called
+it a floor. It is measured now. Nothing else on the page is a stand-in.
+
+Three things are genuinely open:
+
+- **25 cells in the sheet contradict the sheet's own scaling table**, listed in
+  `data/damage.json` under `sheetDisagrees` and printed by the pull tool. They are `45acp
+  AP` from a pistol at tiers 3 and 4, whose armoured rows were worked out from a base 1.22
+  times what the bare row now says; `50cal FMJ` from a sniper at tiers 1 and 3, which used
+  the AP scalings; and one stray `45acp FMJ` leg cell. Armoured damage is computed rather
+  than imported, so the site is not wrong, but the sheet is inconsistent with itself and
+  only the owner can say which side is right. Fix them there and re-run the tool.
+- **The Scout Rifle TD has no damage.** It is a marksman rifle in 5.56 and that tab was
+  tested in 7.62 and .308 only. One pass with it closes the last gap in the 28.
+- **The armory's item panel still shows the old solved torso figure.** `/ballistics/` moved
+  to measurements and the panel did not, so the two can disagree about the same gun. It
+  reads `torso` off `data/ballistics.json`; the measured figure lives per class and per zone
+  in `data/damage.json` and there is no single "torso damage" to swap in, which is why this
+  was left rather than guessed at.
+
+`tools/solve-ballistics.js` still runs and still has to reproduce its published source, but
+nothing on the page reads what it solves any more except rate of fire, velocity and mass.
+Retiring it is a decision, not a chore: it is the only thing still checking those tables.
 
 Six weapons and seven loads are on the vendor shelf with no damage figure and are listed on
 the page as gaps rather than dropped. `test/ballistics.js` fails if a new one appears in

@@ -247,6 +247,45 @@ check(!mojibake, "no mojibake from a codepage mismatch",
     [...new Set(bad)].slice(0, 3).join(" | "));
 }
 
+/* -- 3d2. the measured damage still joins onto the weapons --
+   data/damage.json is cut by weapon class and load; data/ballistics.json says which class a
+   weapon is and which calibre it fires. There is no key between them, so the join is by
+   class name and by the calibre spelling at the front of a row label. A rename on either
+   side lands nothing and the page renders every zone as a dash, which still builds and
+   still looks deliberate. This pins the count instead. */
+{
+  const dmg = JSON.parse(fs.readFileSync(path.join(proj, "data/damage.json"), "utf8"));
+  const bal = JSON.parse(fs.readFileSync(path.join(proj, "data/ballistics.json"), "utf8"));
+  const LABEL = {
+    "556": "5.56", "545": "5.45", "308": "308 Win", "762": "7.62x39", "762x54": "7.62x54",
+    "9mm": "9mm", "45acp": "45acp", "45colt": "45colt", "50ae": "50AE", "50cal": "50cal",
+  };
+  const unmatched = bal.weapons.filter(w => {
+    const inClass = dmg.classes[w.class];
+    if (!inClass) return true;
+    const label = LABEL[w.calibre];
+    return !Object.keys(inClass).some(n => !label || n.indexOf(label) === 0);
+  }).map(w => w.name + " (" + w.class + "/" + w.calibre + ")");
+  /* One weapon genuinely has no row: the Scout Rifle TD is a marksman rifle in 5.56 and the
+     marksman tab was tested in 7.62 and .308 only. It is a gap in the measurements, not a
+     broken join, so it is named here rather than allowed to hide in a count. */
+  const EXPECTED_GAPS = ["Scout Rifle TD (Marksman/556)"];
+  const surprise = unmatched.filter(n => EXPECTED_GAPS.indexOf(n) < 0);
+  const fixed = EXPECTED_GAPS.filter(n => unmatched.indexOf(n) < 0);
+  check(surprise.length === 0, "every weapon but the known gaps joins onto measured damage",
+    surprise.join(", "));
+  check(fixed.length === 0, "and the known gap is still a gap, or this list is stale",
+    fixed.join(", "));
+
+  const zoneIds = dmg.zones.map(z => z.id).sort().join(",");
+  check(zoneIds === "abdomen,bicep,chest,extremity,forearm,groin,head,legs,neck",
+    "the nine measured zones are the nine the page draws", zoneIds);
+  const slotted = dmg.zones.filter(z => z.slot && !z.coveredFrom);
+  check(slotted.length === 0,
+    "no zone claims an armour slot without a tier that reaches it",
+    slotted.map(z => z.id).join(", "));
+}
+
 /* -- 3e. game icons: every reference resolves and every file is accounted for --
    The wiki icons under docs/game-icons/ are joined to items by slug in three places:
    data/armory.json (via build-armory.js), the pages that render them, and the catalog in

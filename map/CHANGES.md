@@ -8,6 +8,76 @@ Newest first. One entry per decision, not per commit.
 
 ## 2026-08-31
 
+### Designs carry tags, and the list filters on them
+
+A list of base layouts is a list of pictures, and the question somebody arrives with is
+narrower than the whole list: which map, and what do I need it to stop. `/designs/` now has
+a chip bar over it, in two rows: **Where it works** and **What it is for**. Two chips in one
+row means either of them; a chip in each row means both, because the rows are different
+questions and the other reading hands somebody a filter that can only return nothing.
+
+**Every submission has to say where it works.** That is the one tag rule, and it is the
+only one the worker can enforce, which is why every tag in that group is prefixed `map-`:
+the worker holds no copy of the vocabulary and must not. It is deployed on its own, and a
+list inside it would make each new tag a deploy somebody forgets, leaving the site offering
+a tag the server refuses. So it checks the shape of an id, a cap of eight, and the presence
+of one `map-` tag, and stores whatever else it is handed. The site draws only the tags it
+knows, so an unrecognised id renders as nothing rather than as text nobody chose.
+
+**The list lives in `data/community.json` and nowhere else.** The site reads it through
+`tools/site/context.js`; `build.ps1` inlines the same array into the planner beside the
+catalog. `test/tags.js` holds the two built files to it byte for byte, checks every id
+against the regex it lifts out of the worker, and fails if a map in `data/artillery-maps.json`
+has no tag of its own, which is what makes adding a third map one edit rather than three.
+
+**Both places that submit now ask.** The planner's Designs panel and the **Put it up for
+voting** button on your own saved designs, which is all of them: the paste-a-share-code form
+had already stopped being rendered, and its dead handler went with this rather than becoming
+a third copy of the picker. Tags are asked for at the moment of publishing rather than kept
+on the design, because they do not travel in the share code and nothing edits them
+afterwards. **Any map** clears the named maps and a named map clears it, in both pickers.
+
+A design submitted before any of this carries no tags, shows none, and simply does not
+match a filter. Counts on the chips are what pressing them would leave you with, so every
+other row's filter counts and its own does not: a chip that said nine and handed back
+nothing would be worse than no count at all.
+
+### The artillery map always draws the spawns
+
+They were a layer toggle beside Terrain, Grid, Zone and Towers. Where the three factions come
+in is not a preference about the drawing: a gun position is chosen against it, and the only
+thing turning it off ever achieved was hiding it. The button is gone and the spawns are
+always on. Four toggles left, all of them about how much detail is under the rings.
+
+### Damage is measured now, not solved
+
+The owner shot the game and wrote it down, so `tools/solve-ballistics.js` stopped being the
+best answer available. `tools/pull-damage-sheet.js` reads that sheet into `data/damage.json`
+and the page runs on it. **Two things the derived model had wrong, both stated in prose:**
+
+- **Coverage grows with tier.** A helmet is the head, and from level 3 the neck. A vest is
+  the chest and abdomen, and from level 4 the shoulders and groin. The page said outright
+  that a helmet is worth nothing to a neck shot. `test/ballistics.js` pins each zone's tier.
+- **The class fires the round, not the calibre.** 9mm from an SMG and from a pistol came
+  back different. One figure per calibre could not express it.
+
+Zones went twelve to nine, the game's own taxonomy. The artwork is remapped rather than
+redrawn: three torso bands become two, hands and feet become one zone of four paths.
+
+**The bare column and the scalings are transcribed. Armoured damage is not**, it is bare
+times the scaling, because the sheet's armoured block contradicts its own scaling table in
+25 cells: `45acp AP` from a pistol at tiers 3 and 4, computed off a base 1.22 times the bare
+row; `50cal FMJ` from a sniper at tiers 1 and 3, using AP scalings; one stray leg cell.
+Importing both ships the contradiction and fixing the sheet here hides it, so they are
+recorded in `sheetDisagrees` and the suite fails if that record is dropped.
+
+The Scout Rifle TD has no measurement, being a marksman rifle in 5.56 where that tab was
+tested in 7.62 and .308. It is named in `tools/check-build.js`, which also fails if the gap
+closes and the list goes stale. `data/ballistics.json` still owns rate of fire, velocity,
+the vendor joins and the palette; the join to it has no foreign key, so check 3d2 pins the
+count. A rename on either side lands nothing and draws every zone as a dash, which still
+builds and still looks deliberate.
+
 ### Your own designs sit under the community's, on the same page
 
 `/designs/` was other people's work and a paragraph telling you your own was elsewhere. It
@@ -61,13 +131,14 @@ page and a regression would look identical to the owner.
 known about it. The art was always there and always shown at 64 px; the files are 512 px
 square, so this is the first place on the site that shows an item properly.
 
-The stats are a join, not new data. `data/ballistics.json` already held them under different
-keys, so the panel reads across: a figured weapon gets class, calibre, rate of fire, torso
-damage and effective range; one of the six that cannot be figured gets its kind and the
-published reason nobody can figure it; a round gets base damage, muzzle velocity, mass and
-what gets through level 1 and level 4 armour; armour gets what it covers. **72 items of 331
-have real stats. The other 259 are told plainly that nothing is published**, rather than
-shown a panel of empty rows, which reads like missing data rather than absent data.
+The stats are a join, not new data: `data/ballistics.json` already held them under different
+keys and the panel reads across. **72 items of 331 have real stats. The other 259 are told
+plainly that nothing is published**, rather than shown a panel of empty rows, which reads
+like missing data rather than absent data.
+
+**Its torso damage is now the superseded figure.** That number is the solved one, and the
+damage page moved to measurements on 2026-08-31. The panel was not migrated with it, so the
+armory and `/ballistics/` can disagree about the same gun. Listed in `OPEN.md`.
 
 Three things a later reader should not undo:
 
@@ -86,24 +157,17 @@ them landing silently, leaving a page that still builds and still looks right wi
 quietly gone. `tools/check-build.js` asserts all four joins by exact count, plus that every
 calibre id resolves and that all 331 items carry an opener in both views.
 
-**On `<dialog>`, and what was measured rather than assumed.** It is a native dialog for the
-backdrop and the focus trap. Its `close` event never fires in the browser this was built
-against, checked on its own with nothing else involved, so the focus restore cannot hang off
-that event and `shut()` does it directly. Escape could not be tested there at all, because
-that browser delivers no key events to the page; nothing is claimed about it, and it gets an
-explicit handler anyway. Closing twice is a no-op, so an engine that implements both loses
-nothing.
+**On `<dialog>`.** Native, for the backdrop and the focus trap. Its `close` event never fires
+in the browser this was built against, checked in isolation, so the focus restore cannot hang
+off it and `shut()` does it directly. Escape could not be tested there at all, since that
+browser delivers no key events; nothing is claimed about it and it gets a handler anyway.
+Closing twice is a no-op.
 
-**The vehicles page is now a doorway, and the tab is gone.** It listed two categories of this
-same catalogue in two tables, split ground from air, and carried one note about fuel. The
-armory does all four now. `/vehicles/` itself is a zero-delay meta refresh to `/armory/`,
-canonical pointed there and `noindex` on it, because GitHub Pages cannot send a 301 and a
-deleted page is a permanent 404 for everyone holding the link. The build fails if that
-refresh tag goes missing, which would leave a page that says "moved" and does not move.
-
-Weight was checked rather than assumed: the detail payload is 61 KB of JSON, and the whole
-page is **45 KB gzipped**, which is what GitHub Pages actually serves. No trimming was worth
-the complexity at that number.
+**The vehicles page is a doorway now, and the tab is gone.** `/vehicles/` is a zero-delay
+meta refresh to `/armory/`, canonical pointed there and `noindex` on it, **because GitHub
+Pages cannot send a 301 and a deleted page is a permanent 404 for everyone holding the
+link.** The build fails if that refresh tag goes missing. Weight was measured, not assumed:
+45 KB gzipped, which is what Pages serves.
 
 **Every nav link is boxed now**, which is the owner's call. The two tools were boxed and the
 references were plain; the owner reads the box as finished rather than as primary, and these
@@ -113,46 +177,34 @@ references.
 
 ### The buildables page uses the armory's rail, and serves its icons as files
 
-Two problems in one page, and both had already been solved elsewhere.
+Two problems, both already solved elsewhere.
 
-**The layout was the pattern the armory had abandoned.** Eight purposes rendered as eight
-filled chips in a full width band, the selected one a solid yellow slab, stacked above a
-second band holding one small search box and a third holding two view buttons. Three
-stripes across the page at three different heights, each with dead space trailing off its
-right. The cause is worth naming because it looks like a styling bug and is not: `.cat-bar`
-and `.cat-count` were written into the markup and **never given any CSS at all**, so those
-controls were plain block siblings and stacked. The armory hit the same wall at ten
-categories and answered it with `.cat-layout`: a rail you read down, counts aligned so they
-compare, selection marked by an edge rather than a slab. That answer is now used twice
-instead of a second one being invented. Nothing in the CSS was added for this except
-`.cat-main{min-width:0}` and `.cat-tablebox{overflow-x:auto}`, which a five column table
-needs and the armory's three column one did not: a grid column is `min-width:auto` by
-default, so the description column pushed the rail off the page instead of scrolling.
+**The layout was the pattern the armory had abandoned**, and the cause looks like a styling
+bug and is not: `.cat-bar` and `.cat-count` were in the markup and **never given any CSS at
+all**, so those controls were plain block siblings and stacked into three stripes. It uses
+the armory's `.cat-layout` rail now. The only new CSS is `.cat-main{min-width:0}` and
+`.cat-tablebox{overflow-x:auto}`, which a five column table needs and a three column one did
+not: **a grid column is `min-width:auto` by default**, so the description column pushed the
+rail off the page instead of scrolling.
 
-**The icons were 585 KB of base64 that the default view never painted.** They were inlined
-so that a row and its picture would arrive together, which made this the second heaviest
-page on the site at 660 KB, behind only the planner. The default view was the table, and
-the table has no icons: you got the whole payload and saw none of it unless you clicked
-Grid. They are files under `/build-icons/` now, lazily loaded, the way the armory has
-always loaded its 331. The page is **87 KB**.
+**The icons were 585 KB of base64 the default view never painted.** They were inlined so a
+row and its picture would arrive together, making this the second heaviest page on the site
+at 660 KB; but the default view is the table, which has no icons. They are files under
+`/build-icons/` now, lazily loaded. The page is **87 KB**.
 
-`assets/icons/` now feeds two consumers and the difference between them is the point:
-`build.ps1` inlines it into the planner as data URIs because that file has to open with no
-network, and copies it to `docs/build-icons/` for the site, which has one. Do not
-"consolidate" those. Four checks in `tools/check-build.js` hold it: every buildable icon
-has its file, every `/build-icons/` reference resolves, the downloadable planner never
-names one by URL, and the buildables page carries no `src="data:image` at all. That last
-one exists because re-inlining is the tempting thing to do next time somebody wants a row
-and its picture to arrive together, and it is how the weight came back.
+`assets/icons/` feeds two consumers and the difference is the point: `build.ps1` inlines it
+into the planner as data URIs because that file opens with no network, and copies it to
+`docs/build-icons/` for the site, which has one. **Do not consolidate those.** Four checks
+hold it, including that the buildables page carries no `src="data:image` at all, which exists
+because re-inlining is the tempting thing to do next time somebody wants a row and its
+picture together, and it is how the weight came back.
 
-**It also came out of the top nav**, which is a separate decision from the two above and was
-the owner's call against the argument written here first. Nine links was too many to scan,
-and the build costs are the one reference you meet inside the planner anyway, priced as you
-place a piece. What matters for anyone tidying later: the page is not gone and must not be.
-`/buildables/` is an indexed URL against a real query, GitHub Pages cannot serve a redirect
-so a deletion is permanent, and it is now reached from exactly two places, the home page
-grid and the footer. `test/site.js:74` holds the home page to linking it. Removing those
-links is removing the page, whatever the sitemap still says.
+**It also came out of the top nav**, the owner's call: nine links was too many, and build
+costs are the one reference you meet inside the planner anyway. **The page is not gone and
+must not be.** `/buildables/` is an indexed URL, GitHub Pages cannot serve a redirect so a
+deletion is permanent, and it is now reached from exactly two places, the home page grid and
+the footer. `test/site.js:74` holds the home page to linking it. Removing those links is
+removing the page, whatever the sitemap still says.
 
 ### The worker refuses to run on a secret anybody could read
 
@@ -414,135 +466,46 @@ The 13.7 that does matter is the worst case rather than the common one: by the s
 the fill has lightened to within 13.7 of the dash, and a marking you cannot see on the one
 wall high enough to need it is no marking. Fixed in the next entry.
 
-### The draw order was sorted by the middle of each piece
+### The 3D view, condensed: six entries about one rewrite
 
-Reported as a yellow wall not carrying on through: a notch bitten out of a hesco run where a
-bremer stood behind it. Pieces were drawn in order of how far the middle of each was from the
-camera, and `docs/3d-view-design.md` said in as many words that this was exact. It is not. A
-four cell wall reaches two cells past its own middle, so a single block behind one end had the
-larger depth, sorted in front of the whole wall, and painted over it.
+Six passes over the isometric view, kept as one because they are one decision each and the
+narration has been paid for. All six are pinned in `test/elevation.js`, and `git log` has the
+reasoning in full.
 
-Sorting by one number cannot answer this, because the answer is an order rather than a value.
-For boxes square on the world axes the rule is exact: A is behind B if A lies wholly on the
-far side of B along one axis. `paintOrder` builds that as a graph and walks it, seeded from
-the depth order so ties stay stable and nothing flickers as the camera moves. Only pairs that
-overlap on screen are asked, found through a coarse screen grid, so the cost tracks what the
-base looks like rather than the square of how many pieces are in it: 0.7 ms for 117 pieces,
-3.2 ms for 624, against a sixteen millisecond frame.
+**Draw order is a graph, not a sort.** Ordering by how far each piece's middle sits from the
+camera drew short pieces over long ones, reported as a wall not carrying on through. Pairs
+that actually overlap are ordered against each other and the rest are left alone: 0.7 ms for
+117 pieces, 3.2 ms for 624, against a sixteen millisecond frame. Reverting the sort fails six
+checks. What is left is that a turned piece is still compared by the box around it, which is
+in `docs/3d-view-design.md` rather than in anyone's head.
 
-Measured on the reported arrangement: four pairs drawn over something they stood behind,
-now none. On a 624 piece base, 3,066 overlapping pairs and none wrong. `test/elevation.js`
-audits the real order against the rule at all four spins, and reverting to the old sort fails
-six of its checks.
+**A piece is a prism over its own four corners**, not its bounding box. A 4x4 tower at forty
+five degrees has a box 5.66 across, so it drew half again too wide and square on when the
+piece is a diamond, and the plan and the 3D disagreed about the one thing this tool exists to
+be right about. Which sides face the camera is worked out per piece, so seam suppression
+follows the piece rather than the grid.
 
-The doc has been corrected rather than quietly fixed around it: it claimed a box further away
-always has a smaller x + y, which is only true of its own middle, and a piece is not its
-middle.
+**Runs, not boxes.** A perimeter is one wall to the builder and was thirty outlined boxes to
+the renderer. A side joined to a neighbour the plan already calls the same wall is interior
+and goes, uprights included: 612 edges down to 209 on a fifty one piece base. The seam mask
+is in world directions and the visible faces depend on the spin, which is checked as
+arithmetic at all four spins, because suppressing the wrong side looks almost right.
 
-### The 3D drew a box around the piece, not the piece
+**Height is the whole job of this view**, so a block stands 1.45 times the ground scale
+rather than one cell against a cell 0.866 wide, the FOB stands its catalog two blocks rather
+than a third of one, and the camera sits above the textbook thirty degrees. `fit3D` projects
+all eight corners of the volume, having previously measured the ground and let bases run off
+the top.
 
-Reported as random shapes near the FOB. A turned piece was drawn from its axis aligned
-bounding box: a 4x4 recon tower at forty five degrees has a box 5.66 across, so it came out
-half again too wide and square on when the piece is a diamond. The plan and the 3D disagreed
-about the footprint, which is the one thing this tool exists to be right about.
+**Colour is by material, and the key cannot lie.** Towers and bunkers left the hescos' gold
+for concrete, bremers took a paler concrete of their own, and a picked piece is filled rather
+than outlined. Four things move together or the key is wrong: the role on the piece, its
+colour, its label, and the list the key is built from. One behaviour change came with it, and
+the suite says so out loud: runs merge by role, so a hesco meeting a bremer now shows the
+join.
 
-A piece is a prism over its own four corners now. Which sides face the camera is worked out
-per piece from where each one points rather than from the spin, so a turned piece is handled
-the same way a square on one is, and the seam suppression follows: a side only claims a world
-direction when it really looks along one, so a turned piece suppresses nothing against a grid
-it does not sit on. At exactly forty five degrees one side faces the camera and the two beside
-it are edge on, which is why only one is drawn.
-
-**The FOB stood a third of a block tall** while the catalog calls it two, so the piece the
-whole base is built around lay flat on the floor in the view whose job is height. It stands
-up like everything else, and the fit was given the same number so the two cannot disagree.
-
-**And the plan draws its writing last.** Names, height chips and note marks were drawn as
-each piece was drawn, so any piece drawn afterwards painted over them: the label of the thing
-you were pointing at could be underneath a tower dropped beside it, which is exactly when you
-wanted to read it. They are writing about the plan rather than part of it, so they go on last,
-over all of it.
-
-### The camera sits higher
-
-The textbook isometric puts the eye about thirty degrees above the ground, which is a low
-angle to plan a footprint from: a perimeter comes out as a thin band and you read the walls
-rather than the shape. `ISO_TILT` raises it. The walls keep their height while the ground
-opens toward the overhead plan, because height here is a fixed offset up the screen rather
-than something the tilt foreshortens. Not a real camera, and that is the point: the plan
-answers where things are, this answers how tall, and this angle reads as much of both at
-once as it can.
-
-That exposed one more thing. `fit3D` measured the ground across and nothing else, so it
-never saw the height it was about to draw, and a base fitted to the width and ran off the
-top. It projects the eight corners of the whole volume now and fits what actually lands on
-screen, in both directions.
-
-### The 3D view, second pass: seamless runs, real height, and concrete
-
-Three things, all reported off the same screen.
-
-**The lining that was left.** The first pass skipped a vertical face when that face own side
-was joined, and missed the case that matters most. A run along x has every piece joined on
-its plus and minus x sides, so the face pointing at the camera went, but the long side is
-joined to nothing and every piece still drew its whole side quad, uprights included: a
-vertical line at every join, down the length of the wall. An upright stands on a direction,
-so it goes when that direction is joined, and a vertical face never draws its top edge
-because the roof already draws that line. Measured on a fifty one piece base: 612 edges down
-to 209, two thirds fewer.
-
-**Height.** A block was drawn one cell tall against a cell being 0.866 wide, so a two block
-wall and a five block tower differed by three faint steps, in the one view whose whole job is
-to answer how tall. `ISO_Z` stands a block 1.45 times the ground scale. It is not a lie
-about the geometry: footprints are read on the plan, and this is where you look at what
-stands up.
-
-**Bremer walls are concrete.** A bremer is a poured slab and a hesco is a wire basket full of
-dirt, and they were the same gold, so a mixed perimeter read as one material. Its own role
-now, in a pale concrete kept apart from the tower grey so the two concretes are still told
-apart. One consequence worth knowing rather than tripping over: runs merge by role, so a
-hesco meeting a bremer now shows the join between them. That is correct once they are
-different materials, but it is a behaviour change and `test/elevation.js` says so out loud.
-
-### A tower is not a wall
-
-Bunker and recon tower were painted the same gold as the hesco walls they stand behind, so a
-five block tower read as a tall wall. That is only wrong where height is the thing you are
-looking at, which is the 3D view, and that is where it was reported from. They are their own
-role now, in concrete rather than gold: deliberately desaturated, because a structure you get
-inside should not compete with the wall in front of it.
-
-Four things had to move together or the key would lie: the role on the piece, the colour for
-that role, the label, and the list the key is built from. `test/elevation.js` checks all
-four, that the new colour is far enough from the wall colour to tell at a glance, that it is
-far enough from every other role too, and that no piece is left pointing at a role the key
-cannot explain.
-
-### The 3D view draws runs, not boxes
-
-A perimeter is one wall to the person who built it and thirty outlined boxes to the
-renderer, and it drew all thirty. The view came out as a field of lines with a base
-somewhere inside it, which is what got reported as it not looking clean.
-
-An edge shared with a neighbour that the plan already calls part of the same wall is
-interior: it is not the shape of anything. The two vertical faces are skipped outright when
-that side is joined, and the roof is stroked edge by edge rather than as one closed quad, so
-a run keeps only its own outline. Measured on a twenty six piece perimeter: 372 edges down
-to 240, a third fewer lines, and the walls read as slabs.
-
-The seam mask is in world directions and the two visible vertical faces depend on how the
-world is spun, so the spin picks which bit to ask about. `test/elevation.js` checks that
-pairing at all four spins as arithmetic rather than by eye, because suppressing the wrong
-side is the failure that would look almost right.
-
-The climb marking had the same shape of bug: it said a vehicle can get over this wall once
-per block, so a crossable perimeter came back as a dashed ladder. It rings the run now.
-
-**A picked piece is filled rather than outlined.** A hesco wall is already gold, so a gold
-outline on one answered nothing: measured, the chosen piece was within a few points of its
-neighbours. Its top face is now 73 luminance points brighter than the wall it sits in, and
-it is outlined in cream, which no buildable uses. A selected or faulted piece also keeps its
-whole outline, since there the point is to find one piece rather than to read a shape.
+**The plan draws its writing last.** Labels, height chips and note marks were drawn per
+piece, so a tower dropped beside the thing you were pointing at painted over its label.
 
 ### How many players it takes to hold the base
 
@@ -594,31 +557,25 @@ off with it: that stopped being true when the queue was removed.** Thumbnails we
 
 A list of names told you nothing about the thing you were choosing between, and a base is a
 shape. Every card carries an overhead picture of its own layout: colour and footprint only,
-no names, no height badges, no storey shading, no grid. At card size none of those can be
-read, and each one turns something you take in at a glance into something you have to study.
+because at card size names, badges and grids turn a glance into a study.
 
-Drawing it meant decoding a share code outside the planner. The card for that format says
-the count of places it lives in is the point, and its two encoders had already drifted apart
-once without anybody noticing, so a second decoder was not written.
-`src/shared/design-view.js` is the only one, with the only palette beside it. `build.ps1`
-inlines it into the planner and `tools/site/client-scripts.js` inlines it into the pages;
-neither keeps a copy, and the planner's private decoder and colour tables are deleted rather
-than left unused. The page gets a slim table of footprints and roles rather than the whole
-catalog, because a picture needs nothing else.
+Drawing it meant decoding a share code outside the planner, and **the two encoders of that
+format had already drifted apart once without anybody noticing**, so a second decoder was not
+written. `src/shared/design-view.js` is the only one, with the only palette beside it.
+`build.ps1` inlines it into the planner and `tools/site/client-scripts.js` into the pages;
+the planner's private decoder and colour tables are deleted rather than left unused.
 
-Pictures are painted when a card is about to be seen rather than all at once, and a code
-that will not decode leaves no picture instead of a broken frame.
+Pictures are painted when a card is about to be seen, and a code that will not decode leaves
+no picture rather than a broken frame.
 
-Two things showed up next to it. The dynamic list wrote its cards straight into the
-container while the built-in list wrapped them in a grid, so the moment the worker answered,
-a tidy grid became a column of full width rows. And inside a 270px card the action row was a
-single unwrapped line with hard margins, so its last button hung outside the card it
-belonged to.
+Two things showed up beside it: the dynamic list wrote cards straight into the container
+while the built-in list wrapped them in a grid, so a tidy grid became a column of full width
+rows the moment the worker answered; and inside a 270px card the action row was one unwrapped
+line with hard margins, so its last button hung outside the card.
 
-`test/thumbnails.js` covers the drawing and the sharing: every piece drawn, nothing written
-on it, the base inside the canvas and filling it, a long base and a tall one both fitting
-without being stretched, and the decoder present in both builds with the planner's old copy
-gone.
+`test/thumbnails.js` covers both: every piece drawn, nothing written on it, the base inside
+the canvas and filling it, a long base and a tall one both fitting unstretched, and the
+decoder present in both builds with the planner's old copy gone.
 
 ### Sign out moved under your name
 
