@@ -8,6 +8,24 @@ Newest first. One entry per decision. Keep entries short.
 
 ## 2026-08-31
 
+### The ranking says one thing per column, and the bar points the right way
+
+**The bar was upside down.** Its length was time to kill, so the seven weapons that kill in
+one shot drew a 1.5% stub and the slowest drew a full bar: the top of the ranking read as
+empty. Length is how fast the kill is now, longest is fastest, and the slowest still keeps a
+6% stub so it is a bar rather than nothing.
+
+**One colour scale.** The load had five of its own, on the bar, in the legend and as a chip
+on every row, sitting beside a four-colour scale that means magnitude. The bar carries the
+time band, the load is a word in its own column, and the load legend is gone. So is the "no
+FMJ" marker, which the load filter answers better, and "Buckshot Buckshot", which was the
+legend printing each round's short name and its long one.
+
+**The columns are the sort.** Weapon, how fast it kills, load, damage, shots, rate: pressing
+one orders by it, which replaces four chips that said "By damage" over a column of
+unlabelled numbers. The time sits at the end of its own bar rather than in a column of its
+own, and hovering it names the zones that kill in one shot.
+
 ### Armory: no disclaimers, and Supply is its own shelf
 
 Owner's call: the panels were full of notes saying what was missing, what was a guess, and

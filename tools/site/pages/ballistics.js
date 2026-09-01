@@ -257,24 +257,26 @@ module.exports = ctx => {
      green was better than red and had no way to find out what green was. The bounds come
      off data/ballistics.json rather than being written here, so a band that moves moves the
      legend with it. */
-  const bandLegend = B.ttkBands.map((b, i) => {
+  /* Each band knows the seconds it stands for, said once here and used by the legend and
+     by every row's hover, so the two can never disagree about what green means. */
+  B.ttkBands.forEach((b, i) => {
     const from = i ? B.ttkBands[i - 1].upTo : null;
-    const range = b.upTo === null ? "over " + from + " s"
+    b.range = b.upTo === null ? "over " + from + " s"
       : from === null ? "under " + b.upTo + " s"
       : from + " to " + b.upTo + " s";
-    return '<span class="lg"><i class="sq" style="background:' + b.tint + '"></i>' +
-      esc(b.name) + ' <span class="fine">' + esc(range) + "</span></span>";
-  }).join("");
-  const roundLegend = B.rounds.map(r =>
-    '<span class="lg"><i style="background:' + r.tint + '"></i>' + esc(r.name) +
-    ' <span class="fine">' + esc(r.long) + "</span></span>").join("");
+  });
+  const bandLegend = B.ttkBands.map(b =>
+    '<span class="lg"><i class="sq" style="background:' + b.tint + '"></i>' +
+    esc(b.name) + ' <span class="fine">' + esc(b.range) + "</span></span>").join("");
   /* Two groups, each said out loud. It was one strip of nine chips with a hairline in the
      middle: five loads and four time bands, in two colour scales that mean different kinds
      of thing, and nothing on the page said which half was which. */
+  /* One scale, because there is one thing coloured: how fast the kill is. The loads had
+     their own five colours on the bar, in the legend and on every row, which is the same
+     fact three times in a hue scale that means identity sitting next to one that means
+     magnitude. The load is a word in its own column now, and its legend went with it. */
   const legend =
-    '<div class="lgrow"><span class="lgkey">Bar and dot colour</span>' +
-    '<span class="lgs">' + roundLegend + "</span></div>" +
-    '<div class="lgrow"><span class="lgkey">Time to kill</span>' +
+    '<div class="lgrow"><span class="lgkey">Bar colour</span>' +
     '<span class="lgs">' + bandLegend + "</span></div>";
 
   write("ballistics/index.html", page({
@@ -384,14 +386,24 @@ module.exports = ctx => {
       '<div class="chips" style="margin-top:8px" role="group" aria-label="Filter by load">' +
         '<button class="chip" data-load="" aria-pressed="true">Any load</button>' +
         B.rounds.map(r => '<button class="chip" data-load="' + esc(r.id) + '"' +
-          ' aria-pressed="false"><i class="dot" style="background:' + r.tint + '"></i>' +
-          esc(r.name) + "</button>").join("") +
+          ' aria-pressed="false">' + esc(r.name) + "</button>").join("") +
       "</div>" +
-      '<div class="chips" style="margin-top:8px">' +
-        '<button class="chip" data-by="ttk" aria-pressed="true">By time to kill</button>' +
-        '<button class="chip" data-by="dmg" aria-pressed="false">By damage</button>' +
-        '<button class="chip" data-by="stk" aria-pressed="false">By shots</button>' +
-        '<button class="chip" data-by="rpm" aria-pressed="false">By fire rate</button>' +
+      /* The columns are the sort. Four chips saying "By damage" above a list whose columns
+         were unlabelled is two problems solved by one row: the header says what each number
+         is, and pressing it orders by that number. */
+      '<div class="rrow rhead" role="row">' +
+        '<button type="button" class="rh rh-name" data-by="name"' +
+          ' aria-pressed="false">Weapon</button>' +
+        '<button type="button" class="rh rh-ttk" data-by="ttk"' +
+          ' aria-pressed="true">How fast it kills</button>' +
+        '<button type="button" class="rh rh-load" data-by="load"' +
+          ' aria-pressed="false">Load</button>' +
+        '<button type="button" class="rh rh-dmg" data-by="dmg"' +
+          ' aria-pressed="false">Damage</button>' +
+        '<button type="button" class="rh rh-stk" data-by="stk"' +
+          ' aria-pressed="false">Shots</button>' +
+        '<button type="button" class="rh rh-rpm" data-by="rpm"' +
+          ' aria-pressed="false">Rate</button>' +
       "</div>" +
       '<div class="rank" id="rank"></div>' +
       '<p class="fine" id="ranknote"></p>' +
@@ -703,6 +715,8 @@ module.exports = ctx => {
          it at the top of the fastest. It goes last among its equals instead. */
       " var t=function(o){return o.k.ttk===null?Infinity:o.k.ttk;};" +
       " rows.sort(function(a,b){" +
+      "  if(by==='name')return a.w.name.localeCompare(b.w.name);" +
+      "  if(by==='load')return a.p.load.type.localeCompare(b.p.load.type)||(t(a)-t(b));" +
       "  if(by==='dmg')return b.s.damage-a.s.damage;" +
       "  if(by==='stk')return (a.k.stk-b.k.stk)||(t(a)-t(b));" +
       "  if(by==='rpm')return (b.w.rpm||0)-(a.w.rpm||0);" +
@@ -712,54 +726,42 @@ module.exports = ctx => {
       "   by==='rpm'?(o.w.rpm||0):(o.k.ttk===null?0:o.k.ttk);};" +
       " var max=0;rows.forEach(function(o){var v=val(o);if(isFinite(v)&&v>max)max=v;});" +
       " box.textContent='';" +
+      /* Bar length is how fast the kill is, not how long it takes. It was the time itself,
+         so the seven weapons that kill in one shot drew a 1.5% stub and the slowest drew a
+         full bar: the top of a ranking read as empty and the bottom looked like the winner.
+         Full bar is the fastest thing in the list. */
+      " var slowest=0;" +
+      " rows.forEach(function(o){var t2=t(o);if(isFinite(t2)&&t2>slowest)slowest=t2;});" +
       " rows.forEach(function(o){" +
-      "  var v=val(o),pct=max>0&&isFinite(v)?Math.max(1.5,(v/max)*100):1.5;" +
+      "  var t2=t(o);" +
+      "  var pct=!isFinite(t2)?0:(slowest>0?6+94*(1-t2/slowest):100);" +
       "  var row=document.createElement('div');row.className='rrow';" +
-      "  var t=o.p.load.type;" +
-      /* "no FMJ" marks a weapon that fell back to something else because it cannot take
-         the round the calculator is set to. With the list filtered to one load there is no
-         falling back to mark: every row is that load, and the marker was reading as a
-         complaint about the filter itself. */
-      "  var sub=(!S.load&&t!==S.r)?(' <em class=\"fine\">no '+S.r+'</em>'):'';" +
       "  var ic=B.icon[o.w.name];" +
+      "  var title=o.k.stk===1?(o.one.length?'One shot to the '+o.one.join(', the ')" +
+      "    :'One shot at this zone')" +
+      "   :(o.band?o.band.name+', '+o.band.range:'No measured rate of fire, so no time to kill');" +
       "  row.innerHTML='<span class=\"rname\">'" +
       "   +(ic?'<img class=\"ricon\" src=\"/game-icons/'+ic+'.png\" alt=\"\" width=\"34\"'" +
       "    +' height=\"20\" loading=\"lazy\">':'')" +
-      "   +o.w.name+' <span class=\"fine\">'+o.w.class" +
-      "    +'</span></span>'" +
-      "   +'<span class=\"rtrack\"><span class=\"rbar\" style=\"width:'+pct.toFixed(1)" +
-      "    +'%;background:'+tint(t)+'\"></span></span>'" +
-      "   +'<span class=\"rload\" style=\"--rd:'+tint(t)+'\">'+label(t)+sub+'</span>'" +
+      "   +o.w.name+' <span class=\"fine\">'+o.w.class+'</span></span>'" +
+      /* The time sits at the end of its own bar rather than in a column of its own: the bar
+         is the answer and the number is what the bar is worth. */
+      "   +'<span class=\"rtrack\" title=\"'+title+'\">'" +
+      "    +'<span class=\"rbar\" style=\"width:'+pct.toFixed(1)+'%'" +
+      "     +(o.band?';background:'+o.band.tint:'')+'\"></span>'" +
+      "    +'<b class=\"rbarv\"'+(o.band?'':' data-none=\"1\"')+'>'" +
+      "     +secs(o.k.stk,o.k.ttk)+'</b></span>'" +
+      "   +'<span class=\"rload\">'+label(o.p.load.type)+'</span>'" +
       "   +'<span class=\"n rdmg\" title=\"measured in game\">'+fmt(o.s.damage)+'</span>'" +
-      "   +'<span class=\"n rstk\">'+o.k.stk+(o.k.stk===1?' shot':' shots')+'</span>'" +
-      /* The rate of fire, on every row rather than only when the list is sorted by it. It
-         is half of what time to kill is made of, and a reader comparing two weapons with
-         the same shots to kill has no way to see why one of them is faster without it. */
-      "   +'<span class=\"n rrpm\">'+(o.w.rpm?o.w.rpm+' rpm':'&mdash;')+'</span>'" +
-      /* The number, in the colour of its band. The band's word was on every row as well,
-         which is the legend printed forty times: the colour is the word, and the legend at
-         the top says what each one is in seconds. */
-      /* The number, in the colour of its band. The band's word was on every row as well,
-         which is the legend printed forty times: the colour is the word, and the legend at
-         the top says what each one is in seconds.
-
-         On a one shot the hover says where: "one shot" with no zone named is the question
-         it raises, since the answer changes with the armour and is different for every
-         weapon on the list. */
-      "   +'<span class=\"n rttk\"><span class=\"band\"'" +
-      "    +(o.band?' style=\"--bd:'+o.band.tint+'\"':' data-none=\"1\"')" +
-      "    +' title=\"'+(o.k.stk===1?(o.one.length?'One shot to the '+o.one.join(', the ')" +
-      "     :'One shot at this zone'):(o.band?o.band.name:'No measured rate of fire, so no" +
-      " time to kill'))+'\">'+secs(o.k.stk,o.k.ttk)+'</span></span>';" +
+      "   +'<span class=\"n rstk\">'+o.k.stk+'</span>'" +
+      "   +'<span class=\"n rrpm\">'+(o.w.rpm||'\u2014')+'</span>';" +
       "  row.addEventListener('click',function(){setWeapon(o.w.name);render();});" +
       "  box.appendChild(row);});" +
-      " var unit=by==='dmg'?'damage at the '+z.name.toLowerCase():" +
-      "  by==='stk'?'shots to kill':by==='rpm'?'rounds per minute':" +
-      "  'time to kill at the '+z.name.toLowerCase();" +
+      " var unit='how fast the kill is at the '+z.name.toLowerCase()+', longest is fastest';" +
       " el('ranknote').textContent='Bar length is '+unit+'. '+rows.length+" +
       "  ' weapons'+(unmeasured?', and '+unmeasured+' left out for want of a measurement':'')+" +
       "  (offLoad?', and '+offLoad+' that do not chamber '+label(S.load):'')+" +
-      "  '. Colour says which load, never how good. Click a row to load that weapon" +
+      "  '. Press a column to sort by it. Click a row to load that weapon" +
       " into the calculator.';}" +
       /* The chips are markup, so they start pressed on whatever the markup said. A setup
          arriving in the fragment has to move them, or the page shows a level 3 vest in the

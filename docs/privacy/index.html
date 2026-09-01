@@ -608,18 +608,38 @@ tr[data-on="1"] td{background:var(--panel2);color:var(--text)}
 .rrow{display:grid;align-items:center;gap:6px 10px;padding:9px 10px;background:var(--panel);
   cursor:pointer;font-size:13px;
   grid-template-columns:1fr auto auto auto;
-  grid-template-areas:"name name ttk ttk" "track track track track" "load dmg stk rpm"}
+  grid-template-areas:"name name name name" "track track track track" "load dmg stk rpm"}
+/* The header is the sort. Same grid as a row so each label sits over the numbers it names,
+   and pressing one orders by it: four chips above the list saying "By damage" over a column
+   of unlabelled numbers was two problems, and this is one answer to both. */
+.rrow.rhead{background:transparent;padding:4px 10px 6px;cursor:default;
+  border-bottom:1px solid var(--line)}
+.rh{background:none;border:0;padding:0;text-align:left;cursor:pointer;font-family:var(--ui);
+  font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.rh:hover{color:var(--text)}
+.rh[aria-pressed="true"]{color:var(--yellow)}
+.rh[aria-pressed="true"]{border-bottom:2px solid var(--yellow);padding-bottom:2px}
+.rh-name{grid-area:name}.rh-ttk{grid-area:track}.rh-load{grid-area:load}
+.rh-dmg{grid-area:dmg}.rh-stk{grid-area:stk}.rh-rpm{grid-area:rpm}
+.rh-dmg,.rh-stk,.rh-rpm{text-align:right}
+/* The time sits at the end of its own bar: the bar is the answer and the number is what the
+   bar is worth, where a column of its own was a second place to read the same thing. */
+.rtrack{position:relative;min-height:18px}
+.rbarv{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-family:var(--num);
+  font-weight:400;font-size:11px;color:var(--text);
+  text-shadow:0 0 4px var(--bg),0 0 4px var(--bg)}
+.rbarv[data-none="1"]{color:var(--dim)}
 .rrow:hover{background:var(--panel2)}
 .rrow .rname{grid-area:name}
 .rrow .rtrack{grid-area:track}
 .rrow .rload{grid-area:load}
 .rrow .rdmg{grid-area:dmg}
 .rrow .rstk{grid-area:stk}
-.rrow .rttk{grid-area:ttk}
 .rrow .rrpm{grid-area:rpm;color:var(--dim2)}
 @media(min-width:760px){
-  .rrow{grid-template-columns:200px minmax(70px,1fr) 120px 52px 68px 76px 116px;
-    grid-template-areas:"name track load dmg stk rpm ttk";padding:7px 10px}
+  .rrow{grid-template-columns:210px minmax(120px,1fr) 96px 62px 54px 62px;
+    grid-template-areas:"name track load dmg stk rpm";padding:7px 10px}
+  .rrow.rhead{padding:4px 10px 6px}
 }
 /* the equipped weapon as a control: its name, and the way to change it */
 .wpn-open{display:flex;width:100%;align-items:baseline;justify-content:space-between;gap:10px;
@@ -643,7 +663,7 @@ tr[data-on="1"] td{background:var(--panel2);color:var(--text)}
   margin-right:7px}
 .rtrack{background:var(--panel2);height:13px;display:block;min-width:40px}
 .rbar{display:block;height:13px;border-radius:0 3px 3px 0}
-.rload{font-size:11px;font-weight:600;color:var(--dim2);display:inline-flex;align-items:center;gap:6px}
+.rload{font-size:11px;font-weight:600;color:var(--dim2)}
 .rload::before{content:"";width:9px;height:9px;background:var(--rd);flex:0 0 auto}
 .rload em{font-style:normal}
 .rrow .n{font-family:var(--num);font-variant-numeric:tabular-nums;color:var(--text);text-align:right}
