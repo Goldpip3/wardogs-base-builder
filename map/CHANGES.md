@@ -8,6 +8,15 @@ Newest first. One entry per decision. Keep entries short.
 
 ## 2026-08-31
 
+### The armour rows stop repeating their own label
+
+Each armour strip on the damage calculator ended with the piece's name out of
+`data/ballistics.json`, which is "Helmet" and "Body armour": the same two words the label
+on the row already says, drawn as a sixth item in a strip of five buttons that you cannot
+press. The name goes and the label stays, since Weapon and Load above it are labelled the
+same way. `test/site.js` holds every chips strip on that page to buttons only, which is the
+class rather than these two rows, and it goes red if the name is put back.
+
 ### The bag is the game's bag now, pulled from the database the prices came from
 
 Weight, footprint, stack size, bag grids and unlock levels are in `data/armory-stats.json`,

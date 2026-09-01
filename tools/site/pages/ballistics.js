@@ -243,14 +243,16 @@ module.exports = ctx => {
     "<td>" + esc(w.calibre || "not stated") + "</td>" +
     '<td class="fine">' + esc(w.why) + "</td></tr>").join("");
 
-  const tierChips = slot => {
-    const a = B.armour.filter(x => x.slot === slot)[0];
-    return [0, 1, 2, 3, 4].map(t =>
+  /* The row is five buttons and nothing else. It used to end with the armour's name from
+     the data, which is "Helmet" and "Body armour", the same two words the label on the row
+     already says: a strip of buttons that ends in a sixth thing you cannot press, saying
+     what the line above it just said. The label stays because it matches Weapon and Load
+     above it, and the name goes. */
+  const tierChips = slot =>
+    [0, 1, 2, 3, 4].map(t =>
       '<button class="chip" data-' + slot + '="' + t + '" aria-pressed="' +
       (t === 0 ? "true" : "false") + '">' +
-      (t === 0 ? "None" : "L" + t) + "</button>").join("") +
-      '<span class="chip-note fine">' + esc(a.name) + "</span>";
-  };
+      (t === 0 ? "None" : "L" + t) + "</button>").join("");
 
   const legend = B.rounds.map(r =>
     '<span class="lg"><i style="background:' + r.tint + '"></i>' + esc(r.name) +

@@ -194,6 +194,20 @@ const pulled = require(ROOT + "/data/armory-stats.json");
 check(kit.includes("transcribed from the same item") && kit.includes(pulled.readOn),
   "the page says where the weights and capacities came from and when");
 
+// ---------- the damage calculator's control rows ----------
+/* A row is a label and the things you can press. The armour rows ended with the armour's
+   name out of the data, which is the same two words the label says, so the strip finished
+   with a sixth item you cannot press repeating the line above it. Checking that a chips
+   strip holds nothing but buttons catches the whole class rather than those two rows. */
+const ball = fs.readFileSync(DOCS + "ballistics/index.html", "utf8");
+const strips = ball.split('<span class="chips"').slice(1)
+  .map(part => part.slice(part.indexOf(">") + 1).split("</span>")[0]);
+const notButtons = strips.filter(inner =>
+  inner.replace(/<button[^]*?<\/button>/g, "").trim().length > 0);
+check(strips.length > 0 && notButtons.length === 0,
+  `all ${strips.length} chip strips in the calculator hold only buttons`,
+  notButtons.join(" | ").slice(0, 120));
+
 // ---------- the planner still ships intact ----------
 check(app.includes("btnShare") && app.includes("buildIndex") && app.length > 100000,
   "planner page is the full app");
