@@ -230,6 +230,37 @@ const climbOf = pieces => {
   check(runs.vehicle[0] && runs.vehicle[0].length === 16,
     "and that one section holds every block of the run");
 }
+/* Capping a run with a Bremer has to actually change the verdict.
+ *
+ * There is a check further up asserting the source contains `capped ? "secure"` and the
+ * string "top-layer". It passed for as long as the feature has existed, and the feature did
+ * not work: computeClimb walked `cover` alone, and a Bremer's role is "barrier", so the cap
+ * was never in the list to be seen. The panel told you to cap a wall with one and then went
+ * on grading the capped wall vaultable on foot.
+ *
+ * A regex over the source cannot catch that, because the source really does say what it
+ * says. Only running it can, so this runs it.
+ */
+{
+  const run = capped => {
+    const P = []; let id = 1;
+    for (let i = -2; i <= 2; i++)
+      P.push({ id: id++, type: "hesco-small", x: i, y: 0, rot: 0, level: 0 });
+    if (capped) for (let i = -2; i <= 2; i++)
+      P.push({ id: id++, type: "bremer-wall", x: i, y: 0, rot: 0, level: 1 });
+    return climbOf(P);
+  };
+  const bare = run(false), cap = run(true);
+  check(bare.runs.foot.length === 1,
+    "a bare one block run is a way in on foot",
+    "got " + bare.runs.foot.length);
+  check(cap.runs.foot.length === 0,
+    "and capping it with a Bremer stops it being one",
+    "got " + cap.runs.foot.length);
+  check(cap.runs.secure.length === 1,
+    "and grades it secure, which is exactly what the panel tells you to do",
+    "got " + cap.runs.secure.length);
+}
 {
   // knock a hole in it and the courtyard wall becomes reachable again
   const P = [];

@@ -1629,8 +1629,18 @@ const WALK_DOOR_OPEN = 3.2 / CELL_M;    // 3.2 m out it starts opening
 const WALK_DOOR_SHUT = 4.4 / CELL_M;    // and it does not shut again until 4.4 m
 const WALK_DOOR_SWING = 1 / 0.55;       // shut to wide open in 0.55 s
 const WALK_LEAF = 0.18 / CELL_M;        // 18 cm of armoured door panel
-const walk = { on: false, x: 0, y: 0, yaw: 0, pitch: 0, keys: {}, gl: null, last: 0,
-               doors: {} };   // piece id to how far open, 0 to 1. Not part of the design:
+const WALK_TALL = 1.8 / CELL_M;         // head height, for deciding what you fit under
+const WALK_GRAV = 9.81 / CELL_M;        // so a fall off a tower takes the time it should
+const WALK_CLIMB = 1.6 / CELL_M;        // going up a climbable tower, 1.6 m/s
+
+/* How high you can get on foot is NOT a walk constant. It is VAULT_HEIGHT, the figure the
+   plan already grades every wall against, and the whole point of this view is to be able
+   to go and check what the plan claims. A second number here would let the panel call a
+   wall vaultable while the walkthrough bounced you off it, and both would look right.
+   VAULT_HEIGHT is declared further down with the rest of the climb model, so it is read
+   inside these functions rather than copied into a const up here. */
+const walk = { on: false, x: 0, y: 0, z: 0, vz: 0, yaw: 0, pitch: 0, keys: {}, gl: null,
+               last: 0, doors: {} };   // piece id to how far open, 0 to 1. Not part of the design:
                               // a door left ajar is not a thing anyone meant to save, and
                               // the share format is already spread over four places.
 
@@ -1821,8 +1831,14 @@ function walkSolids() {
     const d = byId[p.type]; if (!d) continue;
     const r = pieceRect(p); if (!r) continue;
     const lvl = z.get(p.id) || 0;
+    const tags = d.tags || [];
     const band = { base: lvl * WALK_BLOCK, top: (lvl + (d.height || 1)) * WALK_BLOCK,
-                   role: d.role, fob: !!d.isFob };
+                   role: d.role, fob: !!d.isFob,
+                   /* Both of these are the game talking. The Bremer is "topped with barbed
+                      wire ... use as final anti-climb layer"; the Loudspeaker is a
+                      "Climbable loudspeaker tower". Nothing here is graded by eye. */
+                   noClimb: tags.indexOf("anti-climb") >= 0,
+                   climb: tags.indexOf("climbable") >= 0 };
     if (d.role === "entry") {
       for (const leaf of walkLeaves(r, walk.doors[p.id] || 0))
         out.push(Object.assign({ r: leaf }, band));
@@ -1833,15 +1849,64 @@ function walkSolids() {
   return out;
 }
 
+/* How high the walker can get onto this in one movement, and 0 for a thing they can never
+   stand on. A Bremer is never climbed, because that is what the piece is for. Everything
+   else is a vault, capped at the same VAULT_HEIGHT the plan grades walls by.
+
+   Climbable is deliberately NOT a case here. Giving it an unlimited reach stops it being
+   an obstacle at all, and a Loudspeaker you stroll through is a worse answer than one you
+   cannot climb: crossing two cells takes well under a second and rising five blocks does
+   not, so you come out the far side having gone up about a block. It is a ladder, and a
+   ladder is handled by walkLadder, which needs it to stay solid to press against. */
+function walkReach(s) {
+  if (s.noClimb) return 0;
+  return VAULT_HEIGHT * WALK_BLOCK;
+}
+
+/* The climbable thing the walker is pressed against, if any. Contact rather than overlap,
+   because the push has already put them exactly WALK_R clear of whatever they walked into.
+   Only ever called when the push actually stopped them, so standing near a tower does
+   nothing and walking into one goes up it. Let go and you stop; walk away and you fall. */
+function walkLadder(solids) {
+  for (const s of solids) {
+    if (!s.climb || s.top <= walk.z + 1e-6) continue;
+    if (rectDist(s.r, walk.x, walk.y) <= WALK_R + 0.06) return s;
+  }
+  return null;
+}
+
+/* What is under the walker's feet at (x,y): the highest thing they are over and could
+   have got onto. Ground is 0. */
+function walkFloor(x, y, z, solids) {
+  let best = 0;
+  for (const s of solids) {
+    /* Belt and braces, not the guard that does the work: walkReach already returns 0 for
+       these, so the line below catches them anyway. Kept because "nothing stands on top of
+       a Bremer" should be true here whatever walkReach is ever changed to say. */
+    if (s.noClimb) continue;
+    if (rectDist(s.r, x, y) >= WALK_R) continue;
+    if (s.top > z + walkReach(s)) continue;        // too high to have got up there
+    if (s.top > best) best = s.top;
+  }
+  return best;
+}
+
 /* Circle against a rotated rectangle, resolved by pushing the walker back out along the
    shallowest way out. Exact rather than an axis-aligned approximation, because a wall run
    laid at an angle is the case this view exists to look at and a box drawn round it would
-   stop you a foot short of everything. */
-function walkPush(nx, ny, solids) {
+   stop you a foot short of everything.
+
+   z is the walker's feet. Something low enough to step onto is not an obstacle, and
+   neither is something high enough to walk under, so only the band between the two
+   pushes back. z defaults to the ground, which is what every caller that predates the
+   walker having a height meant. */
+function walkPush(nx, ny, solids, z) {
+  z = z || 0;
   for (let pass = 0; pass < 3; pass++) {
     let hit = false;
     for (const s of solids) {
-      if (s.base > WALK_EYE * WALK_BLOCK) continue;      // walk under it
+      if (s.top <= z + walkReach(s)) continue;           // step or vault onto it
+      if (s.base >= z + WALK_TALL) continue;             // or duck under it
       const r = s.r, c = Math.cos(-r.rot), sn = Math.sin(-r.rot);
       const dx = nx - r.cx, dy = ny - r.cy;
       const lx = dx * c - dy * sn, ly = dx * sn + dy * c;
@@ -1896,9 +1961,10 @@ function walkDraw() {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   const aspect = g.cv.width / Math.max(1, g.cv.height);
   const proj = m4persp(75 * Math.PI / 180, aspect, 0.05, 400);
-  const view = m4view(walk.x, walk.y, WALK_EYE * WALK_BLOCK, walk.yaw, walk.pitch);
+  const eye = walk.z + WALK_EYE * WALK_BLOCK;
+  const view = m4view(walk.x, walk.y, eye, walk.yaw, walk.pitch);
   const vp = m4mul(proj, view);
-  gl.uniform3fv(g.uEye, [walk.x, walk.y, WALK_EYE * WALK_BLOCK]);
+  gl.uniform3fv(g.uEye, [walk.x, walk.y, eye]);
   gl.uniform3fv(g.uFog, WALK_SKY);
 
   /* The ground first, one flat box under everything, so the base has something to stand on
@@ -1937,12 +2003,41 @@ function walkDoors(dt) {
   }
 }
 
+/* Up onto things, and back down off them.
+
+   Two ways up, because they are two different movements. A step or a vault is instant:
+   easing a walker up a kerb over half a second reads as the view lagging behind the
+   keyboard. A proper climb up something tagged climbable takes climbing speed, because
+   snapping five blocks into the air in one frame reads as a bug even when it is the
+   right answer.
+
+   Down is gravity rather than a snap, so walking off a tower is a fall and takes the
+   time a fall takes. There is no fall damage, and there is not going to be: this is a
+   view for looking at a base, not a game. */
+function walkRise(dt, pressing) {
+  const solids = walkSolids();
+  const floor = walkFloor(walk.x, walk.y, walk.z, solids);
+  if (floor > walk.z + 1e-9) { walk.z = floor; walk.vz = 0; return; }   // stepped or vaulted up
+
+  /* Going up a ladder. Climbing past the top is what lets the next step forward land on
+     it: once the feet are level with it, walkReach stops calling it an obstacle. */
+  const lad = pressing ? walkLadder(solids) : null;
+  if (lad) { walk.z = Math.min(lad.top, walk.z + WALK_CLIMB * dt); walk.vz = 0; return; }
+
+  if (walk.z > floor) {
+    walk.vz -= WALK_GRAV * dt;
+    walk.z += walk.vz * dt;
+    if (walk.z <= floor) { walk.z = floor; walk.vz = 0; }
+  }
+}
+
 function walkStep(now) {
   if (!walk.on) return;
   const dt = Math.min(0.05, (now - walk.last) / 1000 || 0);
   walk.last = now;
   walkDoors(dt);
   const k = walk.keys;
+  let pressing = false;
   let fwd = (k.w ? 1 : 0) - (k.s ? 1 : 0), side = (k.d ? 1 : 0) - (k.a ? 1 : 0);
   if (fwd || side) {
     const len = Math.sqrt(fwd * fwd + side * side);
@@ -1951,9 +2046,13 @@ function walkStep(now) {
     const sy = Math.sin(walk.yaw), cy = Math.cos(walk.yaw);
     let nx = walk.x + (sy * fwd + cy * side) * speed;
     let ny = walk.y + (cy * fwd - sy * side) * speed;
-    const out = walkPush(nx, ny, walkSolids());
+    const out = walkPush(nx, ny, walkSolids(), walk.z);
+    /* Stopped short of where they asked to go, so they are leaning on something. That is
+       what turns a climbable piece into a ladder, and only while they keep pushing. */
+    pressing = Math.abs(out[0] - nx) > 1e-6 || Math.abs(out[1] - ny) > 1e-6;
     walk.x = out[0]; walk.y = out[1];
   }
+  walkRise(dt, pressing);
   walkDraw();
   requestAnimationFrame(walkStep);
 }
@@ -1965,8 +2064,10 @@ function walkSpawn() {
   walk.x = (b.minX + b.maxX) / 2;
   walk.y = b.minY - 6;
   walk.yaw = 0; walk.pitch = 0;
-  const out = walkPush(walk.x, walk.y, walkSolids());
+  walk.z = 0; walk.vz = 0;
+  const out = walkPush(walk.x, walk.y, walkSolids(), 0);
   walk.x = out[0]; walk.y = out[1];
+  walk.z = walkFloor(walk.x, walk.y, 0, walkSolids());
 }
 
 function setWalk(on) {
@@ -2800,11 +2901,24 @@ function computeClimb() {
     let top = (p.level || 0) + (def.height || 1);
     let capped = (def.tags || []).includes("top-layer");
     let standingOn = false;
-    for (const q of cover) {
-      if (q === p || !rectsOverlap(pieceRect(p), pieceRect(q))) continue;
-      const qd = byId[q.type];
-      if ((q.level || 0) < (p.level || 0)) { standingOn = true; break; }
-      stack.push(q);
+    /* Everything overlapping, not just the cover. This used to walk `cover` alone, which
+       quietly meant a Bremer cap was never seen: a Bremer's role is "barrier", not "cover".
+       So the panel told you to cap a wall with one and then went on grading the capped wall
+       vaultable on foot, which is the opposite of what capping does and the exact advice the
+       same panel gives. Found by walking at one in the walkthrough and getting stopped by a
+       wall the plan had called a way in.
+
+       Only cover joins `stack`, because `stack` is what gets a verdict and a colour, and a
+       Bremer is not a wall anyone is grading. Anything above contributes its height and its
+       cap either way. Anything below that is not cover is a platform, not something this
+       piece is standing on as part of a run, so it does not hand off the judgement. */
+    for (const q of design.pieces) {
+      if (q === p) continue;
+      const qd = byId[q.type]; if (!qd) continue;
+      if (!rectsOverlap(pieceRect(p), pieceRect(q))) continue;
+      const isCover = qd.role === "cover";
+      if ((q.level || 0) < (p.level || 0)) { if (isCover) { standingOn = true; break; } continue; }
+      if (isCover) stack.push(q);
       top = Math.max(top, (q.level || 0) + (qd.height || 1));
       if ((qd.tags || []).includes("top-layer")) capped = true;
     }
@@ -3499,7 +3613,8 @@ function updateHint() {
   if (walk.on) {
     el.innerHTML = "Standing in it. <b>W A S D</b> to move &middot; mouse to look &middot; <b>Shift</b> to run &middot; " +
       "<b>Esc</b> frees the mouse and clicking takes it back &middot; <b>3</b> or the button returns to the plan. " +
-      "Doors and gates open as you walk up to them, the way they do in the game.";
+      "Doors and gates open as you walk up to them. You can vault anything a block high, " +
+      "climb what the game calls climbable, and nothing gets you over a Bremer.";
     return;
   }
   if (view3d) {

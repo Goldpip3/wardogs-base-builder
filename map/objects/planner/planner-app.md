@@ -62,6 +62,14 @@ a single offline file and a library would be paid for on every download.
   "Auto-closes". Two distances, so a door you stand in does not chatter
 - Open state lives in `walk.doors` and is deliberately **not** in the design. A door left
   ajar is not something anyone meant to save, and the share format is already in four places
+- `walkReach` is how high you get onto something in one move, and it returns
+  **`VAULT_HEIGHT`**, the constant `computeClimb` grades wall runs by. Deliberately the
+  same number: the panel says which walls are a way in and this view is where that claim
+  gets checked, so the two must not be able to disagree
+- `walkFloor` is what is under the feet, `walkRise` is step, climb and fall. `walkLadder`
+  is a `climbable` piece you are pressed against. Climbable pieces stay **solid**; giving
+  one an unlimited step turns it into a hole you walk through
+- `anti-climb` and `climbable` come off the catalog tags, not from height
 
 Citations: substitution at `build.ps1:34`, outputs at `build.ps1:52` and `:60`.
 

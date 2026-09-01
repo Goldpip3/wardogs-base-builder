@@ -8,6 +8,31 @@ Newest first. One entry per decision. Keep entries short.
 
 ## 2026-08-31
 
+### You can vault, climb and fall, and the Bremer cap finally does something
+
+**The walker has a height now.** Feet, gravity, step up, fall off. Eye rides on the feet.
+
+**How high you can get on foot is VAULT_HEIGHT, the plan's own constant.** Not a new
+number. The panel grades every wall run against it and the walkthrough is where you go to
+check that grade, so a second number would let the panel call a run vaultable while the
+view bounced you off it, and both would look right.
+
+**Bremer cap was broken, and had been all along.** `computeClimb` walked `cover` only, and
+a Bremer's role is `barrier`, so the cap was never in the list. The panel told you to cap
+a wall with one and then graded the capped wall vaultable on foot. Found by walking at one
+and being stopped by a wall the plan called a way in.
+
+The old check asserted the *source* contained `capped ? "secure"`. It did. It passed the
+whole time. Replaced with one that builds a capped run and reads the verdict.
+
+**Climbable is a ladder, not a hole.** First cut gave climbable pieces unlimited step, which
+stops them being solid at all: you cross a Loudspeaker's two cells in well under a second,
+rise a fraction of its five blocks, and come out the far side having climbed nothing. It
+stays solid and you go up it while you press into it.
+
+**anti-climb and climbable are read off the catalog tags**, which are the game's own words:
+"final anti-climb layer", "Climbable loudspeaker tower".
+
 ### Doors and gates open, and you can walk through them
 
 **They swing, and that is the catalog talking.** The Door "needs back-wall clearance to

@@ -371,7 +371,9 @@ check(!/emptyState"\)\.style\.display/.test(src.replace(lift("syncEmptyState"), 
     return m[0];
   };
   vm.runInContext([constOf("CELL_M"), constOf("WALK_LEAF"), constOf("WALK_R"),
-                   constOf("WALK_EYE"), constOf("WALK_BLOCK"),
+                   constOf("WALK_EYE"), constOf("WALK_BLOCK"), constOf("WALK_TALL"),
+                   constOf("VAULT_HEIGHT"), constOf("VEHICLE_CLIMB"),
+                   lift("rectDist"), lift("walkReach"), lift("walkFloor"),
                    lift("walkLeaves"), lift("walkPush")].join("\n"), sandbox);
 
   /* An entry at the origin, sealed either side, walked at from three cells out. */
@@ -431,6 +433,44 @@ check(!/emptyState"\)\.style\.display/.test(src.replace(lift("syncEmptyState"), 
   check(leaf.h < 0.5, "a leaf is a thin panel, not the whole footprint depth");
   check(/WALK_LEAF = [\d.]+ \/ CELL_M/.test(src),
     "and its thickness comes from CELL_M like every other walk dimension");
+}
+
+/* What the walkthrough lets you climb has to be what the plan says you can climb.
+
+   The panel grades every wall run against VAULT_HEIGHT and prints the answer, and the
+   walkthrough is where somebody goes to check that answer. A second height constant here
+   would let the panel call a run vaultable while the view bounced you off it, or worse the
+   other way, and both would look right on their own. So the walk reads VAULT_HEIGHT rather
+   than carrying a number, and this pins that it does.
+
+   The climbable case is here because getting it wrong is silent. Giving a climbable piece
+   unlimited reach stops it being an obstacle at all, so a Loudspeaker becomes a thing you
+   stroll through: you cross two cells in well under a second, rise a fraction of five
+   blocks on the way, and come out the far side having climbed nothing. It still looked like
+   it worked, because you did end up past it.
+*/
+{
+  const reach = f => vm.runInContext("walkReach(" + JSON.stringify(f) + ")", sandbox);
+  const V = vm.runInContext("VAULT_HEIGHT * WALK_BLOCK", sandbox);
+
+  check(reach({}) === V,
+    "the walk vaults exactly as high as the plan grades walls by, VAULT_HEIGHT");
+  check(reach({ noClimb: true }) === 0,
+    "nothing gets you on top of an anti-climb piece");
+  check(reach({ climb: true }) === V && isFinite(reach({ climb: true })),
+    "a climbable piece stays solid, so it is a ladder and not a hole in the wall");
+
+  /* and the floor agrees: a Bremer is never something you end up standing on */
+  const stand = (f, z) => vm.runInContext(
+    "walkFloor(0,0," + z + ",[" + JSON.stringify(Object.assign({
+      r: { cx: 0, cy: 0, w: 4, h: 1, rot: 0 }, base: 0 }, f)) + "])", sandbox);
+  check(stand({ top: 1 }, 0) === 1, "a one block wall is something you get on top of");
+  check(stand({ top: 2 }, 0) === 0, "a two block wall is not, on foot");
+  check(stand({ top: 1, noClimb: true }, 0) === 0, "and a Bremer never is, however low");
+
+  /* the walk has a fall in it at all, which is what makes stepping off a tower a fall */
+  check(/WALK_GRAV = [\d.]+ \/ CELL_M/.test(src) && /walk\.vz -= WALK_GRAV/.test(src),
+    "walking off something drops you, at the gravity a metre figure implies");
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);
