@@ -588,6 +588,30 @@ tr[data-on="1"] td{background:var(--panel2);color:var(--text)}
 .lg i{width:11px;height:11px;flex:0 0 auto}
 .lg i.sq{width:11px;height:11px;transform:rotate(45deg);scale:.82}
 .lg-sep{flex:0 0 1px;height:18px;background:var(--line2)}
+/* ---- the target, carried down the page ----
+   Fixed rather than sticky: it appears once the calculator has scrolled off and nothing
+   under it moves when it does. It sits below the site header on a wide screen and over it on
+   a narrow one, where the header is 105px of furniture already and two bars would be most of
+   the first screen. */
+.rctx{position:fixed;left:0;right:0;top:75px;z-index:19;display:flex;align-items:center;
+  gap:14px;padding:7px 14px;background:var(--panel);border-bottom:1px solid var(--line);
+  border-top:1px solid var(--line);box-shadow:0 6px 18px rgba(0,0,0,.45)}
+.rctx[hidden]{display:none}
+@media(max-width:1180px){.rctx{top:0;z-index:21;border-top:0}}
+.rctx-back{display:flex;align-items:center;gap:10px;background:none;border:0;cursor:pointer;
+  padding:0;color:var(--dim2);font-family:var(--ui);text-align:left}
+.rctx-back:hover{color:var(--text)}
+.rctx-fig{width:22px;height:40px;flex:0 0 auto}
+.rctx-fig rect{fill:var(--line2)}
+.rctx-fig rect[data-on="1"]{fill:var(--yellow)}
+.rctx-said{font-size:12.5px;color:var(--dim2)}
+.rctx-said b{color:var(--text);font-weight:600}
+.rctx-said i{font-style:normal;color:var(--line2);margin:0 3px}
+.rctx-zones{margin-left:auto;gap:4px}
+.rctx-zones .chip{padding:5px 8px;font-size:9.5px;letter-spacing:.08em}
+/* Below 900 the chips are more bar than the bar is worth: the words and the figure say
+   where you are aiming, and pressing them takes you back to change it. */
+@media(max-width:900px){.rctx-zones{display:none}}
 .rank{display:flex;flex-direction:column;gap:2px;margin:20px 0}
 /* Narrow: name and verdict on one line, the bar under it full width, the rest below.
    Wide: one row, six columns. The bar keeps its own column in both, because bar length is
@@ -617,7 +641,11 @@ tr[data-on="1"] td{background:var(--panel2);color:var(--text)}
   text-shadow:0 0 4px var(--bg),0 0 4px var(--bg)}
 .rbarv[data-none="1"]{color:var(--dim)}
 .rrow:hover{background:var(--panel2)}
-.rrow .rname{grid-area:name}
+/* One line, always. A weapon whose name and class ran past the column wrapped and made
+   that row twice the height of its neighbours, which stops the eye halfway down a list you
+   are meant to read straight through. The class is short and the name clips. */
+.rrow .rname{grid-area:name;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  min-width:0}
 .rrow .rtrack{grid-area:track}
 .rrow .rload{grid-area:load}
 .rrow .rdmg{grid-area:dmg}

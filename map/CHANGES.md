@@ -8,6 +8,26 @@ Newest first. One entry per decision. Keep entries short.
 
 ## 2026-08-31
 
+### The target follows you down the ranking, and no row wraps
+
+The ranking is every weapon against **one zone under one set of armour**, and once the
+calculator had scrolled off, nothing on the page said which. A strip appears when the
+calculator goes and the ranking is what you are reading: 22px of figure with the zone lit,
+the setup in words, and the zones as chips so you can change target where you are. Pressing
+the words goes back up. It is fixed rather than sticky, so nothing moves when it arrives, and
+under 1180px it covers the nav instead of stacking under it: two bars on a phone is most of
+the first screen.
+
+**It reads scroll position rather than an IntersectionObserver.** The state wanted is a
+relationship between two elements and the viewport, which one comparison of two rectangles
+says directly and two observers say between them with a pair of flags. It also runs on load,
+where an observer has to be waited for.
+
+**"Bushmaster M17S Assault Rifle" wrapped**, so that row was twice the height of its
+neighbours and the eye stopped there. Assault Rifle reads AR and Marksman reads DMR in the
+rows, the spoken names stay on the chips where there is room, and the name cell cannot wrap
+whatever is in it. Every row is 36px.
+
 ### The Recon Tower is climbable, and still not a way over your own wall
 
 Owner's call, and the tags say both halves of it: `climbable` because the tower's own

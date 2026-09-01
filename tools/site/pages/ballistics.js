@@ -44,6 +44,23 @@ module.exports = ctx => {
      sheet spells them, since that is the join. */
   const CLASS_ORDER = ["Assault Rifle", "SMG", "Shotgun", "LMG", "Marksman", "Sniper", "Bow"];
   const CLASS_LABEL = { Marksman: "Marksman Rifle", Bow: "Bows" };
+  /* The short forms, for the ranking rows only. The spoken names stay on the chips, where
+     there is room for them. */
+  const CLASS_SHORT = { "Assault Rifle": "AR", Marksman: "DMR" };
+  /* Twenty-two pixels of person for the strip that follows you down the page. Not the real
+     figure scaled down: at this size the arms and the neck are one pixel each and the shape
+     stops reading, so this is the same nine zones drawn as blocks. */
+  const ZONE_PARTS = [
+    { id: "head", x: 7, y: 1, w: 8, h: 6 },
+    { id: "neck", x: 9, y: 7.5, w: 4, h: 1.5 },
+    { id: "chest", x: 6, y: 9.5, w: 10, h: 8 },
+    { id: "abdomen", x: 6, y: 18, w: 10, h: 5 },
+    { id: "bicep", x: 2, y: 9.5, w: 3, h: 7 },
+    { id: "forearm", x: 2, y: 17, w: 3, h: 6 },
+    { id: "extremity", x: 2, y: 23.5, w: 3, h: 2.5 },
+    { id: "groin", x: 7, y: 23.5, w: 8, h: 3 },
+    { id: "legs", x: 7, y: 27, w: 8, h: 12 },
+  ];
   const classes = [];
   B.weapons.forEach(w => { if (classes.indexOf(w.class) < 0) classes.push(w.class); });
   classes.sort((x, y) => {
@@ -409,6 +426,23 @@ module.exports = ctx => {
         '<button type="button" class="rh rh-ttk" data-by="ttk"' +
           ' aria-pressed="true">Time</button>' +
       "</div>" +
+      /* ---- the target, carried down the page ----
+         The ranking is every weapon against one zone under one set of armour, and once the
+         calculator has scrolled off there is nothing on screen saying which. This says it,
+         in a bar that appears only when the calculator is gone and only while the ranking is
+         on screen. Fixed rather than sticky, so nothing under it moves when it arrives, and
+         on a narrow screen it covers the nav instead of stacking under it: two bars of
+         furniture on a phone is most of the first screen. */
+      '<div class="rctx" id="rctx" hidden>' +
+        '<button type="button" class="rctx-back" id="rctxBack" title="Back to the calculator">' +
+          '<svg class="rctx-fig" viewBox="0 0 22 40" aria-hidden="true">' +
+            ZONE_PARTS.map(z => '<rect data-zpart="' + z.id + '" x="' + z.x + '" y="' + z.y +
+              '" width="' + z.w + '" height="' + z.h + '"></rect>').join("") +
+          "</svg>" +
+          '<span class="rctx-said" id="rctxSaid"></span>' +
+        "</button>" +
+        '<span class="chips rctx-zones" id="rctxZones"></span>' +
+      "</div>" +
       '<div class="rank" id="rank"></div>' +
       /* Two rows picked out of the list, side by side. Comparing two weapons was reading one
          row, scrolling, and remembering it. */
@@ -543,6 +577,10 @@ module.exports = ctx => {
     };
     return "" +
       "var B=" + JSON.stringify(blob) + ";" +
+      /* Short class names for the rows. The spoken ones stay on the chips, where there is
+         room: "Bushmaster M17S Assault Rifle" wrapped a row onto two lines and broke the
+         rhythm of the whole column. */
+      "var CLASS_SHORT=" + JSON.stringify(CLASS_SHORT) + ";" +
       "var calById={},zoneById={},roundById={};" +
       "B.calibres.forEach(function(c){calById[c.id]=c});" +
       "B.zones.forEach(function(z){zoneById[z.id]=z});" +
@@ -790,6 +828,54 @@ module.exports = ctx => {
       " var su=e.target.closest&&e.target.closest('[data-setup]');" +
       " if(su){setWeapon(su.getAttribute('data-setup'));render();" +
       "  el('wpnOpen').scrollIntoView({block:'center'});}});" +
+      /* ---- the strip that carries the target ----
+         Filled from the same state everything else reads, so it cannot say chest while the
+         figure says head. The zone chips are built once; which one is pressed is set on
+         every render. */
+      "function fillCtx(){" +
+      " var z=zoneById[S.zone];" +
+      " var worn=[];" +
+      " if(S.helmet)worn.push('L'+S.helmet+' helmet');" +
+      " if(S.vest)worn.push('L'+S.vest+' vest');" +
+      " el('rctxSaid').innerHTML='Shooting the <b>'+z.name.toLowerCase()+'</b>'" +
+      "  +' <i>/</i> <b>'+(worn.length?worn.join(' and '):'no armour')+'</b>'" +
+      "  +' <i>/</i> <b>'+(S.load?label(S.load):'any load')+'</b>';" +
+      " Array.prototype.forEach.call(document.querySelectorAll('[data-zpart]'),function(r){" +
+      "  r.setAttribute('data-on',r.getAttribute('data-zpart')===S.zone?'1':'0');});" +
+      " var box=el('rctxZones');" +
+      " if(!box.childNodes.length){" +
+      "  box.innerHTML=B.zones.map(function(zz){" +
+      "   return '<button type=\"button\" class=\"chip\" data-ctxzone=\"'+zz.id+'\">'" +
+      "    +zz.name+'</button>';}).join('');}" +
+      " Array.prototype.forEach.call(box.querySelectorAll('[data-ctxzone]'),function(b2){" +
+      "  b2.setAttribute('aria-pressed'," +
+      "   b2.getAttribute('data-ctxzone')===S.zone?'true':'false');});}" +
+      "document.addEventListener('click',function(e){" +
+      " var z=e.target.closest&&e.target.closest('[data-ctxzone]');" +
+      " if(z){S.zone=z.getAttribute('data-ctxzone');render();return;}" +
+      " if(e.target.closest&&e.target.closest('#rctxBack')){" +
+      "  var c=document.querySelector('.calc-wrap')||el('rank');" +
+      "  c.scrollIntoView({block:'start'});}});" +
+      /* It appears when the calculator has gone and the ranking is what you are reading, and
+         nowhere else: over the reference tables at the foot of the page it would be a bar
+         about a list nobody is looking at.
+
+         Two rectangles read on scroll rather than an IntersectionObserver. The observer is
+         the tidier tool and it is the wrong one here: the state wanted is a relationship
+         between two elements and the viewport, so it takes two observers and a pair of flags
+         to say what one comparison says directly. This also runs on load, where an observer
+         has to be waited for. */
+      "function watchCtx(){" +
+      " var calc=document.querySelector('.calc-wrap'),rank=el('rank'),strip=el('rctx');" +
+      " if(!calc||!rank||!strip)return;" +
+      " var look=function(){" +
+      "  var c=calc.getBoundingClientRect(),r=rank.getBoundingClientRect();" +
+      "  var gone=c.bottom<=0;" +
+      "  var reading=r.top<window.innerHeight&&r.bottom>0;" +
+      "  strip.hidden=!(gone&&reading);};" +
+      " window.addEventListener('scroll',look,{passive:true});" +
+      " window.addEventListener('resize',look);" +
+      " look();}" +
       "function renderRank(){" +
       " var box=el('rank'),got=rankRows(),rows=got.rows;" +
       " var by=S.by,barBy=BARBY[by]?by:'ttk';" +
@@ -820,7 +906,8 @@ module.exports = ctx => {
       "  row.innerHTML='<span class=\"rname\">'" +
       "   +(ic?'<img class=\"ricon\" src=\"/game-icons/'+ic+'.png\" alt=\"\" width=\"34\"'" +
       "    +' height=\"20\" loading=\"lazy\">':'')" +
-      "   +o.w.name+' <span class=\"fine\">'+o.w.class+'</span></span>'" +
+      "   +o.w.name+' <span class=\"fine\">'+(CLASS_SHORT[o.w.class]||o.w.class)" +
+      "    +'</span></span>'" +
       "   +'<span class=\"rtrack\"><span class=\"rbar\" style=\"width:'+pct.toFixed(1)+'%'" +
       "    +(o.band?';background:'+o.band.tint:'')+'\"></span></span>'" +
       "   +'<span class=\"rload\">'+label(o.type)+'</span>'" +
@@ -860,7 +947,7 @@ module.exports = ctx => {
       " if(window.console&&console.error)console.error('ballistics: '+name+' failed',e);}}" +
       "function render(){" +
       " stage('chips',syncChips);stage('rounds',renderRounds);stage('body',renderBody);" +
-      " stage('calc',renderCalc);stage('rank',renderRank);" +
+      " stage('calc',renderCalc);stage('rank',renderRank);stage('ctx',fillCtx);" +
       " stage('pellets',function(){" +
       "  el('pelletrow').hidden=!shotgun();" +
       "  var pk=pick(weapon());" +
@@ -931,6 +1018,7 @@ module.exports = ctx => {
       "window.addEventListener('hashchange',function(){" +
       " readHash();setWeapon(S.w);render();});" +
 
+      "watchCtx();" +
       "readHash();" +
       "setWeapon(S.w);" +
       "render();";

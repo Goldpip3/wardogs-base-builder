@@ -278,6 +278,26 @@ check(ball.includes("function togglePick") && ball.includes("renderCompare"),
 /* "one shot" sat in the time cell beside a shots cell already reading 1. */
 check(ball.includes("return 'instant'") && !ball.includes("stk===1?'one shot'"),
   "a one shot kill is stated once, as instant, not twice");
+/* A row that wraps is twice the height of its neighbours and stops the eye halfway down a
+   list meant to be read straight through. "Bushmaster M17S Assault Rifle" did. */
+check(ball.includes("var CLASS_SHORT=") && ball.includes('"Assault Rifle":"AR"'),
+  "the rows use short class names, so a long one cannot wrap");
+check(ball.includes(".rrow .rname{grid-area:name;white-space:nowrap"),
+  "and the name cell cannot wrap whatever is in it");
+/* The ranking is every weapon against one zone under one armour, and once the calculator
+   has scrolled off nothing on the page said which. */
+check(ball.includes('id="rctx"') && ball.includes("function watchCtx") &&
+  ball.includes("data-ctxzone"),
+  "the target follows you down the page, with the zones to change it");
+check(ball.includes('<div class="rctx" id="rctx" hidden>'),
+  "and it starts hidden, so it only appears once the calculator has gone");
+/* The observer is the tidier tool and the wrong one: the state is a relationship between two
+   elements and the viewport, which one comparison says and two observers say between them.
+   It also has to be waited for on load. */
+check(!ball.includes("IntersectionObserver") || ball.indexOf("function watchCtx") < 0 ||
+  ball.slice(ball.indexOf("function watchCtx"), ball.indexOf("function watchCtx") + 400)
+    .indexOf("IntersectionObserver") < 0,
+  "the strip reads scroll position rather than waiting on an observer");
 
 // ---------- the planner still ships intact ----------
 check(app.includes("btnShare") && app.includes("buildIndex") && app.length > 100000,
