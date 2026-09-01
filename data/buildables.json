@@ -426,7 +426,9 @@
       "icon": "recon-tower.webp",
       "tags": [
         "tower",
-        "no-stack"
+        "no-stack",
+        "climbable",
+        "climb-inside"
       ]
     },
     {

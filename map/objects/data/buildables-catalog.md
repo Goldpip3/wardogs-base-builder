@@ -29,6 +29,10 @@ lives in a separate file and not here. See [build-config](build-config.md).
 - `fob`: footprint, height, `startingSupplies` (1750)
 - `logistics`: `suppliesPerPallet` (1800), `palletCash` (400)
 - `tags` drive the rules: `ground-only`, `no-stack`, `top-layer`, `needs-sky`, `overlay`
+- and the climb rules: `vaultable`, `anti-climb`, `climbable`, and `climb-inside` for a
+  thing you climb into rather than onto. A Recon Tower carries both of the last two: it is
+  climbable, and what you reach is a deck the planner does not model, so the walkthrough
+  leaves it solid rather than standing you on its roof
 
 Citations: `data/buildables.json`, inlined at `build.ps1:34`, landing at
 `src/app-template.html:477`.

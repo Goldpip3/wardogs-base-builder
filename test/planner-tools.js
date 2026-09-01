@@ -468,6 +468,31 @@ check(!/emptyState"\)\.style\.display/.test(src.replace(lift("syncEmptyState"), 
   check(stand({ top: 2 }, 0) === 0, "a two block wall is not, on foot");
   check(stand({ top: 1, noClimb: true }, 0) === 0, "and a Bremer never is, however low");
 
+  /* Climbing into a thing and climbing over it are different, and the tags say which.
+
+     The Recon Tower is climbable: "two-storey tower with raised firing positions accessible
+     by ladder". What you climb into is a deck inside it. This view has no interiors, so
+     laddering it would put the walker on the roof instead, and standing on the roof of a
+     4x4 five block tower means walking off the far side of it, which is climbing over. The
+     tower carries climb-inside to say so, and the deck height stays out of the data rather
+     than being guessed at. */
+  const tagsOf = id => (byId[id] || {}).tags || [];
+  check(tagsOf("recon-tower").indexOf("climbable") >= 0,
+    "the Recon Tower is climbable, which is what its description says");
+  check(tagsOf("recon-tower").indexOf("climb-inside") >= 0,
+    "and climb-inside, because what you reach is a deck this view does not model");
+  check(tagsOf("loudspeaker").indexOf("climb-inside") < 0,
+    "a Loudspeaker is a mast, so that one you do climb onto");
+
+  /* the rule itself, lifted, not a copy of it written out again here */
+  vm.runInContext(lift("walkClimbable"), sandbox);
+  const solidOf = tags => vm.runInContext("walkClimbable(" + JSON.stringify(tags) + ")", sandbox);
+  check(solidOf(tagsOf("loudspeaker")) === true,
+    "so the walk ladders the Loudspeaker");
+  check(solidOf(tagsOf("recon-tower")) === false,
+    "and leaves the Recon Tower solid, rather than making it a way over your own wall");
+  check(/climb: walkClimbable\(tags\)/.test(src),
+    "and walkSolids asks that rule, rather than a piece name spelled into the walk");
   /* the walk has a fall in it at all, which is what makes stepping off a tower a fall */
   check(/WALK_GRAV = [\d.]+ \/ CELL_M/.test(src) && /walk\.vz -= WALK_GRAV/.test(src),
     "walking off something drops you, at the gravity a metre figure implies");

@@ -8,6 +8,21 @@ Newest first. One entry per decision. Keep entries short.
 
 ## 2026-08-31
 
+### The Recon Tower is climbable, and still not a way over your own wall
+
+Owner's call, and the tags say both halves of it: `climbable` because the tower's own
+description is "raised firing positions accessible by ladder", and `climb-inside` because
+what you reach is a deck inside it.
+
+**The walkthrough has no interiors.** Every piece is a solid box. Laddering the tower would
+put the walker on its roof instead, and standing on the roof of a 4x4 five block tower means
+walking off the far side: that is climbing over, which is the one thing climbing a recon
+tower is not. So it stays solid here. The deck height is not in the data and is not guessed.
+
+**`walkClimbable` is a function on purpose.** The first cut inlined the rule and the test
+restated it, so the test passed while the rule was wrong. Same shape as the Bremer cap bug
+the day before. The suite lifts the real function now.
+
 ### You can vault, climb and fall, and the Bremer cap finally does something
 
 **The walker has a height now.** Feet, gravity, step up, fall off. Eye rides on the feet.

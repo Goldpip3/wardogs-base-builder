@@ -1248,7 +1248,9 @@ const CATALOG_DEFAULT = {
       "icon": "recon-tower.webp",
       "tags": [
         "tower",
-        "no-stack"
+        "no-stack",
+        "climbable",
+        "climb-inside"
       ]
     },
     {
@@ -2601,6 +2603,24 @@ function walkLeaves(r, t) {
   return out;
 }
 
+/* Whether the walkthrough treats this as a ladder. Two different claims live in the tags.
+   The Loudspeaker is a mast: you climb it and you end up on top of it. The Recon Tower is a
+   building, "two-storey ... accessible by ladder", and what you climb into is a firing deck
+   inside it.
+
+   This view has no interiors. Every piece is a solid box, so there is nowhere in it for that
+   deck to be, and laddering the tower anyway would put the walker on its roof. Getting onto
+   the roof of a thing is how you get over it, which is the one thing climbing a recon tower
+   is not. So the tower keeps `climbable`, because that is true of the tower, and carries
+   `climb-inside` to say the walkthrough should leave it alone. The deck height is not in the
+   data and is not going to be guessed at here.
+
+   Its own function so the suite can lift it and test the rule rather than a copy of it. A
+   check that restates the rule instead of running it is what let the Bremer cap ship broken. */
+function walkClimbable(tags) {
+  return tags.indexOf("climbable") >= 0 && tags.indexOf("climb-inside") < 0;
+}
+
 /* Every solid piece as a rect in cells plus the band of height it occupies. Built once per
    frame rather than per test, because collision asks about all of them on every step.
    An entry contributes its leaves where they currently stand, not its doorway. */
@@ -2617,7 +2637,7 @@ function walkSolids() {
                       wire ... use as final anti-climb layer"; the Loudspeaker is a
                       "Climbable loudspeaker tower". Nothing here is graded by eye. */
                    noClimb: tags.indexOf("anti-climb") >= 0,
-                   climb: tags.indexOf("climbable") >= 0 };
+                   climb: walkClimbable(tags) };
     if (d.role === "entry") {
       for (const leaf of walkLeaves(r, walk.doors[p.id] || 0))
         out.push(Object.assign({ r: leaf }, band));
@@ -4393,7 +4413,7 @@ function updateHint() {
     el.innerHTML = "Standing in it. <b>W A S D</b> to move &middot; mouse to look &middot; <b>Shift</b> to run &middot; " +
       "<b>Esc</b> frees the mouse and clicking takes it back &middot; <b>3</b> or the button returns to the plan. " +
       "Doors and gates open as you walk up to them. You can vault anything a block high, " +
-      "climb what the game calls climbable, and nothing gets you over a Bremer.";
+      "climb a Loudspeaker to the top, and nothing gets you over a Bremer or a Recon Tower.";
     return;
   }
   if (view3d) {

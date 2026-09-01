@@ -69,7 +69,10 @@ a single offline file and a library would be paid for on every download.
 - `walkFloor` is what is under the feet, `walkRise` is step, climb and fall. `walkLadder`
   is a `climbable` piece you are pressed against. Climbable pieces stay **solid**; giving
   one an unlimited step turns it into a hole you walk through
-- `anti-climb` and `climbable` come off the catalog tags, not from height
+- `anti-climb` and `climbable` come off the catalog tags, not from height. `walkClimbable`
+  is the rule, and it is a function so the suite tests it rather than a restatement of it.
+  `climb-inside` means climbed into, not onto: the Recon Tower keeps `climbable` because
+  that is true of it, and stays solid here because a roof you can stand on is a way over
 
 Citations: substitution at `build.ps1:34`, outputs at `build.ps1:52` and `:60`.
 
