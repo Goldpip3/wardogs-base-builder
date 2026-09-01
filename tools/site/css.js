@@ -337,6 +337,14 @@ details.design summary::-webkit-details-marker{display:none}
 .rail-item[aria-pressed="true"]{background:var(--panel2);color:var(--yellow);
   border-left-color:var(--yellow)}
 .rail-item[aria-pressed="true"] b{color:var(--yellow)}
+/* Ground and air hang under Vehicles: indented, smaller, and not shouting in capitals, so
+   the rail still reads as one list of categories with a split inside one of them rather
+   than as twelve equal things. */
+.rail-sub{padding-left:26px;font-size:10px;letter-spacing:.06em;text-transform:none;
+  padding-top:6px;padding-bottom:6px}
+.rail-sub>span::before{content:"";display:inline-block;width:8px;height:1px;
+  background:currentColor;vertical-align:middle;margin-right:7px;opacity:.5}
+@media(max-width:899px){.rail-sub{padding-left:13px}}
 .cat-top{display:flex;gap:10px;align-items:stretch;flex-wrap:wrap}
 .cat-meta{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:12px 0 16px}
 .cat-meta #count{margin:0}

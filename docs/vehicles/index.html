@@ -356,6 +356,14 @@ details.design summary::-webkit-details-marker{display:none}
 .rail-item[aria-pressed="true"]{background:var(--panel2);color:var(--yellow);
   border-left-color:var(--yellow)}
 .rail-item[aria-pressed="true"] b{color:var(--yellow)}
+/* Ground and air hang under Vehicles: indented, smaller, and not shouting in capitals, so
+   the rail still reads as one list of categories with a split inside one of them rather
+   than as twelve equal things. */
+.rail-sub{padding-left:26px;font-size:10px;letter-spacing:.06em;text-transform:none;
+  padding-top:6px;padding-bottom:6px}
+.rail-sub>span::before{content:"";display:inline-block;width:8px;height:1px;
+  background:currentColor;vertical-align:middle;margin-right:7px;opacity:.5}
+@media(max-width:899px){.rail-sub{padding-left:13px}}
 .cat-top{display:flex;gap:10px;align-items:stretch;flex-wrap:wrap}
 .cat-meta{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:12px 0 16px}
 .cat-meta #count{margin:0}
@@ -1197,7 +1205,7 @@ document.addEventListener("click",function(e){
     <span id="acct" class="acct"></span>
   </nav>
 </div></header>
-<section><div class="wrap"><span class="eyebrow">Moved</span><h1>Vehicles moved to the Armory</h1><p class="lede">All 20 vehicles and the 13 mounted weapons are in the Armory now, priced beside everything else and with the ground or air split on each one.</p><p><a class="btn primary" href="/armory/">Go to the Armory</a></p></div></section>
+<section><div class="wrap"><span class="eyebrow">Moved</span><h1>Vehicles moved to the Armory</h1><p class="lede">All 20 vehicles and the 13 mounted weapons are in the Armory now, priced beside everything else, ground and air on their own filters, and what each one takes to unlock on its panel.</p><p><a class="btn primary" href="/armory/">Go to the Armory</a></p></div></section>
 <div class="wrap"><div class="ad-slot" style="min-height:90px">
   <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-7658713831499963"
        data-ad-slot="6283709418" data-ad-format="auto" data-full-width-responsive="true"></ins>

@@ -193,6 +193,44 @@ check(withFits.length > 120,
 check(!kitPage.includes('data-name="AT4 Mag"'),
   "an unfinished attachment is off the shelves");
 
+// ---------- vehicles: two fleets, and what each one takes ----------
+/* Ground and air were one list you read past each other in, and the only place the split
+   existed was a regex over the names that held while every airframe was called AH, MH, UH
+   or Havoc. The vendor's own word for it is pulled now, and the rail cuts on it. */
+const armPage = fs.readFileSync(DOCS + "armory/index.html", "utf8");
+const vehicles = require(ROOT + "/data/armory.json").items.filter(i => i.cat === "vehicles");
+const noClass = vehicles.filter(v => !["Ground", "Air"].includes((statItems[v.name] || {}).class));
+check(noClass.length === 0,
+  `all ${vehicles.length} vehicles are filed ground or air by the source, not by their names`,
+  noClass.map(v => v.name).join(", "));
+const air = vehicles.filter(v => statItems[v.name].class === "Air").length;
+check(armPage.includes('data-filter="vehicles" data-sub="Ground"') &&
+  armPage.includes('data-filter="vehicles" data-sub="Air"'),
+  "the rail hangs Ground and Air under Vehicles");
+check(armPage.includes("<span>Air</span><b>" + air + "</b>"),
+  `and the air count on it is the ${air} the catalogue actually holds`);
+/* A card with no data-sub must not survive a sub filter, or picking Air would show every
+   rifle in the game the moment somebody searched as well. */
+check(armPage.includes('if(sub&&el.getAttribute("data-sub")!==sub)return false;'),
+  "the filter drops anything that is not in the chosen fleet");
+check(armPage.includes('sub=f.getAttribute("data-sub")||""'),
+  "and clicking Vehicles itself goes back to both");
+/* The price is not the gate. A tank is $14,000 on the shelf and half a million to open,
+   and only one of those two numbers was on the site. */
+const detailJson = armPage.split("var D=")[1].split(";var dlg=")[0];
+const details = JSON.parse(detailJson.replace(/\\u003c/g, "<"));
+const tank = details.find(d => d.n === "L2A6");
+check(!!tank && tank.r.some(r => r[0] === "Unlocks at" && /level 35/.test(r[1]) &&
+  /\$500,000/.test(r[1])),
+  "the tank's panel carries the level and the cash it takes to unlock");
+const bobcat = details.find(d => d.n === "Bobcat");
+check(!!bobcat && !bobcat.r.some(r => r[0] === "Unlocks at") &&
+  bobcat.o.some(o => /No unlock level or cost is published/.test(o.text)),
+  "and one the source is silent about says so rather than reading as free to unlock");
+const unlocked = vehicles.filter(v => (statItems[v.name] || {}).unlock);
+check(unlocked.length >= 15,
+  `${unlocked.length} of the ${vehicles.length} vehicles publish an unlock`);
+
 // ---------- the loadout calculator's bag ----------
 /* Two rules the page is built on, both of which read as fine in the markup and wrong on the
    screen if they slip: the Pouch is a backpack rather than a rig, and nothing is carried

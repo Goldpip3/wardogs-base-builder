@@ -86,7 +86,26 @@ module.exports = ctx => {
   });
 
   const ARMOUR_TIERS = ["Level 1", "Level 2", "Level 3", "Level 4"];
-  const isAir = function (n) { return /AH-6|MH-6|UH-1|Havoc/.test(n); };
+  /* Ground or air is the vendor's own word for it now, pulled into data/armory-stats.json,
+     rather than a regex over the names. The regex only held while every airframe happened
+     to be called AH, MH, UH or Havoc, and it is kept as the fallback for a vehicle the
+     source says nothing about rather than as the answer. */
+  const vehClass = function (n) {
+    const c = statOf(n).class;
+    if (c === "Air" || c === "Ground") return c;
+    return /AH-6|MH-6|UH-1|Havoc/.test(n) ? "Air" : "Ground";
+  };
+  const vehCount = function (kind) {
+    return byCat("vehicles").filter(function (i) { return vehClass(i.name) === kind; }).length;
+  };
+  /* What it takes to be allowed to buy the thing, which is a different question from the
+     price and is the one that decides whether a shelf is real for you yet. A tank is
+     $500,000 and level 35, and the level is the part you cannot pay your way past. */
+  const unlockText = function (name) {
+    const u = statOf(name).unlock;
+    if (!u || !u.level) return "";
+    return u.role + " level " + u.level + (u.cash ? ", " + money(u.cash) : "");
+  };
 
   /* The two weapon lists spell a calibre differently and only one of them is readable.
      A figured weapon stores the id, so an M4 carries "556" and a Kar98 carries "762x54";
@@ -142,7 +161,21 @@ module.exports = ctx => {
     }
 
     if (it.cat === "vehicles") {
-      rows.push(["Type", isAir(it.name) ? "Air" : "Ground"]);
+      rows.push(["Type", vehClass(it.name) === "Air" ? "Air" : "Ground"]);
+    }
+    if (it.cat === "mounted" && statOf(it.name).class) {
+      rows.push(["Kind", statOf(it.name).class]);
+    }
+
+    /* The unlock goes on every category that has one, not just vehicles. It is the last
+       row on purpose: it is what stands between you and the item rather than a fact about
+       the item. An item the source is silent on says so, because a missing row on a panel
+       that is otherwise full reads as "there is no unlock" and for a tank that would be a
+       lie somebody plans around. */
+    const un = unlockText(it.name);
+    if (un) rows.push(["Unlocks at", un]);
+    else if (it.cat === "vehicles") {
+      notes.push({ kind: "note", text: "No unlock level or cost is published for this one yet." });
     }
 
     if (it.cat === "attachments" && it.slot && it.slot !== "other") {
@@ -254,7 +287,11 @@ module.exports = ctx => {
      the way to the lookup; an integer does not. */
   const itemAttrs = function (it, i) {
     return ' data-item="' + i + '" data-cat="' + it.cat + '" data-name="' + esc(it.name.toLowerCase()) +
-      '" data-price="' + (it.price === null ? -1 : it.price) + '"';
+      '" data-price="' + (it.price === null ? -1 : it.price) + '"' +
+      /* Ground and air are two different fleets that happen to share a vendor tab, so the
+         rail can narrow to one of them. Only vehicles carry it; the filter treats a missing
+         one as "this row is not in that sub-list at all". */
+      (it.cat === "vehicles" ? ' data-sub="' + vehClass(it.name) + '"' : "");
   };
   /* A card and a row are both the control that opens the detail, so both have to be
      reachable from the keyboard and announce that they do something. A div with a click
@@ -317,9 +354,19 @@ module.exports = ctx => {
           '<button class="rail-item" data-filter="" aria-pressed="true">' +
             "<span>All</span><b>" + A.items.length + "</b></button>" +
           A.categories.map(function (c) {
-            return '<button class="rail-item" data-filter="' + c.id + '" aria-pressed="false">' +
+            const item = '<button class="rail-item" data-filter="' + c.id + '" aria-pressed="false">' +
               "<span>" + esc(c.name) + "</span><b>" +
               A.items.filter(function (i) { return i.cat === c.id; }).length + "</b></button>";
+            /* A Bobcat and a Havoc are not two entries in one list, they are two fleets,
+               and the only way to see either on its own used to be to read past the other.
+               The split hangs off the category rather than sitting beside it because
+               choosing Ground is choosing Vehicles first. */
+            if (c.id !== "vehicles") return item;
+            return item + ["Ground", "Air"].map(function (k) {
+              return '<button class="rail-item rail-sub" data-filter="vehicles" data-sub="' +
+                k + '" aria-pressed="false"><span>' + k + "</span><b>" + vehCount(k) +
+                "</b></button>";
+            }).join("");
           }).join("") +
         "</nav>" +
         '<div class="cat-main">' +
@@ -371,11 +418,23 @@ module.exports = ctx => {
          already a row in the table above, so it was folded in here rather than kept alive
          as a page that repeated the catalogue. */
       '<h2 style="margin-top:44px">Vehicles and mounted weapons</h2>' +
-      '<p>Filter the rail to <strong>Vehicles</strong> for all ' + byCat("vehicles").length +
-      ", ground and air together, or to <strong>Mounted</strong> for the " +
-      byCat("mounted").length + " weapons that sit on top of them and on your emplacements." +
-      " Most mounted weapons have no vendor price of their own because they arrive attached" +
-      " to something. Open any of them for the ground or air split.</p>" +
+      '<p>The rail splits the ' + byCat("vehicles").length + " vehicles into " +
+      "<strong>Ground</strong>, " + vehCount("Ground") + " of them, and <strong>Air</strong>, " +
+      vehCount("Air") + ". <strong>Mounted</strong> is the " + byCat("mounted").length +
+      " weapons that sit on top of them and on your emplacements, most with no vendor price" +
+      " of their own because they arrive attached to something.</p>" +
+      /* The price is not the gate people hit. Two figures decide whether you can have a
+         vehicle at all and neither of them is what it says on the shelf. */
+      "<p>What it costs is not what it takes. " +
+      byCat("vehicles").filter(function (i) { return unlockText(i.name); }).length + " of the " +
+      byCat("vehicles").length + " carry an unlock as well as a price, and the unlock is the" +
+      " bigger number: the L2A6 is " + money(
+        (A.items.find(function (i) { return i.name === "L2A6"; }) || { price: 0 }).price) +
+      " at the vendor and " + (function (u) {
+        return esc(u.role.toLowerCase() + " level " + u.level) + " plus " + money(u.cash);
+      }(statOf("L2A6").unlock)) + " to open in the first place." +
+      " Open any vehicle for its own. The ones nothing is published for say that rather" +
+      " than showing a blank.</p>" +
       "<p>A Havoc costs what " + Math.round(
         (A.items.find(function (i) { return i.name === "Havoc"; }) || { price: 18000 }).price /
         (A.items.find(function (i) { return i.name === "Bobcat"; }) || { price: 500 }).price) +
@@ -386,9 +445,10 @@ module.exports = ctx => {
       'var tb=tblBox.querySelector("tbody"),empty=document.getElementById("catEmpty");' +
       'var rows=Array.prototype.slice.call(tb.querySelectorAll("tr"));' +
       'var cards=Array.prototype.slice.call(grid.querySelectorAll(".acard"));' +
-      'var cat="",q="",sort="name",dir=1;' +
+      'var cat="",sub="",q="",sort="name",dir=1;' +
       'function keep(el){' +
       ' if(cat&&el.getAttribute("data-cat")!==cat)return false;' +
+      ' if(sub&&el.getAttribute("data-sub")!==sub)return false;' +
       ' if(!q)return true;' +
       ' return el.getAttribute("data-name").indexOf(q)>=0;}' +
       /* Price sorts as a number and name as text, and an unconfirmed price is -1 in the
@@ -419,7 +479,10 @@ module.exports = ctx => {
       'document.addEventListener("click",function(e){' +
       ' var t=e.target;if(!t||!t.closest)return;' +
       ' var f=t.closest("[data-filter]");' +
-      ' if(f){cat=f.getAttribute("data-filter");press("[data-filter]",f);apply();return;}' +
+      /* Clicking Vehicles clears the sub-list rather than keeping whichever of Ground or
+         Air was last on, so the parent always means all of it. */
+      ' if(f){cat=f.getAttribute("data-filter");sub=f.getAttribute("data-sub")||"";' +
+      '  press("[data-filter]",f);apply();return;}' +
       ' var v=t.closest("[data-view]");' +
       ' if(v){var want=v.getAttribute("data-view");press("[data-view]",v);' +
       '  grid.hidden=want!=="grid";tblBox.hidden=want!=="table";return;}' +
@@ -1273,7 +1336,8 @@ module.exports = ctx => {
       "<h1>Vehicles moved to the Armory</h1>" +
       '<p class="lede">All ' + byCat("vehicles").length + " vehicles and the " +
       byCat("mounted").length + " mounted weapons are in the Armory now, priced beside" +
-      " everything else and with the ground or air split on each one.</p>" +
+      " everything else, ground and air on their own filters, and what each one takes to" +
+      " unlock on its panel.</p>" +
       '<p><a class="btn primary" href="/armory/">Go to the Armory</a></p>' +
       "</div></section>",
   }));
