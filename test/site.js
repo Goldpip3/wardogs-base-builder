@@ -208,6 +208,31 @@ check(strips.length > 0 && notButtons.length === 0,
   `all ${strips.length} chip strips in the calculator hold only buttons`,
   notButtons.join(" | ").slice(0, 120));
 
+// ---------- the damage page's ranking ----------
+/* The zone table is gone and the ranking took its place under the calculator, and the four
+   colours the ranking paints time to kill in say what they mean in seconds. The bounds are
+   read out of the data here rather than written down, so moving a band moves the test. */
+const bal = require(ROOT + "/data/ballistics.json");
+/* The heading, not the words: "Every zone is bare" is the figure's caption when nothing is
+   worn, and matching on two of its words called the table present when it was gone. */
+check(!ball.includes('id="zt"') && !ball.includes("Every zone, this weapon"),
+  "the zone table is gone from the damage page");
+const firstH2 = ball.split("<h2")[1].split(">")[1].split("<")[0];
+check(firstH2 === "Ranking",
+  `the ranking is the first heading under the calculator, and it is "${firstH2}"`);
+const bounds = bal.ttkBands.map((b, i) => {
+  const from = i ? bal.ttkBands[i - 1].upTo : null;
+  return b.upTo === null ? "over " + from + " s"
+    : from === null ? "under " + b.upTo + " s" : from + " to " + b.upTo + " s";
+});
+const noBounds = bounds.filter(t => !ball.includes(t));
+check(noBounds.length === 0,
+  "the legend says what each time to kill colour is in seconds", noBounds.join(", "));
+/* The band's word was printed on every row as well as in the legend, which is the legend
+   forty times over. The colour carries it now. */
+check(!ball.includes("o.band.name.toLowerCase()"),
+  "a ranking row states the number, and leaves the word to the legend");
+
 // ---------- the planner still ships intact ----------
 check(app.includes("btnShare") && app.includes("buildIndex") && app.length > 100000,
   "planner page is the full app");

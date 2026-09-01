@@ -240,13 +240,23 @@ module.exports = ctx => {
       (t === 0 ? "true" : "false") + '">' +
       (t === 0 ? "None" : "L" + t) + "</button>").join("");
 
-  const legend = B.rounds.map(r =>
+  /* The four colours the ranking paints time to kill in, with the seconds they stand for.
+     They were four words, Fast to Very slow, next to four squares: a reader could see that
+     green was better than red and had no way to find out what green was. The bounds come
+     off data/ballistics.json rather than being written here, so a band that moves moves the
+     legend with it. */
+  const bandLegend = B.ttkBands.map((b, i) => {
+    const from = i ? B.ttkBands[i - 1].upTo : null;
+    const range = b.upTo === null ? "over " + from + " s"
+      : from === null ? "under " + b.upTo + " s"
+      : from + " to " + b.upTo + " s";
+    return '<span class="lg"><i class="sq" style="background:' + b.tint + '"></i>' +
+      esc(b.name) + ' <span class="fine">' + esc(range) + "</span></span>";
+  }).join("");
+  const roundLegend = B.rounds.map(r =>
     '<span class="lg"><i style="background:' + r.tint + '"></i>' + esc(r.name) +
-    ' <span class="fine">' + esc(r.long) + "</span></span>").join("") +
-    '<span class="lg-sep"></span>' +
-    B.ttkBands.map(b =>
-      '<span class="lg"><i class="sq" style="background:' + b.tint + '"></i>' +
-      esc(b.name) + "</span>").join("");
+    ' <span class="fine">' + esc(r.long) + "</span></span>").join("");
+  const legend = roundLegend + '<span class="lg-sep"></span>' + bandLegend;
 
   write("ballistics/index.html", page({
     title: "WARDOGS Damage Calculator and Ammo Chart",
@@ -326,14 +336,16 @@ module.exports = ctx => {
       "</div>" +
       "</div>" +
 
-      '<h2 style="margin-top:16px">Every zone, this weapon, this armour</h2>' +
-      '<div style="overflow-x:auto"><table id="zt"><thead><tr><th>Zone</th>' +
-      '<th class="n">Damage</th><th class="n">Shots</th><th class="n">Time to kill</th>' +
-      '<th class="n">Armour took</th></tr></thead><tbody></tbody></table></div>' +
+      /* The zone table was here: nine rows of this weapon against this armour, one per hit
+         zone. The figure it existed to give, damage and shots and time at the zone you are
+         aiming at, is already the three numbers at the top of the calculator, and the
+         figure square is already the picture of which zones the armour reaches. It was a
+         third telling of the same thing, and it sat between the calculator and the ranking,
+         which is the thing you actually came down the page for. */
 
       "</div></section>" +
 
-      /* ---------- the ranking ---------- */
+      /* ---------- the ranking, right under the calculator ---------- */
       '<section><div class="wrap">' +
       "<h2>Ranking</h2>" +
       '<p>Every weapon under the settings above. A weapon that cannot chamber the load you' +
@@ -619,23 +631,6 @@ module.exports = ctx => {
       "  fmt(s.damage)+'. '+label(f.p.load.type)+' keeps '+(Math.round(s.keep*1000)/10)+'% through it.';" +
       " el('armnote').textContent=an;}" +
 
-      "function renderZones(){" +
-      " var w=weapon(),tb=document.querySelector('#zt tbody');tb.textContent='';" +
-      " B.zones.forEach(function(z){" +
-      "  var f=fire(w,z),s=f.s,k=f.k;" +
-      "  var band=bandFor(B.bands,k.stk,k.ttk);" +
-      "  var tr=document.createElement('tr');" +
-      "  if(z.id===S.zone)tr.setAttribute('data-on','1');" +
-      "  var covers=z.slot?(z.slot+' from L'+z.coveredFrom):'';" +
-      "  tr.innerHTML='<td>'+z.name+(covers?' <span class=fine>'+covers+'</span>':'')+'</td>'" +
-      "   +'<td class=n>'+(f.miss?'&mdash;':fmt(s.damage))+'</td>'" +
-      "   +'<td class=n>'+(f.miss?'&mdash;':k.stk)+'</td>'" +
-      "   +'<td class=n>'+(f.miss?'&mdash;':'<span class=band style=\"--bd:'+band.tint+'\">'" +
-      "     +secs(k.stk,k.ttk)+'</span>')+'</td>'" +
-      "   +'<td class=n>'+(s.tier?fmt(s.absorbed):'&mdash;')+'</td>';" +
-      "  tr.addEventListener('click',function(){S.zone=z.id;render();});" +
-      "  tb.appendChild(tr);});}" +
-
       /* ---------- the ranking ----------
          Bar length is the measure, so the chart still reads with the colour thrown away.
          Fill is the load, which is identity and never magnitude, and the load is written on
@@ -676,8 +671,11 @@ module.exports = ctx => {
       "   +'<span class=\"rload\" style=\"--rd:'+tint(t)+'\">'+label(t)+sub+'</span>'" +
       "   +'<span class=\"n rdmg\" title=\"measured in game\">'+fmt(o.s.damage)+'</span>'" +
       "   +'<span class=\"n rstk\">'+o.k.stk+(o.k.stk===1?' shot':' shots')+'</span>'" +
-      "   +'<span class=\"n rttk\"><span class=\"band\" style=\"--bd:'+o.band.tint+'\">'" +
-      "    +secs(o.k.stk,o.k.ttk)+' '+o.band.name.toLowerCase()+'</span></span>';" +
+      /* The number, in the colour of its band. The band's word was on every row as well,
+         which is the legend printed forty times: the colour is the word, and the legend at
+         the top says what each one is in seconds. */
+      "   +'<span class=\"n rttk\"><span class=\"band\" style=\"--bd:'+o.band.tint+'\"" +
+      " title=\"'+o.band.name+'\">'+secs(o.k.stk,o.k.ttk)+'</span></span>';" +
       "  row.addEventListener('click',function(){setWeapon(o.w.name);render();});" +
       "  box.appendChild(row);});" +
       " var unit=by==='dmg'?'damage at the '+z.name.toLowerCase():" +
@@ -709,7 +707,7 @@ module.exports = ctx => {
       " if(window.console&&console.error)console.error('ballistics: '+name+' failed',e);}}" +
       "function render(){" +
       " stage('chips',syncChips);stage('rounds',renderRounds);stage('body',renderBody);" +
-      " stage('calc',renderCalc);stage('zones',renderZones);stage('rank',renderRank);" +
+      " stage('calc',renderCalc);stage('rank',renderRank);" +
       " stage('pellets',function(){" +
       "  el('pelletrow').hidden=!shotgun();" +
       "  var pk=pick(weapon());" +

@@ -511,8 +511,16 @@ footer.site .fine{flex:1 1 100%;color:var(--dim);font-size:12px;line-height:1.5;
 .calc-wrap>.vpicker{position:absolute;inset:0;z-index:5;margin:30px 0 0;overflow:auto;
   background:var(--panel);border:1px solid var(--line)}
 @media(min-width:900px){.calc{grid-template-columns:250px 1fr 300px}}
-.calc-body{display:flex;flex-direction:column;align-items:center}
+/* Three columns of one grid row, so all three are as tall as the tallest, which is always
+   the figure. The controls and the readouts are shorter than it and sat at the top of their
+   own panel with a hand's depth of empty under them, which reads as the row having slipped
+   rather than as space. Each column centres what it holds against the figure beside it. */
+.calc-body{display:flex;flex-direction:column;align-items:center;justify-content:center}
 .calc-body .fine{margin-top:12px;text-align:center}
+.calc-ctl,.calc-out{display:flex;flex-direction:column;justify-content:center}
+/* On one column the panels stack and are each their own height, so centring has nothing to
+   do and pushing the readouts to the middle of a short box only adds space. */
+@media(max-width:899px){.calc-ctl,.calc-out{justify-content:flex-start}}
 svg.body{width:100%;max-width:210px;height:auto}
 /* The unselected plate colour, and the figure's resting state. Warm rather than neutral
    grey so it sits with the cream rather than beside it. The selected zone overrides this
@@ -893,9 +901,15 @@ ul,ol{padding-left:22px}li{margin:6px 0}
 /* The right rail only exists when there is a unit to put in it, so the third track is a
    modifier and not the default. 300px because that is the widest rail unit AdSense sells,
    and the map keeps the rest. */
-.amap-body.has-rail{grid-template-columns:290px 1fr 300px}
-.amap-rail{border-left:1px solid var(--line);padding:14px;overflow-y:auto}
+/* The third track is auto and the width lives on the rail itself, which looks like the long
+   way round and is the only way that collapses cleanly. An unfilled unit hides the rail, and
+   a hidden item in an auto track takes no width, so the map gets the space back with no
+   second rule to keep in step. A fixed 300px track would leave a strip of nothing beside the
+   map every time Google declined to fill, which on a new account is most of the time. */
+.amap-body.has-rail{grid-template-columns:290px 1fr auto}
+.amap-rail{width:300px;border-left:1px solid var(--line);padding:14px;overflow-y:auto}
 .amap-rail .ad-slot{margin:0}
+.amap-rail:has(ins[data-ad-status="unfilled"]){display:none}
 .amap-side{border-right:1px solid var(--line);padding:14px;display:flex;
   flex-direction:column;gap:12px;overflow-y:auto;overflow-x:hidden;background:var(--panel)}
 .amap-pick{display:flex;gap:8px}
@@ -964,13 +978,13 @@ ul,ol{padding-left:22px}li{margin:6px 0}
    and against the rules it is served under. */
 @media(max-width:1280px){
   .amap-body.has-rail{grid-template-columns:290px 1fr;grid-template-rows:1fr auto}
-  .amap-rail{grid-column:1/-1;border-left:0;border-top:1px solid var(--line)}
+  .amap-rail{grid-column:1/-1;width:auto;border-left:0;border-top:1px solid var(--line)}
 }
 @media(max-width:900px){
   .amap-app{height:auto}
   /* .has-rail is two classes and beats a bare .amap-body even from inside a media query,
      so the collapsed layout has to name it or the rail keeps its own column on a phone. */
-  .amap-body,.amap-body.has-rail{grid-template-columns:1fr}
+  .amap-body,.amap-body.has-rail{grid-template-columns:1fr;grid-template-rows:none}
   .amap-side{border-right:0;border-bottom:1px solid var(--line)}
   .amap-stage{height:60vh;min-height:380px}
 }

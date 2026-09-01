@@ -8,6 +8,49 @@ Newest first. One entry per decision. Keep entries short.
 
 ## 2026-08-31
 
+### The zone table goes, the ranking takes its place, and the colours say what they mean
+
+The nine-row table of this weapon against this armour sat between the calculator and the
+ranking. Its figure is already the three numbers at the top of the calculator, and which
+zones the armour reaches is already the figure square, so it was the same thing told a third
+time, in the way of the thing people scroll for. Gone, and the ranking moved up under the
+calculator.
+
+**The time to kill legend states its seconds**: Fast under 0.25 s, Average 0.25 to 0.6,
+Slow 0.6 to 1.2, Very slow over 1.2, read off `ttkBands` so moving a band moves the legend.
+It was four words against four squares, which said green beat red and never what green was.
+The band's word came off every row with it: the colour is the word, and the row states the
+number.
+
+The calculator's three columns are one grid row, so all three are as tall as the figure. The
+controls and the readouts sat at the top of their panels with a hand's depth of empty under
+them; each column centres what it holds now. `test/site.js` pins the table's absence, the
+ranking being the first heading under the calculator, and the legend's bounds.
+
+### The artillery page carries its ads beside the map, not inside the reference
+
+Owner's call. The map had width to spare that a firing solution never needed, so a **right
+rail** now takes it: a 300px column in `tools/site/artillery-map.js`, and a horizontal unit
+directly under the tool, placed from `tools/site/pages/artillery.js`. The **in-article unit
+came out** in the same move, so the reference runs from the platform cards to what they mean
+for a base with nothing interrupting it. Net effect on that page is three units to four, and
+none of them in the middle of a sentence.
+
+**The rail's grid track is `auto` with the width on the rail itself, and that is deliberate.**
+An unfilled unit hides the rail, and a hidden item in an auto track takes no width, so the map
+gets the space back with no second rule to keep in step. A fixed `300px` track would leave a
+strip of nothing beside the map every time Google declined to fill, which on a new account is
+most of the time. Below 1280px the rail moves under the map rather than being hidden, because
+a unit that is requested and then `display:none`'d is an impression nobody can see.
+
+`.amap-body.has-rail` is two classes and beats a bare `.amap-body` from inside a media query
+as easily as outside one, so the collapsed layouts have to name it. That is the one way this
+breaks quietly: the rail keeps its own column on a phone and the map is squeezed to nothing.
+
+**`artilleryRight` and `artilleryFoot` ship with empty ids.** The placements exist, nothing is
+emitted, and the build is green: the check that every slot reaches a page skips an empty one
+on purpose. Create the two units in AdSense, paste the ids into `data/ads.json`, rebuild.
+
 ### Measured beats pulled, and one number brings a weapon in
 
 `data/measured.json` is the new top of the pile: a figure somebody read off the running game
