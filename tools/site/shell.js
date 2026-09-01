@@ -43,7 +43,8 @@ ${AUTH_SCRIPT}
 </head>
 <body>
 <header class="site"><div class="wrap">
-  <a href="/" class="brand">WARDOGS <span>Builder</span></a>
+  
+  <a href="/" class="brand">WARDOGS</a>
   <nav class="site">
     ${/* Every link in this nav is a .cta, which is the owner's call and worth stating so it
           is not "tidied" back. The two tools were boxed and the references were plain, on

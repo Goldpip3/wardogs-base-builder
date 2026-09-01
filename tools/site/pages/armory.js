@@ -2,7 +2,8 @@
    Body sits at column zero deliberately. Indenting it would add whitespace inside
    these template literals, and that whitespace is page content. */
 module.exports = ctx => {
-  const { esc, ARMORY, ARMORY_STATS, ITEM_STATS, MEASURED, BALLISTICS, adSlot, page, write } = ctx;
+  const { esc, ARMORY, ARMORY_STATS, ITEM_STATS, MEASURED, BALLISTICS,
+          classLabel, classRank, adSlot, page, write } = ctx;
 
 /* ---------- armory, loadouts and vehicles ----------
    One transcribed vendor catalogue behind all three. The armory browses it, the loadout
@@ -41,8 +42,22 @@ module.exports = ctx => {
     return "other";
   };
 
+  /* The vendor's own slot for an attachment, pulled into data/armory-stats.json, with the
+     name guess kept for the nine it says nothing about. The guess put things in the wrong
+     shelf and the wrong gun: an AK was offered GGX magazines, because a name is not a
+     fitment and reading one as the other was always going to end there. */
+  const SLOT_FROM_PULL = {
+    Sight: "optic", Muzzle: "muzzle", Underbarrel: "grip", Magazine: "magazine",
+    Barrel: "other", Stock: "other", Grip: "other", Handguard: "other",
+    DustCover: "other", CantedSight: "other", Pistolgrip: "other",
+  };
+  const slotFor = function (name) {
+    const pulled = (ITEM_STATS[name] || {}).slot;
+    if (pulled) return SLOT_FROM_PULL[pulled] || "other";
+    return slotOf(name);
+  };
   const withSlots = A.items.map(function (it) {
-    return it.cat === "attachments" ? Object.assign({}, it, { slot: slotOf(it.name) }) : it;
+    return it.cat === "attachments" ? Object.assign({}, it, { slot: slotFor(it.name) }) : it;
   });
   const byCat = function (id) { return withSlots.filter(function (i) { return i.cat === id; }); };
 
@@ -511,8 +526,9 @@ module.exports = ctx => {
      every option until you open it and shows them as a list of words, which for a shelf of
      items that all have a picture is the wrong control: you cannot see what you are buying
      and you cannot compare two of them side by side. */
-  const vcard = function (it, slotId) {
+  const vcard = function (it, slotId, cls) {
     return '<button type="button" class="vcard" data-pick="' + slotId + '"' +
+      (cls ? ' data-pclass="' + esc(cls) + '"' : "") +
       ' data-name="' + esc(it.name) + '"' +
       ' data-price="' + (it.price === null ? 0 : it.price) + '"' +
       (it.price === null ? ' data-unknown="1"' : "") +
@@ -557,8 +573,14 @@ module.exports = ctx => {
       '<span class="vcard-art"></span>' +
       '<span class="vcard-name">' + esc(label) + "</span></button>";
   };
+  /* The source marks a handful of items unfinished, and an unfinished one fits nothing and
+     goes on nothing: the AT4 Mag was being offered on every weapon in the game because it
+     names no fitment, which is the same silence as an item nobody has documented. A shelf
+     is a list of what you can buy, so they come off it. They stay in the armory, where the
+     catalogue is the point. */
+  const shelfReady = function (i) { return !(ITEM_STATS[i.name] || {}).wip; };
   const attSlot = function (s) {
-    return byCat("attachments").filter(function (i) { return i.slot === s; });
+    return byCat("attachments").filter(function (i) { return i.slot === s && shelfReady(i); });
   };
   const nameHas = function (list, s) {
     return list.filter(function (i) { return i.name.toLowerCase().indexOf(s) >= 0; });
@@ -624,12 +646,41 @@ module.exports = ctx => {
       "</span></div>";
   };
 
-  const picker = function (id, label, list, blank) {
-    return '<div class="vpicker" id="' + id + '-grid" hidden>' +
+  /* What the vendor files a weapon under, from the pull. Anything with no class sits under
+     Other rather than off the shelf: a weapon nobody can reach is worse than one in a bin. */
+  const classOf = function (it) { return (ITEM_STATS[it.name] || {}).class || "Other"; };
+
+  const picker = function (id, label, list, blank, split) {
+    /* Thirty-four weapons in one grid is a wall you read rather than a shelf you pick from,
+       which is what the damage page's own shelf was fixed for. Same treatment: a row of
+       classes across the top, in the shared order, and the grid opens on the first of them.
+       Only the shelves worth cutting get it, so the three tac vests stay one row. */
+    var chips = "", tag = "";
+    if (split) {
+      const seen = [];
+      list.forEach(function (it) {
+        const c = classOf(it);
+        if (seen.indexOf(c) < 0) seen.push(c);
+      });
+      seen.sort(function (x, y) { return classRank(x) - classRank(y) || x.localeCompare(y); });
+      chips = '<div class="chips" role="group" aria-label="Filter by class"' +
+        ' style="margin-bottom:12px">' +
+        seen.map(function (c, i) {
+          return '<button type="button" class="chip" data-pcls="' + id + '|' + esc(c) + '"' +
+            ' aria-pressed="' + (i === 0 ? "true" : "false") + '">' +
+            esc(classLabel(c)) + "</button>";
+        }).join("") + "</div>";
+      tag = seen.length ? seen[0] : "";
+    }
+    return '<div class="vpicker" id="' + id + '-grid" hidden' +
+      (split ? ' data-split="' + esc(tag) + '"' : "") + ">" +
       '<p class="vpicker-head">' + esc(label) +
       '<button type="button" class="vpicker-x" data-close="' + id + '">Close</button></p>' +
+      chips +
       '<div class="vgrid">' + noneCard(id, blank) +
-      list.map(function (it) { return vcard(it, id); }).join("") + "</div></div>";
+      list.map(function (it) {
+        return split ? vcard(it, id, classOf(it)) : vcard(it, id);
+      }).join("") + "</div></div>";
   };
 
   write("loadouts/index.html", page({
@@ -699,7 +750,7 @@ module.exports = ctx => {
             "</div>" +
             picker("w", "Primary weapon", byCat("weapons").filter(function (i) {
               return !isSidearm(i.name);
-            }), "No weapon") +
+            }), "No weapon", true) +
             picker("sec", "Sidearm", byCat("weapons").filter(function (i) {
               return isSidearm(i.name);
             }), "None") +
@@ -811,7 +862,15 @@ module.exports = ctx => {
         });
         return out;
       }())) + ';' +
-      'var ATTFIT=' + JSON.stringify(attOwner) + ';' +
+      /* Which weapons an attachment actually goes on, by name, from the pull. Absent means
+         the source says nothing and the shelf offers it, since a wrongly hidden attachment
+         is worse than a wrongly offered one. */
+      'var ATTFIT=' + JSON.stringify(A.items.reduce(function (m, it) {
+        if (it.cat !== "attachments") return m;
+        const st = ITEM_STATS[it.name] || {};
+        if (st.fits) m[it.name] = { w: st.fits };
+        return m;
+      }, {})) + ';' +
       'var WSLOTS=' + JSON.stringify(weaponSlots) + ';' +
       /* ---- what the source publishes about each item, beyond its price ----
          Weight, footprint, stack size and the grid a bag holds, all from the one pull in
@@ -870,10 +929,29 @@ module.exports = ctx => {
       ' var b=document.querySelector("[data-open="+openSlot+"]");' +
       ' if(b)b.setAttribute("aria-expanded","false");' +
       ' openSlot=null;}' +
+      /* A split shelf shows one class at a time. It opens on the class of what is already
+         in the slot, so pressing Change on an SMG shows the other SMGs rather than the top
+         of the list, and on an empty slot it opens on the first class in the order. */
+      'function splitTo(id,cls){' +
+      ' var g=el(id+"-grid");if(!g)return;' +
+      ' g.setAttribute("data-split",cls);' +
+      ' Array.prototype.forEach.call(g.querySelectorAll("[data-pcls]"),function(b){' +
+      '  b.setAttribute("aria-pressed",' +
+      '   b.getAttribute("data-pcls")===id+"|"+cls?"true":"false");});' +
+      ' Array.prototype.forEach.call(g.querySelectorAll("[data-pclass]"),function(c){' +
+      '  c.hidden=c.getAttribute("data-pclass")!==cls;});}' +
+      'function splitFor(id){' +
+      ' var g=el(id+"-grid");if(!g||!g.hasAttribute("data-split"))return;' +
+      ' var have=chosen[id]&&attr(chosen[id],"data-pclass");' +
+      ' if(!have){' +
+      '  var first=g.querySelector("[data-pcls]");' +
+      '  have=first?first.getAttribute("data-pcls").split("|")[1]:"";}' +
+      ' splitTo(id,have);}' +
       'function openPicker(id){' +
       ' var was=openSlot;closePicker();' +
       ' if(was===id)return;' +
       ' var g=el(id+"-grid");if(!g)return;' +
+      ' splitFor(id);' +
       ' g.hidden=false;openSlot=id;' +
       ' var sh2=shelfOf(g);if(sh2)sh2.hidden=false;' +
       ' var b=document.querySelector("[data-open="+id+"]");' +
@@ -948,9 +1026,7 @@ module.exports = ctx => {
       'function fits(name){' +
       ' var o=ATTFIT[name];if(!o)return true;' +
       ' var w=nameOf("w");if(!w)return true;' +
-      ' if(o.w)return o.w===w;' +
-      ' if(o.c)return CAL[w]===o.c;' +
-      ' return true;}' +
+      ' return o.w.indexOf(w)>=0;}' +
       'function filterAtts(){' +
       ' ["opt","muz","grip","mag"].forEach(function(id){' +
       '  var grid=el(id+"-grid");if(!grid)return;' +
@@ -1130,6 +1206,9 @@ module.exports = ctx => {
          so adding a slot or an item is markup and nothing here has to learn about it. */
       'document.addEventListener("click",function(e){' +
       ' var t=e.target;if(!t||!t.closest)return;' +
+      ' var pc=t.closest("[data-pcls]");' +
+      ' if(pc){var bits=pc.getAttribute("data-pcls").split("|");' +
+      '  splitTo(bits[0],bits[1]);return;}' +
       ' var o=t.closest("[data-open]");' +
       ' if(o){openPicker(o.getAttribute("data-open"));return;}' +
       ' if(t.closest("[data-close]")){closePicker();return;}' +

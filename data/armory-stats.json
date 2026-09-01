@@ -9,7 +9,10 @@
   "quick": "quick slots on a rig",
   "rounds": "what a magazine holds, which is also stated in most magazine names",
   "unlock": "the ladder, the level on it, and the one-time cash it costs there",
-  "wip": "the source marks the item unfinished and publishes nothing else about it"
+  "wip": "the source marks the item unfinished and publishes nothing else about it",
+  "class": "what the vendor files the weapon under, so a shelf can be split by it",
+  "slot": "the attachment slot the vendor files it under, which is the real one rather than a guess from its name",
+  "fits": "the weapons it goes on, by name. fitsAny means every weapon with that slot"
  },
  "source": "https://metaforge.app/wardogs/database",
  "readOn": "2026-08-31",
@@ -81,7 +84,11 @@
     "role": "Career",
     "level": 43,
     "cash": 15000
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "M1911"
+   ]
   },
   ".45 ACP Standard (FMJ)": {
    "grid": [
@@ -121,7 +128,11 @@
     "role": "Recon",
     "level": 37,
     "cash": 27500
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "AMR 50"
+   ]
   },
   ".50Cal Standard (FMJ)": {
    "grid": [
@@ -140,7 +151,9 @@
     "role": "Support",
     "level": 40,
     "cash": 25000
-   }
+   },
+   "slot": "Muzzle",
+   "fitsAny": true
   },
   "120mm HEAT-MP Shell": {
    "kg": 24,
@@ -207,7 +220,29 @@
     "role": "Career",
     "level": 26,
     "cash": 10000
-   }
+   },
+   "slot": "Sight",
+   "fits": [
+    "AK74",
+    "AMP-9",
+    "AMR 50",
+    "BMR-308",
+    "FAL",
+    "Galil",
+    "M249 SAW",
+    "M4",
+    "M500",
+    "MK22",
+    "MP5",
+    "PKM",
+    "PP-19 Vityaz",
+    "Scout Rifle TD",
+    "SKS",
+    "Super-45",
+    "SV98",
+    "SVD",
+    "T-21"
+   ]
   },
   "20x102mm": {
    "grid": [
@@ -226,7 +261,18 @@
     "role": "Infantry",
     "level": 24,
     "cash": 20000
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "A-91",
+    "Bushmaster M17S",
+    "Galil",
+    "KH-2002",
+    "M249 SAW",
+    "M4",
+    "Scout Rifle TD",
+    "T-21"
+   ]
   },
   "3-Chamber Brake": {
    "kg": 0.12,
@@ -238,7 +284,18 @@
     "role": "Infantry",
     "level": 45,
     "cash": 45000
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "A-91",
+    "Bushmaster M17S",
+    "Galil",
+    "KH-2002",
+    "M249 SAW",
+    "M4",
+    "Scout Rifle TD",
+    "T-21"
+   ]
   },
   "30mm HE Cannon": {
    "grid": [
@@ -265,7 +322,26 @@
     "role": "Career",
     "level": 31,
     "cash": 15000
-   }
+   },
+   "slot": "Sight",
+   "fits": [
+    "AK74",
+    "AMR 50",
+    "BMR-308",
+    "FAL",
+    "Galil",
+    "M249 SAW",
+    "M4",
+    "M500",
+    "MK22",
+    "Mosin Nagant",
+    "PKM",
+    "Scout Rifle TD",
+    "SKS",
+    "SV98",
+    "SVD",
+    "T-21"
+   ]
   },
   "3x-6x LPVO Short Dot": {
    "kg": 0.63,
@@ -277,7 +353,18 @@
     "role": "Recon",
     "level": 11,
     "cash": 15000
-   }
+   },
+   "slot": "Sight",
+   "fits": [
+    "AMR 50",
+    "M249 SAW",
+    "MK22",
+    "Mosin Nagant",
+    "Scout Rifle TD",
+    "SKS",
+    "SV98",
+    "SVD"
+   ]
   },
   "40mm": {
    "kg": 0.28,
@@ -295,6 +382,13 @@
    "grid": [
     2,
     1
+   ],
+   "slot": "Sight",
+   "fits": [
+    "AK74",
+    "M4",
+    "SKS",
+    "SV98"
    ]
   },
   "4x Combat Prism Scope with Reflex": {
@@ -307,7 +401,26 @@
     "role": "Infantry",
     "level": 43,
     "cash": 35000
-   }
+   },
+   "slot": "Sight",
+   "fits": [
+    "AK74",
+    "AMR 50",
+    "BMR-308",
+    "FAL",
+    "Galil",
+    "M249 SAW",
+    "M4",
+    "M500",
+    "MK22",
+    "Mosin Nagant",
+    "PKM",
+    "Scout Rifle TD",
+    "SKS",
+    "SV98",
+    "SVD",
+    "T-21"
+   ]
   },
   "5.45mm Armor Piercing (AP)": {
    "grid": [
@@ -382,7 +495,17 @@
     "role": "Recon",
     "level": 26,
     "cash": 30000
-   }
+   },
+   "slot": "Sight",
+   "fits": [
+    "AMR 50",
+    "MK22",
+    "Mosin Nagant",
+    "Scout Rifle TD",
+    "SKS",
+    "SV98",
+    "SVD"
+   ]
   },
   "6-10x Scope MRAD": {
    "kg": 0.98,
@@ -394,7 +517,17 @@
     "role": "Recon",
     "level": 18,
     "cash": 25000
-   }
+   },
+   "slot": "Sight",
+   "fits": [
+    "AMR 50",
+    "MK22",
+    "Mosin Nagant",
+    "Scout Rifle TD",
+    "SKS",
+    "SV98",
+    "SVD"
+   ]
   },
   "6x Marksman Scope + Reflex": {
    "kg": 0.73,
@@ -406,13 +539,35 @@
     "role": "Recon",
     "level": 34,
     "cash": 35000
-   }
+   },
+   "slot": "Sight",
+   "fits": [
+    "AMR 50",
+    "M249 SAW",
+    "MK22",
+    "Mosin Nagant",
+    "Scout Rifle TD",
+    "SKS",
+    "SV98",
+    "SVD"
+   ]
   },
   "6x Precision Rifle Scope": {
    "kg": 0.7,
    "grid": [
     2,
     1
+   ],
+   "slot": "Sight",
+   "fits": [
+    "AMR 50",
+    "M249 SAW",
+    "MK22",
+    "Mosin Nagant",
+    "Scout Rifle TD",
+    "SKS",
+    "SV98",
+    "SVD"
    ]
   },
   "7.62mm Armor Piercing (AP)": {
@@ -506,7 +661,8 @@
     "role": "Support",
     "level": 16,
     "cash": 50000
-   }
+   },
+   "class": "Launcher"
   },
   "9mm Armor Piercing (AP)": {
    "grid": [
@@ -534,7 +690,8 @@
    "grid": [
     5,
     2
-   ]
+   ],
+   "class": "Assault Rifle"
   },
   "AFG Angled Foregrip": {
    "kg": 0.08,
@@ -546,7 +703,9 @@
     "role": "Infantry",
     "level": 14,
     "cash": 10000
-   }
+   },
+   "slot": "Underbarrel",
+   "fitsAny": true
   },
   "AK74": {
    "kg": 3,
@@ -558,7 +717,8 @@
     "role": "Infantry",
     "level": 3,
     "cash": 10000
-   }
+   },
+   "class": "Assault Rifle"
   },
   "AK74 30 RND Magazine": {
    "kg": 0.55,
@@ -571,7 +731,11 @@
     "role": "Infantry",
     "level": 3,
     "cash": 0
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "AK74"
+   ]
   },
   "AK74 60 RND Magazine": {
    "kg": 0.93,
@@ -584,7 +748,11 @@
     "role": "Infantry",
     "level": 25,
     "cash": 30000
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "AK74"
+   ]
   },
   "AK74 75 RND Drum Magazine": {
    "kg": 2.08,
@@ -597,12 +765,20 @@
     "role": "Infantry",
     "level": 40,
     "cash": 75000
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "AK74"
+   ]
   },
   "AK74 Barrel": {
    "grid": [
     1,
     1
+   ],
+   "slot": "Barrel",
+   "fits": [
+    "AK74"
    ]
   },
   "AK74 Grip": {
@@ -610,12 +786,20 @@
     1,
     1
    ],
-   "wip": true
+   "wip": true,
+   "slot": "Grip",
+   "fits": [
+    "AK74"
+   ]
   },
   "AK74 Stock": {
    "grid": [
     1,
     1
+   ],
+   "slot": "Stock",
+   "fits": [
+    "AK74"
    ]
   },
   "AMP-9": {
@@ -623,7 +807,8 @@
    "grid": [
     3,
     2
-   ]
+   ],
+   "class": "Submachine Gun"
   },
   "AMP-9 15 RND Magazine": {
    "kg": 0.25,
@@ -636,14 +821,22 @@
     "role": "Medic",
     "level": 3,
     "cash": 7500
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "AMP-9"
+   ]
   },
   "AMP-9 20 RND Magazine": {
    "grid": [
     1,
     1
    ],
-   "rounds": 20
+   "rounds": 20,
+   "slot": "Magazine",
+   "fits": [
+    "AMP-9"
+   ]
   },
   "AMP-9 30 RND Magazine": {
    "kg": 0.48,
@@ -656,7 +849,11 @@
     "role": "Medic",
     "level": 10,
     "cash": 10000
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "AMP-9"
+   ]
   },
   "AMP-9 50 RND Drum Magazine": {
    "kg": 1.46,
@@ -669,7 +866,11 @@
     "role": "Medic",
     "level": 20,
     "cash": 15000
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "AMP-9"
+   ]
   },
   "AMP-9 9x19 Suppressor": {
    "kg": 0.4,
@@ -681,7 +882,11 @@
     "role": "Medic",
     "level": 30,
     "cash": 25000
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "AMP-9"
+   ]
   },
   "AMP-9 Tactical Flash Hider": {
    "kg": 0.1,
@@ -693,7 +898,11 @@
     "role": "Medic",
     "level": 12,
     "cash": 10000
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "AMP-9"
+   ]
   },
   "AMR 50": {
    "kg": 12.5,
@@ -705,7 +914,8 @@
     "role": "Recon",
     "level": 35,
     "cash": 200000
-   }
+   },
+   "class": "Sniper Rifle"
   },
   "AMR 50 10 RND Magazine": {
    "kg": 2.2,
@@ -718,7 +928,11 @@
     "role": "Recon",
     "level": 50,
     "cash": 50000
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "AMR 50"
+   ]
   },
   "AMR 50 5 RND Magazine": {
    "kg": 1.27,
@@ -731,7 +945,11 @@
     "role": "Recon",
     "level": 35,
     "cash": 0
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "AMR 50"
+   ]
   },
   "AR Multi-Caliber Suppressor": {
    "kg": 0.72,
@@ -743,10 +961,13 @@
     "role": "Infantry",
     "level": 21,
     "cash": 20000
-   }
+   },
+   "slot": "Muzzle",
+   "fitsAny": true
   },
   "AT4 Mag": {
-   "wip": true
+   "wip": true,
+   "slot": "Magazine"
   },
   "AX50 .50 Cal Muzzle Brake": {
    "kg": 0.45,
@@ -758,7 +979,11 @@
     "role": "Recon",
     "level": 48,
     "cash": 35000
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "AMR 50"
+   ]
   },
   "Adrenaline Pen": {
    "grid": [
@@ -795,7 +1020,9 @@
    "grid": [
     1,
     1
-   ]
+   ],
+   "slot": "Underbarrel",
+   "fitsAny": true
   },
   "Arsenal Backpack + 2 Slings": {
    "kg": 1.5,
@@ -839,7 +1066,8 @@
     "role": "Recon",
     "level": 30,
     "cash": 125000
-   }
+   },
+   "class": "Marksman Rifle"
   },
   "BMR-308 Flash Hider": {
    "kg": 0.12,
@@ -851,7 +1079,11 @@
     "role": "Recon",
     "level": 31,
     "cash": 25000
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "BMR-308"
+   ]
   },
   "BMR-308 Suppressor": {
    "kg": 0.65,
@@ -863,7 +1095,11 @@
     "role": "Recon",
     "level": 33,
     "cash": 27500
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "BMR-308"
+   ]
   },
   "Ballista Brake": {
    "kg": 0.09,
@@ -875,7 +1111,24 @@
     "role": "Medic",
     "level": 13,
     "cash": 15000
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "A-91",
+    "AK74",
+    "AMP-9",
+    "Bushmaster M17S",
+    "Galil",
+    "GGX 17",
+    "GGX 18",
+    "KH-2002",
+    "M249 SAW",
+    "M4",
+    "MP5",
+    "PP-19 Vityaz",
+    "Scout Rifle TD",
+    "T-21"
+   ]
   },
   "Bandage": {
    "kg": 0.08,
@@ -916,7 +1169,11 @@
     "role": "Infantry",
     "level": 16,
     "cash": 15000
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "AK74"
+   ]
   },
   "Broadhead Arrow": {
    "kg": 0.01,
@@ -954,7 +1211,8 @@
    "grid": [
     5,
     2
-   ]
+   ],
+   "class": "Assault Rifle"
   },
   "C4 Charge": {
    "kg": 0.57,
@@ -974,6 +1232,25 @@
    "grid": [
     1,
     1
+   ],
+   "slot": "Sight",
+   "fits": [
+    "AK74",
+    "AMR 50",
+    "FAL",
+    "Galil",
+    "M249 SAW",
+    "M4",
+    "MAAWS",
+    "MGL-40",
+    "MK22",
+    "MP5",
+    "PKM",
+    "PP-19 Vityaz",
+    "SKS",
+    "Super-45",
+    "SV98",
+    "SVD"
    ]
   },
   "CQ-2x Prism Combat Scope": {
@@ -986,7 +1263,29 @@
     "role": "Infantry",
     "level": 17,
     "cash": 15000
-   }
+   },
+   "slot": "Sight",
+   "fits": [
+    "AK74",
+    "AMP-9",
+    "AMR 50",
+    "BMR-308",
+    "FAL",
+    "Galil",
+    "M249 SAW",
+    "M4",
+    "M500",
+    "MK22",
+    "Mosin Nagant",
+    "MP5",
+    "PKM",
+    "PP-19 Vityaz",
+    "Scout Rifle TD",
+    "SKS",
+    "SV98",
+    "SVD",
+    "T-21"
+   ]
   },
   "CQB 74 Brake": {
    "kg": 0.22,
@@ -998,7 +1297,11 @@
     "role": "Infantry",
     "level": 8,
     "cash": 12500
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "AK74"
+   ]
   },
   "CQR Tactical Front Rail Grip": {
    "kg": 0.15,
@@ -1010,7 +1313,9 @@
     "role": "Infantry",
     "level": 38,
     "cash": 25000
-   }
+   },
+   "slot": "Underbarrel",
+   "fitsAny": true
   },
   "Compact T-2 Red Dot": {
    "kg": 0.13,
@@ -1022,7 +1327,28 @@
     "role": "Career",
     "level": 4,
     "cash": 5000
-   }
+   },
+   "slot": "Sight",
+   "fits": [
+    "AK74",
+    "AMR 50",
+    "FAL",
+    "Galil",
+    "M249 SAW",
+    "M4",
+    "M500",
+    "MAAWS",
+    "MGL-40",
+    "MK22",
+    "MP5",
+    "PKM",
+    "PP-19 Vityaz",
+    "Scout Rifle TD",
+    "SKS",
+    "Super-45",
+    "SV98",
+    "SVD"
+   ]
   },
   "Compound Bow": {
    "kg": 1.3,
@@ -1034,7 +1360,8 @@
     "role": "Recon",
     "level": 17,
     "cash": 75000
-   }
+   },
+   "class": "Equipment"
   },
   "Constrictor Brake": {
    "kg": 0.14,
@@ -1046,7 +1373,18 @@
     "role": "Recon",
     "level": 23,
     "cash": 20000
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "BMR-308",
+    "FAL",
+    "MK22",
+    "Mosin Nagant",
+    "PKM",
+    "SKS",
+    "SV98",
+    "SVD"
+   ]
   },
   "DTK-1 Brake": {
    "kg": 0.18,
@@ -1058,7 +1396,11 @@
     "role": "Recon",
     "level": 6,
     "cash": 7500
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "SKS"
+   ]
   },
   "Deadeye Flash Hider": {
    "kg": 0.12,
@@ -1070,7 +1412,18 @@
     "role": "Recon",
     "level": 9,
     "cash": 12500
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "BMR-308",
+    "FAL",
+    "MK22",
+    "Mosin Nagant",
+    "PKM",
+    "SKS",
+    "SV98",
+    "SVD"
+   ]
   },
   "Deagle": {
    "kg": 2,
@@ -1082,7 +1435,8 @@
     "role": "Career",
     "level": 90,
     "cash": 75000
-   }
+   },
+   "class": "Pistol"
   },
   "Deagle 7 RND Magazine": {
    "kg": 0.43,
@@ -1095,7 +1449,11 @@
     "role": "Career",
     "level": 90,
     "cash": 0
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "Deagle"
+   ]
   },
   "Defibrillator": {
    "kg": 2.6,
@@ -1119,7 +1477,15 @@
     "role": "Medic",
     "level": 1,
     "cash": 7500
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "AMP-9",
+    "GGX 17",
+    "GGX 18",
+    "MP5",
+    "PP-19 Vityaz"
+   ]
   },
   "Eclipse Flash Hider": {
    "kg": 0.12,
@@ -1131,7 +1497,15 @@
     "role": "Medic",
     "level": 26,
     "cash": 22500
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "AMP-9",
+    "GGX 17",
+    "GGX 18",
+    "MP5",
+    "PP-19 Vityaz"
+   ]
   },
   "Emergency Resuscitator": {
    "kg": 0.39,
@@ -1156,7 +1530,8 @@
     "role": "Infantry",
     "level": 35,
     "cash": 200000
-   }
+   },
+   "class": "Assault Rifle"
   },
   "FAL 10 RND Magazine": {
    "kg": 0.53,
@@ -1169,7 +1544,12 @@
     "role": "Recon",
     "level": 30,
     "cash": 0
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "BMR-308",
+    "FAL"
+   ]
   },
   "FAL 20 RND Magazine": {
    "kg": 0.76,
@@ -1182,7 +1562,12 @@
     "role": "Infantry",
     "level": 35,
     "cash": 0
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "BMR-308",
+    "FAL"
+   ]
   },
   "FAL 30 RND Magazine": {
    "kg": 1.09,
@@ -1195,13 +1580,22 @@
     "role": "Infantry",
     "level": 50,
     "cash": 50000
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "BMR-308",
+    "FAL"
+   ]
   },
   "FAL Flash Hider": {
    "kg": 0.2,
    "grid": [
     1,
     1
+   ],
+   "slot": "Muzzle",
+   "fits": [
+    "FAL"
    ]
   },
   "Field Backpack": {
@@ -1242,7 +1636,11 @@
     "role": "Recon",
     "level": 40,
     "cash": 30000
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "MK22"
+   ]
   },
   "Four Reticle Reflex": {
    "kg": 0.12,
@@ -1254,7 +1652,27 @@
     "role": "Medic",
     "level": 6,
     "cash": 10000
-   }
+   },
+   "slot": "Sight",
+   "fits": [
+    "AK74",
+    "AMR 50",
+    "FAL",
+    "Galil",
+    "M249 SAW",
+    "M4",
+    "MAAWS",
+    "MGL-40",
+    "MK22",
+    "MP5",
+    "PKM",
+    "PP-19 Vityaz",
+    "Scout Rifle TD",
+    "SKS",
+    "Super-45",
+    "SV98",
+    "SVD"
+   ]
   },
   "Frontier 2.5x-10x Precision Scope": {
    "kg": 0.66,
@@ -1266,7 +1684,17 @@
     "role": "Recon",
     "level": 43,
     "cash": 95000
-   }
+   },
+   "slot": "Sight",
+   "fits": [
+    "AMR 50",
+    "MK22",
+    "Mosin Nagant",
+    "Scout Rifle TD",
+    "SKS",
+    "SV98",
+    "SVD"
+   ]
   },
   "Fuel Can": {
    "kg": 5,
@@ -1302,7 +1730,11 @@
     "role": "Support",
     "level": 19,
     "cash": 30000
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "M500"
+   ]
   },
   "GGX 17": {
    "kg": 0.63,
@@ -1314,7 +1746,8 @@
     "role": "Career",
     "level": 1,
     "cash": 5000
-   }
+   },
+   "class": "Pistol"
   },
   "GGX 17 RND Magazine": {
    "kg": 0.28,
@@ -1327,7 +1760,12 @@
     "role": "Career",
     "level": 1,
     "cash": 0
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "GGX 17",
+    "GGX 18"
+   ]
   },
   "GGX 18": {
    "kg": 0.63,
@@ -1339,7 +1777,8 @@
     "role": "Career",
     "level": 70,
     "cash": 50000
-   }
+   },
+   "class": "Pistol"
   },
   "GGX 33 RND Magazine": {
    "kg": 0.52,
@@ -1352,7 +1791,12 @@
     "role": "Career",
     "level": 23,
     "cash": 10000
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "GGX 17",
+    "GGX 18"
+   ]
   },
   "GGX 50 RND Drum Magazine": {
    "kg": 1.46,
@@ -1365,7 +1809,12 @@
     "role": "Career",
     "level": 80,
     "cash": 50000
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "GGX 17",
+    "GGX 18"
+   ]
   },
   "GOL Multi-Caliber Suppressor": {
    "kg": 0.75,
@@ -1377,7 +1826,9 @@
     "role": "Recon",
     "level": 45,
     "cash": 32500
-   }
+   },
+   "slot": "Muzzle",
+   "fitsAny": true
   },
   "Galil": {
    "kg": 3.95,
@@ -1389,7 +1840,8 @@
     "role": "Infantry",
     "level": 10,
     "cash": 35000
-   }
+   },
+   "class": "Assault Rifle"
   },
   "Galil 35 RND Magazine": {
    "kg": 0.71,
@@ -1402,7 +1854,11 @@
     "role": "Infantry",
     "level": 10,
     "cash": 0
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "Galil"
+   ]
   },
   "Galil 50 RND Magazine": {
    "kg": 1.16,
@@ -1415,7 +1871,11 @@
     "role": "Infantry",
     "level": 15,
     "cash": 25000
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "Galil"
+   ]
   },
   "Ghillie Body Suit": {
    "kg": 1.5,
@@ -1473,12 +1933,21 @@
     "role": "Medic",
     "level": 36,
     "cash": 30000
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "Super-45"
+   ]
   },
   "Glock 17 Extended Magazine": {
    "grid": [
     2,
     1
+   ],
+   "slot": "Magazine",
+   "fits": [
+    "GGX 17",
+    "GGX 18"
    ]
   },
   "Gold Frag Grenade": {
@@ -1536,7 +2005,15 @@
     "role": "Recon",
     "level": 15,
     "cash": 15000
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "Mosin Nagant",
+    "PKM",
+    "SKS",
+    "SV98",
+    "SVD"
+   ]
   },
   "Hexagon Brake": {
    "kg": 0.15,
@@ -1548,7 +2025,18 @@
     "role": "Infantry",
     "level": 2,
     "cash": 5000
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "A-91",
+    "Bushmaster M17S",
+    "Galil",
+    "KH-2002",
+    "M249 SAW",
+    "M4",
+    "Scout Rifle TD",
+    "T-21"
+   ]
   },
   "High Capacity Battery": {
    "kg": 2,
@@ -1572,7 +2060,26 @@
     "role": "Infantry",
     "level": 22,
     "cash": 20000
-   }
+   },
+   "slot": "Sight",
+   "fits": [
+    "AK74",
+    "AMR 50",
+    "FAL",
+    "Galil",
+    "M249 SAW",
+    "M4",
+    "M500",
+    "MK22",
+    "MP5",
+    "PKM",
+    "PP-19 Vityaz",
+    "Scout Rifle TD",
+    "SKS",
+    "Super-45",
+    "SV98",
+    "SVD"
+   ]
   },
   "Hybrid Grip Pod": {
    "kg": 0.26,
@@ -1584,7 +2091,9 @@
     "role": "Support",
     "level": 50,
     "cash": 50000
-   }
+   },
+   "slot": "Underbarrel",
+   "fitsAny": true
   },
   "Improved Cylinder Choke": {
    "grid": [
@@ -1595,7 +2104,11 @@
     "role": "Support",
     "level": 14,
     "cash": 7500
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "M500"
+   ]
   },
   "Improvised Explosive Device": {
    "kg": 1.5,
@@ -1638,12 +2151,17 @@
     "role": "Career",
     "level": 18,
     "cash": 15000
-   }
+   },
+   "class": "Pistol"
   },
   "Judge Magazine": {
    "grid": [
     1,
     1
+   ],
+   "slot": "Magazine",
+   "fits": [
+    "Judge"
    ]
   },
   "KH-2002": {
@@ -1651,7 +2169,8 @@
    "grid": [
     5,
     2
-   ]
+   ],
+   "class": "Assault Rifle"
   },
   "Kobra Reflex": {
    "kg": 0.41,
@@ -1663,7 +2182,29 @@
     "role": "Career",
     "level": 21,
     "cash": 7500
-   }
+   },
+   "slot": "Sight",
+   "fits": [
+    "AK74",
+    "AMR 50",
+    "BMR-308",
+    "FAL",
+    "Galil",
+    "M249 SAW",
+    "M4",
+    "M500",
+    "MK22",
+    "Mosin Nagant",
+    "MP5",
+    "PKM",
+    "PP-19 Vityaz",
+    "Scout Rifle TD",
+    "SKS",
+    "Super-45",
+    "SV98",
+    "SVD",
+    "T-21"
+   ]
   },
   "Large Armored Crate": {
    "grid": [
@@ -1870,7 +2411,8 @@
     "role": "Career",
     "level": 40,
     "cash": 25000
-   }
+   },
+   "class": "Pistol"
   },
   "M1911 10 RND Magazine": {
    "kg": 0.38,
@@ -1883,7 +2425,11 @@
     "role": "Career",
     "level": 53,
     "cash": 10000
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "M1911"
+   ]
   },
   "M1911 7 RND Magazine": {
    "kg": 0.22,
@@ -1896,7 +2442,11 @@
     "role": "Career",
     "level": 40,
     "cash": 0
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "M1911"
+   ]
   },
   "M249 100 RND Fabric Magazine": {
    "kg": 1.62,
@@ -1909,7 +2459,11 @@
     "role": "Support",
     "level": 15,
     "cash": 0
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "M249 SAW"
+   ]
   },
   "M249 200 RND Box": {
    "kg": 3.14,
@@ -1922,7 +2476,11 @@
     "role": "Support",
     "level": 23,
     "cash": 35000
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "M249 SAW"
+   ]
   },
   "M249 Bipod": {
    "kg": 0.7,
@@ -1934,7 +2492,9 @@
     "role": "Support",
     "level": 18,
     "cash": 15000
-   }
+   },
+   "slot": "Underbarrel",
+   "fitsAny": true
   },
   "M249 SAW": {
    "kg": 7.5,
@@ -1946,7 +2506,8 @@
     "role": "Support",
     "level": 15,
     "cash": 100000
-   }
+   },
+   "class": "Light Machine Gun"
   },
   "M4": {
    "kg": 2.92,
@@ -1958,7 +2519,8 @@
     "role": "Infantry",
     "level": 20,
     "cash": 100000
-   }
+   },
+   "class": "Assault Rifle"
   },
   "M500": {
    "kg": 3.52,
@@ -1970,7 +2532,8 @@
     "role": "Support",
     "level": 10,
     "cash": 50000
-   }
+   },
+   "class": "Shotgun"
   },
   "M500 Sabre Brake": {
    "kg": 0.14,
@@ -1982,7 +2545,11 @@
     "role": "Support",
     "level": 11,
     "cash": 17500
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "M500"
+   ]
   },
   "M67 Frag Grenade": {
    "kg": 0.4,
@@ -2001,7 +2568,8 @@
     "role": "Support",
     "level": 20,
     "cash": 125000
-   }
+   },
+   "class": "Launcher"
   },
   "MGL-40": {
    "kg": 5.3,
@@ -2013,7 +2581,8 @@
     "role": "Support",
     "level": 35,
     "cash": 200000
-   }
+   },
+   "class": "Launcher"
   },
   "MK22": {
    "kg": 6.3,
@@ -2025,7 +2594,8 @@
     "role": "Recon",
     "level": 25,
     "cash": 150000
-   }
+   },
+   "class": "Sniper Rifle"
   },
   "MK22 10 RND Magazine": {
    "kg": 0.45,
@@ -2038,7 +2608,11 @@
     "role": "Recon",
     "level": 39,
     "cash": 35000
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "MK22"
+   ]
   },
   "MK22 5 RND Magazine": {
    "kg": 0.38,
@@ -2051,12 +2625,20 @@
     "role": "Recon",
     "level": 25,
     "cash": 0
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "MK22"
+   ]
   },
   "MMGL Internal Magazine": {
    "grid": [
     1,
     1
+   ],
+   "slot": "Magazine",
+   "fits": [
+    "MGL-40"
    ]
   },
   "MMGL Sight": {
@@ -2064,6 +2646,23 @@
    "grid": [
     1,
     1
+   ],
+   "slot": "Sight",
+   "fits": [
+    "AK74",
+    "AMR 50",
+    "FAL",
+    "Galil",
+    "M249 SAW",
+    "M4",
+    "MK22",
+    "MP5",
+    "PKM",
+    "PP-19 Vityaz",
+    "SKS",
+    "Super-45",
+    "SV98",
+    "SVD"
    ]
   },
   "MP43": {
@@ -2071,7 +2670,8 @@
    "grid": [
     4,
     2
-   ]
+   ],
+   "class": "Shotgun"
   },
   "MP5": {
    "kg": 2.54,
@@ -2083,7 +2683,8 @@
     "role": "Medic",
     "level": 15,
     "cash": 75000
-   }
+   },
+   "class": "Submachine Gun"
   },
   "MP5 20 RND Magazine": {
    "kg": 0.35,
@@ -2096,7 +2697,11 @@
     "role": "Medic",
     "level": 15,
     "cash": 0
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "MP5"
+   ]
   },
   "MP5 30 RND Magazine": {
    "kg": 0.51,
@@ -2109,7 +2714,11 @@
     "role": "Medic",
     "level": 25,
     "cash": 25000
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "MP5"
+   ]
   },
   "MP5 50 RND Drum Magazine": {
    "kg": 1.49,
@@ -2122,19 +2731,31 @@
     "role": "Medic",
     "level": 45,
     "cash": 75000
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "MP5"
+   ]
   },
   "MP5 Flash Hider": {
    "kg": 0.19,
    "grid": [
     1,
     1
+   ],
+   "slot": "Muzzle",
+   "fits": [
+    "MP5"
    ]
   },
   "MP9 Extended Magazine": {
    "grid": [
     1,
     2
+   ],
+   "slot": "Magazine",
+   "fits": [
+    "AMP-9"
    ]
   },
   "Mechanical Supplies": {
@@ -2201,7 +2822,9 @@
     "role": "Career",
     "level": 38,
     "cash": 12500
-   }
+   },
+   "slot": "Underbarrel",
+   "fitsAny": true
   },
   "Mini Reflex Sight": {
    "grid": [
@@ -2213,6 +2836,10 @@
    "grid": [
     1,
     1
+   ],
+   "slot": "Magazine",
+   "fits": [
+    "Mosin Nagant"
    ]
   },
   "Mosin Nagant": {
@@ -2225,7 +2852,8 @@
     "role": "Recon",
     "level": 10,
     "cash": 50000
-   }
+   },
+   "class": "Sniper Rifle"
   },
   "OKP 7 Reflex": {
    "kg": 0.48,
@@ -2237,7 +2865,24 @@
     "role": "Infantry",
     "level": 33,
     "cash": 30000
-   }
+   },
+   "slot": "Sight",
+   "fits": [
+    "AK74",
+    "AMR 50",
+    "FAL",
+    "Galil",
+    "M249 SAW",
+    "M4",
+    "MK22",
+    "MP5",
+    "PKM",
+    "PP-19 Vityaz",
+    "SKS",
+    "Super-45",
+    "SV98",
+    "SVD"
+   ]
   },
   "Operator Backpack": {
    "kg": 0.8,
@@ -2265,7 +2910,22 @@
     "role": "Support",
     "level": 45,
     "cash": 40000
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "A-91",
+    "Bushmaster M17S",
+    "Galil",
+    "KH-2002",
+    "M249 SAW",
+    "M4",
+    "Mosin Nagant",
+    "PKM",
+    "Scout Rifle TD",
+    "SV98",
+    "SVD",
+    "T-21"
+   ]
   },
   "PBS-4 Suppressor": {
    "kg": 0.8,
@@ -2277,7 +2937,11 @@
     "role": "Infantry",
     "level": 27,
     "cash": 25000
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "AK74"
+   ]
   },
   "PGO-7": {
    "kg": 0.62,
@@ -2301,7 +2965,8 @@
     "role": "Support",
     "level": 30,
     "cash": 150000
-   }
+   },
+   "class": "Light Machine Gun"
   },
   "PKM 100 RND Box": {
    "kg": 3.9,
@@ -2314,7 +2979,11 @@
     "role": "Support",
     "level": 30,
     "cash": 0
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "PKM"
+   ]
   },
   "PKM Bipod": {
    "kg": 0.7,
@@ -2326,7 +2995,9 @@
     "role": "Support",
     "level": 33,
     "cash": 35000
-   }
+   },
+   "slot": "Underbarrel",
+   "fitsAny": true
   },
   "PP-19 50 RND Vityaz Drum Magazine": {
    "kg": 1.3,
@@ -2339,7 +3010,11 @@
     "role": "Medic",
     "level": 33,
     "cash": 50000
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "PP-19 Vityaz"
+   ]
   },
   "PP-19 Vityaz": {
    "kg": 2.9,
@@ -2351,7 +3026,8 @@
     "role": "Medic",
     "level": 4,
     "cash": 25000
-   }
+   },
+   "class": "Submachine Gun"
   },
   "PP-19 Vityaz 10 RND Magazine": {
    "kg": 0.2,
@@ -2364,7 +3040,11 @@
     "role": "Medic",
     "level": 7,
     "cash": 7500
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "PP-19 Vityaz"
+   ]
   },
   "PP-19 Vityaz 30 RND Magazine": {
    "grid": [
@@ -2376,7 +3056,11 @@
     "role": "Medic",
     "level": 4,
     "cash": 0
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "PP-19 Vityaz"
+   ]
   },
   "PP-19 Vityaz Flash Hider": {
    "kg": 0.08,
@@ -2388,7 +3072,11 @@
     "role": "Medic",
     "level": 22,
     "cash": 20000
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "PP-19 Vityaz"
+   ]
   },
   "PP-19-01 Vityaz 9x19 Suppressor": {
    "kg": 0.5,
@@ -2400,7 +3088,11 @@
     "role": "Medic",
     "level": 43,
     "cash": 45000
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "PP-19 Vityaz"
+   ]
   },
   "Pouch": {
    "kg": 0.3,
@@ -2423,7 +3115,9 @@
     "role": "Recon",
     "level": 46,
     "cash": 50000
-   }
+   },
+   "slot": "Underbarrel",
+   "fitsAny": true
   },
   "QD-5 Suppressor": {
    "kg": 0.38,
@@ -2435,7 +3129,11 @@
     "role": "Medic",
     "level": 18,
     "cash": 17500
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "MP5"
+   ]
   },
   "RC-556 Suppressor": {
    "kg": 0.5,
@@ -2447,7 +3145,18 @@
     "role": "Infantry",
     "level": 29,
     "cash": 30000
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "A-91",
+    "Bushmaster M17S",
+    "Galil",
+    "KH-2002",
+    "M249 SAW",
+    "M4",
+    "Scout Rifle TD",
+    "T-21"
+   ]
   },
   "RK6 Tactical Foregrip": {
    "kg": 1.05,
@@ -2459,7 +3168,9 @@
     "role": "Career",
     "level": 15,
     "cash": 7500
-   }
+   },
+   "slot": "Underbarrel",
+   "fitsAny": true
   },
   "RPG-7": {
    "kg": 6.3,
@@ -2471,7 +3182,8 @@
     "role": "Support",
     "level": 5,
     "cash": 30000
-   }
+   },
+   "class": "Launcher"
   },
   "RVG Vertical Foregrip": {
    "kg": 0.12,
@@ -2483,7 +3195,9 @@
     "role": "Medic",
     "level": 16,
     "cash": 10000
-   }
+   },
+   "slot": "Underbarrel",
+   "fitsAny": true
   },
   "Rambo Explosive Arrow": {
    "grid": [
@@ -2526,7 +3240,9 @@
     "role": "Infantry",
     "level": 11,
     "cash": 7500
-   }
+   },
+   "slot": "Underbarrel",
+   "fitsAny": true
   },
   "Ruck Backpack": {
    "kg": 1.5,
@@ -2554,7 +3270,9 @@
     "role": "Medic",
     "level": 48,
     "cash": 50000
-   }
+   },
+   "slot": "Muzzle",
+   "fitsAny": true
   },
   "SKS": {
    "kg": 3.85,
@@ -2566,7 +3284,8 @@
     "role": "Recon",
     "level": 5,
     "cash": 25000
-   }
+   },
+   "class": "Marksman Rifle"
   },
   "SKS Bipod": {
    "kg": 0.47,
@@ -2578,18 +3297,28 @@
     "role": "Recon",
     "level": 7,
     "cash": 10000
-   }
+   },
+   "slot": "Underbarrel",
+   "fitsAny": true
   },
   "SKS Extended Mag": {
    "grid": [
     1,
     2
+   ],
+   "slot": "Magazine",
+   "fits": [
+    "SKS"
    ]
   },
   "SKS Internal Magazine": {
    "grid": [
     1,
     1
+   ],
+   "slot": "Magazine",
+   "fits": [
+    "SKS"
    ]
   },
   "SRVV Brake": {
@@ -2602,7 +3331,14 @@
     "role": "Recon",
     "level": 20,
     "cash": 17500
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "Mosin Nagant",
+    "PKM",
+    "SV98",
+    "SVD"
+   ]
   },
   "STANAG 20 RND Magazine": {
    "kg": 0.31,
@@ -2610,7 +3346,16 @@
     1,
     2
    ],
-   "rounds": 20
+   "rounds": 20,
+   "slot": "Magazine",
+   "fits": [
+    "A-91",
+    "Bushmaster M17S",
+    "KH-2002",
+    "M249 SAW",
+    "M4",
+    "T-21"
+   ]
   },
   "STANAG 30 RND Magazine": {
    "kg": 0.53,
@@ -2623,7 +3368,16 @@
     "role": "Infantry",
     "level": 6,
     "cash": 10000
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "A-91",
+    "Bushmaster M17S",
+    "KH-2002",
+    "M249 SAW",
+    "M4",
+    "T-21"
+   ]
   },
   "STANAG 60 RND Magazine": {
    "kg": 1.01,
@@ -2636,7 +3390,16 @@
     "role": "Infantry",
     "level": 30,
     "cash": 25000
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "A-91",
+    "Bushmaster M17S",
+    "KH-2002",
+    "M249 SAW",
+    "M4",
+    "T-21"
+   ]
   },
   "STRELIX Suppressor": {
    "kg": 0.59,
@@ -2648,7 +3411,11 @@
     "role": "Recon",
     "level": 3,
     "cash": 7500
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "Scout Rifle TD"
+   ]
   },
   "SV98": {
    "kg": 5.8,
@@ -2660,7 +3427,8 @@
     "role": "Recon",
     "level": 19,
     "cash": 100000
-   }
+   },
+   "class": "Sniper Rifle"
   },
   "SV98 10 RND Magazine": {
    "kg": 0.34,
@@ -2673,7 +3441,11 @@
     "role": "Recon",
     "level": 19,
     "cash": 0
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "SV98"
+   ]
   },
   "SV98 Bipod": {
    "kg": 0.47,
@@ -2685,12 +3457,18 @@
     "role": "Recon",
     "level": 21,
     "cash": 30000
-   }
+   },
+   "slot": "Underbarrel",
+   "fitsAny": true
   },
   "SV98 Extended Magazine": {
    "grid": [
     1,
     2
+   ],
+   "slot": "Magazine",
+   "fits": [
+    "SV98"
    ]
   },
   "SVD": {
@@ -2703,7 +3481,8 @@
     "role": "Recon",
     "level": 12,
     "cash": 50000
-   }
+   },
+   "class": "Marksman Rifle"
   },
   "SVD 10 RND Magazine": {
    "kg": 0.34,
@@ -2716,7 +3495,11 @@
     "role": "Recon",
     "level": 16,
     "cash": 25000
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "SVD"
+   ]
   },
   "SVD 5 RND Magazine": {
    "kg": 0.23,
@@ -2729,7 +3512,11 @@
     "role": "Recon",
     "level": 12,
     "cash": 0
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "SVD"
+   ]
   },
   "SVD 7.62x54R Brake": {
    "kg": 0.2,
@@ -2741,7 +3528,11 @@
     "role": "Recon",
     "level": 13,
     "cash": 10000
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "SVD"
+   ]
   },
   "SVD Bipod": {
    "kg": 0.5,
@@ -2753,7 +3544,9 @@
     "role": "Recon",
     "level": 14,
     "cash": 10000
-   }
+   },
+   "slot": "Underbarrel",
+   "fitsAny": true
   },
   "Scout Backpack": {
    "kg": 2,
@@ -2771,7 +3564,8 @@
    "grid": [
     5,
     2
-   ]
+   ],
+   "class": "Sniper Rifle"
   },
   "Shift Foregrip": {
    "kg": 0.12,
@@ -2783,7 +3577,9 @@
     "role": "Infantry",
     "level": 48,
     "cash": 30000
-   }
+   },
+   "slot": "Underbarrel",
+   "fitsAny": true
   },
   "Slicktap Brake": {
    "kg": 0.14,
@@ -2795,7 +3591,11 @@
     "role": "Recon",
     "level": 28,
     "cash": 22500
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "SKS"
+   ]
   },
   "Slotted Flash Hider": {
    "kg": 0.1,
@@ -2807,7 +3607,11 @@
     "role": "Support",
     "level": 26,
     "cash": 20000
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "PKM"
+   ]
   },
   "Small Armored Crate": {
    "grid": [
@@ -2852,7 +3656,25 @@
     "role": "Support",
     "level": 21,
     "cash": 15000
-   }
+   },
+   "slot": "Sight",
+   "fits": [
+    "AK74",
+    "AMR 50",
+    "BMR-308",
+    "FAL",
+    "Galil",
+    "M249 SAW",
+    "M500",
+    "MK22",
+    "Mosin Nagant",
+    "PKM",
+    "Scout Rifle TD",
+    "SKS",
+    "SV98",
+    "SVD",
+    "T-21"
+   ]
   },
   "Spitfire 3X": {
    "kg": 0.26,
@@ -2864,7 +3686,25 @@
     "role": "Infantry",
     "level": 26,
     "cash": 25000
-   }
+   },
+   "slot": "Sight",
+   "fits": [
+    "AK74",
+    "AMR 50",
+    "BMR-308",
+    "FAL",
+    "Galil",
+    "M249 SAW",
+    "M4",
+    "M500",
+    "MK22",
+    "Mosin Nagant",
+    "PKM",
+    "Scout Rifle TD",
+    "SKS",
+    "SV98",
+    "SVD"
+   ]
   },
   "Sport Parachute": {
    "kg": 9,
@@ -2888,7 +3728,8 @@
     "role": "Medic",
     "level": 35,
     "cash": 150000
-   }
+   },
+   "class": "Submachine Gun"
   },
   "Super-45 13 RND Magazine": {
    "kg": 0.23,
@@ -2901,7 +3742,11 @@
     "role": "Medic",
     "level": 35,
     "cash": 0
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "Super-45"
+   ]
   },
   "Super-45 30 RND Magazine": {
    "kg": 0.89,
@@ -2914,7 +3759,11 @@
     "role": "Medic",
     "level": 38,
     "cash": 25000
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "Super-45"
+   ]
   },
   "Super-45 40 RND Drum Magazine": {
    "kg": 1.59,
@@ -2927,7 +3776,11 @@
     "role": "Medic",
     "level": 50,
     "cash": 50000
-   }
+   },
+   "slot": "Magazine",
+   "fits": [
+    "Super-45"
+   ]
   },
   "Super-45 Flash Hider": {
    "kg": 0.06,
@@ -2939,7 +3792,11 @@
     "role": "Medic",
     "level": 40,
     "cash": 40000
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "Super-45"
+   ]
   },
   "Suppressor T8L1 Scout": {
    "kg": 0.64,
@@ -2953,7 +3810,8 @@
    "grid": [
     5,
     2
-   ]
+   ],
+   "class": "Assault Rifle"
   },
   "TDG Vertical Foregrip": {
    "kg": 0.13,
@@ -2965,7 +3823,9 @@
     "role": "Career",
     "level": 58,
     "cash": 25000
-   }
+   },
+   "slot": "Underbarrel",
+   "fitsAny": true
   },
   "TGP-A Suppressor 5.45": {
    "kg": 0.7,
@@ -2977,7 +3837,11 @@
     "role": "Infantry",
     "level": 19,
     "cash": 17500
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "AK74"
+   ]
   },
   "Three Port Brake": {
    "kg": 0.12,
@@ -2989,7 +3853,13 @@
     "role": "Recon",
     "level": 36,
     "cash": 25000
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "BMR-308",
+    "FAL",
+    "MK22"
+   ]
   },
   "TopComp Brake": {
    "kg": 0.1,
@@ -3001,7 +3871,18 @@
     "role": "Infantry",
     "level": 5,
     "cash": 7500
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "A-91",
+    "Bushmaster M17S",
+    "Galil",
+    "KH-2002",
+    "M249 SAW",
+    "M4",
+    "Scout Rifle TD",
+    "T-21"
+   ]
   },
   "Tread Brake": {
    "kg": 0.1,
@@ -3013,7 +3894,18 @@
     "role": "Support",
     "level": 17,
     "cash": 10000
-   }
+   },
+   "slot": "Muzzle",
+   "fits": [
+    "A-91",
+    "Bushmaster M17S",
+    "Galil",
+    "KH-2002",
+    "M249 SAW",
+    "M4",
+    "Scout Rifle TD",
+    "T-21"
+   ]
   },
   "Tricon 1.5x Compact Prism Scope": {
    "kg": 0.2,
@@ -3025,7 +3917,27 @@
     "role": "Infantry",
     "level": 12,
     "cash": 10000
-   }
+   },
+   "slot": "Sight",
+   "fits": [
+    "AK74",
+    "AMR 50",
+    "BMR-308",
+    "FAL",
+    "Galil",
+    "M249 SAW",
+    "M4",
+    "M500",
+    "MK22",
+    "Mosin Nagant",
+    "MP5",
+    "PKM",
+    "PP-19 Vityaz",
+    "Scout Rifle TD",
+    "SKS",
+    "SV98",
+    "SVD"
+   ]
   },
   "Vektor Frenix-X Micro Reflex Sight": {
    "kg": 0.03,
@@ -3037,7 +3949,24 @@
     "role": "Medic",
     "level": 28,
     "cash": 15000
-   }
+   },
+   "slot": "Sight",
+   "fits": [
+    "AK74",
+    "AMR 50",
+    "FAL",
+    "Galil",
+    "M249 SAW",
+    "M4",
+    "MK22",
+    "MP5",
+    "PKM",
+    "PP-19 Vityaz",
+    "SKS",
+    "Super-45",
+    "SV98",
+    "SVD"
+   ]
   },
   "Wrench": {
    "grid": [
@@ -3049,6 +3978,10 @@
    "grid": [
     1,
     1
+   ],
+   "slot": "Handguard",
+   "fits": [
+    "AK74"
    ]
   }
  }

@@ -225,6 +225,35 @@ const ARMORY_STATS = JSON.parse(
    round. Per field rather than per item: a bag whose size was measured keeps the weight
    the pull gave it until somebody measures that too. */
 const MEASURED = JSON.parse(fs.readFileSync(path.join(ROOT, "data/measured.json"), "utf8"));
+/* ---------- what a weapon is, and the order the classes are read in ----------
+   The owner's order, which is how the game groups them rather than the alphabet: what you
+   reach for first down to what you reach for last. It lives here because two pages sort by
+   it, the damage ranking and the loadout shelf, and a second copy is how they would come to
+   disagree about where the shotguns go.
+
+   The keys are the classes as the item database files them. CLASS_LABEL is what a chip says,
+   CLASS_SHORT what a crowded row says. The bow is filed under Equipment there and is a
+   primary weapon here, so it is shown as Bow: that is what to call it on a weapon shelf, and
+   the pulled value is untouched underneath. */
+const CLASS_ORDER = ["Assault Rifle", "Submachine Gun", "Shotgun", "Light Machine Gun",
+  "Marksman Rifle", "Sniper Rifle", "Equipment", "Pistol", "Launcher"];
+const CLASS_LABEL = {
+  "Submachine Gun": "SMG", "Light Machine Gun": "LMG", "Sniper Rifle": "Sniper",
+  Equipment: "Bows",
+};
+const CLASS_SHORT = {
+  "Assault Rifle": "AR", "Submachine Gun": "SMG", "Light Machine Gun": "LMG",
+  "Marksman Rifle": "DMR", "Sniper Rifle": "Sniper", Equipment: "Bow",
+};
+const classLabel = c => CLASS_LABEL[c] || c;
+const classShort = c => CLASS_SHORT[c] || c;
+/* Anything the list does not name follows it rather than being dropped, so a class that
+   arrives in the game turns up at the end of the shelf instead of vanishing off it. */
+const classRank = c => {
+  const at = CLASS_ORDER.indexOf(c);
+  return at < 0 ? CLASS_ORDER.length : at;
+};
+
 const ITEM_STATS = {};
 for (const [name, pulled] of Object.entries(ARMORY_STATS.items)) ITEM_STATS[name] = { ...pulled };
 for (const [name, seen] of Object.entries(MEASURED.items)) {
@@ -396,7 +425,8 @@ const VOTE_API = (COMMUNITY.voteApi || "").replace(/\/$/, "");
     fs, path, ROOT, DOCS, SITE, catalog, byId, esc,
     ADS, adsOn, adScript, adSlot,
     encodeDesign, P, run, ring, pit,
-    COMMUNITY, BALLISTICS, ARMORY, ARMORY_STATS, MEASURED, ITEM_STATS, loadsFor, DAMAGE, ARTILLERY, ARTILLERY_MAPS, DESIGNS, stats,
+    COMMUNITY, BALLISTICS, ARMORY, ARMORY_STATS, MEASURED, ITEM_STATS, loadsFor,
+    CLASS_ORDER, classLabel, classShort, classRank, DAMAGE, ARTILLERY, ARTILLERY_MAPS, DESIGNS, stats,
     CSS, write, written, sweepDesignPages,
     decodeShared, withStats, designCard, VOTE_API,
     TAG_GROUPS, TAG_BY_ID, tagPills,

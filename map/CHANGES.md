@@ -8,6 +8,49 @@ Newest first. One entry per decision. Keep entries short.
 
 ## 2026-09-01
 
+### An AK stops being offered GGX magazines
+
+Fitment was read off the name: a leading token that pointed at exactly one weapon owned the
+attachment, and everything else was treated as universal. A name is not a fitment. The
+vendor states both the slot and the weapons for each attachment, and both are pulled into
+`data/armory-stats.json` now: 137 of 146 carry it, and the nine it says nothing about keep
+the old guess. The AK74 offers its own three magazines and nothing else.
+
+**Unfinished items are off the shelves.** The AT4 Mag was offered on every weapon in the
+game, because naming no fitment reads the same as a source that says nothing. The source
+marks it unfinished; the armory still lists it, since a catalogue is the point there.
+
+### Nothing on either calculator moves when you press a chip
+
+Pressing a level 4 vest moved every pixel below the damage calculator by 128px: the hatching
+sentence ran from three lines to five, and it sat in the figure's column, which was setting
+the height of the whole row. It sits with the other prose in the readout column, which is
+shorter than the figure and has room to grow into, and its tallest state is reserved. On the
+loadout page a long attachment name wrapped its own slot to two lines and pushed the row
+under it down; the slot has two lines of room whether the name uses them or not. Both
+measured after: zero movement.
+
+### The banner says WARDOGS
+
+"Builder" was a second word in the corner of every page for one tool out of seven, and the
+nav under it already says which tool you are in.
+
+### The loadout's weapon shelf is cut into classes, from the same list as the damage page's
+
+Thirty-four weapons in one grid is a wall you read rather than a shelf you pick from. The
+primary shelf carries a row of classes now, opens on the class of the weapon already in the
+slot, and falls back to the first in the order on an empty one. The three tac vests and the
+other short shelves are untouched: only the ones worth cutting take a `split` flag.
+
+**The order lives in `tools/site/context.js`**, with the labels, since both shelves sort by
+it and a second copy is how they come to disagree about where the shotguns go. The damage
+page maps the measured sheet's spellings onto it, because the sheet says SMG where the item
+database says Submachine Gun.
+
+**Every weapon carries the class the vendor files it under**, pulled into
+`data/armory-stats.json`. The Compound Bow is filed under Equipment there and is a primary
+weapon here, so the chip reads Bows and the pulled value is untouched underneath.
+
 ### The front page leads with what the site is for
 
 The kicker read "Fan-made reference for WARDOGS", which is the disclaimer, and the footer

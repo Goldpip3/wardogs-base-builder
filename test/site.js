@@ -150,6 +150,49 @@ check(!!rd && rd.includes("data-role=more") && /PAGE=[0-9]+/.test(rd),
 check(!!rd && rd.includes("data-pick") && rd.includes("tags:tags"),
   "the card that sends a design up asks for tags and sends them");
 
+// ---------- the loadout calculator's weapon shelf ----------
+/* Thirty-four weapons in one grid is a wall you read rather than a shelf you pick from. The
+   damage page's shelf was cut into classes first; this is the same cut, from the same list,
+   which is why that list lives in tools/site/context.js and neither page keeps its own. */
+const kitPage = fs.readFileSync(DOCS + "loadouts/index.html", "utf8");
+check(kitPage.includes('data-pcls="w|Assault Rifle"') && kitPage.includes('data-pclass='),
+  "the primary weapon shelf is cut into classes");
+check(kitPage.includes('id="w-grid" hidden data-split="Assault Rifle"'),
+  "and opens on one of them rather than on all thirty-four");
+const statItems = require(ROOT + "/data/armory-stats.json").items;
+const weaponNames = require(ROOT + "/data/armory.json").items
+  .filter(i => i.cat === "weapons").map(i => i.name);
+const unclassed = weaponNames.filter(n => !(statItems[n] || {}).class);
+check(unclassed.length === 0,
+  `all ${weaponNames.length} weapons carry the class the vendor files them under`,
+  unclassed.join(", "));
+/* One order for both shelves. A second copy is how the two pages come to disagree about
+   where the shotguns go. */
+const ctxSrc = fs.readFileSync(PROJ + "tools/site/context.js", "utf8");
+const balSrc = fs.readFileSync(PROJ + "tools/site/pages/ballistics.js", "utf8");
+const armSrc = fs.readFileSync(PROJ + "tools/site/pages/armory.js", "utf8");
+check(ctxSrc.includes("const CLASS_ORDER") &&
+  !balSrc.includes("const CLASS_ORDER") && !armSrc.includes("const CLASS_ORDER"),
+  "the class order is written once, in the context both pages read");
+
+// ---------- what goes on what ----------
+/* An AK was offered GGX magazines, because fitment was being read off the name and a name is
+   not a fitment. The vendor's own fit list is pulled into data/armory-stats.json now. */
+const fitOf = JSON.parse(kitPage.split("var ATTFIT=")[1].split(";var")[0]);
+check(fitOf["GGX 17 RND Magazine"] && fitOf["GGX 17 RND Magazine"].w.indexOf("AK74") < 0,
+  "a GGX magazine does not fit an AK74");
+check(fitOf["AK74 30 RND Magazine"].w.join() === "AK74",
+  "and an AK magazine fits the AK and nothing else");
+const fitStats = require(ROOT + "/data/armory-stats.json").items;
+const withFits = Object.keys(fitStats).filter(n => fitStats[n].fits || fitStats[n].fitsAny);
+check(withFits.length > 120,
+  `${withFits.length} attachments carry the fitment the vendor states`);
+/* The source marks a few items unfinished. An unfinished attachment fits nothing and was
+   being offered on every weapon, because naming no fitment reads the same as a source that
+   says nothing at all. */
+check(!kitPage.includes('data-name="AT4 Mag"'),
+  "an unfinished attachment is off the shelves");
+
 // ---------- the loadout calculator's bag ----------
 /* Two rules the page is built on, both of which read as fine in the markup and wrong on the
    screen if they slip: the Pouch is a backpack rather than a rig, and nothing is carried

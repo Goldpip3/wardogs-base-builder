@@ -23,7 +23,8 @@
  * Bar length carries time to kill as well, so the ranking survives being printed in grey.
  */
 module.exports = ctx => {
-  const { fs, path, ROOT, esc, BALLISTICS, ARMORY, DAMAGE, loadsFor, adSlot, page, write } = ctx;
+  const { fs, path, ROOT, esc, BALLISTICS, ARMORY, DAMAGE, loadsFor,
+          classLabel, classShort, classRank, adSlot, page, write } = ctx;
   const B = BALLISTICS;
   const MODEL = fs.readFileSync(path.join(ROOT, "tools/site/ballistics-model.js"), "utf8");
 
@@ -37,16 +38,16 @@ module.exports = ctx => {
   const zoneById = {};
   ZONES.forEach(z => { zoneById[z.id] = z; });
 
-  /* The owner's order, which is how the game groups them rather than the alphabet: what
-     you reach for first, down to what you reach for last. Anything the sheet has that is not
-     in this list follows it rather than being dropped, so a new class arrives visibly at the
-     end instead of vanishing. The labels are the spoken names; the ids stay as the measured
-     sheet spells them, since that is the join. */
-  const CLASS_ORDER = ["Assault Rifle", "SMG", "Shotgun", "LMG", "Marksman", "Sniper", "Bow"];
-  const CLASS_LABEL = { Marksman: "Marksman Rifle", Bow: "Bows" };
-  /* The short forms, for the ranking rows only. The spoken names stay on the chips, where
-     there is room for them. */
-  const CLASS_SHORT = { "Assault Rifle": "AR", Marksman: "DMR" };
+  /* The classes this page knows are the measured sheet's, and the sheet does not spell them
+     the way the item database does: it says SMG where the database says Submachine Gun. The
+     order and the labels live in tools/site/context.js, keyed on the database's spelling,
+     because the loadout shelf sorts by the same list and two copies is how the two pages
+     would come to disagree about where the shotguns go. */
+  const SHEET_CLASS = {
+    SMG: "Submachine Gun", LMG: "Light Machine Gun", Marksman: "Marksman Rifle",
+    Sniper: "Sniper Rifle", Bow: "Equipment",
+  };
+  const classLabelOf = c => classLabel(SHEET_CLASS[c] || c);
   /* Twenty-two pixels of person for the strip that follows you down the page. Not the real
      figure scaled down: at this size the arms and the neck are one pixel each and the shape
      stops reading, so this is the same nine zones drawn as blocks. */
@@ -63,11 +64,8 @@ module.exports = ctx => {
   ];
   const classes = [];
   B.weapons.forEach(w => { if (classes.indexOf(w.class) < 0) classes.push(w.class); });
-  classes.sort((x, y) => {
-    const a = CLASS_ORDER.indexOf(x), b = CLASS_ORDER.indexOf(y);
-    return (a < 0 ? 99 : a) - (b < 0 ? 99 : b) || x.localeCompare(y);
-  });
-  const classLabel = c => CLASS_LABEL[c] || c;
+  classes.sort((x, y) =>
+    classRank(SHEET_CLASS[x] || x) - classRank(SHEET_CLASS[y] || y) || x.localeCompare(y));
   const FIRST_CLASS = classes[0];
 
   const chamberedBy = id => B.weapons.filter(w => w.calibre === id).map(w => w.name);
@@ -318,9 +316,12 @@ module.exports = ctx => {
          weapon moved the page twice and put the numbers you were reading somewhere else. */
       '<div class="calc-wrap">' +
       '<div class="calc" id="calc">' +
-        '<div class="calc-body">' + figureSvg() +
-          '<p class="fine" id="cover"></p>' +
-        "</div>" +
+        /* The figure alone. The sentence saying what is hatched used to live under it, where
+           it ran from one line to four as tiers went on and took the height of the whole row
+           with it: pressing L4 moved every pixel of the page below the calculator. It sits
+           with the other prose in the readout column now, which is shorter than the figure
+           and has the room to grow into. */
+        '<div class="calc-body">' + figureSvg() + "</div>" +
 
         '<div class="calc-ctl">' +
           /* The weapon is chosen by picking the weapon, not by reading its name in a list.
@@ -346,6 +347,7 @@ module.exports = ctx => {
         '<div class="hero"><b id="rpm">0</b><span>rounds per minute</span></div>' +
           '<p class="fine" id="chain"></p>' +
           '<p class="fine" id="armnote"></p>' +
+          '<p class="fine" id="cover"></p>' +
         "</div>" +
       "</div>" +
 
@@ -358,7 +360,7 @@ module.exports = ctx => {
         '<div class="chips" role="group" aria-label="Filter by class" style="margin-bottom:12px">' +
           classes.map(function (c) {
             return '<button class="chip" data-wcls="' + esc(c) + '" aria-pressed="' +
-              (c === FIRST_CLASS ? "true" : "false") + '">' + esc(classLabel(c)) + "</button>";
+              (c === FIRST_CLASS ? "true" : "false") + '">' + esc(classLabelOf(c)) + "</button>";
           }).join("") +
         "</div>" +
         '<div class="vgrid">' +
@@ -395,7 +397,7 @@ module.exports = ctx => {
       '<div class="chips" style="margin-top:18px">' +
         '<button class="chip" data-cls="" aria-pressed="true">All</button>' +
         classes.map(c => '<button class="chip" data-cls="' + esc(c) + '" aria-pressed="false">' +
-          esc(classLabel(c)) + "</button>").join("") +
+          esc(classLabelOf(c)) + "</button>").join("") +
       "</div>" +
       /* Show me the hollow point weapons. The ranking used to answer with every weapon in
          the game, each falling back to whatever it does chamber, which is a different
@@ -580,7 +582,12 @@ module.exports = ctx => {
       /* Short class names for the rows. The spoken ones stay on the chips, where there is
          room: "Bushmaster M17S Assault Rifle" wrapped a row onto two lines and broke the
          rhythm of the whole column. */
-      "var CLASS_SHORT=" + JSON.stringify(CLASS_SHORT) + ";" +
+      /* Short class names for the rows, keyed by the sheet's own spelling so the browser
+         needs no mapping of its own. */
+      "var CLASS_SHORT=" + JSON.stringify(B.weapons.reduce((m, w) => {
+        m[w.class] = classShort(SHEET_CLASS[w.class] || w.class);
+        return m;
+      }, {})) + ";" +
       "var calById={},zoneById={},roundById={};" +
       "B.calibres.forEach(function(c){calById[c.id]=c});" +
       "B.zones.forEach(function(z){zoneById[z.id]=z});" +

@@ -77,8 +77,6 @@ header.site{border-bottom:1px solid var(--line);background:rgba(12,12,12,.92);
 header.site .wrap{display:flex;align-items:center;gap:28px;min-height:74px}
 .brand{font-family:var(--display);font-weight:700;letter-spacing:.01em;font-size:22px;
   text-transform:uppercase;line-height:1;display:flex;align-items:baseline;gap:8px}
-.brand span{font-family:var(--ui);font-weight:600;font-size:10px;letter-spacing:.18em;
-  color:var(--dim);text-transform:uppercase}
 .brand:hover{color:var(--text)}
 /* the two tools sit hard left next to the brand, everything else is pushed right by the gap */
 /* Wrapping is the safety valve. Seven boxes, a brand and an account name do not fit on one
@@ -576,6 +574,13 @@ svg.body .bz[data-on="1"]{stroke:var(--white);stroke-width:3;paint-order:stroke}
 .calc-out .hero span{display:block;font-size:10px;font-weight:600;letter-spacing:.16em;
   text-transform:uppercase;color:var(--dim);margin-top:7px}
 .calc-out .fine{margin:10px 0 0}
+/* The hatching sentence is the one line on this page whose length depends on what you press:
+   three lines with nothing worn and five with two level 4 pieces on, measured at 128px in a
+   300px column. Reserving that height means pressing a tier rewrites the words and moves
+   nothing. It stacks on a narrow screen, where the column is its own height anyway and the
+   reserved space would just be a gap. */
+#cover{min-height:128px}
+@media(max-width:899px){#cover{min-height:0}}
 /* a round's tint, always carrying its name so colour is never load-bearing alone */
 .rd{display:inline-flex;align-items:center;gap:6px;font-weight:600;color:var(--text)}
 .rd::before{content:"";width:10px;height:10px;background:var(--rd);flex:0 0 auto}
@@ -818,7 +823,10 @@ tr[data-on="1"] td{background:var(--panel2);color:var(--text)}
 @media(max-width:599px){.vslot-art{height:64px;padding:20px 8px 4px}
   .vslot-art img{max-height:44px}}
 /* the name bar is the button that opens the shelf, so the whole card is the control */
-.vslot-btn{display:block;width:100%;text-align:left;background:var(--panel2);color:var(--text);
+/* Two lines' worth of room, always. A slot naming an "AR Multi-Caliber Suppressor" wrapped
+   to two lines, grew its own card, and pushed the row and everything under it down as you
+   picked. The room is there whether the name uses it or not. */
+.vslot-btn{display:block;width:100%;min-height:44px;text-align:left;background:var(--panel2);color:var(--text);
   border:0;border-top:1px solid var(--line2);padding:9px 10px;cursor:pointer;
   font-family:var(--ui);font-size:12.5px}
 .vslot-btn::after{content:"";float:right;width:0;height:0;margin:6px 2px 0 0;
@@ -1174,7 +1182,8 @@ document.addEventListener("click",function(e){
 </head>
 <body>
 <header class="site"><div class="wrap">
-  <a href="/" class="brand">WARDOGS <span>Builder</span></a>
+  
+  <a href="/" class="brand">WARDOGS</a>
   <nav class="site">
     
     <a href="/planner/" class="cta">Planner</a>
