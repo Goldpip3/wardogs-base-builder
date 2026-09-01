@@ -1,0 +1,1191 @@
+{
+ "_note": "Damage measured in game and recorded in the owner's 'ammo testing' sheet. The bare figures and the scaling table are transcribed. Armoured damage is not stored: it is bare x scaling on the zones that tier covers, because the sheet's own armoured block contradicts its own scaling table in the cells listed under sheetDisagrees. Refresh with tools/pull-damage-sheet.js.",
+ "source": "https://docs.google.com/spreadsheets/d/1Fzr0If8dsH6AcXvGy57qAC8h9fOIhlEzxVfsL_m_Hd4",
+ "fetchedOn": "2026-09-01",
+ "zones": [
+  {
+   "id": "head",
+   "name": "Head",
+   "slot": "helmet",
+   "coveredFrom": 1
+  },
+  {
+   "id": "neck",
+   "name": "Neck",
+   "slot": "helmet",
+   "coveredFrom": 3
+  },
+  {
+   "id": "chest",
+   "name": "Chest",
+   "slot": "vest",
+   "coveredFrom": 1
+  },
+  {
+   "id": "abdomen",
+   "name": "Abdomen",
+   "slot": "vest",
+   "coveredFrom": 1
+  },
+  {
+   "id": "bicep",
+   "name": "Bicep/Shoulder",
+   "slot": "vest",
+   "coveredFrom": 4
+  },
+  {
+   "id": "forearm",
+   "name": "Forearm",
+   "slot": "",
+   "coveredFrom": 0
+  },
+  {
+   "id": "extremity",
+   "name": "Hands/Feet",
+   "slot": "",
+   "coveredFrom": 0
+  },
+  {
+   "id": "groin",
+   "name": "Groin",
+   "slot": "vest",
+   "coveredFrom": 4
+  },
+  {
+   "id": "legs",
+   "name": "Legs",
+   "slot": "",
+   "coveredFrom": 0
+  }
+ ],
+ "scalings": {
+  "FMJ": {
+   "1": 0.7,
+   "2": 0.6,
+   "3": 0.45,
+   "4": 0.35
+  },
+  "HP": {
+   "1": 0.165,
+   "2": 0.12,
+   "3": 0.0527,
+   "4": 0.0076
+  },
+  "AP": {
+   "1": 0.85,
+   "2": 0.8002,
+   "3": 0.7252,
+   "4": 0.6752
+  },
+  "Arrow": {
+   "1": 0.7,
+   "2": 0.6,
+   "3": 0.45,
+   "4": 0.35
+  },
+  "Buckshot": {
+   "1": 0.5604,
+   "2": 0.4804,
+   "3": 0.3604,
+   "4": 0.2805
+  },
+  "Slug": {
+   "1": 0.7,
+   "2": 0.6,
+   "3": 0.45,
+   "4": 0.35
+  }
+ },
+ "covers": {
+  "1": [
+   "abdomen",
+   "chest",
+   "head"
+  ],
+  "2": [
+   "abdomen",
+   "chest",
+   "head"
+  ],
+  "3": [
+   "abdomen",
+   "chest",
+   "head",
+   "neck"
+  ],
+  "4": [
+   "abdomen",
+   "bicep",
+   "chest",
+   "groin",
+   "head",
+   "neck"
+  ]
+ },
+ "classes": {
+  "Assault Rifle": {
+   "308 Win AP": {
+    "type": "AP",
+    "zones": {
+     "head": 73.34,
+     "neck": 55,
+     "chest": 34.34,
+     "abdomen": 31.22,
+     "bicep": 16.86,
+     "forearm": 14.06,
+     "extremity": 8.43,
+     "groin": 28.1,
+     "legs": 16.86
+    }
+   },
+   "308 Win FMJ": {
+    "type": "FMJ",
+    "zones": {
+     "head": 91.67,
+     "neck": 68.76,
+     "chest": 42.92,
+     "abdomen": 39.01,
+     "bicep": 21.08,
+     "forearm": 17.56,
+     "extremity": 10.54,
+     "groin": 35.11,
+     "legs": 21.07
+    }
+   },
+   "308 Win HP": {
+    "type": "HP",
+    "zones": {
+     "head": 183.31,
+     "neck": 137.49,
+     "chest": 85.82,
+     "abdomen": 78.01,
+     "bicep": 42.13,
+     "forearm": 35.12,
+     "extremity": 21.07,
+     "groin": 70.21,
+     "legs": 42.13
+    }
+   },
+   "5.45 AP": {
+    "type": "AP",
+    "zones": {
+     "head": 48.9,
+     "neck": 36.68,
+     "chest": 22.9,
+     "abdomen": 20.81,
+     "bicep": 11.25,
+     "forearm": 9.37,
+     "extremity": 5.63,
+     "groin": 18.74,
+     "legs": 11.24
+    }
+   },
+   "5.45 FMJ": {
+    "type": "FMJ",
+    "zones": {
+     "head": 61.11,
+     "neck": 45.84,
+     "chest": 28.62,
+     "abdomen": 26.02,
+     "bicep": 14.06,
+     "forearm": 11.71,
+     "extremity": 7.03,
+     "groin": 23.41,
+     "legs": 14.06
+    }
+   },
+   "5.45 HP": {
+    "type": "HP",
+    "zones": {
+     "head": 122.22,
+     "neck": 91.66,
+     "chest": 57.21,
+     "abdomen": 52.02,
+     "bicep": 28.1,
+     "forearm": 23.41,
+     "extremity": 14.05,
+     "groin": 46.82,
+     "legs": 28.1
+    }
+   },
+   "5.56 AP": {
+    "type": "AP",
+    "zones": {
+     "head": 52.65,
+     "neck": 39.49,
+     "chest": 24.66,
+     "abdomen": 22.41,
+     "bicep": 12.11,
+     "forearm": 10.1,
+     "extremity": 6.06,
+     "groin": 20.17,
+     "legs": 12.11
+    }
+   },
+   "5.56 FMJ": {
+    "type": "FMJ",
+    "zones": {
+     "head": 65.82,
+     "neck": 49.36,
+     "chest": 30.81,
+     "abdomen": 26.62,
+     "bicep": 15.14,
+     "forearm": 12.61,
+     "extremity": 7.58,
+     "groin": 25.22,
+     "legs": 15.13
+    }
+   },
+   "5.56 HP": {
+    "type": "HP",
+    "zones": {
+     "head": 131.62,
+     "neck": 98.72,
+     "chest": 61.62,
+     "abdomen": 53.22,
+     "bicep": 30.25,
+     "forearm": 25.22,
+     "extremity": 15.14,
+     "groin": 50.42,
+     "legs": 30.26
+    }
+   }
+  },
+  "SMG": {
+   "45acp AP": {
+    "type": "AP",
+    "zones": {
+     "head": 36.98,
+     "neck": 27.74,
+     "chest": 20.34,
+     "abdomen": 17.57,
+     "bicep": 13.74,
+     "forearm": 11.46,
+     "extremity": 5.87,
+     "groin": 16.65,
+     "legs": 13.74
+    }
+   },
+   "45acp FMJ": {
+    "type": "FMJ",
+    "zones": {
+     "head": 46.22,
+     "neck": 34.66,
+     "chest": 25.43,
+     "abdomen": 23.11,
+     "bicep": 17.18,
+     "forearm": 14.32,
+     "extremity": 8.6,
+     "groin": 20.81,
+     "legs": 17.17
+    }
+   },
+   "45acp HP": {
+    "type": "HP",
+    "zones": {
+     "head": 92.41,
+     "neck": 69.32,
+     "chest": 50.84,
+     "abdomen": 46.21,
+     "bicep": 34.34,
+     "forearm": 28.61,
+     "extremity": 17.18,
+     "groin": 41.59,
+     "legs": 34.34
+    }
+   },
+   "9mm AP": {
+    "type": "AP",
+    "zones": {
+     "head": 36.98,
+     "neck": 27.74,
+     "chest": 20.34,
+     "abdomen": 17.57,
+     "bicep": 13.74,
+     "forearm": 11.46,
+     "extremity": 5.87,
+     "groin": 16.65,
+     "legs": 13.74
+    }
+   },
+   "9mm FMJ": {
+    "type": "FMJ",
+    "zones": {
+     "head": 46.22,
+     "neck": 34.66,
+     "chest": 25.43,
+     "abdomen": 23.11,
+     "bicep": 17.18,
+     "forearm": 14.32,
+     "extremity": 8.6,
+     "groin": 20.81,
+     "legs": 17.17
+    }
+   },
+   "9mm HP": {
+    "type": "HP",
+    "zones": {
+     "head": 92.41,
+     "neck": 69.32,
+     "chest": 50.84,
+     "abdomen": 46.21,
+     "bicep": 34.34,
+     "forearm": 28.61,
+     "extremity": 17.18,
+     "groin": 41.59,
+     "legs": 34.34
+    }
+   }
+  },
+  "Shotgun": {
+   "Buckshot (8)": {
+    "type": "Buckshot",
+    "zones": {
+     "head": 37.51,
+     "neck": 28.14,
+     "chest": 24.78,
+     "abdomen": 22.23,
+     "bicep": 15.77,
+     "forearm": 13.14,
+     "extremity": 7.89,
+     "groin": 20.27,
+     "legs": 15.77
+    },
+    "pellets": 8
+   },
+   "Slugs": {
+    "type": "Slug",
+    "zones": {
+     "head": 99.02,
+     "neck": 74.27,
+     "chest": 65.35,
+     "abdomen": 59.42,
+     "bicep": 41.6,
+     "forearm": 34.67,
+     "extremity": 20.8,
+     "groin": 53.48,
+     "legs": 41.59
+    }
+   }
+  },
+  "LMG": {
+   "5.56 AP": {
+    "type": "AP",
+    "zones": {
+     "head": 52.65,
+     "neck": 52.66,
+     "chest": 24.66,
+     "abdomen": 22.41,
+     "bicep": 12.11,
+     "forearm": 10.1,
+     "extremity": 6.06,
+     "groin": 20.17,
+     "legs": 12.11
+    }
+   },
+   "5.56 FMJ": {
+    "type": "FMJ",
+    "zones": {
+     "head": 65.82,
+     "neck": 49.36,
+     "chest": 30.81,
+     "abdomen": 26.62,
+     "bicep": 15.14,
+     "forearm": 12.61,
+     "extremity": 7.58,
+     "groin": 25.22,
+     "legs": 15.13
+    }
+   },
+   "5.56 HP": {
+    "type": "HP",
+    "zones": {
+     "head": 131.62,
+     "neck": 98.72,
+     "chest": 61.62,
+     "abdomen": 53.22,
+     "bicep": 30.25,
+     "forearm": 25.22,
+     "extremity": 15.14,
+     "groin": 50.42,
+     "legs": 30.26
+    }
+   },
+   "7.62x54 AP": {
+    "type": "AP",
+    "zones": {
+     "head": 101.21,
+     "neck": 75.92,
+     "chest": 50.83,
+     "abdomen": 43.91,
+     "bicep": 23.78,
+     "forearm": 19.81,
+     "extremity": 11.89,
+     "groin": 39.61,
+     "legs": 23.78
+    }
+   },
+   "7.62x54 FMJ": {
+    "type": "FMJ",
+    "zones": {
+     "head": 126.52,
+     "neck": 94.89,
+     "chest": 63.54,
+     "abdomen": 54.88,
+     "bicep": 29.71,
+     "forearm": 24.76,
+     "extremity": 14.87,
+     "groin": 49.52,
+     "legs": 29.72
+    }
+   },
+   "7.62x54 HP": {
+    "type": "HP",
+    "zones": {
+     "head": 253.01,
+     "neck": 189.77,
+     "chest": 127.07,
+     "abdomen": 115.51,
+     "bicep": 59.41,
+     "forearm": 49.51,
+     "extremity": 29.71,
+     "groin": 99.02,
+     "legs": 59.41
+    }
+   }
+  },
+  "Marksman": {
+   "308 Win AP": {
+    "type": "AP",
+    "zones": {
+     "head": 102.02,
+     "neck": 76.51,
+     "chest": 58.36,
+     "abdomen": 53.05,
+     "bicep": 24.49,
+     "forearm": 20.42,
+     "extremity": 12.25,
+     "groin": 36.74,
+     "legs": 20.41
+    }
+   },
+   "308 Win FMJ": {
+    "type": "FMJ",
+    "zones": {
+     "head": 127.52,
+     "neck": 95.64,
+     "chest": 72.94,
+     "abdomen": 63,
+     "bicep": 30.62,
+     "forearm": 25.52,
+     "extremity": 15.31,
+     "groin": 45.91,
+     "legs": 30.62
+    }
+   },
+   "308 Win HP": {
+    "type": "HP",
+    "zones": {
+     "head": 255.01,
+     "neck": 191.27,
+     "chest": 145.88,
+     "abdomen": 132.61,
+     "bicep": 61.21,
+     "forearm": 51.01,
+     "extremity": 30.61,
+     "groin": 91.81,
+     "legs": 61.21
+    }
+   },
+   "7.62x39 AP": {
+    "type": "AP",
+    "zones": {
+     "head": 84.01,
+     "neck": 63.02,
+     "chest": 48.07,
+     "abdomen": 41.52,
+     "bicep": 20.17,
+     "forearm": 16.82,
+     "extremity": 10.1,
+     "groin": 30.25,
+     "legs": 20.17
+    }
+   },
+   "7.62x39 FMJ": {
+    "type": "FMJ",
+    "zones": {
+     "head": 105.02,
+     "neck": 78.77,
+     "chest": 60.07,
+     "abdomen": 51.88,
+     "bicep": 25.22,
+     "forearm": 21.01,
+     "extremity": 12.62,
+     "groin": 37.82,
+     "legs": 25.22
+    }
+   },
+   "7.62x39 HP": {
+    "type": "HP",
+    "zones": {
+     "head": 210.02,
+     "neck": 157.52,
+     "chest": 120.14,
+     "abdomen": 109.21,
+     "bicep": 50.42,
+     "forearm": 42.01,
+     "extremity": 25.21,
+     "groin": 75.61,
+     "legs": 50.41
+    }
+   },
+   "7.62x54 AP": {
+    "type": "AP",
+    "zones": {
+     "head": 105.61,
+     "neck": 79.22,
+     "chest": 60.42,
+     "abdomen": 54.93,
+     "bicep": 25.36,
+     "forearm": 21.13,
+     "extremity": 12.68,
+     "groin": 38.04,
+     "legs": 25.36
+    }
+   },
+   "7.62x54 FMJ": {
+    "type": "FMJ",
+    "zones": {
+     "head": 132.02,
+     "neck": 99.01,
+     "chest": 75.51,
+     "abdomen": 65.22,
+     "bicep": 31.7,
+     "forearm": 26.41,
+     "extremity": 15.85,
+     "groin": 47.54,
+     "legs": 31.69
+    }
+   },
+   "7.62x54 HP": {
+    "type": "HP",
+    "zones": {
+     "head": 264.01,
+     "neck": 198.02,
+     "chest": 151.02,
+     "abdomen": 137.29,
+     "bicep": 63.37,
+     "forearm": 52.81,
+     "extremity": 31.69,
+     "groin": 95.05,
+     "legs": 63.37
+    }
+   }
+  },
+  "Sniper": {
+   "308 Win AP": {
+    "type": "AP",
+    "zones": {
+     "head": 153.61,
+     "neck": 115.22,
+     "chest": 95.06,
+     "abdomen": 86.41,
+     "bicep": 34.58,
+     "forearm": 28.81,
+     "extremity": 17.3,
+     "groin": 56.17,
+     "legs": 34.58
+    }
+   },
+   "308 Win FMJ": {
+    "type": "FMJ",
+    "zones": {
+     "head": 192.02,
+     "neck": 144.02,
+     "chest": 118.81,
+     "abdomen": 108.01,
+     "bicep": 43.21,
+     "forearm": 36.02,
+     "extremity": 21.61,
+     "groin": 70.22,
+     "legs": 43.22
+    }
+   },
+   "308 Win HP": {
+    "type": "HP",
+    "zones": {
+     "head": 384.01,
+     "neck": 288.01,
+     "chest": 237.61,
+     "abdomen": 205.21,
+     "bicep": 86.42,
+     "forearm": 72.01,
+     "extremity": 43.22,
+     "groin": 140.41,
+     "legs": 86.41
+    }
+   },
+   "5.56 AP": {
+    "type": "AP",
+    "zones": {
+     "head": 71.69,
+     "neck": 53.77,
+     "chest": 44.37,
+     "abdomen": 32.5,
+     "bicep": 16.14,
+     "forearm": 13.46,
+     "extremity": 8.08,
+     "groin": 26.22,
+     "legs": 16.14
+    }
+   },
+   "5.56 FMJ": {
+    "type": "FMJ",
+    "zones": {
+     "head": 89.61,
+     "neck": 67.22,
+     "chest": 55.46,
+     "abdomen": 38.59,
+     "bicep": 20.18,
+     "forearm": 16.82,
+     "extremity": 10.09,
+     "groin": 32.78,
+     "legs": 20.18
+    }
+   },
+   "5.56 HP": {
+    "type": "HP",
+    "zones": {
+     "head": 179.22,
+     "neck": 134.42,
+     "chest": 110.9,
+     "abdomen": 77.15,
+     "bicep": 40.33,
+     "forearm": 33.62,
+     "extremity": 20.17,
+     "groin": 65.54,
+     "legs": 40.33
+    }
+   },
+   "50cal FMJ": {
+    "type": "FMJ",
+    "zones": {
+     "head": 342.41,
+     "neck": 256.81,
+     "chest": 211.88,
+     "abdomen": 182.99,
+     "bicep": 77.06,
+     "forearm": 64.21,
+     "extremity": 38.53,
+     "groin": 125.21,
+     "legs": 77.06
+    }
+   },
+   "7.62x54 AP": {
+    "type": "AP",
+    "zones": {
+     "head": 140.81,
+     "neck": 105.62,
+     "chest": 87.13,
+     "abdomen": 79.22,
+     "bicep": 31.7,
+     "forearm": 26.42,
+     "extremity": 15.86,
+     "groin": 51.49,
+     "legs": 31.7
+    }
+   },
+   "7.62x54 FMJ": {
+    "type": "FMJ",
+    "zones": {
+     "head": 176.01,
+     "neck": 132.01,
+     "chest": 108.91,
+     "abdomen": 99.01,
+     "bicep": 39.61,
+     "forearm": 33.01,
+     "extremity": 19.81,
+     "groin": 64.36,
+     "legs": 39.61
+    }
+   },
+   "7.62x54 HP": {
+    "type": "HP",
+    "zones": {
+     "head": 352.02,
+     "neck": 264.02,
+     "chest": 217.81,
+     "abdomen": 198.02,
+     "bicep": 79.21,
+     "forearm": 66.02,
+     "extremity": 39.61,
+     "groin": 128.72,
+     "legs": 79.21
+    }
+   }
+  },
+  "Bow": {
+   "Arrow": {
+    "type": "Arrow",
+    "zones": {
+     "head": 177.12,
+     "neck": 132.84,
+     "chest": 160.94,
+     "abdomen": 109.74,
+     "bicep": 36.98,
+     "forearm": 30.82,
+     "extremity": 18.5,
+     "groin": 36.98,
+     "legs": 30.81
+    }
+   }
+  },
+  "Pistol": {
+   "45acp AP": {
+    "type": "AP",
+    "zones": {
+     "head": 48.07,
+     "neck": 36.05,
+     "chest": 25.19,
+     "abdomen": 22.89,
+     "bicep": 14.43,
+     "forearm": 12.02,
+     "extremity": 7.22,
+     "groin": 20.61,
+     "legs": 14.43
+    }
+   },
+   "45acp FMJ": {
+    "type": "FMJ",
+    "zones": {
+     "head": 60.08,
+     "neck": 45.06,
+     "chest": 31.47,
+     "abdomen": 28.61,
+     "bicep": 18.03,
+     "forearm": 15.03,
+     "extremity": 9.02,
+     "groin": 25.76,
+     "legs": 18.03
+    }
+   },
+   "45acp HP": {
+    "type": "HP",
+    "zones": {
+     "head": 120.14,
+     "neck": 90.11,
+     "chest": 62.93,
+     "abdomen": 57.22,
+     "bicep": 36.05,
+     "forearm": 30.04,
+     "extremity": 18.03,
+     "groin": 51.5,
+     "legs": 36.05
+    }
+   },
+   "45colt AP": {
+    "type": "AP",
+    "zones": {
+     "head": 58.82,
+     "neck": 44.11,
+     "chest": 30.82,
+     "abdomen": 28.01,
+     "bicep": 17.65,
+     "forearm": 14.72,
+     "extremity": 8.83,
+     "groin": 25.22,
+     "legs": 17.65
+    }
+   },
+   "45colt FMJ": {
+    "type": "FMJ",
+    "zones": {
+     "head": 73.52,
+     "neck": 55.14,
+     "chest": 38.52,
+     "abdomen": 35.01,
+     "bicep": 22.06,
+     "forearm": 18.39,
+     "extremity": 11.04,
+     "groin": 31.52,
+     "legs": 22.06
+    }
+   },
+   "45colt HP": {
+    "type": "HP",
+    "zones": {
+     "head": 147.02,
+     "neck": 110.26,
+     "chest": 77.02,
+     "abdomen": 70.01,
+     "bicep": 44.12,
+     "forearm": 36.77,
+     "extremity": 22.07,
+     "groin": 63.02,
+     "legs": 44.12
+    }
+   },
+   "50AE AP": {
+    "type": "AP",
+    "zones": {
+     "head": 82.34,
+     "neck": 61.75,
+     "chest": 43.13,
+     "abdomen": 37.26,
+     "bicep": 24.71,
+     "forearm": 20.59,
+     "extremity": 12.36,
+     "groin": 35.29,
+     "legs": 24.71
+    }
+   },
+   "50AE FMJ": {
+    "type": "FMJ",
+    "zones": {
+     "head": 102.92,
+     "neck": 77.19,
+     "chest": 53.92,
+     "abdomen": 49.01,
+     "bicep": 30.88,
+     "forearm": 25.74,
+     "extremity": 15.45,
+     "groin": 44.11,
+     "legs": 30.88
+    }
+   },
+   "50AE HP": {
+    "type": "HP",
+    "zones": {
+     "head": 205.81,
+     "neck": 154.37,
+     "chest": 107.82,
+     "abdomen": 98.02,
+     "bicep": 61.76,
+     "forearm": 51.47,
+     "extremity": 30.88,
+     "groin": 88.21,
+     "legs": 61.76
+    }
+   },
+   "9mm AP": {
+    "type": "AP",
+    "zones": {
+     "head": 36.97,
+     "neck": 27.74,
+     "chest": 19.38,
+     "abdomen": 16.73,
+     "bicep": 11.1,
+     "forearm": 9.26,
+     "extremity": 5.56,
+     "groin": 15.85,
+     "legs": 11.1
+    }
+   },
+   "9mm FMJ": {
+    "type": "FMJ",
+    "zones": {
+     "head": 46.22,
+     "neck": 34.66,
+     "chest": 24.22,
+     "abdomen": 22.02,
+     "bicep": 13.88,
+     "forearm": 11.56,
+     "extremity": 6.94,
+     "groin": 19.81,
+     "legs": 13.88
+    }
+   },
+   "9mm HP": {
+    "type": "HP",
+    "zones": {
+     "head": 92.42,
+     "neck": 69.31,
+     "chest": 48.41,
+     "abdomen": 44.01,
+     "bicep": 27.73,
+     "forearm": 23.11,
+     "extremity": 13.88,
+     "groin": 39.62,
+     "legs": 27.73
+    }
+   }
+  }
+ },
+ "sheetDisagrees": [
+  {
+   "class": "SMG",
+   "load": "45acp FMJ",
+   "tier": 4,
+   "zone": "legs",
+   "sheet": 31.69,
+   "expected": 6.01,
+   "bare": 17.17,
+   "ratio": 1.8457,
+   "scaling": 0.35
+  },
+  {
+   "class": "Sniper",
+   "load": "50cal FMJ",
+   "tier": 1,
+   "zone": "head",
+   "sheet": 291.05,
+   "expected": 239.69,
+   "bare": 342.41,
+   "ratio": 0.85,
+   "scaling": 0.7
+  },
+  {
+   "class": "Sniper",
+   "load": "50cal FMJ",
+   "tier": 1,
+   "zone": "chest",
+   "sheet": 180.1,
+   "expected": 148.32,
+   "bare": 211.88,
+   "ratio": 0.85,
+   "scaling": 0.7
+  },
+  {
+   "class": "Sniper",
+   "load": "50cal FMJ",
+   "tier": 1,
+   "zone": "abdomen",
+   "sheet": 155.54,
+   "expected": 128.09,
+   "bare": 182.99,
+   "ratio": 0.85,
+   "scaling": 0.7
+  },
+  {
+   "class": "Sniper",
+   "load": "50cal FMJ",
+   "tier": 3,
+   "zone": "head",
+   "sheet": 205.45,
+   "expected": 154.08,
+   "bare": 342.41,
+   "ratio": 0.6,
+   "scaling": 0.45
+  },
+  {
+   "class": "Sniper",
+   "load": "50cal FMJ",
+   "tier": 3,
+   "zone": "chest",
+   "sheet": 153.66,
+   "expected": 95.35,
+   "bare": 211.88,
+   "ratio": 0.7252,
+   "scaling": 0.45
+  },
+  {
+   "class": "Sniper",
+   "load": "50cal FMJ",
+   "tier": 3,
+   "zone": "abdomen",
+   "sheet": 132.7,
+   "expected": 82.35,
+   "bare": 182.99,
+   "ratio": 0.7252,
+   "scaling": 0.45
+  },
+  {
+   "class": "Pistol",
+   "load": "45acp AP",
+   "tier": 3,
+   "zone": "head",
+   "sheet": 42.66,
+   "expected": 34.86,
+   "bare": 48.07,
+   "ratio": 0.8875,
+   "scaling": 0.7252
+  },
+  {
+   "class": "Pistol",
+   "load": "45acp AP",
+   "tier": 3,
+   "zone": "neck",
+   "sheet": 31.99,
+   "expected": 26.14,
+   "bare": 36.05,
+   "ratio": 0.8874,
+   "scaling": 0.7252
+  },
+  {
+   "class": "Pistol",
+   "load": "45acp AP",
+   "tier": 3,
+   "zone": "chest",
+   "sheet": 22.35,
+   "expected": 18.27,
+   "bare": 25.19,
+   "ratio": 0.8873,
+   "scaling": 0.7252
+  },
+  {
+   "class": "Pistol",
+   "load": "45acp AP",
+   "tier": 3,
+   "zone": "abdomen",
+   "sheet": 20.31,
+   "expected": 16.6,
+   "bare": 22.89,
+   "ratio": 0.8873,
+   "scaling": 0.7252
+  },
+  {
+   "class": "Pistol",
+   "load": "45acp AP",
+   "tier": 3,
+   "zone": "bicep",
+   "sheet": 17.65,
+   "expected": 10.46,
+   "bare": 14.43,
+   "ratio": 1.2231,
+   "scaling": 0.7252
+  },
+  {
+   "class": "Pistol",
+   "load": "45acp AP",
+   "tier": 3,
+   "zone": "forearm",
+   "sheet": 14.72,
+   "expected": 8.72,
+   "bare": 12.02,
+   "ratio": 1.2246,
+   "scaling": 0.7252
+  },
+  {
+   "class": "Pistol",
+   "load": "45acp AP",
+   "tier": 3,
+   "zone": "extremity",
+   "sheet": 8.83,
+   "expected": 5.24,
+   "bare": 7.22,
+   "ratio": 1.223,
+   "scaling": 0.7252
+  },
+  {
+   "class": "Pistol",
+   "load": "45acp AP",
+   "tier": 3,
+   "zone": "groin",
+   "sheet": 25.22,
+   "expected": 14.95,
+   "bare": 20.61,
+   "ratio": 1.2237,
+   "scaling": 0.7252
+  },
+  {
+   "class": "Pistol",
+   "load": "45acp AP",
+   "tier": 3,
+   "zone": "legs",
+   "sheet": 17.65,
+   "expected": 10.46,
+   "bare": 14.43,
+   "ratio": 1.2231,
+   "scaling": 0.7252
+  },
+  {
+   "class": "Pistol",
+   "load": "45acp AP",
+   "tier": 4,
+   "zone": "head",
+   "sheet": 39.72,
+   "expected": 32.46,
+   "bare": 48.07,
+   "ratio": 0.8263,
+   "scaling": 0.6752
+  },
+  {
+   "class": "Pistol",
+   "load": "45acp AP",
+   "tier": 4,
+   "zone": "neck",
+   "sheet": 29.78,
+   "expected": 24.34,
+   "bare": 36.05,
+   "ratio": 0.8261,
+   "scaling": 0.6752
+  },
+  {
+   "class": "Pistol",
+   "load": "45acp AP",
+   "tier": 4,
+   "zone": "chest",
+   "sheet": 20.81,
+   "expected": 17.01,
+   "bare": 25.19,
+   "ratio": 0.8261,
+   "scaling": 0.6752
+  },
+  {
+   "class": "Pistol",
+   "load": "45acp AP",
+   "tier": 4,
+   "zone": "abdomen",
+   "sheet": 18.91,
+   "expected": 15.46,
+   "bare": 22.89,
+   "ratio": 0.8261,
+   "scaling": 0.6752
+  },
+  {
+   "class": "Pistol",
+   "load": "45acp AP",
+   "tier": 4,
+   "zone": "bicep",
+   "sheet": 11.92,
+   "expected": 9.74,
+   "bare": 14.43,
+   "ratio": 0.8261,
+   "scaling": 0.6752
+  },
+  {
+   "class": "Pistol",
+   "load": "45acp AP",
+   "tier": 4,
+   "zone": "forearm",
+   "sheet": 14.72,
+   "expected": 8.12,
+   "bare": 12.02,
+   "ratio": 1.2246,
+   "scaling": 0.6752
+  },
+  {
+   "class": "Pistol",
+   "load": "45acp AP",
+   "tier": 4,
+   "zone": "extremity",
+   "sheet": 8.83,
+   "expected": 4.87,
+   "bare": 7.22,
+   "ratio": 1.223,
+   "scaling": 0.6752
+  },
+  {
+   "class": "Pistol",
+   "load": "45acp AP",
+   "tier": 4,
+   "zone": "groin",
+   "sheet": 17.03,
+   "expected": 13.92,
+   "bare": 20.61,
+   "ratio": 0.8263,
+   "scaling": 0.6752
+  },
+  {
+   "class": "Pistol",
+   "load": "45acp AP",
+   "tier": 4,
+   "zone": "legs",
+   "sheet": 17.65,
+   "expected": 9.74,
+   "bare": 14.43,
+   "ratio": 1.2231,
+   "scaling": 0.6752
+  }
+ ]
+}

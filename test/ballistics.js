@@ -30,121 +30,158 @@ const check = (ok, label, detail) => {
 };
 
 const roundById = {}; B.rounds.forEach(r => { roundById[r.id] = r; });
-const zoneById = {};  B.zones.forEach(z => { zoneById[z.id] = z; });
+const D = JSON.parse(fs.readFileSync(path.join(ROOT, "data/damage.json"), "utf8"));
+const zoneById = {};  D.zones.forEach(z => { zoneById[z.id] = z; });
 const calById = {};   B.calibres.forEach(c => { calById[c.id] = c; });
 const weaponBy = {};  B.weapons.forEach(w => { weaponBy[w.name] = w; });
 
-/* ---------- 1. the published hit-zone column ----------
-   MetaForge publishes the M4's damage per zone against level 2 armour. Not one of those
-   twelve numbers is stored anywhere in this repo: the page multiplies a solved torso
-   figure by a zone multiplier and an armour retention and has to land on all of them. If
-   the zone table, the retention table and the solved damage disagreed with each other,
-   this is where it would show, because three independent things have to be right at once.
+/* ---------- 1. the measured armoured column ----------
+   The damage figures are measurements now, not a derivation, so the thing worth proving
+   changed with them. data/damage.json stores the bare column and the scaling table and
+   works the armoured figures out; the sheet those came from also *published* an armoured
+   block, and that block is deliberately not imported. So the M4's level 2 row is written
+   out here by hand, straight off the sheet, and the model has to land on all nine numbers
+   without ever having seen them.
 
-   Only the M4 column is checked, and deliberately. The same table's SVD column implies a
-   different head-to-torso ratio, which is the unsolved thing documented on the page and in
-   docs/ballistics-sources.md. Testing against it would be testing that a known unknown
-   stays wrong. */
+   The neck is the number that matters in this row. It is 49.36 armoured and 49.36 bare,
+   because a level 2 helmet does not reach the neck. The old model asserted that no helmet
+   ever does, and the page said so in words. A level 3 helmet does, which is checked below.
+
+   Only this row is written out. The sheet disagrees with its own scaling table in 25 cells,
+   listed in data/damage.json under sheetDisagrees, and pinning a row from inside that set
+   would be pinning a known error in place. */
 {
   const PUBLISHED = {
-    head: 39, neck: 49, "upper-torso": 18, "middle-torso": 17, "lower-torso": 16,
-    pelvis: 25, "upper-arm": 15, "lower-arm": 13, hand: 8,
-    "upper-leg": 15, "lower-leg": 13, foot: 8,
+    head: 39.49, neck: 49.36, chest: 18.49, abdomen: 15.97, bicep: 15.14,
+    forearm: 12.61, extremity: 7.58, groin: 25.22, legs: 15.13,
   };
-  const w = weaponBy["M4"], fmj = roundById.FMJ, tiers = { helmet: 2, vest: 2 };
+  const load = D.classes["Assault Rifle"]["5.56 FMJ"];
+  const tiers = { helmet: 2, vest: 2 };
   const off = [];
   Object.keys(PUBLISHED).forEach(id => {
-    const got = M.shot(w, zoneById[id], fmj, tiers).damage;
-    if (Math.round(got) !== PUBLISHED[id]) off.push(id + " " + got.toFixed(2) + " vs " + PUBLISHED[id]);
+    const got = M.shot(load, zoneById[id], tiers, D.scalings, null).damage;
+    if (Math.abs(got - PUBLISHED[id]) > 0.005) {
+      off.push(id + " " + got.toFixed(2) + " vs " + PUBLISHED[id]);
+    }
   });
-  check(off.length === 0, "M4 reproduces all 12 published level 2 hit-zone figures", off.join(", "));
+  check(off.length === 0, "the M4's level 2 row reproduces all nine measured figures",
+    off.join(", "));
 
-  /* The check above rounds, because the published figures are whole numbers, and rounding
-     is slack: a head multiplier of 2.19 instead of 2.167 still lands on 39 and sails
-     through. That was checked, and it did. So the multipliers are also pinned directly
-     against the ratios the same published column implies, at full precision. Between the
-     two, nothing in the pipeline can move by a percent without something going red. */
+  /* And the same row at full precision through the scaling table rather than the shot, so
+     a coverage bug and a scaling bug cannot cancel each other out above. */
   const stray = [];
   Object.keys(PUBLISHED).forEach(id => {
     const z = zoneById[id];
-    const keep = M.retention(fmj, z.armour ? 2 : 0);
-    const implied = PUBLISHED[id] / keep / w.torso;
-    if (Math.abs(implied - z.mult) > 0.001) {
-      stray.push(id + " " + z.mult + " vs implied " + implied.toFixed(4));
+    const covered = z.slot && z.coveredFrom && tiers[z.slot] >= z.coveredFrom;
+    const want = load.zones[id] * (covered ? D.scalings.FMJ[2] : 1);
+    if (Math.abs(want - PUBLISHED[id]) > 0.005) {
+      stray.push(id + " " + want.toFixed(4) + " vs " + PUBLISHED[id]);
     }
   });
   check(stray.length === 0,
-    "and every zone multiplier equals the ratio that column implies, to three decimals",
+    "and bare times the scaling reaches the same nine, so neither table is covering for the other",
     stray.join(", "));
 }
 
-/* ---------- 2. armour covers what it covers ----------
+/* ---------- 2. armour covers what it covers, when it covers it ----------
    The single most expensive misreading of this game is thinking a vest helps with a leg
-   shot. The page is built to make that visible, so the model had better actually behave
-   that way. */
+   shot. The second is thinking a helmet is only ever the head. Coverage grows with tier,
+   so this checks the tier each zone turns on at rather than a fixed list. */
 {
-  const w = weaponBy["M4"], fmj = roundById.FMJ;
+  const load = D.classes["Assault Rifle"]["5.56 FMJ"];
   const bare = { helmet: 0, vest: 0 };
   const strays = [];
-  B.zones.forEach(z => {
-    const base = M.shot(w, z, fmj, bare).damage;
-    const helmeted = M.shot(w, z, fmj, { helmet: 4, vest: 0 }).damage;
-    const vested = M.shot(w, z, fmj, { helmet: 0, vest: 4 }).damage;
-    const wantHelmet = z.armour === "helmet";
-    const wantVest = z.armour === "vest";
-    if ((helmeted < base) !== wantHelmet) strays.push("helmet on " + z.id);
-    if ((vested < base) !== wantVest) strays.push("vest on " + z.id);
+  D.zones.forEach(z => {
+    const base = M.shot(load, z, bare, D.scalings, null).damage;
+    for (let t = 1; t <= 4; t++) {
+      const worn = { helmet: 0, vest: 0 };
+      worn[z.slot || "helmet"] = t;
+      const got = M.shot(load, z, worn, D.scalings, null).damage;
+      const shouldDrop = !!z.slot && !!z.coveredFrom && t >= z.coveredFrom;
+      if ((got < base - 1e-9) !== shouldDrop) {
+        strays.push(z.id + " at tier " + t + (shouldDrop ? " did not drop" : " dropped"));
+      }
+    }
   });
-  check(strays.length === 0, "a helmet touches only the head, a vest only the three torso zones",
+  check(strays.length === 0,
+    "every zone starts taking armour at the tier the measurements say and not before",
     strays.join(", "));
 
-  const covered = B.zones.filter(z => z.armour).map(z => z.id).sort().join(",");
-  const declared = B.armour.reduce((a, s) => a.concat(s.covers), []).sort().join(",");
-  check(covered === declared, "the armour block and the zone table agree on coverage",
-    covered + " vs " + declared);
+  /* The one the old model got backwards, called out on its own because the page used to
+     state the opposite in prose. */
+  const neck = zoneById.neck;
+  const n2 = M.shot(load, neck, { helmet: 2, vest: 0 }, D.scalings, null).damage;
+  const n3 = M.shot(load, neck, { helmet: 3, vest: 0 }, D.scalings, null).damage;
+  check(Math.abs(n2 - load.zones.neck) < 1e-9 && n3 < n2,
+    "a level 2 helmet is nothing to a neck shot and a level 3 helmet is not",
+    n2.toFixed(2) + " then " + n3.toFixed(2));
+
+  const noSlot = D.zones.filter(z => !z.slot).map(z => z.id).sort().join(",");
+  check(noSlot === "extremity,forearm,legs",
+    "hands, forearms and legs are covered by nothing at any tier", noSlot);
 }
 
 /* ---------- 2b. more armour is never worse, and the round decides how much ---------- */
 {
-  const w = weaponBy["M4"], bad = [];
-  B.rounds.forEach(r => {
+  const cls = D.classes["Assault Rifle"], bad = [];
+  Object.keys(cls).forEach(name => {
     let last = Infinity;
     for (let t = 0; t <= 4; t++) {
-      const d = M.shot(w, zoneById["upper-torso"], r, { helmet: 0, vest: t }).damage;
-      if (d > last + 1e-9) bad.push(r.id + " tier " + t);
+      const d = M.shot(cls[name], zoneById.chest, { helmet: 0, vest: t }, D.scalings, null).damage;
+      if (d > last + 1e-9) bad.push(name + " tier " + t);
       last = d;
     }
   });
   check(bad.length === 0, "damage never rises as the tier does", bad.join(", "));
 
-  const ap = M.shot(w, zoneById["upper-torso"], roundById.AP, { helmet: 0, vest: 4 }).damage;
-  const hp = M.shot(w, zoneById["upper-torso"], roundById.HP, { helmet: 0, vest: 4 }).damage;
-  const fmj = M.shot(w, zoneById["upper-torso"], roundById.FMJ, { helmet: 0, vest: 4 }).damage;
-  check(ap > fmj && fmj > hp,
+  const at = (n, t) => M.shot(cls[n], zoneById.chest, { helmet: 0, vest: t }, D.scalings, null).damage;
+  check(at("5.56 AP", 4) > at("5.56 FMJ", 4) && at("5.56 FMJ", 4) > at("5.56 HP", 4),
     "through level 4, armour piercing beats standard beats flesh damage",
-    [ap, fmj, hp].map(n => n.toFixed(1)).join(" > "));
+    [at("5.56 AP", 4), at("5.56 FMJ", 4), at("5.56 HP", 4)].map(n => n.toFixed(1)).join(" > "));
+
+  /* Bare, the order reverses: hollow point is the one that hurts an unarmoured man most.
+     A model that got this backwards would still pass the check above. */
+  check(at("5.56 HP", 0) > at("5.56 FMJ", 0) && at("5.56 FMJ", 0) > at("5.56 AP", 0),
+    "and with no armour on, flesh damage beats standard beats armour piercing",
+    [at("5.56 HP", 0), at("5.56 FMJ", 0), at("5.56 AP", 0)].map(n => n.toFixed(1)).join(" > "));
 }
 
 /* ---------- 2c. buckshot is eight things ---------- */
 {
-  const w = weaponBy["M500"], buck = roundById.Buckshot, z = zoneById["upper-torso"];
-  const all = M.shot(w, z, buck, { helmet: 0, vest: 0 }, { hit: 8, of: 8 }).damage;
-  const half = M.shot(w, z, buck, { helmet: 0, vest: 0 }, { hit: 4, of: 8 }).damage;
+  const buck = D.classes.Shotgun["Buckshot (8)"], z = zoneById.chest;
+  const bare = { helmet: 0, vest: 0 };
+  const all = M.shot(buck, z, bare, D.scalings, { hit: 8 }).damage;
+  const half = M.shot(buck, z, bare, D.scalings, { hit: 4 }).damage;
   check(Math.abs(half * 2 - all) < 1e-9, "four of eight pellets do half the damage",
     half.toFixed(1) + " vs " + all.toFixed(1));
-  check(M.toKill(all, w.rpm, B.health).stk === 1 && M.toKill(half, w.rpm, B.health).stk === 1,
-    "an unarmoured torso is still one shell either way");
+  check(buck.pellets === 8 && Math.abs(all - buck.zones.chest * 8) < 1e-9,
+    "and the stored figure is one pellet, not the shell",
+    buck.zones.chest + " x 8 = " + all.toFixed(2));
 }
 
 /* ---------- 2d. shots and time ---------- */
 {
   const w = weaponBy["M4"];
-  const k = M.toKill(M.shot(w, zoneById["upper-torso"], roundById.FMJ, { helmet: 0, vest: 0 }).damage,
-    w.rpm, B.health);
-  check(k.stk === 4, "the M4 needs four shots to an unarmoured upper torso", String(k.stk));
-  check(Math.abs(k.ttk - 3 / (785 / 60)) < 1e-9,
+  const d = M.shot(D.classes["Assault Rifle"]["5.56 FMJ"], zoneById.chest,
+    { helmet: 0, vest: 0 }, D.scalings, null).damage;
+  const k = M.toKill(d, w.rpm, B.health);
+  check(k.stk === 4, "the M4 needs four shots to an unarmoured chest", String(k.stk));
+  check(Math.abs(k.ttk - 3 / (w.rpm / 60)) < 1e-9,
     "and the time is the gap between first and last, not the whole burst", k.ttk.toFixed(3));
   check(M.toKill(500, 45, B.health).ttk === 0, "a one-shot kill takes no time at all");
+}
+
+/* ---------- 2e. the sheet's own disagreements are carried, not swallowed ----------
+   25 cells in the source disagree with the source's own scaling table. They are recorded
+   rather than imported, and this fails if somebody quietly drops the record: a file that
+   claims a clean import when the import was not clean is worse than one that admits it. */
+{
+  check(Array.isArray(D.sheetDisagrees),
+    "data/damage.json carries the list of cells the sheet contradicts itself on");
+  const shaped = (D.sheetDisagrees || []).every(d =>
+    d.class && d.load && d.tier && d.zone && typeof d.sheet === "number" &&
+    typeof d.expected === "number");
+  check(shaped, "and every one of them says which cell, and both numbers");
 }
 
 /* ---------- 3. the colours are the documented ones ----------

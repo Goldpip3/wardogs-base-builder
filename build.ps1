@@ -9,6 +9,16 @@ $utf8 = [Text.UTF8Encoding]::new($false)
 $tpl = [IO.File]::ReadAllText("$proj\src\app-template.html", $utf8)
 $catalog = [IO.File]::ReadAllText("$proj\data\buildables.json", $utf8).Trim()
 
+# The design tag vocabulary, inlined into the planner the same way the catalog is. One
+# list, in data/community.json, feeding the planner's submit flow and the site's filter
+# bar; the worker validates shape only and never sees it. Re-serialised rather than sliced
+# out of the file, so the comment keys in that JSON do not travel into the app.
+$tagJson = ([IO.File]::ReadAllText("$proj\data\community.json", $utf8) | ConvertFrom-Json).designTags.groups |
+  ConvertTo-Json -Depth 6 -Compress
+# ConvertTo-Json drops the brackets when a collection has one element. The template says
+# DESIGN_TAGS is an array and everything that reads it maps over it, so make sure it is one.
+if (-not $tagJson.StartsWith("[")) { $tagJson = "[$tagJson]" }
+
 # One decoder and one palette for the whole project. The share format has two encoders that
 # drifted apart once, so a second decoder was not going to be written for the community list.
 # This file is inlined here and again by tools/site/context.js; neither side keeps a copy.
@@ -38,7 +48,7 @@ $fontCss = ($faces | ForEach-Object {
   }
 }) -join "`n  "
 
-$out = $tpl.Replace('/*__SHARED__*/', $shared).Replace('/*__CATALOG__*/', $catalog).Replace('/*__ICONS__*/', "{$iconsJson}").Replace('/*__FONTS__*/', $fontCss)
+$out = $tpl.Replace('/*__SHARED__*/', $shared).Replace('/*__CATALOG__*/', $catalog).Replace('/*__TAGS__*/', $tagJson).Replace('/*__ICONS__*/', "{$iconsJson}").Replace('/*__FONTS__*/', $fontCss)
 
 # Two builds of the same app, differing only in whether saving online exists.
 #

@@ -2,7 +2,8 @@
    Body sits at column zero deliberately. Indenting it would add whitespace inside
    these template literals, and that whitespace is page content. */
 module.exports = ctx => {
-  const { catalog, byId, esc, page, write, withStats, designCard, ranked, VOTE_API, COMMUNITY_SCRIPT } = ctx;
+  const { catalog, byId, esc, page, write, withStats, designCard, ranked, tagPills,
+          VOTE_API, COMMUNITY_SCRIPT } = ctx;
 
 write("designs/index.html", page({
   title: "WARDOGS Base Designs, built and rated by players",
@@ -14,31 +15,36 @@ write("designs/index.html", page({
   <p class="lede">Builds submitted by players, ranked by whoever found them useful.
   Every one opens in the planner, fully editable.</p>
 
-  <div id="designList" style="margin-top:34px">
+  <h2 class="display" id="community" style="margin-top:52px">From the community</h2>
+  <p class="lede" style="font-size:17px">Published and being voted on. Narrow it to the map
+  you are playing and what you need the base to stop, then open one in the planner, vote on
+  it, or say something about it.</p>
+
+  <div id="designList" style="margin-top:26px">
     ${withStats.length
-      ? `<div class="grid">${ranked.map(designCard).join("")}</div>`
+      ? `<div class="grid design-grid">${ranked.map(designCard).join("")}</div>`
       : `<div class="empty">
           <h3>Nothing here yet</h3>
-          <p>This list is built by players. Make something in the planner, hit Share,
-          and paste the link below. The whole design travels inside the URL, so there is
-          nothing to upload.</p>
+          <p>This list is built by players. Make something in the planner, save it, and
+          send it up from your own designs below. The whole build travels inside the URL,
+          so there is nothing to upload.</p>
         </div>`}
   </div>
 
   ${VOTE_API ? `
-  <!-- This used to be a form: copy a link out of the planner, come back here, paste it,
-       type the name again. The planner has a Submit button now, which knows the design and
-       the name already, so the form asked for things it would have had to be told twice.
-       What is left is the one instruction and the way there. The line about submissions
-       being read first came off with it: it had stopped being true when the queue was
-       removed, and a page promising a review nobody performs is worse than a plain one. -->
-  <h2 class="display" style="margin-top:60px">Submit a build</h2>
-  <p class="lede" style="font-size:17px">From the planner, not from here. Open your design,
-  sign in, and press <strong>&#9733; Submit for voting</strong>. It goes up straight away,
-  and you can take it down again whenever you like.</p>
-  <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:28px">
-    <a class="btn primary" href="/planner/">Open the planner</a>
-  </div>` : `
+  <!-- Your own saved designs, under the published ones and clearly not among them. This
+       used to be a paragraph telling you to go and do it in the planner: the planner still
+       has that button, but coming back to a page of other people's work and being told your
+       own is elsewhere is the wrong shape. Everything you have saved is here, and the one
+       button on each card is the one that moves it into the list above.
+
+       The block is rendered by the same script that draws the list above it, and it is the
+       same one the account page uses. Two lists of your designs, written twice, would be
+       the drift this codebase keeps getting caught by. -->
+  <h2 class="display" id="yours" style="margin-top:72px">Your designs</h2>
+  <p class="lede" style="font-size:17px">Saved from the planner and private to your account.
+  Nobody sees one until you send it up, and you can take it down again afterwards.</p>
+  <div id="mineList" style="margin-top:26px">Checking...</div>` : `
   <div class="note" style="margin-top:40px"><strong>Submissions are briefly closed.</strong>
   The service that stores designs is not answering, so the form is hidden rather than
   taking builds it would drop. Try again shortly.</div>`}
@@ -57,6 +63,7 @@ for (const d of withStats) {
     <a href="/designs/">Designs</a> / ${esc(d.name)}</p>
   <h1>${esc(d.name)}</h1>
   <p class="lede">${esc(d.tagline)}</p>
+  ${tagPills(d.tags)}
   <p style="margin:18px 0"><a class="btn" href="/planner/#d=${esc(d.code)}">Open in the planner</a></p>
   <div class="statbar">
     <div><b>${s.supplies.toLocaleString()}</b><span>build supplies</span></div>

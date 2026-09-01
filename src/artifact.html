@@ -82,6 +82,9 @@
     border-left: 1px solid var(--border-soft); font-size: 11.5px;
   }
   .seg button:first-child { border-left: 0; }
+  /* Ten tag chips will not sit on one line in a 290px panel, and a segmented strip that
+     scrolls sideways inside a side panel is a strip whose last option nobody finds. */
+  .seg.wrap { flex-wrap: wrap; }
   /* .seg button sets a transparent background and is written after the shared
      button.active rule at the same specificity, so it won every time: the chosen chip kept
      the filled state's near-black ink and lost the fill behind it, and read as an empty box.
@@ -1394,6 +1397,11 @@ const LS_CATALOG = "wardogs.catalog";
    completely offline: with this empty, none of the cloud code below is ever reachable
    and the app makes no network call of any kind. */
 const CLOUD_API = "";
+/* The design tag vocabulary, from data/community.json, inlined by build.ps1 the same way
+   the catalog is. Only the submit flow below reads it, and only the hosted copy can submit,
+   but it is inlined into both builds so the two differ in what they can reach and never in
+   what they contain. */
+const DESIGN_TAGS = [{"id":"map","label":"Where it works","hint":"At least one. Pick the map it is laid out for, or Any map if the ground does not matter.","required":true,"tags":[{"id":"map-bakurani","label":"Bakurani"},{"id":"map-ozeti","label":"Ozeti"},{"id":"map-any","label":"Any map","exclusive":true}]},{"id":"role","label":"What it is for","hint":"Optional, as many as fit. This is what somebody scrolling the list is actually choosing between.","required":false,"tags":[{"id":"anti-infantry","label":"Anti-infantry","hint":"Built to stop people on foot: cover, wire, firing positions."},{"id":"anti-vehicle","label":"Anti-vehicle","hint":"Stingray, hedgehogs, anything that turns armour away."},{"id":"anti-air","label":"Anti-air","hint":"Vanguard CIWS or Talon 9K-SAM covering the sky above it."},{"id":"artillery","label":"Artillery","hint":"Built around a mortar and its shelter."},{"id":"zone-control","label":"Zone control","hint":"Meant to be planted on the objective and held."},{"id":"recon","label":"Recon","hint":"Towers, radio, eyes on ground you do not hold."},{"id":"starter","label":"Starter","hint":"Cheap and quick, for the first build of a match."}]}];
 const BUILD_STAMP = "";
 const LS_TOKEN = "wardogs.token";
 
@@ -4555,7 +4563,7 @@ async function loadCloudSection() {
      already has everything for. It is one button now, and it goes straight onto the list:
      a queue makes one person the bottleneck on everybody else's work, and a base layout
      cannot say anything. Reporting is what takes something down. */
-  document.getElementById("cloudShare").onclick = async () => {
+  document.getElementById("cloudShare").onclick = () => {
     const msg = document.getElementById("cloudMsg");
     const name = (document.getElementById("designName").value || "").trim();
     if (name.length < 3) {
@@ -4568,11 +4576,7 @@ async function loadCloudSection() {
       msg.innerHTML = `<span style="color:var(--danger)">Pick how many players it takes to hold this, under <b>Who holds it</b> in the panel, then submit.</span>`;
       return;
     }
-    msg.textContent = "Submitting...";
-    try {
-      await cloudCall("/submit", { name, code: await encodeDesignShort(design) });
-      msg.innerHTML = `<span style="color:var(--accent2)">It is up. It is on the Designs page now and people can vote on it.</span>`;
-    } catch (e) { msg.innerHTML = `<span style="color:var(--danger)">${esc(e.message)}</span>`; }
+    renderSubmitTags(msg, name);
   };
   document.getElementById("cloudSave").onclick = async () => {
     const msg = document.getElementById("cloudMsg");
@@ -4603,6 +4607,65 @@ async function loadCloudSection() {
       async () => { try { await cloudCall("/mine/delete", { name: d.name }); } catch (e) {}
                     loadCloudSection(); });
   });
+}
+
+/* ---- the tags a design is published under ----
+   Asked for at the moment of publishing rather than in the right panel, because they are
+   not part of the design: they do not travel in the share link, nothing edits them
+   afterwards, and a panel field that silently emptied itself on reload would be worse than
+   no field at all. The vocabulary is DESIGN_TAGS, inlined from data/community.json, so the
+   chips here and the filter bar on the site cannot drift apart.
+
+   The site refuses a submission carrying no map tag and so does the worker. This says which
+   chip is missing rather than waiting for that refusal to say it. */
+const submitTags = new Set();
+function renderSubmitTags(msg, name) {
+  msg.innerHTML = DESIGN_TAGS.map(g =>
+    `<div style="margin:0 0 9px">
+       <div style="font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:5px">${esc(g.label)}${g.required ? " *" : ""}</div>
+       <div class="seg wrap" data-taggroup="${esc(g.id)}">${g.tags.map(t =>
+         `<button data-tag="${esc(t.id)}" class="${submitTags.has(t.id) ? "active" : ""}"
+            title="${esc(t.hint || "")}">${esc(t.label)}</button>`).join("")}</div>
+     </div>`).join("") +
+    `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+       <button id="tagSend" class="active">Send it up</button>
+       <button id="tagCancel">Cancel</button>
+     </div>
+     <div id="tagMsg" style="margin-top:7px"></div>`;
+
+  msg.querySelectorAll("[data-tag]").forEach(b => b.onclick = () => {
+    const group = DESIGN_TAGS.find(g => g.id === b.closest("[data-taggroup]").dataset.taggroup);
+    const def = group.tags.find(t => t.id === b.dataset.tag);
+    const on = !b.classList.contains("active");
+    /* Any map and a named map answer the same question, so one clears the other rather
+       than both sitting pressed and the design claiming both. */
+    if (on) for (const o of msg.querySelectorAll(`[data-taggroup="${group.id}"] [data-tag]`)) {
+      if (o === b) continue;
+      const odef = group.tags.find(t => t.id === o.dataset.tag);
+      if (def.exclusive || (odef && odef.exclusive)) {
+        o.classList.remove("active"); submitTags.delete(o.dataset.tag);
+      }
+    }
+    b.classList.toggle("active", on);
+    if (on) submitTags.add(def.id); else submitTags.delete(def.id);
+  });
+
+  document.getElementById("tagCancel").onclick = () => { msg.textContent = ""; };
+  document.getElementById("tagSend").onclick = async () => {
+    const out = document.getElementById("tagMsg");
+    const tags = [...submitTags];
+    const missing = DESIGN_TAGS.filter(g =>
+      g.required && !g.tags.some(t => submitTags.has(t.id)));
+    if (missing.length) {
+      out.innerHTML = `<span style="color:var(--danger)">Pick ${esc(missing[0].label.toLowerCase())} first, so people can find it by map.</span>`;
+      return;
+    }
+    out.textContent = "Submitting...";
+    try {
+      await cloudCall("/submit", { name, tags, code: await encodeDesignShort(design) });
+      msg.innerHTML = `<span style="color:var(--accent2)">It is up. It is on the Designs page now and people can vote on it.</span>`;
+    } catch (e) { out.innerHTML = `<span style="color:var(--danger)">${esc(e.message)}</span>`; }
+  };
 }
 
 function renderLocalDesigns(all, names) {

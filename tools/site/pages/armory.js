@@ -560,6 +560,26 @@ module.exports = ctx => {
     return list.filter(function (i) { return i.name.toLowerCase().indexOf(s) >= 0; });
   };
 
+  /* What you carry it in, split the way the game splits it.
+
+     The Pouch was on the rig shelf beside the tac vests, on the reading that a pouch is a
+     small thing you wear. It is not: it is the bag you start with, it is what everything
+     else on that shelf replaces, and standing it next to the vests meant the backpack shelf
+     opened with nothing free in it and the free option was two slots away under a name
+     nobody was looking for. Cheapest first, so the shelf reads as a ladder from the thing
+     you already own to the thing you are saving for.
+
+     Sorting by price is a stand-in for sorting by how much each holds, which is the figure
+     this shelf actually wants and which nobody has measured. It is in data/todo.json under
+     confirm; when it exists, sort on it and say the capacity on the card. */
+  const bags = nameHas(byCat("storage"), "backpack")
+    .concat(nameHas(byCat("storage"), "pouch"))
+    .sort(function (a, b) { return (a.price || 0) - (b.price || 0); });
+  const rigs = nameHas(byCat("storage"), "tac vest");
+  /* The rest of the storage category is crates and supply pallets, which are things you
+     drive to a base rather than things you wear. They belong to the planner, not to a kit,
+     and neither shelf offers them. */
+
   /* A vendor slot: the art box with its price tag, and a button that opens the shelf for
      that slot underneath. Shaped after the equipment slots the game shows you. */
   const slot = function (id, label, blank, needs) {

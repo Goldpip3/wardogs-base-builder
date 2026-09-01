@@ -19,7 +19,7 @@
     { "id": "Buckshot", "name": "Buckshot", "long": "Buckshot",        "tint": "#199e70",
       "blocks": [44, 52, 64, 72],
       "note": "Eight pellets, each carrying an eighth of the hit, and they can miss separately. Every shotgun figure on this page assumes all eight land unless you say otherwise." },
-    { "id": "Slug",     "name": "Slug",     "long": "Slug and arrow",  "tint": "#9085e9",
+    { "id": "Slug",     "name": "Slug",     "long": "Rifled slug"    ,  "tint": "#9085e9",
       "blocks": [30, 40, 55, 65],
       "note": "One heavy projectile. Armour treats it exactly as it treats standard, so the difference is all in what is behind it." }
   ],

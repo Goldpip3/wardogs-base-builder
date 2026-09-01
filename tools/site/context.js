@@ -198,9 +198,33 @@ function pit(weapon, cx, cy, radius = 3) {
 const COMMUNITY = JSON.parse(fs.readFileSync(path.join(ROOT, "data/community.json"), "utf8"));
 const BALLISTICS = JSON.parse(fs.readFileSync(path.join(ROOT, "data/ballistics.json"), "utf8"));
 const ARMORY = JSON.parse(fs.readFileSync(path.join(ROOT, "data/armory.json"), "utf8"));
+const DAMAGE = JSON.parse(fs.readFileSync(path.join(ROOT, "data/damage.json"), "utf8"));
 const ARTILLERY = JSON.parse(fs.readFileSync(path.join(ROOT, "data/artillery.json"), "utf8"));
 const ARTILLERY_MAPS = JSON.parse(fs.readFileSync(path.join(ROOT, "data/artillery-maps.json"), "utf8"));
 const DESIGNS = (COMMUNITY.designs || []).filter(d => d.slug && d.code);
+
+/* ---------- design tags ----------
+   One list, from data/community.json, used by the filter bar, the card pills and the
+   picker somebody submits through. The worker never sees it and validates shape only, so
+   a tag added there is live at the next build with no deploy: see tagsProblem() in
+   worker/vote-worker.js for the one rule that does live on the server.
+
+   Flattened here as well as grouped, because almost everything downstream wants "what does
+   this id say" and only the pickers want the groups. */
+const TAG_GROUPS = ((COMMUNITY.designTags || {}).groups || []);
+const TAG_BY_ID = {};
+for (const g of TAG_GROUPS) for (const t of g.tags || []) TAG_BY_ID[t.id] = { ...t, group: g.id };
+
+/* Unknown ids draw nothing rather than drawing themselves. A tag the site does not offer
+   got into storage some other way, and rendering it would put text nobody chose from a
+   list onto a card, which is the one thing the vocabulary exists to prevent. */
+function tagPills(tags) {
+  const known = (tags || []).map(id => TAG_BY_ID[id]).filter(Boolean);
+  if (!known.length) return "";
+  return '<div class="tagrow">' + known.map(t =>
+    '<span class="tag" data-tag="' + esc(t.id) + '">' + esc(t.label) + "</span>").join("") +
+    "</div>";
+}
 
 /* ---------- stats, computed the same way the planner does ---------- */
 function stats(d) {
@@ -292,6 +316,7 @@ function designCard(d) {
   return `<div class="card">
     <a href="/designs/${d.slug}/"><h3>${esc(d.name)}</h3>
     <p>${esc(d.tagline)}</p></a>
+    ${tagPills(d.tags)}
     <div class="stats">
       <span>supplies</span>${d.s.supplies.toLocaleString()}
       <span>pallets</span>${d.s.pallets}
@@ -313,9 +338,10 @@ const VOTE_API = (COMMUNITY.voteApi || "").replace(/\/$/, "");
     fs, path, ROOT, DOCS, SITE, catalog, byId, esc,
     ADS, adsOn, adScript, adSlot,
     encodeDesign, P, run, ring, pit,
-    COMMUNITY, BALLISTICS, ARMORY, ARTILLERY, ARTILLERY_MAPS, DESIGNS, stats,
+    COMMUNITY, BALLISTICS, ARMORY, DAMAGE, ARTILLERY, ARTILLERY_MAPS, DESIGNS, stats,
     CSS, write, written, sweepDesignPages,
     decodeShared, withStats, designCard, VOTE_API,
+    TAG_GROUPS, TAG_BY_ID, tagPills,
   };
 
   Object.assign(ctx, require("./client-scripts")(ctx));

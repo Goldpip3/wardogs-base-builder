@@ -73,6 +73,10 @@ const LIMITS = {
   feedback: 4000,
   feedbackPerHour: 6,
   savedPerUser: 40,
+  /* Tags per design. Two groups exist and one of them is a single choice most of the time,
+     so eight is loose enough that nobody meets it honestly and tight enough that nobody
+     tags a base with the whole vocabulary to sit in every filter. */
+  tags: 8,
   savesPerHour: 60,
   /* Reports needed before a design takes itself off the list. Low on purpose: the cost of
      hiding a good design for a few hours is a annoyed builder, and the cost of leaving a bad
@@ -319,6 +323,33 @@ function codeProblem(c) {
 }
 const okCode = c => codeProblem(c) === null;
 
+/* Tags, checked for shape and never against a list.
+ *
+ * The vocabulary lives in data/community.json, which this file has no way to read: it is
+ * deployed on its own and the repo is not here. Validating against a copy of that list
+ * would make every new tag a worker deploy, and a forgotten deploy would show the site
+ * offering a tag the worker rejects. So the store is dumb about which tags exist, the site
+ * is what draws the ones it knows, and anything unrecognised simply does not render.
+ *
+ * One rule is worth enforcing here, and the map- prefix exists so that it can be: a design
+ * has to say where it works. That is a question about the submission rather than about the
+ * vocabulary, and a filter bar full of designs that answer nothing is the thing this whole
+ * feature is meant to avoid. */
+function tagsProblem(v) {
+  if (!Array.isArray(v) || !v.length)
+    return "Pick at least the map it is built for.";
+  if (v.length > LIMITS.tags)
+    return "That is more than " + LIMITS.tags + " tags. Keep the ones that are really true.";
+  for (const t of v) {
+    if (typeof t !== "string" || !/^[a-z][a-z0-9-]{1,23}$/.test(t))
+      return "That is not a tag this site uses.";
+  }
+  if (!v.some(t => t.slice(0, 4) === "map-"))
+    return "Say where it works: one map, or Any map.";
+  return null;
+}
+const cleanTags = v => [...new Set(v)].slice(0, LIMITS.tags);
+
 /* Text arriving from strangers gets its control characters stripped and its length
    capped before it is ever stored, so nothing downstream has to think about it. */
 function clean(s, max) {
@@ -534,6 +565,10 @@ export default {
       designs.forEach(d => {
         d.votes = votes[d.slug];
         d.mine = !!(who && d.by && d.by === who.id);
+        /* Submissions from before tags existed carry none, and the page filters on this
+           array. An absent field would make every one of them throw on the first filter
+           rather than simply match nothing. */
+        if (!Array.isArray(d.tags)) d.tags = [];
         delete d.by;
       });
 
@@ -543,7 +578,7 @@ export default {
       return json({ designs }, origin);
     }
 
-    // POST /submit {name, author, code, note}
+    // POST /submit {name, author, code, note, tags}
     if (request.method === "POST" && path === "/submit") {
       const who = await readToken(env, bearerOf(request));
       if (loginConfigured(env) && NEEDS_LOGIN.submit && !who)
@@ -559,10 +594,13 @@ export default {
                          : (clean(body.author, LIMITS.author) || "anonymous");
       const note = clean(body.note, 300);
       const code = String(body.code || "").trim();
+      const tags = body.tags;
 
       if (name.length < 3) return json({ error: "Give it a name." }, origin, 400);
       const codeErr = codeProblem(code);
       if (codeErr) return json({ error: codeErr }, origin, 400);
+      const tagErr = tagsProblem(tags);
+      if (tagErr) return json({ error: tagErr }, origin, 400);
 
       const stamp = Date.now();
       const slug = slugify(name, stamp);
@@ -570,7 +608,8 @@ export default {
          everybody else's work, and the thing being published is a base layout, which cannot
          say anything. The free text is the name, and that is what reporting covers. Sign-in
          and the five-a-day cap are what stop this being a firehose. */
-      const record = { slug, name, author, note, code, submitted: stamp, status: "published",
+      const record = { slug, name, author, note, code, tags: cleanTags(tags),
+                       submitted: stamp, status: "published",
                        by: who ? who.id : null, reports: 0 };
       await env.VOTES.put("design:" + slug, JSON.stringify(record));
       return json({ ok: true, slug, status: "published" }, origin);

@@ -2,5 +2,77 @@
   "_comment": "Community-submitted base designs. Each entry is one player's build. Add a design by pasting the share code from the planner. Votes are NOT stored here - they live in the vote service (see worker/), and the site fetches them at page load.",
   "voteApi": "https://wardogs-votes.wardogsbuilder.workers.dev",
   "voteApiNote": "Base URL of the deployed community worker, e.g. https://wardogs-votes.<you>.workers.dev. While this is empty the site shows the static empty state and no submit form, rather than controls that cannot do anything.",
+  "designTags": {
+    "_comment": "The only list of design tags there is. The site reads it from here for the filter bar and the pickers, build.ps1 inlines it into the planner, and test/tags.js holds both to it. The worker stores whatever ids it is sent and validates their shape only, so a new tag added here needs no worker deploy: the price is that it never sees this file, and the price of that is the map- prefix below.",
+    "_mapPrefix": "Every tag in the map group starts with map-, because that prefix is the whole rule the worker can enforce without a copy of this list: a submission must carry at least one map- tag. Ids other than map-any are map- plus the map id in data/artillery-maps.json, and test/tags.js fails if a map there has no tag here.",
+    "groups": [
+      {
+        "id": "map",
+        "label": "Where it works",
+        "hint": "At least one. Pick the map it is laid out for, or Any map if the ground does not matter.",
+        "required": true,
+        "tags": [
+          {
+            "id": "map-bakurani",
+            "label": "Bakurani"
+          },
+          {
+            "id": "map-ozeti",
+            "label": "Ozeti"
+          },
+          {
+            "id": "map-any",
+            "label": "Any map",
+            "exclusive": true
+          }
+        ]
+      },
+      {
+        "id": "role",
+        "label": "What it is for",
+        "hint": "Optional, as many as fit. This is what somebody scrolling the list is actually choosing between.",
+        "required": false,
+        "tags": [
+          {
+            "id": "anti-infantry",
+            "label": "Anti-infantry",
+            "hint": "Built to stop people on foot: cover, wire, firing positions."
+          },
+          {
+            "id": "anti-vehicle",
+            "label": "Anti-vehicle",
+            "hint": "Stingray, hedgehogs, anything that turns armour away."
+          },
+          {
+            "id": "anti-air",
+            "label": "Anti-air",
+            "hint": "Vanguard CIWS or Talon 9K-SAM covering the sky above it."
+          },
+          {
+            "id": "artillery",
+            "label": "Artillery",
+            "hint": "Built around a mortar and its shelter."
+          },
+          {
+            "id": "zone-control",
+            "label": "Zone control",
+            "hint": "Meant to be planted on the objective and held."
+          },
+          {
+            "id": "recon",
+            "label": "Recon",
+            "hint": "Towers, radio, eyes on ground you do not hold."
+          },
+          {
+            "id": "starter",
+            "label": "Starter",
+            "hint": "Cheap and quick, for the first build of a match."
+          }
+        ]
+      }
+    ],
+    "_exclusive": "A tag marked exclusive answers the same question as the rest of its group and cannot be true beside them: picking Any map clears the named maps, and picking a named map clears Any map. Both pickers do this, so nothing has to check it afterwards.",
+    "_noComments": "Nothing under groups is a comment key. That whole array is re-serialised into the planner by build.ps1, so anything added there ships to every player."
+  },
   "designs": []
 }

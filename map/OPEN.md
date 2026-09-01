@@ -6,23 +6,21 @@ is about. If this file and a card disagree, the card is right.
 Last swept 2026-08-31, end of the session that fixed diagonal runs, group rotation, the
 toolbar and Ctrl+V.
 
-## The community loop is open, and one deploy from having anything in it
+## The community loop is open, and now has something in it
 
 Nothing queues. A submission publishes the moment it is made; three reports hide it, and
 [/moderate/](https://www.wardogsbuilder.com/moderate/) is a complaints desk rather than a
 queue. Ranking is score over age, tuned in `test/ranking.js` against the two complaints that
 pull against each other.
 
-**`/designs/` still reads empty, and one deploy fixes it.** Three real submissions were
-left stranded in the old `pending` state when the queue was removed, and removing the queue
-also removed the only page that could have let them out. `/designs` now lists what is not
-hidden rather than what was once approved, which frees them and cannot strand anything
-again. That change is committed and **not deployed**: the worker ships only with wrangler.
+**The listing deploy has run and `/designs/` reads real data.** The stranded `pending`
+submissions are out: the page lists what is not hidden rather than what was once approved,
+which cannot strand anything again. Checked 2026-08-31 against the live worker, which
+answered with one published design. Some of the older ones are probably test submissions to
+delete now they are visible.
 
-    wrangler deploy --config "<repo>workerwrangler.toml"
-
-Until that runs, the voting half of the site has never held real data. Two of those three
-are probably test submissions to delete once they are visible.
+`/designs/` also carries **your own saved designs under the community's**, with the button
+that sends one up; [publish-a-design](processes/publish-a-design.md) is the whole loop.
 
 A warning that cost an evening, now on the worker card too: `wrangler kv` reads a **local
 emulated store** unless you pass `--remote`. Without it the namespace looks empty. Those

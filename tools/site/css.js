@@ -164,18 +164,27 @@ section+section{border-top:1px solid var(--line)}
    left hanging against the left edge with the rest of the row empty. A grid always draws its
    full width of tracks, which with one design meant one card and three columns of nothing.
    A max width keeps that single card from growing into a poster. */
-#designList .grid{display:flex;flex-wrap:wrap;justify-content:center;align-items:stretch;
+/* Keyed to a class rather than to #designList: the designs page now carries two of
+   these, the published list and your own saved designs under it, and they are the same
+   kind of thing shown twice. */
+.design-grid{display:flex;flex-wrap:wrap;justify-content:center;align-items:stretch;
   gap:16px;background:none;border:0}
-#designList .grid > *{flex:1 1 280px;max-width:380px;min-width:0;border:1px solid var(--line)}
+.design-grid > *{flex:1 1 280px;max-width:380px;min-width:0;border:1px solid var(--line)}
 /* Cards in a row are the same height whatever is written on them. One design carries a note
    and a crew and the next carries neither, so left to their contents they came out ragged,
    which reads as a broken layout rather than as two different designs. Stretch the row, let
    the card fill its share, and drop the buttons to the bottom so they line up across the row
    instead of floating wherever the text above them happened to end. */
-#designList .grid > *,
-#designList .grid > * > summary{display:flex;flex-direction:column;flex:1;min-width:0}
-#designList .card{border:0;flex:1;display:flex;flex-direction:column}
-#designList .card .vote{margin-top:auto}
+.design-grid > *,
+.design-grid > * > summary{display:flex;flex-direction:column;flex:1;min-width:0}
+.design-grid .card{border:0;flex:1;display:flex;flex-direction:column}
+.design-grid .card .vote{margin-top:auto}
+/* The rest of a long list arrives as the bottom of it comes into view. The button is the
+   real control and the scroll only presses it early, so this row is what a browser without
+   an IntersectionObserver falls back to rather than a dead end. */
+.more{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:22px}
+.more[hidden]{display:none}
+.more span{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
 
 /* --- feature list: prose in columns rather than panels. A row that does not fill
    reads as a list ending, where an unfilled panel grid reads as a hole. --- */
@@ -259,6 +268,36 @@ tbody tr:hover td{background:var(--panel)}
 .design-open{background:var(--panel2);padding:22px 24px;border:1px solid var(--line);border-top:0}
 details.design summary{cursor:pointer;list-style:none}
 details.design summary::-webkit-details-marker{display:none}
+
+/* --- design tags ---
+   Pills on a card, and the same vocabulary as a filter bar above the list. They are quiet
+   on the card on purpose: the picture of the base is what somebody is reading, and a row
+   of coloured labels over it would out-shout it. In the bar they are the ordinary chip,
+   because that is what every other filter on this site looks like and a second filter
+   idiom would be one to learn for nothing. */
+.tagrow{display:flex;flex-wrap:wrap;gap:5px;margin-top:14px}
+.tag{font-family:var(--ui);font-weight:600;font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--dim2);background:var(--panel2);
+  border:1px solid var(--line2);padding:3px 7px}
+.tagfilter{margin:0 0 20px}
+.tagfilter .frow{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:0 0 8px}
+.tagfilter .flabel{font-weight:600;font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--dim);flex:0 0 auto}
+/* A tag no design in the current set carries stays put and stops pretending. Removing it
+   would move every chip beside it each time a filter changed, which is the one thing a
+   filter bar must not do to the thing you are aiming at. */
+.tagfilter .chip[data-empty="1"]{opacity:.42}
+.tagfilter .clear{background:none;border:0;cursor:pointer;font-family:var(--ui);font-weight:600;
+  font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);
+  text-decoration:underline;padding:0}
+.tagfilter .clear:hover{color:var(--text)}
+/* The picker, inside a card that is 280px wide at its narrowest, so the chips shrink and
+   the group label carries the rule rather than a paragraph doing it. */
+.tagpick{margin:0 0 10px}
+.tagpick .flabel{display:block;font-weight:600;font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--dim);margin:0 0 5px}
+.tagpick .chips{margin:0 0 10px}
+.tagpick .chip{padding:6px 9px;font-size:10px;letter-spacing:.06em}
 /* --- catalogue: chips, search, grid and table --- */
 .chips{display:flex;flex-wrap:wrap;gap:1px;background:var(--line);border:1px solid var(--line)}
 /* A filter bar spans its column because it sits next to a search box that wants the rest of

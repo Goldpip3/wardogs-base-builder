@@ -41,24 +41,76 @@ function call(method, path, { body, ip = "1.2.3.4", token } = {}) {
 const jsonOf = r => r.json();
 
 const CODE = "eyJ2IjoxLCJuIjoiVGVzdCIsInQiOlsiaGVzY28tc21hbGwiXSwicCI6W1swLDAsMCwwLDBdXX0";
+/* Every submission carries tags now, so the ones below that are about something else carry
+   a valid pair and stay about that something else. The rules themselves are exercised in
+   their own section further down. */
+const TAGS = ["map-bakurani", "anti-infantry"];
 
 console.log("--- submission ---");
 env = { VOTES: fakeKV(), VOTE_SALT: "s", ADMIN_TOKEN: "secret" };
 
-let r = await call("POST", "/submit", { body: { name: "My Base", author: "colom", code: CODE } });
+let r = await call("POST", "/submit", { body: { name: "My Base", author: "colom", code: CODE, tags: TAGS } });
 let j = await jsonOf(r);
 check(r.status === 200 && j.ok && j.status === "published", "a submission goes live on arrival");
 const slug = j.slug;
 check(/^my-base-[a-z0-9]{4}$/.test(slug), "slug is derived from the name", slug);
 
-check((await call("POST", "/submit", { body: { name: "ok name", code: "not a code!!" } })).status === 400,
+check((await call("POST", "/submit", { body: { name: "ok name", code: "not a code!!", tags: TAGS } })).status === 400,
   "a bad share code is rejected");
-check((await call("POST", "/submit", { body: { name: "x", code: CODE } })).status === 400,
+check((await call("POST", "/submit", { body: { name: "x", code: CODE, tags: TAGS } })).status === 400,
   "a too-short name is rejected");
 
 j = await jsonOf(await call("GET", "/designs"));
 check(j.designs.length === 1 && j.designs[0].slug === slug,
   "and is on the public list immediately, with nobody in the way");
+check(JSON.stringify(j.designs[0].tags) === JSON.stringify(TAGS),
+  "carrying the tags it was submitted under", JSON.stringify(j.designs[0].tags));
+
+/* --- tags ---
+   The worker holds no copy of the vocabulary and must not: it is deployed on its own, and a
+   list here would make every new tag on the site a worker deploy that somebody would forget.
+   So it checks shape, a count, and the one rule that is about the submission rather than
+   about the vocabulary: a design has to say where it works. The map- prefix exists so that
+   rule can be enforced without knowing which maps there are. */
+console.log("\n--- tags ---");
+{
+  /* Its own store. Every submission below is a design, and the sections after this one
+     count what is on the public list. */
+  const outer = env;
+  env = { VOTES: fakeKV(), VOTE_SALT: "s", ADMIN_TOKEN: "secret" };
+  /* A fresh address each time: the five-a-day cap is counted before anything is
+     validated, so nine refused submissions from one address would start being refused for
+     the wrong reason halfway through. */
+  let nth = 0;
+  const sub = (tags, name) => call("POST", "/submit",
+    { body: { name: name || "Tagged Base", code: CODE, tags }, ip: "9.9.9." + (++nth) });
+  const msg = async r => ((await jsonOf(r)).error || "");
+
+  let bad = await sub([]);
+  check(bad.status === 400 && /at least/i.test(await msg(bad)),
+    "a submission with no tags is refused, and told what is missing");
+  check((await sub(undefined)).status === 400, "so is one that sends no tags at all");
+  check((await sub(["anti-air", "recon"])).status === 400,
+    "and one that says what it is for but not where it works");
+  check((await sub(["MAP-Bakurani"])).status === 400, "a tag that is not a slug is refused");
+  check((await sub(["map-bakurani", "a"])).status === 400, "and so is a one-character one");
+  check((await sub(Array.from({ length: 9 }, (_, i) => "map-x" + i))).status === 400,
+    "nine tags is more than a design is allowed");
+
+  /* Unknown to the site is not unknown to the worker, on purpose. A tag added to
+     data/community.json has to work at the next build with no deploy behind it, and the
+     price of that is that the store cannot tell a new tag from a made-up one. The site
+     draws only what it knows, which is where that is caught. */
+  const fresh = await sub(["map-somewhere-new", "trench-warfare"], "Unknown Tags");
+  check(fresh.status === 200, "a tag this worker has never heard of is stored anyway");
+
+  const dupes = await jsonOf(await sub(["map-any", "recon", "recon"], "Duplicated Tags"));
+  const stored = (await jsonOf(await call("GET", "/designs")))
+    .designs.find(d => d.slug === dupes.slug);
+  check(JSON.stringify(stored.tags) === JSON.stringify(["map-any", "recon"]),
+    "the same tag twice is stored once", JSON.stringify(stored.tags));
+  env = outer;
+}
 
 /* --- reporting ---
    The community takes something down, rather than one person having to let everything up.
@@ -133,13 +185,13 @@ console.log("\n--- abuse limits ---");
 env = { VOTES: fakeKV(), VOTE_SALT: "s", ADMIN_TOKEN: "secret" };
 let blocked = 0;
 for (let i = 0; i < 9; i++) {
-  const rr = await call("POST", "/submit", { body: { name: "Spam " + i, code: CODE }, ip: "7.7.7.7" });
+  const rr = await call("POST", "/submit", { body: { name: "Spam " + i, code: CODE, tags: TAGS }, ip: "7.7.7.7" });
   if (rr.status === 429) blocked++;
 }
 check(blocked === 4, "submissions are capped per address per day (5 through, 4 blocked)", "blocked=" + blocked);
 
 env = { VOTES: fakeKV(), VOTE_SALT: "s", ADMIN_TOKEN: "secret" };
-j = await jsonOf(await call("POST", "/submit", { body: { name: "Base", code: CODE }, ip: "8.8.8.8" }));
+j = await jsonOf(await call("POST", "/submit", { body: { name: "Base", code: CODE, tags: TAGS }, ip: "8.8.8.8" }));
 await call("POST", "/admin/design", { body: { slug: j.slug, action: "approve" }, token: "secret" });
 blocked = 0;
 for (let i = 0; i < 14; i++) {
@@ -181,7 +233,7 @@ console.log("\n--- sign in: not configured ---");
 env = { VOTES: fakeKV(), VOTE_SALT: "s", ADMIN_TOKEN: "secret" };
 j = await jsonOf(await call("GET", "/me"));
 check(j.loginEnabled === false && j.user === null, "reports itself off when unconfigured");
-check((await call("POST", "/submit", { body: { name: "Open Base", code: CODE } })).status === 200,
+check((await call("POST", "/submit", { body: { name: "Open Base", code: CODE, tags: TAGS } })).status === 200,
   "and everything still works with no account");
 
 console.log("\n--- sign in: configured ---");
@@ -192,7 +244,7 @@ check(j.loginEnabled === true, "reports itself on once configured");
 check(j.needs.comment === true && j.needs.submit === true && j.needs.feedback === false,
   "comments and submissions gated, feedback left open");
 
-r = await call("POST", "/submit", { body: { name: "Gated Base", code: CODE } });
+r = await call("POST", "/submit", { body: { name: "Gated Base", code: CODE, tags: TAGS } });
 j = await jsonOf(r);
 check(r.status === 401 && j.needsLogin === true, "submitting signed out is refused");
 check((await call("POST", "/feedback", { body: { kind: "bug", text: "reachable without an account" } })).status === 200,
@@ -207,6 +259,7 @@ j = await jsonOf(await callAs(await tokenFor({ id: "42", name: "Old", exp: Date.
 check(j.user === null, "an expired token is not signed in");
 j = await jsonOf(await callAs(await tokenFor({ id: "9", name: "Forger", exp: Date.now() + 6e5 }, "wrong-secret"), "GET", "/me"));
 check(j.user === null, "a token signed with the wrong secret is not signed in");
+
 /* ---- who the owner is ----
    The bug this replaces: /todo/ decided you were the owner by comparing your Discord
    display name to a string, so anyone willing to rename themselves became the owner. The
@@ -241,8 +294,7 @@ check((await callAs(good, "GET", "/admin/feedback")).status === 401,
 env = { VOTES: fakeKV(), VOTE_SALT: "s", ADMIN_TOKEN: "secret",
         DISCORD_CLIENT_ID: "cid", DISCORD_CLIENT_SECRET: "csec" };
 
-
-r = await callAs(good, "POST", "/submit", { name: "Signed Base", author: "typed-in-name", code: CODE });
+r = await callAs(good, "POST", "/submit", { name: "Signed Base", author: "typed-in-name", code: CODE, tags: TAGS });
 j = await jsonOf(r);
 check(r.status === 200, "submitting works once signed in");
 // straight onto the public list now, so that is where to look for it
@@ -269,7 +321,7 @@ check(filed.mine === undefined || filed.mine === false,
 {
   // its own submission, so withdrawing it does not pull the design later checks are using
   const mine = (await jsonOf(await callAs(good, "POST", "/submit",
-    { name: "Mine To Remove", code: CODE }))).slug;
+    { name: "Mine To Remove", code: CODE, tags: TAGS }))).slug;
   check((await call("POST", "/withdraw", { body: { slug: mine } })).status === 401,
     "withdrawing signed out is refused");
   const stranger = await tokenFor({ id: "77", name: "Someone Else", exp: Date.now() + 6e5 });
@@ -541,7 +593,7 @@ console.log("\n--- oversized request ---");
 
   /* but the ceiling sits well clear of the largest real request, so an oversized design still
      gets the message that names its size instead of one that can only say "too much" */
-  const big = await call("POST", "/submit", { body: { name: "Absurd", code: "A".repeat(410000) } });
+  const big = await call("POST", "/submit", { body: { name: "Absurd", code: "A".repeat(410000), tags: TAGS } });
   const msg = (await jsonOf(big)).error || "";
   check(big.status === 400 && /too large/i.test(msg) && /limit/i.test(msg),
     "and a merely oversized design still gets the message about its size", msg);

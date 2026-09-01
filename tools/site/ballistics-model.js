@@ -10,69 +10,88 @@
  * It is written as plain ES5 function declarations with no imports, because it has to
  * parse as a bare <script> body as well as a CommonJS module.
  *
- * The model itself, in order:
+ * The model changed on 2026-08-31, from derived to measured. It used to start from one
+ * damage figure per weapon, solved out of published shots-to-kill tables, and multiply it
+ * by a zone. It now reads the zone figure straight out of data/damage.json, which is the
+ * owner's own in-game measurements. Two things that rewrite fixed rather than moved:
  *
- *   1. base        the weapon's own upper-torso damage at point blank. Derived, not
- *                  transcribed. See tools/solve-ballistics.js.
- *   2. zone        where the round lands. A multiplier on the base, a property of the
- *                  body rather than of the gun.
- *   3. penetration what the armour covering that zone lets through, which is a property
- *                  of the round type and the tier and nothing else. There is no separate
- *                  penetration stat in this game that anybody has published: "penetration"
- *                  IS this retention figure.
- *   4. pellets     a shotgun load is several projectiles and they can miss separately.
+ *   Coverage grows with tier. A tier 1 helmet is the head. A tier 3 helmet also takes the
+ *   neck. A tier 4 vest also takes the bicep and the groin. The old model had one fixed
+ *   list per piece and the page said outright that a helmet is worth nothing to a man shot
+ *   in the neck, which against tier 3 is false.
  *
- * Health is 100, so shots to kill is ceil(100 / damage) and time to kill is the gap
- * between the first shot and the last, which is (shots - 1) / rate.
+ *   The class fires the round, not the calibre. 9mm out of an SMG and 9mm out of a pistol
+ *   are different figures. The old model had one number per calibre and could not say it.
+ *
+ * In order: the zone figure is the measurement; armour keeps a fraction of it, set by the
+ * round type and the tier; a shotgun's figure is per pellet and pellets can miss
+ * separately. Health is 100, so shots to kill is ceil(100 / damage) and time to kill is
+ * the gap between first shot and last, which is (shots - 1) / rate.
  */
 
-/* Which armour slot covers a zone, or "" for the ones nothing covers. Coverage is the
-   whole reason the two tiers are picked separately: a level 4 vest is worth nothing to a
-   man shot in the neck. */
-function slotForZone(zone) {
-  return zone && zone.armour ? zone.armour : "";
+/* Which piece is covering this zone at the tiers being worn, or "" if none is. A zone
+   carries the piece that would cover it and the tier that piece has to reach; below that
+   tier the zone is bare however good the armour is. */
+function slotForZone(zone, tiers) {
+  if (!zone || !zone.slot || !zone.coveredFrom) return "";
+  var tier = (tiers && tiers[zone.slot]) || 0;
+  return tier >= zone.coveredFrom ? zone.slot : "";
 }
 
-/* The fraction of a hit that survives the armour. blocks[] is what the tier stops, as a
-   percentage, per round type. Tier 0 is bare, and bare stops nothing. */
-function retention(round, tier) {
+/* The fraction of a hit that survives the armour, read straight off the scaling table.
+   Tier 0 is bare and bare stops nothing. A round type the table does not know keeps
+   everything rather than silently keeping none. */
+function retention(scalings, type, tier) {
   if (!tier) return 1;
-  var blocked = round.blocks[tier - 1];
-  return blocked === null || blocked === undefined ? 1 : (100 - blocked) / 100;
+  var byType = scalings && scalings[type];
+  if (!byType) return 1;
+  var s = byType[tier];
+  return s === undefined || s === null ? 1 : s;
 }
 
-/* The round a weapon actually fires when you ask for one it cannot chamber. A shotgun
-   asked for armour piercing loads buckshot, because that is all it has. Returning the
-   substitute rather than nothing is what lets one round picker rank every weapon at once,
-   and the caller is expected to say which round each row ended up using. */
-function roundFor(calibre, wantedId, roundsById) {
-  if (calibre && calibre.rounds.indexOf(wantedId) >= 0) return roundsById[wantedId];
-  return roundsById[calibre && calibre.rounds[0]] || null;
+/* The load a class actually fires when asked for one it does not have. A shotgun asked for
+   armour piercing gets buckshot, because that is all it has. Returning the substitute
+   rather than nothing is what lets one round picker rank every weapon at once, and the
+   caller is expected to say which load each row ended up using. */
+function loadFor(loads, wantedType) {
+  if (!loads) return null;
+  var names = Object.keys(loads);
+  for (var i = 0; i < names.length; i++) {
+    if (loads[names[i]].type === wantedType) return { name: names[i], load: loads[names[i]] };
+  }
+  return names.length ? { name: names[0], load: loads[names[0]] } : null;
 }
 
 /* One shot, all the way through.
  *
- *   weapon   { torso, rpm, calibre }
- *   zone     { mult, armour }
- *   round    { blocks }
+ *   load     { type, zones: { head: n, ... }, pellets? }
+ *   zone     { id, slot, coveredFrom }
  *   tiers    { helmet: 0..4, vest: 0..4 }
- *   pellets  { hit, of }  optional, shotgun loads only
+ *   scalings { FMJ: { 1: 0.7, ... }, ... }
+ *   pellets  { hit } optional, and only meaningful on a load that has a pellet count
  */
-function shot(weapon, zone, round, tiers, pellets) {
-  var slot = slotForZone(zone);
+function shot(load, zone, tiers, scalings, pellets) {
+  var per = load && load.zones ? load.zones[zone && zone.id] : 0;
+  if (!(per > 0)) {
+    return { base: 0, perPellet: 0, keep: 1, absorbed: 0, slot: "", tier: 0,
+             pelletsHit: 0, pelletsOf: 0, damage: 0 };
+  }
+  var of = load.pellets || 0;
+  var hit = of ? Math.max(0, Math.min(pellets && pellets.hit !== undefined ? pellets.hit : of, of)) : 0;
+  var base = of ? per * hit : per;
+  var slot = slotForZone(zone, tiers);
   var tier = slot ? (tiers[slot] || 0) : 0;
-  var keep = retention(round, tier);
-  var base = weapon.torso * zone.mult;
-  var fraction = pellets && pellets.of > 1 ? Math.max(0, Math.min(pellets.hit, pellets.of)) / pellets.of : 1;
-  var dealt = base * keep * fraction;
+  var keep = retention(scalings, load.type, tier);
   return {
-    base: base,             // before armour, after the zone
+    base: base,             // before armour, after the pellets that landed
+    perPellet: of ? per : 0,
     keep: keep,             // what the armour let through, 0 to 1
-    absorbed: base * fraction * (1 - keep),
+    absorbed: base * (1 - keep),
     slot: slot,             // "helmet", "vest" or ""
     tier: tier,             // the tier that actually applied, so 0 on an uncovered zone
-    pelletFraction: fraction,
-    damage: dealt,
+    pelletsHit: hit,
+    pelletsOf: of,
+    damage: base * keep,
   };
 }
 
@@ -107,6 +126,6 @@ function bandFor(bands, stk, ttk) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { slotForZone: slotForZone, retention: retention, roundFor: roundFor,
+  module.exports = { slotForZone: slotForZone, retention: retention, loadFor: loadFor,
     shot: shot, toKill: toKill, flightTime: flightTime, bandFor: bandFor };
 }

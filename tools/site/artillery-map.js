@@ -85,8 +85,11 @@ module.exports = ctx => {
     barBtn("amap-share", "Copy link") +
     '<span class="amap-sep"></span>' +
     '<span class="amap-layers">' +
+    /* No Spawns toggle. Where the three factions come in is not a preference about the
+       drawing, it is part of reading the map: a gun position is chosen against it, and the
+       one thing turning it off achieved was hiding that. It is simply always on. */
     [["terrain", "Terrain"], ["grid", "Grid"], ["zone", "Zone"],
-     ["towers", "Towers"], ["spawns", "Spawns"]].map(l =>
+     ["towers", "Towers"]].map(l =>
       '<button class="amap-lay" data-layer="' + l[0] + '" aria-pressed="true">' +
       l[1] + "</button>").join("") +
     "</span>" +
@@ -145,7 +148,7 @@ module.exports = ctx => {
 var cur=P[0], map=MAPS[0];
 var gun=null, tgt=null, active="gun";
 var cam={x:0,y:0,k:5};
-var LAYER={terrain:true,grid:true,zone:true,towers:true,spawns:true};
+var LAYER={terrain:true,grid:true,zone:true,towers:true};
 var canvas=document.getElementById("amap-canvas");
 var stage=document.getElementById("amap-stage");
 var g2=canvas.getContext("2d");
@@ -443,7 +446,8 @@ function draw(){
  g2.strokeStyle="#3a3a3a";g2.lineWidth=1.5;
  g2.strokeRect(w2sX(b.minX),w2sY(b.maxY),(b.maxX-b.minX)*cam.k,(b.maxY-b.minY)*cam.k);
 
- if(LAYER.spawns){
+ /* the three faction spawns, always drawn: no toggle, see the bar above */
+ {
   var zc={VALKYRA:"#d4553a",MANTICORE:"#86ad55",LONESTAR:"#6b93b8"};
   g2.font="11px Chakra Petch,system-ui,sans-serif";
   map.spawns.forEach(function(z){

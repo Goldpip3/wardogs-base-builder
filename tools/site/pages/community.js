@@ -2,7 +2,7 @@
    Body sits at column zero deliberately. Indenting it would add whitespace inside
    these template literals, and that whitespace is page content. */
 module.exports = ctx => {
-  const { path, esc, stats, page, write, VOTE_API } = ctx;
+  const { path, esc, stats, page, write, VOTE_API, COMMUNITY_SCRIPT } = ctx;
 
 /* ---------- moderation ----------
    Not linked from anywhere, not in the sitemap, and noindex. It holds no secret itself:
@@ -213,7 +213,11 @@ f.addEventListener("submit",function(e){
 /* ---------- account ----------
    What a signed-in player has saved, in one place. Designs live against the account
    rather than in a browser, so this is where they are visible from any machine. Not in
-   the sitemap: there is nothing here for anyone who is not signed in. */
+   the sitemap: there is nothing here for anyone who is not signed in.
+
+   The list itself is drawn by the community script, which is also what draws it under the
+   published designs on /designs/. This page used to hold a second copy of that renderer,
+   and the two would have drifted the first time either was touched. */
 if (VOTE_API) write("account/index.html", page({
   title: "Your account",
   desc: "Your saved WARDOGS base designs.",
@@ -223,68 +227,9 @@ if (VOTE_API) write("account/index.html", page({
   <span class="eyebrow">Account</span>
   <h1>Your designs</h1>
   <p class="lede">Everything you have saved from the planner. These live against your
-  Discord account, so they follow you to another browser or machine.</p>
-  <div id="acctBody" style="margin-top:34px">Checking...</div>
-</div></section>
-<script>
-(function(){
-var API=${JSON.stringify(VOTE_API)};
-var A=window.wardogsAuth, box=document.getElementById("acctBody");
-function esc(s){return String(s).replace(/[&<>"']/g,function(c){
-  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
-A.ready.then(function(me){
-  if(!me.loginEnabled){ box.innerHTML='<div class="empty"><h3>Accounts are not live</h3></div>'; return; }
-  if(!me.user){
-    box.innerHTML='<div class="empty"><h3>Not signed in</h3>'+
-      '<p>Sign in and anything you save from the planner shows up here.</p>'+
-      '<a class="btn primary" href="'+A.signInUrl(location.origin+"/account/")+'">Sign in with Discord</a></div>';
-    return;
-  }
-  load();
-});
-function load(){
-  fetch(API+"/mine",{headers:A.headers()})
-    .then(function(r){return r.json();})
-    .then(function(j){
-      var ds=j.designs||[];
-      if(!ds.length){
-        box.innerHTML='<div class="empty"><h3>Nothing saved yet</h3>'+
-          '<p>Open a design in the planner, press <strong>Designs</strong>, then '+
-          '<strong>Save this design online</strong>.</p>'+
-          '<a class="btn primary" href="/planner/">Open the planner</a></div>';
-        return;
-      }
-      box.innerHTML='<div class="grid">'+ds.map(function(d){
-        return '<div class="card"><h3>'+esc(d.name)+'</h3>'+
-          '<div class="stats"><span>saved</span>'+new Date(d.at).toLocaleDateString()+'</div>'+
-          '<div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">'+
-          '<a class="btn sm" href="/planner/#d='+esc(d.code)+'">Open</a>'+
-          '<button class="btn sm" data-copy="'+esc(d.code)+'">Copy link</button>'+
-          '<button class="btn sm" data-del="'+esc(d.name)+'">Delete</button></div></div>';
-      }).join("")+'</div>'+
-      '<p style="margin-top:24px;font-size:13px;color:var(--dim)">'+ds.length+' of '+
-      (j.limit||40)+' slots used.</p>';
-    })
-    .catch(function(){ box.innerHTML='<div class="msg">Could not reach the save service.</div>'; });
-}
-box.addEventListener("click",function(e){
-  var c=e.target.closest("[data-copy]");
-  if(c){
-    var url=location.origin+"/planner/#d="+c.dataset.copy;
-    navigator.clipboard.writeText(url).then(function(){
-      var was=c.textContent; c.textContent="Copied"; setTimeout(function(){c.textContent=was;},1400);
-    }).catch(function(){ prompt("Copy this link",url); });
-    return;
-  }
-  var d=e.target.closest("[data-del]");
-  if(d){
-    if(!confirm('Delete "'+d.dataset.del+'" from your account? The copy in your browser is not touched.')) return;
-    d.disabled=true;
-    fetch(API+"/mine/delete",{method:"POST",headers:A.headers(),
-      body:JSON.stringify({name:d.dataset.del})}).then(load).catch(function(){d.disabled=false;});
-  }
-});
-})();
-</script>`,
+  Discord account, so they follow you to another browser or machine. Sending one up for
+  voting puts it in the <a href="/designs/#community">community list</a>.</p>
+  <div id="mineList" style="margin-top:34px">Checking...</div>
+</div></section>${COMMUNITY_SCRIPT}`,
 }));
 };

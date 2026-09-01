@@ -121,6 +121,35 @@ const home = fs.readFileSync(DOCS + "index.html", "utf8");
 check(home.includes('location.replace("/planner/#d="'),
   "root page forwards designs shared before the planner moved");
 
+// ---------- the two lists of designs ----------
+/* The designs page carries the published list and your own saved designs under it, in that
+   order, and the account page carries the second one on its own. The renderer for it is one
+   script shared by both pages: this repo has been bitten by a number and by a share format
+   living in two places, and a list of designs is the same trap. Comparing the blocks rather
+   than looking for a marker in each is what would actually catch a copy being made. */
+const designsPage = fs.readFileSync(DOCS + "designs/index.html", "utf8");
+const accountPage = fs.readFileSync(DOCS + "account/index.html", "utf8");
+const community = designsPage.indexOf('id="designList"');
+const yours = designsPage.indexOf('id="mineList"');
+check(community > 0 && yours > community,
+  "designs page lists the community first and your own designs under it");
+check(accountPage.includes('id="mineList"'), "the account page carries your saved designs");
+
+const rendererOf = html => html.split("<script>").map(s => s.split("</script>")[0])
+  .find(s => s.includes("mineList") && s.includes("function renderMine"));
+const rd = rendererOf(designsPage), ra = rendererOf(accountPage);
+check(!!rd && rd === ra, "both pages draw your designs with the same script, not two copies");
+check(!!rd && rd.includes("/submit") && rd.includes("data-publish"),
+  "a saved design can be sent up to the community list from the page itself");
+check(!!rd && rd.includes("data-role=more") && /PAGE=[0-9]+/.test(rd),
+  "the community list arrives a page at a time rather than all at once");
+/* The seam between two things built separately: the worker refuses a submission that names
+   no map, and this card is one of the two places a submission is made. It sent name, code
+   and note only, which the worker answered with a 400 nobody could act on, so the picker
+   and the tags in the body are pinned here rather than left to be found in a browser. */
+check(!!rd && rd.includes("data-pick") && rd.includes("tags:tags"),
+  "the card that sends a design up asks for tags and sends them");
+
 // ---------- the planner still ships intact ----------
 check(app.includes("btnShare") && app.includes("buildIndex") && app.length > 100000,
   "planner page is the full app");

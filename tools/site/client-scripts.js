@@ -5,7 +5,7 @@
    the way out. Escapes have been eaten on that route before. tools/check-build.js
    parses every generated page's inline scripts, which is what catches it. */
 module.exports = ctx => {
-  const { path, esc, stats, page, written, VOTE_API } = ctx;
+  const { path, esc, stats, page, written, VOTE_API, TAG_GROUPS } = ctx;
   const fs = require("fs");
   const ROOT = path.join(__dirname, "..", "..");
 
@@ -129,6 +129,10 @@ const THUMB_DEFS = JSON.stringify(
 const COMMUNITY_SCRIPT = !VOTE_API ? "" : `<script>${SHARED_VIEW}
 var THUMB_DEFS = ${THUMB_DEFS};
 var CREW_LABELS = ${CREW_LABELS};
+/* The tag vocabulary, from data/community.json. Every tag the pages draw comes from here,
+   which is why an id the worker happens to be storing but this list does not know simply
+   does not appear: the store is deliberately dumb about which tags exist. */
+var DESIGN_TAGS = ${JSON.stringify(TAG_GROUPS)};
 </script><script>
 (function(){
 var API=${JSON.stringify(VOTE_API)};
@@ -140,6 +144,17 @@ var ago=function(ms){
   for(var i=0;i<u.length;i++) if(s>=u[i][0]) return Math.floor(s/u[i][0])+u[i][1]+" ago";
   return "just now";
 };
+var TAG_LABEL={};
+DESIGN_TAGS.forEach(function(g){ g.tags.forEach(function(t){ TAG_LABEL[t.id]=t.label; }); });
+/* A tag with no entry above draws nothing. It got into storage some other way, and putting
+   text nobody picked from a list onto a card is the one thing the vocabulary prevents. */
+function tagPills(tags){
+  var known=(tags||[]).filter(function(t){ return TAG_LABEL[t]; });
+  if(!known.length) return "";
+  return '<div class="tagrow">'+known.map(function(t){
+    return '<span class="tag">'+esc(TAG_LABEL[t])+'</span>'; }).join("")+'</div>';
+}
+
 /* Sign-in state. The worker hands the token back in the URL fragment after Discord, and
    it lives in localStorage from then on. A fragment never reaches a server, so the token
    is not sitting in anybody's access log. */
@@ -197,40 +212,29 @@ var meReady=fetch(API+"/me",{headers:authHeaders()})
   .then(function(j){ ME=j; if(j.loginEnabled&&TOKEN&&!j.user){ try{localStorage.removeItem("wardogs.token");}catch(e){} TOKEN=null; } return j; })
   .catch(function(){ ME={loginEnabled:false,needs:{},user:null}; });
 
-/* ---- submit ---- */
-var form=document.getElementById("submitForm");
-if(form){
-  var strip=document.createElement("div");
-  form.parentNode.insertBefore(strip,form);
-  meReady.then(function(){
-    var allowed=authStrip(strip,"submit");
-    form.querySelectorAll("input,textarea,button").forEach(function(el){ el.disabled=!allowed; });
-    // a signed-in submission is credited to the account, so stop asking for a name
-    if(allowed&&ME&&ME.user){
-      var f=document.getElementById("sAuthor");
-      if(f&&f.closest(".field")) f.closest(".field").style.display="none";
-    }
-  });
+/* The public list, fetched once however many blocks on the page want it. The designs page
+   wants it twice: to draw the list, and to tell which of your saved designs are already in
+   it. Two fetches would also be two answers, so a design could be shown as both published
+   and not published on the same screen. Signed in, so the worker can flag which are yours;
+   it answers with a flag and never with the submitter's account id. */
+var designsReq=null;
+function communityDesigns(){
+  if(!designsReq) designsReq=fetch(API+"/designs",{headers:authHeaders()})
+    .then(function(r){return r.json();})
+    .then(function(j){ return j.designs||[]; })
+    .catch(function(){ return []; });
+  return designsReq;
 }
-if(form) form.addEventListener("submit",function(e){
-  e.preventDefault();
-  var out=document.getElementById("submitMsg");
-  // people paste the whole link; the design is the bit after #d=
-  var raw=(document.getElementById("sCode").value||"").trim();
-  var m=raw.match(/[#&]d=([A-Za-z0-9_-]+)/);
-  var code=m?m[1]:raw;
-  out.className="msg"; out.textContent="Sending...";
-  post("/submit",{name:document.getElementById("sName").value,
-                  author:document.getElementById("sAuthor").value,
-                  note:document.getElementById("sNote").value,
-                  code:code})
-    .then(function(){
-      form.reset();
-      out.className="msg good";
-      out.textContent="Thanks. It goes up once it has been looked over, usually the same day.";
-    })
-    .catch(function(err){ out.className="msg"; out.textContent=err.message; });
-});
+/* Assigned by the list block below if this page has one. Sending a design up for voting
+   has to show it arriving, and the block that can redraw the list is not the block that
+   holds the button. The account page has no list to redraw and still has to forget the
+   answer it was given before the design existed. */
+var reloadCommunity=function(){ designsReq=null; return Promise.resolve(); };
+
+/* There is no paste-a-share-code form any more, and no code here for one. Submitting
+   happens in the two places that already hold the design: the planner's Designs panel, and
+   the Put it up for voting button on your own saved designs below. Both now ask for tags,
+   which is a second thing a form would have had to grow a third copy of. */
 
 /* ---- the list ---- */
 var list=document.getElementById("designList");
@@ -263,12 +267,30 @@ if(list){
      serves both rather than a second one drifting away from it. */
   var LIMIT=parseInt(list.getAttribute("data-limit")||"0",10);
   var NOTABS=list.hasAttribute("data-notabs");
-  var sortBy="hot", allDesigns=[];
+  /* How many cards arrive at a time. Every card decodes a share code and paints a plan of
+     the base, so a list of two hundred is two hundred decodes standing between somebody and
+     the first design. Twelve fills a desktop screen and a bit; the rest arrives as the
+     bottom comes into view, which is also what keeps a long list usable on a phone. */
+  var PAGE=12;
+  var sortBy="hot", allDesigns=[], sorted=[], shown=0, grid=null, moreBar=null;
+  /* Which tags are being filtered on, as an id to true map. Not in the URL: a filtered
+     list is somebody looking, not somebody linking, and the thing worth sharing from this
+     page is a design rather than a view of the list. */
+  var tagFilter={}, filterBox=null;
 
-  /* Signed in, so the worker can mark which of these are yours. It answers with a flag and
-     never with the submitter's account id, which it used to put in this public list. */
-  fetch(API+"/designs",{headers:authHeaders()}).then(function(r){return r.json();}).then(function(j){
-    var ds=j.designs||[];
+  /* Sending one of your own saved designs up has to show it arriving here, and the block
+     holding that button is not the block that can redraw this list. */
+  reloadCommunity=function(){
+    designsReq=null;
+    return communityDesigns().then(function(ds){
+      if(!ds.length) return;
+      allDesigns=ds;
+      if(!NOTABS) buildFilters();
+      render();
+    });
+  };
+
+  communityDesigns().then(function(ds){
     if(!ds.length) return;                       // keep whatever static state is there
     allDesigns=ds;
     /* Anything that only makes sense once designs exist, such as the See all link on the
@@ -294,16 +316,148 @@ if(list){
         o.setAttribute("aria-pressed", String(o===b)); });
       render();
     });
+    buildFilters();
     render();
   }).catch(function(){});
 
+  /* ---- filtering ----
+     And across groups, or inside one. Bakurani with Ozeti means either map; Bakurani with
+     Anti-air means both have to be true. The groups are different questions, so that is the
+     only reading of two rows of chips that does what somebody expects. */
+  function pickedIn(g){
+    return g.tags.filter(function(t){ return tagFilter[t.id]; });
+  }
+  function matches(d,g){
+    var picked=pickedIn(g);
+    if(!picked.length) return true;
+    var tags=d.tags||[];
+    return picked.some(function(t){ return tags.indexOf(t.id)>=0; });
+  }
+  function passesFilter(d){
+    return DESIGN_TAGS.every(function(g){ return matches(d,g); });
+  }
+
+  /* The number on a chip is what pressing it would leave you with, so every other group's
+     filter counts and its own does not. A count that ignored the rest of the bar would
+     offer you a nine and hand you nothing. */
+  function countFor(gi,tagId){
+    var n=0;
+    allDesigns.forEach(function(d){
+      if((d.tags||[]).indexOf(tagId)<0) return;
+      for(var i=0;i<DESIGN_TAGS.length;i++)
+        if(i!==gi && !matches(d,DESIGN_TAGS[i])) return;
+      n++;
+    });
+    return n;
+  }
+
+  /* Only tags something in the list actually carries. Ten chips over an empty list, nine of
+     which return nothing, is a worse first impression than no bar at all, and this list
+     starts small. Built once: which tags exist does not change while the page is open. */
+  function buildFilters(){
+    /* Rebuilt rather than patched when the list changes, because sending your own design up
+       can introduce a tag nothing in the list had, and a bar that cannot offer it is a
+       filter that hides the design you just published. */
+    if(filterBox){ filterBox.remove(); filterBox=null; }
+    var used={};
+    allDesigns.forEach(function(d){ (d.tags||[]).forEach(function(t){ used[t]=true; }); });
+    var rows=DESIGN_TAGS.map(function(g,gi){
+      var ts=g.tags.filter(function(t){ return used[t.id]; });
+      if(ts.length<2) return "";                 // one chip filters nothing
+      return '<div class="frow"><span class="flabel">'+esc(g.label)+'</span>'+
+        '<span class="chips">'+ts.map(function(t){
+          return '<button type="button" class="chip" data-tag="'+esc(t.id)+'" data-group="'+gi+
+            '" aria-pressed="false">'+esc(t.label)+' <small data-role="n"></small></button>';
+        }).join("")+'</span></div>';
+    }).join("");
+    if(!rows) return;
+    filterBox=document.createElement("div");
+    filterBox.className="tagfilter";
+    filterBox.innerHTML=rows+
+      '<button type="button" class="clear" hidden>Clear filters</button>';
+    list.parentNode.insertBefore(filterBox,list);
+    filterBox.addEventListener("click",function(ev){
+      var c=ev.target.closest("button[data-tag]");
+      if(c){
+        var id=c.getAttribute("data-tag");
+        if(tagFilter[id]) delete tagFilter[id]; else tagFilter[id]=true;
+        render(); return;
+      }
+      if(ev.target.closest(".clear")){ tagFilter={}; render(); }
+    });
+  }
+
+  function paintFilters(){
+    if(!filterBox) return;
+    var any=false;
+    filterBox.querySelectorAll("button[data-tag]").forEach(function(b){
+      var id=b.getAttribute("data-tag"), on=!!tagFilter[id];
+      if(on) any=true;
+      b.setAttribute("aria-pressed",on?"true":"false");
+      var n=countFor(+b.getAttribute("data-group"),id);
+      b.setAttribute("data-empty",(!on&&!n)?"1":"0");
+      b.querySelector("[data-role=n]").textContent=n;
+    });
+    filterBox.querySelector(".clear").hidden=!any;
+  }
+
+  /* Sorting and the first page. Everything after the first page is appended rather than
+     redrawn, so a comment thread somebody has open is not shut by the next page arriving. */
   function render(){
-    var ds=allDesigns.slice().sort(function(a,b){ return RANK[sortBy](b)-RANK[sortBy](a); });
-    if(LIMIT>0) ds=ds.slice(0,LIMIT);
+    paintFilters();
+    sorted=allDesigns.filter(passesFilter)
+      .sort(function(a,b){ return RANK[sortBy](b)-RANK[sortBy](a); });
+    if(LIMIT>0) sorted=sorted.slice(0,LIMIT);
+    if(!sorted.length){
+      /* Only reachable with a filter on: the block above returns before rendering when the
+         worker has no designs at all, so the static empty state stays. */
+      list.innerHTML='<div class="empty"><h3>Nothing matches that</h3>'+
+        '<p>No design carries every tag you have picked. Take one off, or start again.</p>'+
+        '<button type="button" class="btn sm" data-role="clearall">Clear filters</button></div>';
+      list.querySelector("[data-role=clearall]").addEventListener("click",function(){
+        tagFilter={}; render(); });
+      return;
+    }
+    shown=0;
     /* The same grid the built-in list uses. This one wrote its cards straight into the
        container, so the moment the worker answered, a tidy grid of designs was replaced by
        a column of full width rows. Two renderers, one look, and only one of them had it. */
-    list.innerHTML='<div class="grid">'+ds.map(function(d){
+    list.innerHTML='<div class="grid design-grid"></div>'+
+      '<div class="more" hidden><button class="btn sm" type="button" data-role="more">'+
+      'Show more</button><span data-role="left"></span></div>';
+    grid=list.querySelector(".grid");
+    moreBar=list.querySelector(".more");
+    moreBar.querySelector("[data-role=more]").addEventListener("click",showMore);
+    /* The button is the real control and the observer only presses it early, so a browser
+       without IntersectionObserver loses the scrolling and keeps the list. */
+    if("IntersectionObserver" in window){
+      var io=new IntersectionObserver(function(es){
+        es.forEach(function(e){ if(e.isIntersecting && !moreBar.hidden) showMore(); });
+      },{rootMargin:"400px"});
+      io.observe(moreBar);
+    }
+    showMore();
+  }
+
+  /* One page of cards, wired before they are attached so nothing is bound twice. */
+  function showMore(){
+    var next=sorted.slice(shown,shown+PAGE);
+    shown+=next.length;
+    if(next.length){
+      var frag=document.createElement("div");
+      frag.innerHTML=cardsHTML(next);
+      wireVotes(frag); wireThreads(frag); wireReports(frag); wireWithdraw(frag);
+      while(frag.firstChild) grid.appendChild(frag.firstChild);
+      paintThumbs(grid);
+    }
+    var left=sorted.length-shown;
+    moreBar.hidden=left<=0;
+    moreBar.querySelector("[data-role=left]").textContent=
+      left>0?(left+" more design"+(left===1?"":"s")):"";
+  }
+
+  function cardsHTML(ds){
+    return ds.map(function(d){
       var score=(d.votes.up||0)-(d.votes.down||0);
       return '<details class="design"><summary>'+
         '<div class="card">'+
@@ -313,6 +467,7 @@ if(list){
           'aria-label="Overhead plan of '+esc(d.name)+'"></canvas>'+
         '<h3>'+esc(d.name)+'</h3>'+
         (d.note?'<p>'+esc(d.note)+'</p>':'')+
+        tagPills(d.tags)+
         '<div class="stats"><span>by</span>'+esc(d.author)+
         (d.mine?'<span style="color:var(--accent)">yours</span>':'')+
         /* Who it takes to hold the base. It travels inside the share code rather than
@@ -346,41 +501,7 @@ if(list){
         '<div class="field"><label>Comment</label><textarea maxlength="1500" data-role="text" required></textarea></div>'+
         '<button class="btn sm" type="submit">Post comment</button>'+
         '<div class="msg" data-role="msg" style="display:none"></div></form></div></details>';
-    }).join("")+'</div>';
-    wireVotes(list);
-    wireThreads(list);
-    wireReports(list);
-    wireWithdraw(list);
-    paintThumbs(list);
-  }
-
-  /* Decoding is real work and a long list would do all of it before showing anything, so
-     each picture is painted when it is about to be seen. A base that will not decode simply
-     leaves no picture: a broken frame would be worse than none, and the card still has its
-     name, its author and its link. */
-  function paintThumbs(root){
-    var pending=[].slice.call(root.querySelectorAll("canvas.thumb[data-code]"));
-    var paint=function(cv){
-      if(cv.dataset.painted) return;
-      cv.dataset.painted="1";
-      WardogsDesignView.decode(cv.dataset.code, function(t){ return !!THUMB_DEFS[t]; })
-        .then(function(d){
-          var ok=WardogsDesignView.drawThumb(cv, d.pieces, function(t){ return THUMB_DEFS[t]; });
-          if(!ok) cv.style.display="none";
-          var slot=cv.closest(".card").querySelector("[data-crew-for]");
-          if(slot && d.crew && CREW_LABELS[d.crew]){
-            // same shape as the other stats: a dim label, then the value
-            slot.innerHTML='<span>players</span><b>'+esc(CREW_LABELS[d.crew])+'</b>';
-            slot.hidden=false;
-          }
-        })
-        .catch(function(){ cv.style.display="none"; });
-    };
-    if(!("IntersectionObserver" in window)){ pending.forEach(paint); return; }
-    var io=new IntersectionObserver(function(entries){
-      entries.forEach(function(e){ if(e.isIntersecting){ paint(e.target); io.unobserve(e.target); } });
-    },{rootMargin:"200px"});
-    pending.forEach(function(cv){ io.observe(cv); });
+    }).join("");
   }
 
   /* Taking your own design down removes it here and in storage, comments and votes with it.
@@ -402,6 +523,246 @@ if(list){
         });
       });
     });
+  }
+}
+
+/* Decoding is real work and a long list would do all of it before showing anything, so
+   each picture is painted when it is about to be seen. A base that will not decode simply
+   leaves no picture: a broken frame would be worse than none, and the card still has its
+   name, its author and its link.
+
+   Both lists on the designs page paint through this, and the public one calls it again for
+   every page of cards it appends, so an already watched canvas is marked and skipped. */
+function paintThumbs(root){
+  var pending=[].slice.call(root.querySelectorAll("canvas.thumb[data-code]:not([data-watched])"));
+  pending.forEach(function(cv){ cv.setAttribute("data-watched","1"); });
+  var paint=function(cv){
+    if(cv.dataset.painted) return;
+    cv.dataset.painted="1";
+    WardogsDesignView.decode(cv.dataset.code, function(t){ return !!THUMB_DEFS[t]; })
+      .then(function(d){
+        var ok=WardogsDesignView.drawThumb(cv, d.pieces, function(t){ return THUMB_DEFS[t]; });
+        if(!ok) cv.style.display="none";
+        var slot=cv.closest(".card").querySelector("[data-crew-for]");
+        if(slot && d.crew && CREW_LABELS[d.crew]){
+          // same shape as the other stats: a dim label, then the value
+          slot.innerHTML='<span>players</span><b>'+esc(CREW_LABELS[d.crew])+'</b>';
+          slot.hidden=false;
+        }
+      })
+      .catch(function(){ cv.style.display="none"; });
+  };
+  if(!("IntersectionObserver" in window)){ pending.forEach(paint); return; }
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting){ paint(e.target); io.unobserve(e.target); } });
+  },{rootMargin:"200px"});
+  pending.forEach(function(cv){ io.observe(cv); });
+}
+
+/* ---- your own saved designs ----
+   Under the public list on the designs page, and the whole of the account page. They are
+   two different things and the page says which is which: the list above is published and
+   being voted on, this one is yours, private, and stays that way until you send one up.
+
+   Nothing here is a second copy of the account page's list. That page used to carry its own
+   renderer and this is now the only one, because two lists of the same designs drifting
+   apart is exactly the kind of thing this codebase has been bitten by. */
+var mineBox=document.getElementById("mineList");
+if(mineBox){
+  var mySaved=[], mySlots=0, publishedCode={};
+  /* The account page carries this block without the public list, so 'see it in the list'
+     has somewhere to go from there too. */
+  var LIST_HREF=document.getElementById('designList')?'#community':'/designs/#community';
+
+  meReady.then(function(){
+    if(!ME || !ME.loginEnabled){
+      mineBox.innerHTML='<div class="empty"><h3>Accounts are not live</h3>'+
+        '<p>Designs still save into this browser from the planner.</p></div>';
+      return;
+    }
+    if(!ME.user){
+      mineBox.innerHTML='<div class="empty"><h3>Sign in to see yours</h3>'+
+        '<p>Designs saved from the planner live against your Discord account, so they '+
+        'follow you to another browser or machine. From here you can send one up to the '+
+        'list above whenever it is ready.</p>'+
+        '<a class="btn primary" href="'+signInUrl()+'">Sign in with Discord</a></div>';
+      return;
+    }
+    return loadMine();
+  });
+
+  /* Both answers or neither. Which of your saved designs are already published is a
+     question about both lists, and asking them separately would let a card claim it is
+     not up for voting while the copy of it sits in the list above. */
+  function loadMine(){
+    return Promise.all([
+      fetch(API+"/mine",{headers:authHeaders()}).then(function(r){return r.json();}),
+      communityDesigns()
+    ]).then(function(r){
+      mySaved=r[0].designs||[];
+      mySlots=r[0].limit||0;
+      publishedCode={};
+      r[1].forEach(function(d){ if(d.mine) publishedCode[d.code]=d; });
+      renderMine();
+    }).catch(function(){
+      mineBox.innerHTML='<div class="msg">Could not reach the save service.</div>';
+    });
+  }
+
+  function renderMine(){
+    if(!mySaved.length){
+      mineBox.innerHTML='<div class="empty"><h3>Nothing saved yet</h3>'+
+        '<p>Open a design in the planner, press <strong>Designs</strong>, then '+
+        '<strong>Save this design online</strong>. It lands here, and you can put it up '+
+        'for voting whenever you like.</p>'+
+        '<a class="btn primary" href="/planner/">Open the planner</a></div>';
+      return;
+    }
+    mineBox.innerHTML='<div class="grid design-grid">'+mySaved.map(function(d,i){
+      var up=publishedCode[d.code];
+      return '<div class="card" data-mine="'+i+'">'+
+        '<canvas class="thumb" data-code="'+esc(d.code)+'" width="600" height="300" '+
+          'aria-label="Overhead plan of '+esc(d.name)+'"></canvas>'+
+        '<h3>'+esc(d.name)+'</h3>'+
+        '<div class="stats"><span>saved</span>'+esc(new Date(d.at).toLocaleDateString())+
+        '<span class="crew" data-crew-for="mine'+i+'" hidden></span>'+
+        (up?'<span style="color:var(--accent)">up for voting</span>':'')+'</div>'+
+        '<div class="vote" data-role="actions">'+
+        '<a class="btn sm" href="/planner/#d='+esc(d.code)+'">Open in planner</a>'+
+        (up
+          ? '<a class="btn sm" href="'+LIST_HREF+'">See it in the list</a>'
+          : '<button type="button" class="btn sm primary" data-publish="'+i+'">Put it up '+
+            'for voting</button>')+
+        '<button type="button" class="btn sm" data-copy="'+i+'">Copy link</button>'+
+        '<button type="button" class="btn sm" data-forget="'+i+'">Delete</button>'+
+        '</div></div>';
+    }).join("")+'</div>'+
+    (mySlots?'<p style="margin-top:18px;font-size:13px;color:var(--dim)">'+
+      mySaved.length+' of '+mySlots+' slots used.</p>':'');
+    paintThumbs(mineBox);
+  }
+
+  /* One listener for the whole block rather than one per button, because every one of
+     these actions redraws the cards underneath it. */
+  mineBox.addEventListener("click",function(ev){
+    var card=ev.target.closest("[data-mine]");
+    var d=card?mySaved[+card.getAttribute("data-mine")]:null;
+
+    var pub=ev.target.closest("[data-publish]");
+    if(pub && d){ askNote(card,d); return; }
+
+    var pick=ev.target.closest("[data-pick]");
+    if(pick){ togglePick(pick.closest("[data-role=actions]"),pick); return; }
+
+    var send=ev.target.closest("[data-send]");
+    if(send && d){ publish(card,d,send); return; }
+
+    if(ev.target.closest("[data-cancel]")){ renderMine(); return; }
+
+    var cp=ev.target.closest("[data-copy]");
+    if(cp && d){
+      var url=location.origin+"/planner/#d="+d.code;
+      navigator.clipboard.writeText(url).then(function(){
+        var was=cp.textContent; cp.textContent="Copied";
+        setTimeout(function(){ cp.textContent=was; },1400);
+      }).catch(function(){ window.prompt("Copy this link",url); });
+      return;
+    }
+
+    var del=ev.target.closest("[data-forget]");
+    if(del && d){
+      if(!window.confirm('Delete "'+d.name+'" from your account? The copy in your browser '+
+        'is not touched'+(publishedCode[d.code]?", and the one up for voting stays up":"")+'.')) return;
+      del.disabled=true;
+      post("/mine/delete",{name:d.name}).then(loadMine).catch(function(err){
+        del.disabled=false;
+        alert(err && err.message ? err.message : "That did not go through.");
+      });
+      return;
+    }
+  });
+
+  /* A design in the public list is being chosen between, so it gets the one line that says
+     what it is for and the tags people filter on. Asking here rather than in a prompt box
+     keeps it on the card it belongs to.
+
+     The tags are asked for once, here, and never afterwards: nothing on the site edits a
+     published design. That is deliberate for now, and it is why the map group is marked with
+     a star rather than left to be discovered by a rejection from the worker. */
+  function askNote(card,d){
+    var row=card.querySelector("[data-role=actions]");
+    row.innerHTML='<div class="field" style="flex:1 1 100%">'+
+      '<input data-role="note" maxlength="300" placeholder="One line about it (optional)">'+
+      '</div>'+
+      '<div class="tagpick" style="flex:1 1 100%">'+DESIGN_TAGS.map(function(g,gi){
+        return '<span class="flabel"'+(g.hint?' title="'+esc(g.hint)+'"':'')+'>'+esc(g.label)+
+          (g.required?' *':'')+'</span><span class="chips">'+g.tags.map(function(t){
+            return '<button type="button" class="chip" data-pick="'+esc(t.id)+'" data-group="'+
+              gi+'" aria-pressed="false"'+(t.hint?' title="'+esc(t.hint)+'"':'')+'>'+
+              esc(t.label)+'</button>';
+          }).join("")+'</span>';
+      }).join("")+'</div>'+
+      '<button type="button" class="btn sm primary" data-send="1">Send it up</button>'+
+      '<button type="button" class="btn sm" data-cancel="1">Cancel</button>'+
+      '<div class="msg" data-role="msg" style="display:none;flex:1 1 100%"></div>';
+    var box=row.querySelector("[data-role=note]");
+    if(box) box.focus();
+  }
+
+  /* Any map and a named map answer the same question, so one clears the other rather than
+     both sitting pressed and the design claiming both. */
+  function togglePick(row,b){
+    var gi=+b.getAttribute("data-group"), g=DESIGN_TAGS[gi];
+    var id=b.getAttribute("data-pick");
+    var def=null;
+    g.tags.forEach(function(t){ if(t.id===id) def=t; });
+    var on=b.getAttribute("aria-pressed")!=="true";
+    if(on) row.querySelectorAll("[data-pick][data-group='"+gi+"']").forEach(function(o){
+      if(o===b) return;
+      var oid=o.getAttribute("data-pick"), odef=null;
+      g.tags.forEach(function(t){ if(t.id===oid) odef=t; });
+      if(def.exclusive || (odef && odef.exclusive)) o.setAttribute("aria-pressed","false");
+    });
+    b.setAttribute("aria-pressed",on?"true":"false");
+  }
+  function picksIn(row){
+    var out=[];
+    row.querySelectorAll('[data-pick][aria-pressed="true"]').forEach(function(b){
+      out.push(b.getAttribute("data-pick")); });
+    return out;
+  }
+
+  function publish(card,d,btn){
+    var row=card.querySelector("[data-role=actions]");
+    var note=row.querySelector("[data-role=note]");
+    var msg=row.querySelector("[data-role=msg]");
+    var tags=picksIn(row);
+    /* Said here rather than left to the worker's refusal. The worker checks the same thing
+       and has to, since it is the only side a crafted request meets, but a person who has
+       just pressed a button deserves to be told which chip is missing rather than handed a
+       four hundred. */
+    var missing=DESIGN_TAGS.filter(function(g){
+      return g.required && !g.tags.some(function(t){ return tags.indexOf(t.id)>=0; });
+    });
+    if(missing.length){
+      if(msg){ msg.style.display=""; msg.className="msg";
+               msg.textContent="Pick "+missing[0].label.toLowerCase()+" first, so people can "+
+                 "find it by map."; }
+      return;
+    }
+    btn.disabled=true; btn.textContent="Sending...";
+    post("/submit",{name:d.name,code:d.code,note:note?note.value:"",tags:tags})
+      .then(function(){
+        /* The public list first, then this one. Both read the same answer, and asking for
+           them at once meant this block read the copy fetched before the design existed:
+           the list above gained the design and the card under it still offered to send it. */
+        return reloadCommunity().then(function(){ return loadMine(); });
+      })
+      .catch(function(err){
+        btn.disabled=false; btn.textContent="Send it up";
+        if(msg){ msg.style.display=""; msg.className="msg";
+                 msg.textContent=err && err.message ? err.message : "That did not go through."; }
+      });
   }
 }
 

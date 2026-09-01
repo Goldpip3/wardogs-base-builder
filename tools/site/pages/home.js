@@ -126,7 +126,7 @@ write("index.html", page({
        page, capped at six and without the sort tabs, so the two cannot drift apart. -->
   <div id="designList" data-limit="6" data-notabs>
   ${withStats.length
-    ? `<div class="grid">${ranked.slice(0, 6).map(designCard).join("")}</div>`
+    ? `<div class="grid design-grid">${ranked.slice(0, 6).map(designCard).join("")}</div>`
     : `<div class="empty">
         <h3>No designs posted yet</h3>
         <p>Designs are submitted from the planner: open one, sign in, and press Submit for

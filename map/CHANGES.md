@@ -8,6 +8,38 @@ Newest first. One entry per decision, not per commit.
 
 ## 2026-08-31
 
+### Your own designs sit under the community's, on the same page
+
+`/designs/` was other people's work and a paragraph telling you your own was elsewhere. It
+carries two lists now: **From the community**, published and being voted on, and **Your
+designs** under it, saved from the planner and private to your account. One button on each of
+your cards puts it in the list above, asking for the optional line the public card shows.
+
+**One renderer draws both, and the account page uses the same one.** `/account/` held a
+second copy that would have drifted the first time either was touched, the trap this repo has
+been caught by with a number and with the share format. `test/site.js` compares the two
+pages' script blocks rather than looking for a marker in each.
+
+**Both lists read one answer.** Publishing clears the cached `/designs` reply before either
+is redrawn: reloading them at once meant the list gained the design while the card under it
+still offered to send it.
+
+**The public list arrives twelve at a time**, appended as the bottom comes into view, because
+every card decodes a share code and paints a plan. The **Show more** button is the real
+control and the scroll only presses it early, so a browser without an IntersectionObserver
+keeps the tail of the list.
+
+### The nav is one row of one size, and stops running off the side
+
+The seven boxes were sized by their own labels, 96px to 114px, which reads as seven kinds of
+thing rather than one row of buttons. They are all 100px now, set by the longest word.
+
+Fixing that surfaced an older bug: **at 1000px the page scrolled sideways by 220px.** The
+header only stacked below 760px, and between there and about 1250px the row did not fit and
+simply overflowed. The nav takes its own row under the brand below 1180px, which is where it
+measurably stops fitting, and wraps rather than overflowing at any width. A Discord name
+longer than about fourteen characters is what still reaches that wrap on a 1440px screen.
+
 ### The owner is a Discord id, not a display name
 
 `/todo/` decided you were the owner by lowercasing your Discord display name and comparing
@@ -248,17 +280,12 @@ name into two columns. The icon is inline with a baseline nudge, and the name co
 ### A generated file that its generator no longer makes
 
 `data/armory.json` was committed carrying 323 icon slugs without the `tools/build-armory.js`
-change behind them. Nothing noticed: that generator is run by hand and nothing compared the
-two, so the next regeneration would have stripped every icon off the loadout page.
-
-`build.ps1` now runs `tools/build-armory.js --check`, which rebuilds into memory and
-**refuses** if the committed file disagrees. Refusing rather than overwriting is the point:
-overwriting is what hid this, and a silent repair leaves the wrong generator in the tree.
-Proved by replaying the real commit, where the old generator did not have the flag, quietly
-overwrote the file and exited zero.
-
-The armory card claimed all along that a hand-edit is what "the next build will either
-overwrite or refuse". True for ballistics, not for the armory, until now.
+change behind them. That generator is run by hand and nothing compared the two, so the next
+regeneration would have stripped every icon off the loadout page. `build.ps1` runs
+`tools/build-armory.js --check` now, which rebuilds into memory and **refuses** if the
+committed file disagrees. Refusing rather than overwriting is the point: overwriting is what
+hid this, and a silent repair leaves the wrong generator in the tree. Proved by replaying the
+real commit, where the old generator overwrote the file and exited zero.
 
 ### Two black squares on the map, and a shudder on the way in
 
@@ -539,33 +566,29 @@ crew on it, and that the refusal to submit comes before the call rather than aft
 
 ### Two bugs it surfaced on the way
 
-**A chosen chip in a strip was invisible.** `.seg button` sets a transparent background and
-is written after the shared `button.active` rule at the same specificity, so it won: the
-filled state kept the filled state's near-black ink and lost the fill behind it. The storey
-strip had been drawing "All" as an empty box for as long as it has existed, and nobody read
-it as a bug because a blank chip looks like a gap. Restated at a specificity that wins.
+**A chosen chip in a strip was invisible.** `.seg button` sets a transparent background after
+the shared `button.active` rule at the same specificity, so the filled state kept its
+near-black ink and lost the fill behind it. The storey strip had drawn "All" as an empty box
+for as long as it existed, and nobody read it as a bug because a blank chip looks like a gap.
+Restated at a specificity that wins.
 
-**Reopening a saved base showed the base with a build cost of zero.** `loadCurrent` is
-reached from a promise, so it lands after startup has already worked every figure out from
-the empty design nobody was looking at: the plan drew, and the cost, the storey strip and the
-crew beside it all described nothing. It recomputes now, without saving, since nothing
-changed by being reopened. Same shape as the "Plan your FOB" bug: something read off the
-design, refreshed only on the path where the design is edited.
+**Reopening a saved base showed a build cost of zero.** `loadCurrent` is reached from a
+promise, so it lands after startup has worked every figure out from the empty design nobody
+was looking at. It recomputes now, without saving, since nothing changed by being reopened.
+Same shape as the "Plan your FOB" bug: something read off the design, refreshed only on the
+path where the design is edited.
 
 ### The designs page stops spending space on nothing
 
-Three things, all the same mistake: a layout built for a full rectangle used for a list that
-usually is not one.
-
-`.chips.sorts` is the width of its contents now, rather than spanning the column the way the
-filter bar does beside a search box. The card grid drew hairlines as background through a
-1px gap, which is right for a dense table and wrong here: with one design in it the empty
-track read as a missing thing. It is centred rows carrying their own edges. And the submit
-form asked for a link, a name and an author the planner's Submit button already knows, so it
-is one instruction and a way to the planner. **The line promising submissions are read
-before they go up came off with it: that stopped being true when the queue was removed, and
-a page promising a review nobody performs is worse than one promising nothing.** Thumbnails
-went 150px to 190px, since most bases are nearer square than a card is.
+The same mistake three times: a layout built for a full rectangle used for a list that
+usually is not one. `.chips.sorts` is the width of its contents rather than spanning the
+column the way the filter bar does beside a search box. The card grid drew hairlines as
+background through a 1px gap, right for a dense table and wrong here, where one design left
+an empty track reading as a missing thing; it is centred rows carrying their own edges. The
+submit form went too, since it asked for a link, a name and an author the planner's Submit
+button already knows, **and the line promising submissions are read before they go up came
+off with it: that stopped being true when the queue was removed.** Thumbnails went 150px to
+190px, since most bases are nearer square than a card is.
 
 ### The community list shows the base, and one decoder now serves both sides
 
@@ -640,28 +663,19 @@ the public list carries no account id, and no comment key survives the delete.
 
 ### The update chip can hand back the build it was replacing
 
-A fix was reported as still broken after it had deployed, and it had: the copy in the
-browser was old. GitHub Pages serves the planner with `max-age=600`, so for ten minutes a
-browser can answer `location.reload()` from its own cache. The "Update available" chip did
-exactly that and handed back the same build. It refetches with cache "reload" first now, and
-the check runs on focus and every five minutes rather than once at startup. This is why
-CLAUDE.md says to compare the live `build.txt` against the local one before believing a bug
-report on a fresh deploy.
+GitHub Pages serves the planner with `max-age=600`, so for ten minutes a browser can answer
+`location.reload()` from its own cache, which is what the "Update available" chip did: it
+handed back the same build. It refetches with cache "reload" now, on focus and every five
+minutes rather than once at startup. Hence the CLAUDE.md rule about comparing the live
+`build.txt` against the local one before believing a bug report on a fresh deploy.
 
 ### Ctrl+V pastes
 
-Reported as a hotkey clash: V toggled the 3D view and Ctrl+V is paste. It was worse than a
-clash. The plain letters were matched before the Ctrl combinations in the same if-else chain,
-and holding Ctrl did not stop them, so Ctrl+V hit the plain "v" branch and toggled the 3D
-view without ever pasting. Ctrl+R turned the selection on its way to reloading the page, and
-Ctrl+B toggled snap.
-
-Modified keys are handled first now, in their own block that returns. Order alone would not
-have been enough: without the return a plain branch further down still catches any modified
-key the block above does not list. The 3D view moved from V to 3, which nothing else wants.
-
-Pinned in `test/planner-tools.js`: the modifier block comes first, it returns, each Ctrl
-key reaches the function it should, and nothing in the markup still tells anyone to press V.
+Plain letters were matched before the Ctrl combinations in one if-else chain and holding Ctrl
+did not stop them, so Ctrl+V toggled the 3D view without pasting, Ctrl+R turned the selection
+and Ctrl+B toggled snap. Modified keys are handled first now, in their own block **that
+returns**: without the return a plain branch further down still catches any modified key the
+block above does not list. The 3D view moved to 3. Pinned in `test/planner-tools.js`.
 
 ### Fewer buttons up top
 
@@ -673,36 +687,27 @@ reasonable alone.
 
 ### Turning a selection turns the group, and nothing is stranded pending
 
-`rotateSelection` spun every piece where it stood, which is right for one piece and useless
-for several: a copied corner came back facing a different way, so there was no way to build
-the matching half of a base. It turns the selection about its own centre now. The centre is
-the average of the pieces, which a turn maps to itself, so four quarter turns land exactly
-back; it is put on the grid first so a quarter turn goes grid to grid. Pinned in
-`test/planner-tools.js`.
+`rotateSelection` spun every piece where it stood, so a copied corner came back facing a
+different way. It turns the selection about its own centre now: the average of the pieces,
+which a turn maps to itself, put on the grid first so a quarter turn goes grid to grid, and
+four of them land exactly back. Pinned in `test/planner-tools.js`.
 
 In the worker, `/designs` listed what had once been approved, stranding three real
-submissions in the old queue state with no page left to release them. It lists what is not
-hidden instead. Needed a wrangler deploy; `git push` does not ship the worker.
+submissions in the old queue state. It lists what is not hidden instead. Needed a wrangler
+deploy; `git push` does not ship the worker.
 
 ### A run steps along the piece, not down the drag
 
-A diagonal wall came out ragged for three separate reasons, and fixing the first two was not
-enough.
-
-`snapVal` rounded every placement to the world half-cell grid, and a 1x1 turned forty five
-degrees has to step 0.707 to meet its neighbour. `snapPoint` snaps in the piece's own frame;
-at 0, 90, 180 and 270 that is the world grid, so square-on placement is unchanged. That left
-the sideways axis on half cells, which is invisible on a diagonal until the wall is built, so
-`snapPlace` measures from the nearest piece of the same kind and angle and makes leaving the
-line something you have to mean: three quarters of a block, not the half that plain rounding
-asks for.
-
-And a run spaced its pieces by their extent along the drag, which gets the distance right and
-the wall wrong: unless the piece sat square-on to the drag, blocks met at one corner. It
-walks the two moves a piece can make and still touch instead, taking whichever stays nearest
-the drag line, and stops when the best move would put it further off that line than its own
-longest leg. `wallGap` was also measuring upright boxes, so a flush turned wall reported a
-break that was not there.
+A diagonal wall came out ragged for three reasons, and fixing the first two was not enough.
+`snapPoint` snaps in the piece's own frame, because a 1x1 turned forty five degrees steps
+0.707 to meet its neighbour; at 0, 90, 180 and 270 that is the world grid, so square-on
+placement is unchanged. `snapPlace` then measures from the nearest piece of the same kind
+and angle, so leaving the line takes three quarters of a block rather than the half plain
+rounding asks for. And a run spaced its pieces by their extent along the drag, so unless the
+piece sat square-on the blocks met at one corner: it walks the two moves a piece can make
+and still touch, takes whichever stays nearest the drag line, and stops when the best move
+would put it further off that line than its own longest leg. `wallGap` was measuring upright
+boxes too, so a flush turned wall reported a break that was not there.
 
 Pinned in `test/runs.js`, including three checks that assert the old behaviour fails: the
 first two fixes each looked right and were not.
