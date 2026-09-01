@@ -27,11 +27,11 @@ const ROWS = [
   ["M500",            "12g",        "Buckshot", "Shotgun",  null, [1,1,1,2,2], 0.50, 2],
   ["MP43",            "12g",        "Buckshot", "Shotgun",  null, [1,1,1,2,2], 0.07, 2],
   ["BMR-308",         ".308 Win",   "FMJ",      "Marksman", 0.13, [2,2,2,3,4], 0.13, 2],
-  ["FAL",             ".308 Win",   "FMJ",      "Marksman", 0.09, [2,3,3,4,5], 0.09, 2],
+  ["FAL",             ".308 Win",   "FMJ",      "Assault Rifle", 0.09, [2,3,3,4,5], 0.09, 2],
   ["Super-45",        ".45 ACP",    "FMJ",      "SMG",      0.10, [3,5,5,7,9], 0.10, 3],
   ["SVD",             "7.62x54mm",  "FMJ",      "Marksman", 0.13, [2,2,3,3,4], 0.13, 2],
   ["SKS",             "7.62mm",     "FMJ",      "Marksman", 0.14, [2,3,3,4,5], 0.14, 2],
-  ["GGX 18",          "9mm",        "FMJ",      "SMG",      0.15, [4,6,7,9,12], 0.15, 4],
+  ["GGX 18",          "9mm",        "FMJ",      "Pistol",     0.15, [4,6,7,9,12], 0.15, 4],
   ["M249 SAW",        "5.56mm",     "FMJ",      "LMG",      0.21, [4,5,6,7,9], 0.21, 4],
   ["M4",              "5.56mm",     "FMJ",      "Assault Rifle", 0.23, [4,5,6,8,10], 0.23, 4],
   ["AMP-9",           "9mm",        "FMJ",      "SMG",      0.20, [4,6,7,9,12], 0.20, 4],
@@ -50,7 +50,7 @@ const ROWS = [
   ["MK22",            ".308 Win",   "FMJ",      "Sniper",   null, [1,2,2,2,3], 1.30, 2],
   ["Mosin Nagant",    "7.62x54mm",  "FMJ",      "Sniper",   null, [1,2,2,3,3], 1.30, 2],
   ["SV98",            "7.62x54mm",  "FMJ",      "Sniper",   null, [1,2,2,3,3], 1.30, 2],
-  ["Scout Rifle TD",  "5.56mm",     "FMJ",      "Marksman", 1.30, [2,3,4,5,6], 1.30, 2],
+  ["Scout Rifle TD",  "5.56mm",     "FMJ",      "Sniper",    1.30, [2,3,4,5,6], 1.30, 2],
 ];
 
 const HEALTH = 100;

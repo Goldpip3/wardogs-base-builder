@@ -266,10 +266,13 @@ check(!mojibake, "no mojibake from a codepage mismatch",
     const label = LABEL[w.calibre];
     return !Object.keys(inClass).some(n => !label || n.indexOf(label) === 0);
   }).map(w => w.name + " (" + w.class + "/" + w.calibre + ")");
-  /* One weapon genuinely has no row: the Scout Rifle TD is a marksman rifle in 5.56 and the
-     marksman tab was tested in 7.62 and .308 only. It is a gap in the measurements, not a
-     broken join, so it is named here rather than allowed to hide in a count. */
-  const EXPECTED_GAPS = ["Scout Rifle TD (Marksman/556)"];
+  /* Empty, and it should stay empty. It held the Scout Rifle TD while that weapon was
+     filed as a marksman rifle in 5.56, which no tab was tested with. The wiki publishes it
+     as a sniper, the sniper tab was tested in 5.56, and correcting the class gave it its
+     damage. Two others were wrong the same way: the FAL is an assault rifle and the GGX 18
+     is a pistol. A name appearing here again is either a new weapon nobody has shot yet or
+     a class that disagrees with the source, and the second is the likelier of the two. */
+  const EXPECTED_GAPS = [];
   const surprise = unmatched.filter(n => EXPECTED_GAPS.indexOf(n) < 0);
   const fixed = EXPECTED_GAPS.filter(n => unmatched.indexOf(n) < 0);
   check(surprise.length === 0, "every weapon but the known gaps joins onto measured damage",

@@ -8,6 +8,22 @@ Newest first. One entry per decision, not per commit.
 
 ## 2026-08-31
 
+### An old design takes the current build zone, and the copy stopped commenting on itself
+
+Bases drawn before the FOB zone went from 100 to 200 recorded 100 and kept it, and so did
+every shared link, since the wire format writes 100 for a design carrying no zone at all.
+That was a deliberate call and it was the wrong one: **100 was the default, not a choice**,
+so opening a design now takes the catalog's figure, and a zone somebody typed in the panel is
+still left alone. `test/saved-designs.js` pins all three cases. Reverses the "nothing rewrites
+them" line in the entry below.
+
+Three sentences on the site ended in a comment on themselves rather than in a fact: a fuel
+price "as close as anyone can honestly get until launch", a Havoc being "the sort of thing
+worth knowing before you drive it into a Gepard", a level 4 vest taking "as close to nothing
+as this game gets". They are gone, along with the buckshot slider being there "so you can be
+honest with yourself". **The reference pages state the figure and stop.** A page that says
+what is not known is doing its job; a page that admires itself for saying it is not.
+
 ### A storey is a count, and the 3D view was reading it as a height
 
 Reported from a real base: a Vanguard CIWS on a hesco wall came out with the wall painted
@@ -29,6 +45,27 @@ once the test asks the camera which end of an axis is the far one, and the audit
 twenty four. **The bar swaps Snap out for the two turn buttons** rather than growing, Snap
 being a placing setting in a view that places nothing. Dragging also tracks the pointer now;
 the inverse projection had the tilt hardcoded at a half while the view uses 0.68.
+
+### Three weapons were filed under the wrong class
+
+Reported as one weapon with nothing working. The Scout Rifle TD was filed as a marksman
+rifle in 5.56 and no marksman tab was tested with 5.56, so the join found nothing. **The
+wiki publishes a class per weapon in its structured data; checking all 28 against it found
+three wrong**: the Scout Rifle TD is a sniper, the FAL an assault rifle, the GGX 18 a
+pistol. Each of those classes was tested with the right calibre, so the correction gave all
+three their damage. **All 28 have measured damage now** and the known-gaps list in
+`tools/check-build.js` is empty. BMR-308, SVD and SKS look wrong in that comparison and are
+not: the wiki writes "Marksman Rifle" where this repo writes "Marksman".
+
+Class is stated twice, in `data/ballistics.json` and in the `ROWS` table of
+`tools/solve-ballistics.js`. Both were corrected; fixing one leaves the repo saying two
+things about one gun.
+
+**Separately, one bad element reference took the whole page down.** `renderCalc` wrote to
+`#flight` and `#cost` after another change removed them from the markup, so it threw before
+`renderZones` ran, leaving the hero dashed over a zone table still holding the previous
+weapon's numbers. That is worse than a blank page because it reads as an answer. Stages run
+through `stage()` now: one failing leaves its own panel stale and logs, the rest redraw.
 
 ### The nav is one group, centred
 
@@ -253,41 +290,33 @@ removing the page, whatever the sitemap still says.
 
 ### The worker refuses to run on a secret anybody could read
 
-The session signing key and the identity salt both ended in `|| "wardogs"`. That string is
-written in `worker/vote-worker.js`, which is a public file in a public repository, so a deploy
-that was missing its secrets came up looking perfectly healthy and signed every session with a
-key anyone could look up. Minting a token for any account, the owner's included, was a matter
-of reading the repo. Nothing about that deploy would have looked wrong from outside, which is
-the part worth remembering: this was not a bug anyone would have noticed.
+The session signing key and the identity salt both ended in `|| "wardogs"`, a string written
+in `worker/vote-worker.js`, which is public. **A deploy missing its secrets came up looking
+perfectly healthy and signed every session with a key anyone could look up**, so minting a
+token for any account, the owner's included, was a matter of reading the repo. Nothing about
+it would have looked wrong from outside, which is the part worth remembering.
 
-Missing secrets now answer 503 on every route. `VOTE_SALT` is required, not optional.
-`tools/check-build.js` fails the build if `env.SECRET || "literal"` reappears anywhere in the
-worker, because writing a default is exactly the tempting thing to do the next time a deploy
+Missing secrets answer 503 on every route now and `VOTE_SALT` is required.
+`tools/check-build.js` fails the build if `env.SECRET || "literal"` reappears anywhere in
+the worker, because writing a default is the tempting thing to do the next time a deploy
 will not come up.
 
-Three more, found in the same read and all with the same shape, a check that looks like it
-asks the right question and does not:
+Three more from the same read, all the same shape, a check that looks like it asks the right
+question and does not:
 
 - **The post-login return address was prefix-matched.**
   `back.startsWith("https://www.wardogsbuilder.com")` is true of
-  `https://www.wardogsbuilder.com.example.net/`, which is somebody else's domain, and the new
-  session token is appended to whatever comes out of that test. Asking to be sent home got you
-  sent next door holding a token. Origins are parsed and compared now, and the OAuth `state`
-  is signed, so a callback this worker did not start is not followed.
-- **`GET /comments` published Discord ids.** `GET /designs` strips `by` and says why in a
-  comment; the comment list was written later and never got the same treatment, so the field
-  one route was careful about was public one route over. Both go out through a projection that
-  names what leaves, so the next field added to a stored record is private by default.
+  `https://www.wardogsbuilder.com.example.net/`, and the new session token is appended to
+  whatever comes out of that test. Origins are parsed and compared now, and the OAuth
+  `state` is signed, so a callback this worker did not start is not followed.
+- **`GET /comments` published Discord ids.** `GET /designs` strips `by`; the comment list was
+  written later and never got the same treatment. Both go out through a projection that names
+  what leaves, so the next field added to a stored record is private by default.
 - **Request bodies were unbounded** before `JSON.parse`. Capped, and measured on what arrived
   rather than on `Content-Length`, which a client can simply not send.
 
-Also: the admin token is compared byte for byte instead of with `===`, and a corrupt KV record
-now costs that record rather than throwing out of the handler and killing the route.
-
-Every one of these was watched failing against the unfixed code before being trusted; the
-script that puts each bug back is not committed, but `test/worker.mjs` carries the assertions.
-Posture, and the four things GitHub Pages makes impossible, in
-[security](processes/security.md).
+Also: the admin token is compared byte for byte rather than with `===`, and a corrupt KV
+record costs that record rather than throwing out of the handler and killing the route.
 
 ### Not everything worth hardening is in the code
 
@@ -400,12 +429,10 @@ to three levels up. Changing zoom level used to empty the screen until the new l
 arrived, so the terrain blinked out and came back on every step in. Now it goes soft for a
 moment and sharpens, which is what every map does and what "seamless" means here.
 
-Two more things that made it feel worse than it was. A wheel sends events faster than the
-screen refreshes and every one of them ran a full draw, so a quick zoom ran several draws
-inside one frame; they ask for a frame now and the frame draws once. And zoom stepped a flat
-1.2 per event no matter how far the wheel turned, so a trackpad's stream of small deltas
-arrived as a stack of 20 percent jumps. It scales by the actual delta, with line and page
-delta modes converted, so a notch lands where it always did and a glide is continuous.
+Two more things that made it feel worse than it was. Every wheel event ran a full draw, so a
+quick zoom ran several inside one frame; they ask for a frame now. And zoom stepped a flat
+1.2 per event however far the wheel turned, so a trackpad's small deltas arrived as a stack
+of 20 percent jumps. It scales by the actual delta, line and page modes converted.
 
 ### The grouping angle comes off the page
 
@@ -456,25 +483,17 @@ being ignored. Measured after: both cards 436 tall, both action rows at the same
 
 ### The planner says PLANNER, and the build zone is 200
 
-The top left of the planner read WARDOGS BASE BUILDER; it reads WARDOGS PLANNER now, which
-is what the page is.
+The top left read WARDOGS BASE BUILDER and reads WARDOGS PLANNER now.
 
-The FOB build zone went from 100 cells square to 200, on the owner’s word rather than off
-the game: it is a better estimate and it stays `radiusConfirmed: false`, because nobody has
-stood at the edge of one and counted. That flag is what keeps range rings off the plan, and
-it has not moved.
+The FOB build zone went from 100 cells square to 200, on the owner's word rather than off the
+game, and stays `radiusConfirmed: false` because nobody has stood at the edge of one and
+counted. That flag is what keeps range rings off the plan.
 
-Changing it turned up the duplication that always comes with a figure like this: eight
-copies of `|| 100` scattered through the planner, one beside every use. They are one
-`fobZone()` now, which falls back to the catalog rather than to a number typed next to it.
-Two literals stay, both inside the share encoders, and there is a comment saying why: that
-100 is the wire format default, the site generator writes the same one, and
-`test/share-links.js` requires the two encoders to emit identical bytes. Reading the catalog
-there would tie the format to a value a player can edit and the same base would encode
-differently on each side.
-
-A design records its own zone, so bases drawn before today keep 100 and can be corrected in
-the panel. Nothing rewrites them.
+Changing it turned up eight copies of `|| 100` through the planner, one beside every use.
+They are one `fobZone()` now, falling back to the catalog. **Two literals stay, both in the
+share encoders, and the comment says why:** 100 is the wire format default, the site
+generator writes the same one, and `test/share-links.js` requires both encoders to emit
+identical bytes. Reading the catalog there would tie the format to a value a player can edit.
 
 ### The vehicle dash is chosen against every wall it can land on
 
@@ -519,84 +538,68 @@ reasoning in full.
 
 **Draw order is a graph, not a sort.** Ordering by how far each piece's middle sits from the
 camera drew short pieces over long ones, reported as a wall not carrying on through. Pairs
-that actually overlap are ordered against each other and the rest are left alone: 0.7 ms for
-117 pieces, 3.2 ms for 624, against a sixteen millisecond frame. Reverting the sort fails six
-checks. What is left is that a turned piece is still compared by the box around it, which is
-in `docs/3d-view-design.md` rather than in anyone's head.
+that actually overlap are ordered against each other and the rest left alone: 0.7 ms for 117
+pieces, 3.2 ms for 624. Reverting the sort fails six checks. A turned piece is still compared
+by the box around it, which is in `docs/3d-view-design.md` rather than in anyone's head.
 
 **A piece is a prism over its own four corners**, not its bounding box. A 4x4 tower at forty
 five degrees has a box 5.66 across, so it drew half again too wide and square on when the
-piece is a diamond, and the plan and the 3D disagreed about the one thing this tool exists to
-be right about. Which sides face the camera is worked out per piece, so seam suppression
+piece is a diamond. Which sides face the camera is worked out per piece, so seam suppression
 follows the piece rather than the grid.
 
-**Runs, not boxes.** A perimeter is one wall to the builder and was thirty outlined boxes to
-the renderer. A side joined to a neighbour the plan already calls the same wall is interior
-and goes, uprights included: 612 edges down to 209 on a fifty one piece base. The seam mask
-is in world directions and the visible faces depend on the spin, which is checked as
+**Runs, not boxes.** A side joined to a neighbour the plan already calls the same wall is
+interior and goes, uprights included: 612 edges down to 209 on a fifty one piece base. The
+seam mask is in world directions and the visible faces depend on the spin, checked as
 arithmetic at every angle, because suppressing the wrong side looks almost right.
 
 **Height is the whole job of this view**, so a block stands 1.45 times the ground scale
-rather than one cell against a cell 0.866 wide, the FOB stands its catalog two blocks rather
-than a third of one, and the camera sits above the textbook thirty degrees. `fit3D` projects
-all eight corners of the volume, having previously measured the ground and let bases run off
-the top.
+against a cell 0.866 wide, the FOB stands its catalog two blocks, and the camera sits above
+the textbook thirty degrees. `fit3D` projects all eight corners of the volume, having
+previously measured the ground and let bases run off the top.
 
 **Colour is by material, and the key cannot lie.** Towers and bunkers left the hescos' gold
-for concrete, bremers took a paler concrete of their own, and a picked piece is filled rather
-than outlined. Four things move together or the key is wrong: the role on the piece, its
-colour, its label, and the list the key is built from. One behaviour change came with it, and
-the suite says so out loud: runs merge by role, so a hesco meeting a bremer now shows the
-join.
+for concrete and bremers took a paler concrete of their own. Four things move together or the
+key is wrong: the role on the piece, its colour, its label, and the list the key is built
+from. Runs merge by role with it, so a hesco meeting a bremer shows the join.
 
 **The plan draws its writing last.** Labels, height chips and note marks were drawn per
 piece, so a tower dropped beside the thing you were pointing at painted over its label.
 
 ### How many players it takes to hold the base
 
-The one figure on a plan nobody can measure. Everything else here is read off the game or
-worked out from it; this is the person who built the base saying who it is for. Three
-buckets, 1 to 2, 3 to 5, 6 to 10, in `data/buildables.json` under `crewSizes` like every
-other figure, so the planner and the community list read one list rather than each spelling
-it out. The planner asks in the panel, under **Who holds it**, and refuses to submit a design
-without an answer, because the list shows it against every entry and a blank there is worse
-than the question.
+The one figure on a plan nobody can measure: the person who built the base saying who it is
+for. Three buckets in `data/buildables.json` under `crewSizes`, so the planner and the
+community list read one list. The planner asks under **Who holds it** and refuses to submit
+without an answer, the list showing it against every entry.
 
-**It rides inside the share code rather than beside it in the submission record.** One copy
-of the answer, and it survives a base being passed on as a link, saved, exported and opened
-somewhere else. The head of both format versions is JSON, so the key is simply absent from
-every code written before this and old readers ignore a new one; the alphabet does not
-change, which is the part that would have made it a worker deploy. A value that is not one
-of the three is dropped rather than kept, so a hand-edited code cannot put text on a page
-that has no label for it. Both encoders changed together, as that card demands, and
-`test/crew.js` checks the round trip in both formats, that an old link still opens with no
-crew on it, and that the refusal to submit comes before the call rather than after it.
+**It rides inside the share code rather than beside it in the submission record**, so one
+copy of the answer survives a base being passed on as a link, saved, exported and reopened.
+The head of both formats is JSON, so the key is absent from older codes and old readers
+ignore a new one, and the alphabet does not change, which is what would have made it a worker
+deploy. A value that is not one of the three is dropped, so a hand-edited code cannot put
+text on a page with no label for it. Both encoders changed together, as that card demands.
+`test/crew.js`.
 
 ### Two bugs it surfaced on the way
 
 **A chosen chip in a strip was invisible.** `.seg button` sets a transparent background after
-the shared `button.active` rule at the same specificity, so the filled state kept its
-near-black ink and lost the fill behind it. The storey strip had drawn "All" as an empty box
-for as long as it existed, and nobody read it as a bug because a blank chip looks like a gap.
-Restated at a specificity that wins.
+the shared `button.active` rule at the same specificity, so the filled state lost the fill
+behind it. Restated at a specificity that wins.
 
 **Reopening a saved base showed a build cost of zero.** `loadCurrent` is reached from a
-promise, so it lands after startup has worked every figure out from the empty design nobody
-was looking at. It recomputes now, without saving, since nothing changed by being reopened.
-Same shape as the "Plan your FOB" bug: something read off the design, refreshed only on the
-path where the design is edited.
+promise, so it lands after startup has worked every figure out from the empty design. It
+recomputes now, without saving. Same shape as the "Plan your FOB" bug: something read off the
+design, refreshed only on the path where the design is edited.
 
 ### The designs page stops spending space on nothing
 
 The same mistake three times: a layout built for a full rectangle used for a list that
-usually is not one. `.chips.sorts` is the width of its contents rather than spanning the
-column the way the filter bar does beside a search box. The card grid drew hairlines as
-background through a 1px gap, right for a dense table and wrong here, where one design left
-an empty track reading as a missing thing; it is centred rows carrying their own edges. The
-submit form went too, since it asked for a link, a name and an author the planner's Submit
-button already knows, **and the line promising submissions are read before they go up came
-off with it: that stopped being true when the queue was removed.** Thumbnails went 150px to
-190px, since most bases are nearer square than a card is.
+usually is not one. `.chips.sorts` is the width of its contents. The card grid drew hairlines
+as background through a 1px gap, right for a dense table and wrong where one design leaves an
+empty track; it is centred rows carrying their own edges. The submit form went too, since it
+asked for what the planner's Submit button already knows, **and the line promising
+submissions are read before they go up came off with it: that stopped being true when the
+queue was removed.**
 
 ### The community list shows the base, and one decoder now serves both sides
 

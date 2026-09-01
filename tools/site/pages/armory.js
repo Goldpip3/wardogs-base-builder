@@ -146,9 +146,8 @@ module.exports = ctx => {
     none: "The vendor database gives this one a price and nothing else. No stats are " +
       "published for it, so none are shown.",
     vehicle: "No handling, armour or fuel figures are published for vehicles, so none are " +
-      "given here. Fuel and repair are not in the public database either: a fuel can is " +
-      money(150) + " and a fuel supply pallet is " + money(400) + ", which is as close as " +
-      "anyone can honestly get until launch.",
+      "given here. Fuel and repair are not in the public database either. A fuel can is " +
+      money(150) + " and a fuel supply pallet is " + money(400) + ".",
     slot: "The slot is read off the name rather than taken from the database, which " +
       "publishes no compatibility field. It is right for everything named for what it is " +
       "and is a guess for anything that is not.",
@@ -378,13 +377,12 @@ module.exports = ctx => {
       byCat("mounted").length + " weapons that sit on top of them and on your emplacements." +
       " Most mounted weapons have no vendor price of their own because they arrive attached" +
       " to something. Open any of them for the ground or air split.</p>" +
-      "<p>A Havoc is " + Math.round(
+      "<p>A Havoc costs what " + Math.round(
         (A.items.find(function (i) { return i.name === "Havoc"; }) || { price: 18000 }).price /
         (A.items.find(function (i) { return i.name === "Bobcat"; }) || { price: 500 }).price) +
-      " Bobcats, which is the sort of thing worth knowing before you drive it into a Gepard.</p>" +
+      " Bobcats cost.</p>" +
       '<p class="fine">Fuel and repair costs are not in the public database yet. A fuel can' +
-      " is " + money(150) + " and a fuel supply pallet is " + money(400) +
-      ", which is as close as anyone can honestly get until launch.</p>" +
+      " is " + money(150) + " and a fuel supply pallet is " + money(400) + ".</p>" +
       "</div></section>" +
       '<script>(function(){' +
       'var grid=document.getElementById("catGrid"),tblBox=document.getElementById("catTable");' +
@@ -575,7 +573,8 @@ module.exports = ctx => {
   const bags = nameHas(byCat("storage"), "backpack")
     .concat(nameHas(byCat("storage"), "pouch"))
     .sort(function (a, b) { return (a.price || 0) - (b.price || 0); });
-  const rigs = nameHas(byCat("storage"), "tac vest");
+  const rigs = nameHas(byCat("storage"), "tac vest")
+    .sort(function (a, b) { return (a.price || 0) - (b.price || 0); });
   /* The rest of the storage category is crates and supply pallets, which are things you
      drive to a base rather than things you wear. They belong to the planner, not to a kit,
      and neither shelf offers them. */
@@ -771,11 +770,14 @@ module.exports = ctx => {
          0.0 kg and a bag that never fills would both look like answers, and the second one
          is the sort of thing somebody plans a kit around. */
       '<p class="fine" style="margin-top:18px;max-width:70ch">Two things the game shows that' +
-      " this page does not. <strong>Weight</strong> is not published anywhere the prices came" +
-      " from, so it reads as not measured until every piece of a kit has a figure read off" +
-      " the inventory screen. <strong>How much each backpack holds</strong> is the same:" +
-      " the shelf is ordered by price because that is the number that is known, and the bag" +
-      " here takes whatever you put in it.</p>" +
+      " this page does not, both marked work in progress rather than filled with a guess." +
+      " <strong>Weight</strong> is not in the item database these prices came from, so it" +
+      " needs reading off the inventory screen piece by piece. <strong>How much each" +
+      " backpack holds</strong> is a grid of slots in game, and the fan sites that publish" +
+      " one disagree with each other and with the database on the rest of the item, so" +
+      " nothing here is filled in from them: the shelf is ordered cheapest first, which is" +
+      " also the order they unlock in, and the bag takes whatever you put in it. Things that" +
+      " stack do stack five to a slot.</p>" +
 
       adSlot("inArticle") +
 
@@ -808,6 +810,27 @@ module.exports = ctx => {
          The map is emitted empty rather than left out, and the page says the figure is not
          measured rather than adding up the ones it happens to have. Filling in kg on the
          lines in tools/build-armory.js is the whole job: nothing here changes. */
+      /* How many of a thing go in one slot before it takes another. Five, for the things
+         that stack: grenades, smokes and bandages, reported by the owner from the game and
+         matched by the item database, which prices a stack of five bandages at $1,000 and
+         each one at $200. Anything else takes a slot of its own until somebody says
+         otherwise, which is the safe way to be wrong: a bag looks fuller than it is rather
+         than emptier.
+
+         By category rather than per item, because that is as fine as the report goes.
+         data/todo.json carries the question of which items really stack and to what. */
+      'var STACK=' + JSON.stringify(A.items.reduce(function (m, i) {
+        if (i.cat === "throwables" || i.cat === "medical") m[i.name] = 5;
+        return m;
+      }, {})) + ';' +
+      /* How many slots a bag has, when anybody has measured one. Empty for now, which is
+         why the grid grows to fit rather than filling up: a bag that never says full is
+         wrong in a way you can see, and a bag with a made up capacity is wrong in a way you
+         cannot. */
+      'var BAGSLOTS=' + JSON.stringify(A.items.reduce(function (m, i) {
+        if (typeof i.slots === "number") m[i.name] = i.slots;
+        return m;
+      }, {})) + ';' +
       'var KG=' + JSON.stringify(A.items.reduce(function (m, i) {
         if (typeof i.kg === "number") m[i.name] = i.kg;
         return m;
@@ -974,21 +997,30 @@ module.exports = ctx => {
       ' else if(ac&&mags){' +
       '  var r=ammoCost().rounds;' +
       '  if(r){n++;box.appendChild(cell(iconOf(ac),nameOf("ammo"),String(r)));}}' +
+      /* Five to a slot, then a new slot. Six frags is two cells reading 5 and 1, which is
+         what the bag actually looks like and what makes the sixth one cost room. */
       ' Object.keys(extras).forEach(function(k){' +
-      '  n+=extras[k].q;' +
+      '  var q=extras[k].q;n+=q;' +
       '  var card=document.querySelector("[data-extra=\\""+k.replace(/"/g,"")+"\\"]");' +
       '  var im0=card&&card.querySelector("img");' +
-      '  box.appendChild(cell(im0?im0.src:"",k,extras[k].q>1?"×"+extras[k].q:""));});' +
+      '  var per=STACK[k]||1,left=q;' +
+      '  while(left>0){var here=Math.min(per,left);left-=here;' +
+      '   box.appendChild(cell(im0?im0.src:"",k,here>1?String(here):""));}});' +
       /* Empty cells to the end of the row, so a part-filled bag reads as a bag with room in
          it rather than as a ragged edge. They say nothing about how much it holds: that is
          not measured, and the note under the grid says so rather than a made up cell count. */
       ' var per=window.matchMedia&&window.matchMedia("(max-width:599px)").matches?4:3;' +
-      ' var cells=box.querySelectorAll(".vcell").length;' +
-      ' var fill=cells?(per-(cells%per))%per:per;' +
+      ' var used=box.querySelectorAll(".vcell").length;' +
+      ' var room=BAGSLOTS[nameOf("bag")]||0;' +
+      /* With a measured capacity the empties run to the end of the bag and stop, and going
+         over it is said rather than silently allowed. Without one they only finish the row,
+         which claims nothing about how much fits. */
+      ' var fill=room?Math.max(0,room-used):(used?(per-(used%per))%per:per);' +
       ' for(var j=0;j<fill;j++){var e=document.createElement("div");' +
       '  e.className="vcell vcell-empty";box.appendChild(e);}' +
-      ' el("packcount").textContent=n?n+" in the bag":"Empty";' +
-      ' el("packnote").textContent=nameOf("bag");}' +
+      ' box.setAttribute("data-over",room&&used>room?"1":"0");' +
+      ' el("packcount").textContent=n?(room?used+" of "+room+" slots":n+" in the bag"):"Empty";' +
+      ' el("packnote").textContent=room&&used>room?"Over what it holds":nameOf("bag");}' +
 
       'function render(){' +
       ' var total=0,unknown=0,parts=[];' +
@@ -1023,8 +1055,8 @@ module.exports = ctx => {
       '  if(typeof KG[name]==="number"){have++;kg+=KG[name]*q;} else miss++; };' +
       ' SLOTS.forEach(function(id){ if(id!=="ammo")add(nameOf(id),1); });' +
       ' Object.keys(extras).forEach(function(k){ add(k,extras[k].q); });' +
-      ' if(!have&&!miss){out.textContent="--";out.setAttribute("data-soft","1");return;}' +
-      ' if(miss){out.textContent="not measured";out.setAttribute("data-soft","1");return;}' +
+      ' if(!have&&!miss){out.textContent="work in progress";out.setAttribute("data-soft","1");return;}' +
+      ' if(miss){out.textContent="work in progress";out.setAttribute("data-soft","1");return;}' +
       ' out.removeAttribute("data-soft");' +
       ' out.textContent=(Math.round(kg*10)/10)+" kg";}' +
 

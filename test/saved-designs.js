@@ -53,6 +53,9 @@ const lift = name => {
 };
 vm.runInContext(`
   var LS_DESIGNS = "wardogs.designs", LS_CURRENT = "wardogs.current";
+  // the real catalog, so the build zone here is the one the app ships with
+  var catalog = ${fs.readFileSync(ROOT + "/data/buildables.json", "utf8")};
+  var ${src.match(/const (LEGACY_FOB_ZONE = \d+);/)[1]};
   var design = { name: "", pieces: [], nextId: 1 };
   var currentSavedName = null;
   var byId = {};
@@ -72,6 +75,8 @@ vm.runInContext(`
   ${lift("readDesigns")}
   ${lift("writeDesigns")}
   ${lift("uniqueName")}
+  ${lift("fobZone")}
+  ${lift("adopted")}
   ${lift("saveCurrent")}
   ${lift("loadCurrent")}
   ${lift("openDesign")}
@@ -83,6 +88,31 @@ vm.runInContext(`
 const run = code => vm.runInContext(code, sandbox);
 const designs = () => JSON.parse(store["wardogs.designs"] || "{}");
 const names = () => Object.keys(designs()).sort();
+
+/* ---------- the build zone a design was drawn under ----------
+ * The FOB's zone went from 100 cells square to 200, and a design records the figure it was
+ * drawn under, so every base made before that went on drawing a zone half the size of the
+ * one the game gives you. The wire format writes the same 100 for a design carrying no zone
+ * at all, so shared links landed the same way. Opening one takes the catalog's figure.
+ */
+{
+  const zoneNow = JSON.parse(fs.readFileSync(ROOT + "/data/buildables.json", "utf8"))
+    .fob.buildRadiusUnits;
+  check(zoneNow === 200, "the catalog's FOB build zone is 200 cells square");
+
+  const openZones = pieces => {
+    run(`openDesign({ name:"z", pieces:${JSON.stringify(pieces)}, nextId:9 }, "z")`);
+    return vm.runInContext("design.pieces.map(p => p.zone)", sandbox);
+  };
+  check(openZones([{ id: 1, type: "__fob__", x: 0, y: 0, zone: 100 }])[0] === zoneNow,
+    "a design drawn under the old 100 opens with the current zone");
+  check(openZones([{ id: 1, type: "__fob__", x: 0, y: 0 }])[0] === zoneNow,
+    "and so does one that records no zone at all, which is what a shared link decodes to");
+  check(openZones([{ id: 1, type: "__fob__", x: 0, y: 0, zone: 140 }])[0] === 140,
+    "a zone somebody typed in the panel is left alone");
+  check(openZones([{ id: 1, type: "hesco-small", x: 0, y: 0 }])[0] === undefined,
+    "and nothing but the FOB is given a zone");
+}
 
 // ---------- 1. basic save ----------
 nameBox.value = "Alpha Base";

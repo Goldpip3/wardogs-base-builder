@@ -417,7 +417,7 @@ module.exports = ctx => {
 
         "<div><h3>4. Penetration is the load</h3><p>There is no separate penetration stat." +
         " What gets through is decided by which of the five loads you fired and which tier" +
-        " it hit, and that is the whole of it. Armour piercing keeps two thirds of itself" +
+        " it hit. Armour piercing keeps two thirds of itself" +
         " through level 4. Flesh damage keeps three quarters of one percent. Standard sits" +
         " between them and costs a quarter of what AP does.</p></div>" +
 
@@ -429,9 +429,8 @@ module.exports = ctx => {
 
         "<div><h3>Buckshot is eight things</h3><p>A 12g shell is eight pellets, each" +
         " carrying an eighth of the hit, and they spread. Every shotgun figure here assumes" +
-        " all eight land, which is true at a doorway and a fantasy at thirty metres. The" +
-        " pellet slider in the calculator is there so you can be honest with" +
-        " yourself.</p></div>" +
+        " all eight land, which holds at a doorway and not at thirty metres. The pellet" +
+        " slider in the calculator sets how many of them do.</p></div>" +
       "</div>" +
 
       '<h2 style="margin-top:52px">Sold, but not on the chart</h2>' +
@@ -613,7 +612,7 @@ module.exports = ctx => {
       " if(f.miss){" +
       "  el('chain').textContent=w.name+' has no measured damage yet. Its class was tested," +
       " but not with this calibre in it.';" +
-      "  el('armnote').textContent='';el('flight').textContent='';el('cost').textContent='';" +
+      "  el('armnote').textContent='';" +
       "  return;}" +
       " var kind=w.class.toLowerCase();" +
       " var chain=f.p.name+' from '+(/^[aeiou]/.test(kind)?'an ':'a ')+kind+' does '+fmt(s.perPellet||s.base)+" +
@@ -712,13 +711,22 @@ module.exports = ctx => {
       "     b.setAttribute('aria-pressed'," +
       "      b.getAttribute('data-'+pair[0])===pair[1]?'true':'false');});});}" +
 
+      /* Each stage is called on its own so one of them throwing cannot take the rest of the
+         page with it. That is not defensive decoration: writing to an output another change
+         had removed from the markup left the hero showing dashes while the zone table under
+         it still held the previous weapon's numbers, which is worse than an empty page
+         because it reads as an answer. A stage that fails now leaves its own panel stale
+         and says so in the console, and the rest still redraws. */
+      "function stage(name,fn){try{fn();}catch(e){" +
+      " if(window.console&&console.error)console.error('ballistics: '+name+' failed',e);}}" +
       "function render(){" +
-      " syncChips();" +
-      " renderRounds();renderBody();renderCalc();renderZones();renderRank();" +
-      " el('pelletrow').hidden=!shotgun();" +
-      " var pk=pick(weapon());" +
-      " el('pelletn').textContent=S.pellets+' of '+((pk&&pk.load.pellets)||8);" +
-      " writeHash();}" +
+      " stage('chips',syncChips);stage('rounds',renderRounds);stage('body',renderBody);" +
+      " stage('calc',renderCalc);stage('zones',renderZones);stage('rank',renderRank);" +
+      " stage('pellets',function(){" +
+      "  el('pelletrow').hidden=!shotgun();" +
+      "  var pk=pick(weapon());" +
+      "  el('pelletn').textContent=S.pellets+' of '+((pk&&pk.load.pellets)||8);});" +
+      " stage('hash',writeHash);}" +
 
       /* ---------- wiring ---------- */
       "function group(attr,set){" +

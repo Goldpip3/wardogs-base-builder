@@ -94,7 +94,8 @@ stopped being derived.
 against a bare zone was published nowhere, so the page used the standard figure and called
 it a floor. It is measured now. Nothing else on the page is a stand-in.
 
-Three things are genuinely open:
+Two things are genuinely open. The Scout Rifle TD gap closed on 2026-08-31: it was a
+misfiled class, not a missing measurement.
 
 - **25 cells in the sheet contradict the sheet's own scaling table**, listed in
   `data/damage.json` under `sheetDisagrees` and printed by the pull tool. They are `45acp
@@ -103,8 +104,6 @@ Three things are genuinely open:
   the AP scalings; and one stray `45acp FMJ` leg cell. Armoured damage is computed rather
   than imported, so the site is not wrong, but the sheet is inconsistent with itself and
   only the owner can say which side is right. Fix them there and re-run the tool.
-- **The Scout Rifle TD has no damage.** It is a marksman rifle in 5.56 and that tab was
-  tested in 7.62 and .308 only. One pass with it closes the last gap in the 28.
 - **The armory's item panel still shows the old solved torso figure.** `/ballistics/` moved
   to measurements and the panel did not, so the two can disagree about the same gun. It
   reads `torso` off `data/ballistics.json`; the measured figure lives per class and per zone

@@ -16,6 +16,7 @@
  *   (blank)     not confirmed yet
  *   $15/10      a price for a pack of ten
  *   3.2kg       what it weighs, optional and absent from every line so far
+ *   12slots     how much a bag holds, same rules
  *
  * The weight is the figure the game puts at the top of the inventory screen beside the
  * value, and it decides how fast you move under the kit. The database these prices came
@@ -324,7 +325,7 @@ Ammo Supply Pallet|$400
 Arsenal Backpack + 2 Slings|$5,000
 Assault Backpack|$1,200
 Build Supply Pallet|$400
-Field Backpack|$650
+Field Backpack|$650|0.88kg|12 slots
 Fuel Supply Pallet|$400
 Gunner Backpack + Sling|$3,500
 Halftrack Backpack|$15,000
@@ -475,9 +476,18 @@ const problems = [];
 for (const [cat, block] of Object.entries(RAW)) {
   const lines = block.trim().split("\n").map(l => l.trim()).filter(Boolean);
   for (const line of lines) {
-    /* The weight is taken off the end first, so the price is still the last field of what
-       is left and a line without a weight parses exactly as it always did. */
-    let body = line, kg = null;
+    /* The weight and the slot count are taken off the end first, so the price is still the
+       last field of what is left and a line carrying neither parses exactly as it always
+       did. A bag holds a grid of slots in game; nothing here states one yet, and the fan
+       sites that publish a figure disagree with each other, so the loadout page draws the
+       bag as bottomless and says so rather than picking a number off one of them. */
+    let body = line, kg = null, slots = null;
+    const sm = body.match(/\|\s*(\d+)\s*slots?\s*$/i);
+    if (sm) {
+      slots = Number(sm[1]);
+      if (!(slots > 0)) { problems.push("bad slot count on " + line); continue; }
+      body = body.slice(0, sm.index);
+    }
     const wm = body.match(/\|\s*([\d.]+)\s*kg\s*$/i);
     if (wm) {
       kg = Number(wm[1]);
@@ -500,6 +510,7 @@ for (const [cat, block] of Object.entries(RAW)) {
     const item = { name, cat, price, per };
     if (free) item.free = true;
     if (kg !== null) item.kg = kg;
+    if (slots !== null) item.slots = slots;
     if (cat === "weapons" && WEAPON_CALIBRE[name]) item.calibre = WEAPON_CALIBRE[name];
     const slug = iconFor(name);
     if (slug) item.icon = slug;

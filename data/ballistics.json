@@ -12,7 +12,7 @@
       "note": "The baseline every other load is measured against, and the cheapest thing in the vendor list. Armour takes a serious but survivable share." },
     { "id": "HP",       "name": "HP",       "long": "Flesh damage",    "tint": "#d55181",
       "blocks": [83.5, 88, 94.73, 99.24],
-      "note": "Ruined by armour. A level 4 vest takes better than ninety-nine percent of it, which is as close to nothing as this game gets. Against a bare zone it is meant to be the heavy hitter, and that figure is the one hole in this page." },
+      "note": "Ruined by armour. A level 4 vest takes better than ninety-nine percent of it. Against a bare zone it is meant to be the heavy hitter, and that figure is the one hole in this page." },
     { "id": "AP",       "name": "AP",       "long": "Armour piercing", "tint": "#3987e5",
       "blocks": [15, 20, 27.5, 32.5],
       "note": "Barely notices armour: two thirds of it still lands through level 4. It is also the most expensive thing on the shelf, and against a bare zone it does nothing standard would not." },
@@ -101,11 +101,11 @@
     { "name": "M500",            "calibre": "12g",    "class": "Shotgun",       "rpm": 120,  "torso": 243.1, "range": [208.3, 277.8] },
     { "name": "MP43",            "calibre": "12g",    "class": "Shotgun",       "rpm": 855,  "torso": 243.1, "range": [208.3, 277.8] },
     { "name": "BMR-308",         "calibre": "308",    "class": "Marksman",      "rpm": 460,  "torso": 89.3,  "range": [83.3, 95.2] },
-    { "name": "FAL",             "calibre": "308",    "class": "Marksman",      "rpm": 665,  "torso": 64.3,  "range": [57.1, 71.4] },
+    { "name": "FAL",             "calibre": "308",    "class": "Assault Rifle",      "rpm": 665,  "torso": 64.3,  "range": [57.1, 71.4] },
     { "name": "Super-45",        "calibre": "45acp",  "class": "SMG",           "rpm": 1200, "torso": 34.5,  "range": [33.3, 35.7] },
     { "name": "SVD",             "calibre": "762x54", "class": "Marksman",      "rpm": 460,  "torso": 78.7,  "range": [74.1, 83.3] },
     { "name": "SKS",             "calibre": "762",    "class": "Marksman",      "rpm": 430,  "torso": 64.3,  "range": [57.1, 71.4] },
-    { "name": "GGX 18",          "calibre": "9mm",    "class": "SMG",           "rpm": 1200, "torso": 25.5,  "range": [25.0, 26.0] },
+    { "name": "GGX 18",          "calibre": "9mm",    "class": "Pistol",           "rpm": 1200, "torso": 25.5,  "range": [25.0, 26.0] },
     { "name": "M249 SAW",        "calibre": "556",    "class": "LMG",           "rpm": 855,  "torso": 32.5,  "range": [31.7, 33.3] },
     { "name": "M4",              "calibre": "556",    "class": "Assault Rifle", "rpm": 785,  "torso": 30.0,  "range": [28.6, 31.7] },
     { "name": "AMP-9",           "calibre": "9mm",    "class": "SMG",           "rpm": 900,  "torso": 25.5,  "range": [25.0, 26.0] },
@@ -124,7 +124,7 @@
     { "name": "MK22",            "calibre": "308",    "class": "Sniper",        "rpm": 45,   "torso": 127.0, "range": [111.1, 142.9] },
     { "name": "Mosin Nagant",    "calibre": "762x54", "class": "Sniper",        "rpm": 45,   "torso": 105.6, "range": [100.0, 111.1] },
     { "name": "SV98",            "calibre": "762x54", "class": "Sniper",        "rpm": 45,   "torso": 105.6, "range": [100.0, 111.1] },
-    { "name": "Scout Rifle TD",  "calibre": "556",    "class": "Marksman",      "rpm": 45,   "torso": 52.8,  "range": [50.0, 55.6] }
+    { "name": "Scout Rifle TD",  "calibre": "556",    "class": "Sniper",      "rpm": 45,   "torso": 52.8,  "range": [50.0, 55.6] }
   ],
 
   "_unfiguredNote": "Everything the vendor sells that this page cannot put a damage figure on. Listed rather than dropped, because a weapon missing from a ranking reads as a weapon that does not exist, and the honest answer is that it exists and nobody has published enough about it.",

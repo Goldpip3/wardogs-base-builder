@@ -2060,6 +2060,8 @@
    "cat": "storage",
    "price": 650,
    "per": 1,
+   "kg": 0.88,
+   "slots": 12,
    "icon": "bpak_005"
   },
   {

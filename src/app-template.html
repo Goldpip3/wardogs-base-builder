@@ -644,7 +644,21 @@ function indexCatalog() { byId = {}; for (const b of catalog.buildables) byId[b.
    figure it was drawn under and can be corrected in the panel; anything without one falls
    back to the catalog rather than to a literal repeated at each call site. */
 function fobZone(p) {
-  return (p && p.zone) || catalog.fob.buildRadiusUnits || 100;
+  return (p && p.zone) || catalog.fob.buildRadiusUnits || LEGACY_FOB_ZONE;
+}
+/* A design records the build zone it was drawn under, and every base drawn before the
+   figure moved recorded 100 because that was the default then, not because anybody chose
+   it. Those were left alone and went on drawing a zone half the size of the one the game
+   gives you, on old designs and on every shared link, since the wire format writes the same
+   100 for a design that carries no zone at all. Opening one takes the catalog's figure now.
+   Anything recording a number that was never the default was typed in the panel and is
+   kept. */
+const LEGACY_FOB_ZONE = 100;
+function adopted(d) {
+  for (const p of (d && d.pieces) || [])
+    if (p.type === "__fob__" && (!p.zone || p.zone === LEGACY_FOB_ZONE))
+      p.zone = catalog.fob.buildRadiusUnits || LEGACY_FOB_ZONE;
+  return d;
 }
 function fobDef() {
   const f = catalog.fob;
@@ -3124,7 +3138,11 @@ document.getElementById("selNote").onchange = e => {
 };
 document.getElementById("fobSize").onchange = e => {
   const p = design.pieces.find(x => selection.has(x.id));
-  if (p && p.type === "__fob__") { pushUndo(); p.zone = Math.max(4, +e.target.value || 100); afterChange(); }
+  if (p && p.type === "__fob__") {
+    pushUndo();
+    p.zone = Math.max(4, +e.target.value || fobZone(null));   // cleared means the catalog's
+    afterChange();
+  }
 };
 /* Mirror a selection about its own centre, for laying out a symmetric perimeter */
 function mirrorSelection(axis) {
@@ -3303,7 +3321,7 @@ function loadCurrent() {
   try {
     const s = localStorage.getItem(LS_CURRENT);
     if (s) {
-      design = JSON.parse(s);
+      design = adopted(JSON.parse(s));
       document.getElementById("designName").value = design.name || "New FOB";
       currentSavedName = design.name || null;
       /* Everything read off the design is worked out at startup, and this runs after that:
@@ -3316,7 +3334,7 @@ function loadCurrent() {
   } catch(e) {}
 }
 function openDesign(d, name) {
-  design = JSON.parse(JSON.stringify(d));
+  design = adopted(JSON.parse(JSON.stringify(d)));
   design.nextId = design.nextId || (Math.max(0, ...design.pieces.map(p => p.id)) + 1);
   design.name = name;
   document.getElementById("designName").value = name;
@@ -3492,7 +3510,7 @@ function openImport() {
 }
 function applyImportedDesign(d) {
   if (!Array.isArray(d.pieces)) throw new Error("not a design file (missing pieces[])");
-  design = d;
+  design = adopted(d);
   design.nextId = design.nextId || (Math.max(0, ...design.pieces.map(p => p.id)) + 1);
   document.getElementById("designName").value = design.name || "Imported";
   undoStack = []; redoStack = []; selection.clear();
@@ -3658,7 +3676,7 @@ async function loadFromHash() {
   try {
     const d = await decodeDesignAny(m[1]);
     if (!d.pieces.length) return false;
-    design = d;
+    design = adopted(d);
     design.name = uniqueName(d.name, readDesigns());
     document.getElementById("designName").value = design.name;
     currentSavedName = null;
@@ -3872,7 +3890,7 @@ async function loadCloudSection() {
   box.querySelectorAll("[data-cloud]").forEach(btn => btn.onclick = async () => {
     const d = mine[+btn.dataset.cloud];
     if (btn.dataset.act === "open") {
-      const loaded = await decodeDesignAny(d.code);
+      const loaded = adopted(await decodeDesignAny(d.code));
       design = loaded;
       design.name = d.name;
       document.getElementById("designName").value = d.name;
