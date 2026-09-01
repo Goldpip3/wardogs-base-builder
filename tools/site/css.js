@@ -63,15 +63,25 @@ header.site .wrap{display:flex;align-items:center;gap:28px;min-height:74px}
   color:var(--dim);text-transform:uppercase}
 .brand:hover{color:var(--text)}
 /* the two tools sit hard left next to the brand, everything else is pushed right by the gap */
-nav.site{display:flex;align-items:center;gap:26px;flex:1}
+/* Wrapping is the safety valve. Seven boxes, a brand and an account name do not fit on one
+   line at every desktop width, and without this the header simply ran off the side: at
+   1000px the page scrolled sideways by 220px. A second row is worse than one row and better
+   than a page that moves under you. A Discord name longer than about fourteen characters is
+   what still reaches it on a 1440px screen, and a name that drops to its own row is a good
+   deal better than one that pushes the page wider than the window. */
+nav.site{display:flex;align-items:center;gap:14px;row-gap:10px;flex-wrap:wrap;flex:1}
 .nav-gap{flex:1}
 nav.site a{font-weight:600;text-transform:uppercase;letter-spacing:.12em;font-size:12px;color:var(--dim2)}
 nav.site a:hover{color:var(--text)}
 nav.site a[aria-current]{color:var(--text)}
 /* the CTA is a bordered block, and its label is optically centred inside it */
+/* One width for all of them, set by the longest word in the row rather than by each word.
+   Seven boxes sized to their own labels came out between 96 and 114px, which reads as seven
+   different kinds of thing rather than as one row of buttons. The padding comes down as the
+   min-width goes up, so the widest label still sits inside its box with room either side. */
 nav.site a.cta{display:inline-flex;align-items:center;justify-content:center;gap:9px;
   border:1px solid var(--yellow);color:var(--text);background:transparent;
-  padding:0 18px;height:40px;letter-spacing:.14em}
+  padding:0 10px;min-width:100px;height:40px;letter-spacing:.14em}
 nav.site a.cta:hover{background:var(--yellow);border-color:var(--yellow);color:var(--bg)}
 
 /* --- buttons --- */
@@ -736,13 +746,20 @@ tr[data-on="1"] td{background:var(--panel2);color:var(--text)}
 
 ul,ol{padding-left:22px}li{margin:6px 0}
 @media(max-width:760px){
+  .grid{grid-template-columns:1fr}
+}
+/* 1180 rather than 760, because that is where the row actually stops fitting rather than
+   where a phone starts. Measured: brand, seven equal boxes, the gaps and an account name
+   come to 1070px of the 1124px a 1180px window has, and one pixel narrower than that the
+   account name drops to a second line beside the brand. Below it the nav takes a row of
+   its own, which is the arrangement the phone was already getting. */
+@media(max-width:1180px){
   header.site .wrap{flex-wrap:wrap;padding-top:14px;padding-bottom:14px;gap:14px}
   /* flex:none matters: flex-basis:0 from the desktop rule beats width:100% inside a flex
      row, which left the nav as a tall column beside the brand instead of a wrapped block
      under it. */
-  nav.site{flex:none;margin-left:0;gap:18px;width:100%;flex-wrap:wrap}
+  nav.site{flex:none;margin-left:0;gap:14px;width:100%;flex-wrap:wrap}
   .nav-gap{display:none}
-  .grid{grid-template-columns:1fr}
 }
 /* --- the nav on a phone, once every link became a box ---
    Two boxes among six plain links wrapped to about 120px. Seven boxes at desktop size did
@@ -756,7 +773,7 @@ ul,ol{padding-left:22px}li{margin:6px 0}
    comes in, and the gap closes to something that still reads as separate buttons. --- */
 @media(max-width:760px){
   nav.site{gap:8px}
-  nav.site a.cta{height:30px;padding:0 10px;font-size:11px;letter-spacing:.08em;gap:6px}
+  nav.site a.cta{height:30px;padding:0 6px;min-width:84px;font-size:11px;letter-spacing:.08em;gap:6px}
   nav.site a{font-size:11px;letter-spacing:.08em}
 }
 
