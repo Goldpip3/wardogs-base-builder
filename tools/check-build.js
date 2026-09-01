@@ -274,11 +274,22 @@ check(!mojibake, "no mojibake from a codepage mismatch",
      website, and seven dead links across the top of a file somebody keeps on a disk is a
      worse tool than the one with no nav. The placeholder is the seam, so an unreplaced one
      counts as a failure the same way the ad placeholders do. */
-  check(!/id="sitebar"|__SITENAV__/.test(offline),
-    "the downloadable planner carries no site nav",
+  check(!/<header class="site">|__SITENAV__|__SITECSS__/.test(offline),
+    "the downloadable planner carries no site banner",
     "every link in it points at the website, and none of them work from a file");
-  check(app.includes('<div id="sitebar">') && !app.includes("__SITENAV__"),
-    "the hosted planner carries the site nav");
+  check(app.includes('<header class="site">') && !app.includes("__SITENAV__"),
+    "the hosted planner carries the site banner");
+
+  /* And carries the site's own rules for it rather than a hand-written lookalike. The owner
+     asked for the exact same banner, which is a promise no amount of careful copying keeps:
+     tools/site-header-css.js reads them out of the site stylesheet, and this fails the build
+     if what shipped is not what that prints today. */
+  const headerCss = require("./site-header-css.js");
+  check(app.includes(headerCss.trim()),
+    "and draws it with the rules lifted from the site stylesheet",
+    "rebuild: the planner's copy is not what tools/site-header-css.js now produces");
+  check(!offline.includes("__SITECSS__") && !offline.includes("header.site{"),
+    "the download carries neither the banner nor its rules");
 }
 
 /* -- 3c-ii. one nav, in one order, on every page including the planner --
@@ -290,7 +301,7 @@ check(!mojibake, "no mojibake from a codepage mismatch",
   const shell = fs.readFileSync(path.join(proj, "tools/site/shell.js"), "utf8");
   const siteLinks = (shell.match(/<a href="(\/[a-z]+\/)" class="cta">/g) || [])
     .map(m => m.slice(9, m.indexOf('" class')));
-  const bar = (app.match(/<div id="sitebar">[\s\S]*?<\/nav><\/div>/) || [""])[0];
+  const bar = (app.match(/<header class="site">[\s\S]*?<\/nav>/) || [""])[0];
   const plannerLinks = (bar.match(/href="(\/[a-z]+\/)"/g) || [])
     .map(m => m.slice(6, -1)).filter(h => h !== "/");
   /* The planner names its own page rather than linking to it, so that one is expected to be

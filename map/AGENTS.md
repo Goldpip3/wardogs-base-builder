@@ -40,8 +40,10 @@ ship having skipped them. See [objects/guards/verification.md](objects/guards/ve
    The exceptions are `docs/game-icons/` and `docs/maps/tiles/`, which are committed art
    nothing regenerates. They are most of the files under `docs/` by count, so "everything
    here is disposable" is the wrong instinct to bring to that directory.
-2. **The planner ships twice** from one source, and the two builds differ by one injected
-   string. See [objects/planner/planner-app.md](objects/planner/planner-app.md).
+2. **The planner ships twice** from one source, and the two builds differ only by what
+   `build.ps1` injects into each: the API, the build stamp, the ad markup, and the site
+   banner with its stylesheet. The downloadable copy gets none of those, which is what makes
+   the offline promise true. See [objects/planner/planner-app.md](objects/planner/planner-app.md).
 3. **A number lives in exactly one place**, `data/`. Anything duplicated into markup drifts,
    and has, three separate times.
 4. **A generated data file can be committed without the generator that made it.** That

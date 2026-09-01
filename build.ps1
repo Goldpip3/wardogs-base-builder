@@ -108,13 +108,25 @@ $siteLinks = @(
   @{ href = "/feedback/";   label = "Feedback" }
 )
 $navLinks = ($siteLinks | ForEach-Object {
-  if ($_.href -eq "/planner/") { '<a aria-current="page">{0}</a>' -f $_.label }
-  else { '<a class="leaveLink" href="{0}">{1}</a>' -f $_.href, $_.label }
+  if ($_.href -eq "/planner/") { '<a class="cta" aria-current="page">{0}</a>' -f $_.label }
+  else { '<a class="leaveLink cta" href="{0}">{1}</a>' -f $_.href, $_.label }
 }) -join ""
-$siteNav = '<div id="sitebar"><a class="leaveLink sb-brand" href="/">WARDOGS</a><nav aria-label="Site">' +
-  $navLinks + '</nav></div>'
+# The site's own header markup, class for class, so the stylesheet lifted out of
+# tools/site/css.js draws it here exactly as it draws the landing page. The one thing left
+# out is the account control: this page has its own sign-in in the tool bar below, and two
+# of them in one column would be a worse banner than a slightly emptier one.
+$siteNav = '<header class="site"><div class="wrap">' +
+  '<a href="/" class="brand leaveLink">WARDOGS</a>' +
+  '<nav class="site">' + $navLinks + '</nav>' +
+  '</div></header>'
 
-$offline = $out.Replace('/*__API__*/', '').Replace('/*__BUILD__*/', '').Replace('<!--__AD_HEAD__-->', '').Replace('<!--__AD_PANEL__-->', '').Replace('<!--__SITENAV__-->', '')
+# ...and the rules that draw it, read out of the site's stylesheet rather than typed again
+# here. See tools/site-header-css.js for why this is extracted rather than copied.
+$headerCss = & node (Join-Path $proj "tools/site-header-css.js")
+if ($LASTEXITCODE -ne 0 -or -not $headerCss) { throw "site-header-css.js produced nothing - the planner would ship an unstyled banner." }
+$headerCss = $headerCss -join "`n"
+
+$offline = $out.Replace('/*__API__*/', '').Replace('/*__BUILD__*/', '').Replace('<!--__AD_HEAD__-->', '').Replace('<!--__AD_PANEL__-->', '').Replace('<!--__SITENAV__-->', '').Replace('/*__SITECSS__*/', '')
 [IO.File]::WriteAllText("$proj\WardogsBaseBuilder.html", $offline, $utf8)
 # Artifact variant (no HTML skeleton, the Artifact wrapper provides it)
 $art = $offline -replace '(?s)^.*?<title>', '<title>' -replace '</head>\s*<body>', '' -replace '</body>\s*</html>\s*$', ''
@@ -124,7 +136,7 @@ $art = $offline -replace '(?s)^.*?<title>', '<title>' -replace '</head>\s*<body>
 # afterwards by tools/build-site.js. GitHub Pages serves the whole docs/ folder.
 New-Item -ItemType Directory -Force "$proj\docs\planner" | Out-Null
 [IO.File]::WriteAllText("$proj\docs\planner\index.html",
-  $out.Replace('/*__API__*/', $apiBase).Replace('/*__BUILD__*/', $stamp).Replace('<!--__AD_HEAD__-->', $adHead).Replace('<!--__AD_PANEL__-->', $adPanel).Replace('<!--__SITENAV__-->', $siteNav), $utf8)
+  $out.Replace('/*__API__*/', $apiBase).Replace('/*__BUILD__*/', $stamp).Replace('<!--__AD_HEAD__-->', $adHead).Replace('<!--__AD_PANEL__-->', $adPanel).Replace('<!--__SITENAV__-->', $siteNav).Replace('/*__SITECSS__*/', $headerCss), $utf8)
 [IO.File]::WriteAllText("$proj\docs\build.txt", $stamp, $utf8)
 if (Test-Path "$proj\release\og-1200x630.png") { Copy-Item "$proj\release\og-1200x630.png" "$proj\docs\preview.png" -Force }
 # Custom domain. Leave EMPTY until the domain's DNS actually resolves — claiming a

@@ -11,16 +11,32 @@ Newest first. One entry per decision. Keep entries short.
 ### The bar is on the planner too, and pages turn instead of blinking
 
 The planner was the one page you could not leave from: a wordmark, a link home, one boxed
-link to the artillery calculator, and the other five pages did not exist from inside it. The
-site's nav sits above the tool bar now as `#sitebar`, 28px and no boxes, and every link
-carries `leaveLink` so the planner still offers to save unsaved work first. **It cannot go
-inside `#topbar`**, which was 69px over at 1280 with one link in it, which is why the
-artillery link came out rather than six more going in.
+link to the artillery calculator, and the other five pages did not exist from inside it. It
+carries the site's banner now, and **the banner, not a version of it**: the first pass drew
+a 28px lookalike in hand-written CSS and was sent straight back, which was the right call.
+`tools/site-header-css.js` lifts the header rules out of `tools/site/css.js`, resolves the
+custom properties they use, and `build.ps1` injects them, so the boxes, the border, the 74px
+and the 1180px column are the landing page's own. Every computed property matches the live
+header; the only two that differ are the ones a scrollbar moves.
+
+**The palette has to be scoped to the banner**, because the planner calls the yellow
+`--accent` and its `--border` is two shades off the site's `--line`. The typography and the
+link colour come along too: without them the boxes were right to the pixel around a wordmark
+rendering as a blue underlined link. `tools/check-build.js` fails if what shipped is not what
+the extractor prints today.
+
+**It cannot go inside `#topbar`**, which was 69px over at 1280 with one link in it. Hence the
+artillery link coming out rather than six more going in, and the tool bar's own wordmark
+being just PLANNER now: two WARDOGS stacked read as a mistake.
+
+**It says WARDOGS, not WARDOGS Builder**: "Builder" was a second word in the corner of
+every page for one tool out of seven, and the nav under it already says which tool you are
+in.
 
 The nav is written twice, in `tools/site/shell.js` and in `build.ps1`, because the planner
 is built before the site generator runs. `tools/check-build.js` holds the two lists to each
 other. **The download gets none of it**: every href points at the website, and dead links in
-a file somebody keeps on a disk are worse than no nav. The placeholder is the seam, and an
+a file somebody keeps on a disk are worse than no nav. The placeholders are the seam, and an
 unreplaced one fails the build the way the ad placeholders do.
 
 **Pages turn rather than blinking white.** `@view-transition{navigation:auto}` in
@@ -65,11 +81,6 @@ shorter than the figure and has room to grow into, and its tallest state is rese
 loadout page a long attachment name wrapped its own slot to two lines and pushed the row
 under it down; the slot has two lines of room whether the name uses them or not. Both
 measured after: zero movement.
-
-### The banner says WARDOGS
-
-"Builder" was a second word in the corner of every page for one tool out of seven, and the
-nav under it already says which tool you are in.
 
 ### The loadout's weapon shelf is cut into classes, from the same list as the damage page's
 
@@ -354,27 +365,22 @@ ranking being the first heading under the calculator, and the legend's bounds.
 
 ### The artillery page carries its ads beside the map, not inside the reference
 
-Owner's call. The map had width to spare that a firing solution never needed, so a **right
-rail** now takes it: a 300px column in `tools/site/artillery-map.js`, and a horizontal unit
-directly under the tool, placed from `tools/site/pages/artillery.js`. The **in-article unit
-came out** in the same move, so the reference runs from the platform cards to what they mean
-for a base with nothing interrupting it. Net effect on that page is three units to four, and
-none of them in the middle of a sentence.
+Owner's call. The map had width to spare that a firing solution never needed, so a 300px
+right rail takes it, with a horizontal unit under the tool and the in-article unit gone from
+the middle of the reference.
 
-**The rail's grid track is `auto` with the width on the rail itself, and that is deliberate.**
-An unfilled unit hides the rail, and a hidden item in an auto track takes no width, so the map
-gets the space back with no second rule to keep in step. A fixed `300px` track would leave a
-strip of nothing beside the map every time Google declined to fill, which on a new account is
-most of the time. Below 1280px the rail moves under the map rather than being hidden, because
-a unit that is requested and then `display:none`'d is an impression nobody can see.
+**The rail's grid track is `auto` with the width on the rail itself, and that is
+deliberate.** An unfilled unit hides the rail, and a hidden item in an auto track takes no
+width, so the map gets the space back with no second rule to keep in step. A fixed 300px
+track would leave a strip of nothing beside the map every time Google declined to fill.
+Below 1280px the rail moves under the map rather than being hidden, because a unit that is
+requested and then `display:none`'d is an impression nobody can see.
 
 `.amap-body.has-rail` is two classes and beats a bare `.amap-body` from inside a media query
 as easily as outside one, so the collapsed layouts have to name it. That is the one way this
-breaks quietly: the rail keeps its own column on a phone and the map is squeezed to nothing.
-
-**`artilleryRight` and `artilleryFoot` ship with empty ids.** The placements exist, nothing is
-emitted, and the build is green: the check that every slot reaches a page skips an empty one
-on purpose. Create the two units in AdSense, paste the ids into `data/ads.json`, rebuild.
+breaks quietly. **`artilleryRight` and `artilleryFoot` ship with empty ids**: the placements
+exist, nothing is emitted, and the check that every slot reaches a page skips an empty one on
+purpose.
 
 ### Measured beats pulled, and one number brings a weapon in
 
@@ -567,29 +573,20 @@ never what `/admin` does, which still wants `ADMIN_TOKEN`. `test/worker.mjs` pin
 
 ### Armory holds vehicles, and every item opens
 
-Clicking an item opens a panel with full-size art and known stats. Stats are a join from
-`data/ballistics.json`. 72 of 331 have real stats; the other 259 say plainly that nothing is
-published rather than showing empty rows.
+Clicking an item opens a panel with full-size art and whatever is known, joined from
+`data/ballistics.json`. The items nothing is published for say so rather than showing empty
+rows, and `tools/check-build.js` asserts every join by count. Its torso damage is still the
+superseded solved figure, listed in OPEN.
 
-**Its torso damage is the superseded solved figure.** The damage page moved to measurements
-and the panel did not. Listed in OPEN.
+Three not to undo. **Stored armour is what armour takes; the panel prints what gets
+through**, and printing `blocks` straight says a hollow point is best against an L4 vest.
+**The two weapon lists spell calibres differently**, an id (`556`) against a label
+(`7.62x51mm`), so the panel resolves ids and passes labels through. And **`/vehicles/` is a
+meta refresh to `/armory/`, not a deletion**, because Pages cannot send a 301 and a deleted
+page is a permanent 404 for anyone holding the link.
 
-Three not to undo:
-
-- **Stored armour is what armour takes; the panel prints what gets through.** Printing
-  `blocks` straight says a hollow point is best against a L4 vest.
-- **The two weapon lists spell calibres differently.** Figured stores an id (`556`),
-  unfigured a label (`7.62x51mm`). The panel resolves ids and passes labels through.
-- **The attachment slot was never transcribed.** `slotOf` reads it off the name; the panel
-  says so, or it is a reading passed off as a record.
-
-`tools/check-build.js` asserts all four joins by count.
-
-`<dialog>` is native for backdrop and focus trap. Its `close` event never fires in the
-browser this was built against, so `shut()` restores focus directly.
-
-**`/vehicles/` is a meta refresh to `/armory/`, not a deletion**, because GitHub Pages cannot
-send a 301 and a deleted page is a permanent 404 for anyone holding the link.
+`<dialog>` is native for the backdrop and the focus trap. Its `close` event never fires in
+the browser this was built against, so `shut()` restores focus directly.
 
 ### Buildables uses the armory rail and serves icons as files
 
@@ -718,23 +715,15 @@ bytes. Reading the catalog there ties the format to a value a player can edit.
 
 All pinned in `test/elevation.js`. `git log` has the reasoning.
 
-**Draw order is a graph, not a sort.** Ordering by distance to each middle drew short pieces
-over long. Only overlapping pairs are ordered: 0.7 ms for 117 pieces, 3.2 ms for 624.
-Reverting fails six checks.
-
-**A piece is a prism over its four corners**, not its bounding box. A 4x4 at 45 degrees has a
-box 5.66 across.
-
-**Runs, not boxes.** Sides joined to a same-wall neighbour are interior: 612 edges to 209 on
-51 pieces. The seam mask is in world directions and checked as arithmetic at every angle,
-because suppressing the wrong side looks almost right.
-
-**Height is the job**: a block stands 1.45 times ground scale against a 0.866 cell.
-
-**Colour is by material and the key cannot lie.** Role, colour, label and key list move
-together.
-
-**Writing is drawn last**, or a piece dropped nearby paints over its label.
+**Draw order is a graph, not a sort**: ordering by distance to each middle drew short pieces
+over long, so only overlapping pairs are ordered. **A piece is a prism over its four
+corners**, not its bounding box, since a 4x4 at 45 degrees has a box 5.66 across. **Runs,
+not boxes**: sides joined to a same-wall neighbour are interior, 612 edges down to 209 on 51
+pieces, and the seam mask is in world directions and checked as arithmetic at every angle,
+because suppressing the wrong side looks almost right. **Height is the job**, a block stands
+1.45 times ground scale against a 0.866 cell. **Colour is by material and the key cannot
+lie**, so role, colour, label and key list move together. **Writing is drawn last**, or a
+piece dropped nearby paints over its label.
 
 ### Crew size: who the base is for
 

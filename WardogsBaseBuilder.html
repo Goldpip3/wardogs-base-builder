@@ -118,47 +118,31 @@
     color: var(--dim); margin-right: -2px;
   }
 
-  /* The site's own bar, above the tool's.
-     The planner was the one page on the site you could not leave without going back to the
-     home page first: it had a wordmark and one link to the artillery calculator, and the
-     other five pages did not exist from in here. This is the same nav the rest of the site
-     carries, cut down to fit a tool: 28px rather than 74, no account name, no boxes. It
-     cannot go inside #topbar, which was already 69px over at 1280 with one link in it.
+  /* The site's banner, above the tool's own bar.
+     Not a version of it and not a smaller one: the same rules, lifted out of
+     tools/site/css.js by tools/site-header-css.js and injected here by build.ps1, so the
+     boxes, the border, the 74px and the 1180px column are the landing page's own and cannot
+     drift from it. A first pass drew a 28px lookalike in hand-written CSS; the owner wanted
+     the banner, not something in its spirit.
 
-     The offline download gets none of this. Every href here points at the website, and a
-     row of dead links is worse than no row at all in a file somebody keeps on a disk, so
-     build.ps1 leaves the placeholder empty there. */
-  #sitebar {
-    zoom: var(--s);
-    display: flex; align-items: center; gap: 14px; padding: 0 12px; height: 28px;
-    background: #0c0c0c; border-bottom: 1px solid var(--border); overflow: hidden;
-  }
-  #sitebar .sb-brand {
-    font-family: var(--display); font-weight: 700; font-size: 13px; letter-spacing: .01em;
-    text-transform: uppercase; color: var(--text); text-decoration: none; white-space: nowrap;
-  }
-  #sitebar nav { display: flex; align-items: center; gap: 13px; min-width: 0; }
-  #sitebar nav a {
-    font-family: var(--ui); font-weight: 600; font-size: 10px; letter-spacing: .12em;
-    text-transform: uppercase; color: var(--dim); text-decoration: none; white-space: nowrap;
-  }
-  #sitebar nav a:hover, #sitebar .sb-brand:hover { color: var(--accent); }
-  /* The page you are on is named rather than linked away from, and it is the one item in
-     the row that is not dimmed. */
-  #sitebar nav a[aria-current] { color: var(--text); }
-  @media (max-width: 720px) {
-    #sitebar { gap: 10px; }
-    #sitebar nav { gap: 10px; overflow-x: auto; }
-  }
+     It carries the site's palette scoped to itself, because this page calls the yellow
+     --accent where the site calls it --yellow, and its --border is two shades lighter than
+     the site's --line. Nothing outside the banner is touched.
+
+     The offline download gets none of it. Every href points at the website, and a row of
+     dead links is worse than no row at all in a file somebody keeps on a disk, so build.ps1
+     leaves both placeholders empty there. */
+  
 
   /* The same page turn the rest of the site uses. It only does anything on the hosted copy,
-     because it only fires on a navigation and the download never makes one. */
+     because it only fires on a navigation and the download never makes one. The banner's own
+     view-transition-name comes in with the block above, so it sits still while the page
+     turns under it, exactly as it does between two site pages. */
   @view-transition { navigation: auto; }
   @keyframes wd-turn-out { to { opacity: 0; transform: perspective(1400px) translateX(-2.5%) rotateY(-5deg); } }
   @keyframes wd-turn-in { from { opacity: 0; transform: perspective(1400px) translateX(2.5%) rotateY(5deg); } }
   ::view-transition-old(root) { animation: wd-turn-out .2s cubic-bezier(.4,0,1,1) both; mix-blend-mode: normal; }
   ::view-transition-new(root) { animation: wd-turn-in .28s cubic-bezier(0,0,.2,1) both; mix-blend-mode: normal; }
-  #sitebar { view-transition-name: wd-head; }
   ::view-transition-old(wd-head), ::view-transition-new(wd-head) { animation: none; mix-blend-mode: normal; }
   @media (prefers-reduced-motion: reduce) {
     ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
@@ -170,12 +154,10 @@
     display: flex; align-items: center; gap: 8px; padding: 7px 12px;
     background: var(--panel); border-bottom: 1px solid var(--border); flex-wrap: wrap;
   }
-  #topbar a#homeLink { text-decoration: none; border-radius: 0; padding: 2px 5px; margin-left: -5px; }
-  #topbar a#homeLink:hover { background: var(--panel2, #2a2f2a); }
-  #topbar a#homeLink:hover h1 { color: var(--accent); }
+  #topbar #homeLink { padding: 2px 5px; margin-left: -5px; }
   /* One boxed link to the artillery calculator used to live in this bar, and it put the bar
      69px over at 1280 on its own. Six more was never going to fit, so the whole nav moved
-     up into #sitebar and this row went back to being the tool's own controls. The width
+     up into the site banner and this row went back to being the tool's own controls. The width
      rules below stay: the bar was tight before the link was ever added. */
   @media (max-width: 1400px) {
     #topbar { gap: 7px; }
@@ -186,10 +168,6 @@
   #topbar h1 {
     font-family: var(--display); font-weight: 700; font-size: 17px; letter-spacing: .01em;
     color: var(--text); margin-right: 6px; white-space: nowrap; text-transform: uppercase;
-  }
-  #topbar h1 span {
-    color: var(--dim); font-weight: 500; letter-spacing: .1em; font-size: 9.5px;
-    text-transform: uppercase; display: block; margin-top: -3px;
   }
   .cost-ico { width: 12px; height: 12px; object-fit: contain; vertical-align: -2px; margin-left: 2px; }
   #topbar label { font-size: 11px; color: var(--dim); }
@@ -434,7 +412,10 @@
 <body>
 
 <div id="topbar">
-  <a id="homeLink" class="leaveLink" href="/" title="Back to wardogsbuilder.com"><h1>WARDOGS <span>PLANNER</span></h1></a>
+  <!-- The wordmark used to live here, because there was nothing above it. There is now, and
+       two WARDOGS stacked one on the other read as a mistake, so this row keeps the tool's
+       name and the banner keeps the brand and the way home. -->
+  <span id="homeLink"><h1>PLANNER</h1></span>
   <input id="designName" placeholder="Design name" value="New FOB">
   <button id="btnNew" title="New design">✚ New</button>
   <button id="btnDesigns" title="Saved designs">🗂 Designs</button>
