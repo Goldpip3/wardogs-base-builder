@@ -665,12 +665,25 @@ module.exports = ctx => {
       "  b.addEventListener('click',function(){S.r=t;render();});" +
       "  box.appendChild(b);});}" +
 
+      /* A weapon with no measured rate of fire has no time to kill, and the figure was
+         painting all nine zones the colour of a thing it does not know: a grey mannequin
+         beside a panel confidently saying 36.9 damage and three shots. The zones carry
+         shots to kill instead, on the same four bands, and the caption says so. Same scale
+         because it is the same question, how quickly this kills, and the only honest thing
+         the page has left to answer it with. */
+      "function zoneBand(f){" +
+      " var b=bandFor(B.bands,f.k.stk,f.k.ttk);" +
+      " if(b)return {band:b,byShots:false};" +
+      " var n=f.k.stk;" +
+      " return {band:B.bands[n<=1?0:n===2?1:n<=4?2:3],byShots:true};}" +
       "function renderBody(){" +
-      " var w=weapon();" +
+      " var w=weapon(),byShots=false;" +
       " Array.prototype.forEach.call(document.querySelectorAll('.bz'),function(p){" +
       "  var z=zoneById[p.getAttribute('data-zone')];" +
       "  var f=fire(w,z);" +
-      "  var band=bandFor(B.bands,f.k.stk,f.k.ttk);" +
+      "  var zb=f.miss?null:zoneBand(f);" +
+      "  var band=zb?zb.band:null;" +
+      "  if(zb&&zb.byShots)byShots=true;" +
       /* Every zone wears its own time to kill, all the time. Lighting only the selected one
          was tried and it answers the wrong question: the reason to look at a body rather
          than at the table under it is to compare, to see at a glance that the chest is red
@@ -679,8 +692,11 @@ module.exports = ctx => {
       "  p.style.fill=(f.miss||!band)?'var(--line2)':band.tint;" +
       "  p.setAttribute('data-on',z.id===S.zone?'1':'0');" +
       "  var t=p.querySelector('title');" +
+      /* A trailing dash on every zone reads as a missing figure per zone. It is one
+         missing figure for the whole weapon, and the caption says so once. */
       "  if(t)t.textContent=z.name+': '+(f.miss?'no measured damage':fmt(f.s.damage)+" +
-      "   ' damage, '+f.k.stk+' shot'+(f.k.stk===1?'':'s')+', '+secs(f.k.stk,f.k.ttk));});" +
+      "   ' damage, '+f.k.stk+' shot'+(f.k.stk===1?'':'s')+" +
+      "   (f.k.ttk===null?'':', '+secs(f.k.stk,f.k.ttk)));});" +
       /* The hatch only appears where the tier being worn actually reaches. A tier 1 helmet
          hatches the head and nothing else; the neck lights up at tier 3, which is the thing
          the old page got wrong in so many words. */
@@ -692,8 +708,11 @@ module.exports = ctx => {
       "  (S.helmet>=3?' and the neck':''));" +
       " if(S.vest)worn.push('Level '+S.vest+' armour over the chest and abdomen'+" +
       "  (S.vest>=4?', the shoulders and the groin':''));" +
-      " el('cover').textContent=worn.length?('Hatched: '+worn.join('. ')+'. Everything else is bare.')" +
-      "  :'No armour. Every zone is bare, so the load barely matters and the zone is everything.';}" +
+      " var cover=worn.length?('Hatched: '+worn.join('. ')+'. Everything else is bare.')" +
+      "  :'No armour. Every zone is bare, so the load barely matters and the zone is everything.';" +
+      " if(byShots)cover+=' Colours are shots to kill here, not time: nobody has counted this" +
+      " weapon’s rate of fire.';" +
+      " el('cover').textContent=cover;}" +
 
       "function renderCalc(){" +
       " var w=weapon(),c=cal(),z=zoneById[S.zone];" +
@@ -720,6 +739,8 @@ module.exports = ctx => {
       "  ' at the '+z.name.toLowerCase()+', measured in game.';" +
       " if(s.pelletsOf)chain+=' '+s.pelletsHit+' of '+s.pelletsOf+' pellets land, so '+" +
       "  fmt(s.base)+' arrives.';" +
+      " if(!w.rpm)chain+=' Nobody has counted its rate of fire yet, so the time to kill" +
+      " cannot be worked out: everything else here is measured.';" +
       " el('chain').textContent=chain;" +
       " var an;" +
       " if(!z.slot)an='Nothing covers the '+z.name.toLowerCase()+' at any tier. Armour is" +

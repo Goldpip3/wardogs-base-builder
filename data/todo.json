@@ -50,7 +50,7 @@
     },
     {
       "what": "The PKM rate of fire",
-      "why": "The last figure between the PKM and a full row on the damage page. Its calibre and class are settled, and the measured damage sheet covers LMG 7.62x54. Count rounds against a stopwatch, then node tools/measure.js \"PKM\" rpm <number>, and it joins the tables on the next build with no code change.",
+      "why": "The last figure between the PKM and a full row on the damage page. Searched again on 2026-09-01 and it is published nowhere: MetaForge carries no fire rate for any weapon, wardogs.zone lists none, and the 28 rates the page does have were derived from a shots-and-time table that has no PKM row. So it has to be counted: fire ten seconds into a wall, count the rounds, then node tools/measure.js \"PKM\" rpm <number>. Until then the page says what it does know and says the clock is missing.",
       "where": "data/measured.json"
     }
   ],

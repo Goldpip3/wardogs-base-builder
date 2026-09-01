@@ -6,6 +6,25 @@ the code is right.
 
 Newest first. One entry per decision. Keep entries short.
 
+## 2026-09-01
+
+### A weapon with no rate of fire stops looking broken
+
+The PKM has measured damage and no measured rate of fire, so the figure was painting all
+nine zones the colour of a thing it does not know: a grey mannequin beside a panel
+confidently reading 36.9 damage and three shots to kill. The zones carry **shots to kill**
+instead, on the same four bands, and the caption says which measure it is showing. The
+readout's two dashes say why they are dashes.
+
+Searched again for a published rate: MetaForge carries none for any weapon, wardogs.zone
+lists none, and the 28 the page does have were derived by `tools/solve-ballistics.js` from a
+shots-and-time table that has no PKM row. It has to be counted in game, which
+`tools/measure.js "PKM" rpm <n>` takes.
+
+The ranking keeps the neutral bar and the dash for that weapon: its legend says colour is
+time to kill, and painting a shots-based colour into a row under that legend would be a lie.
+The figure can say it because it has a caption and the ranking does not.
+
 ## 2026-08-31
 
 ### The walkthrough starts where you were looking

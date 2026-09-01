@@ -284,6 +284,14 @@ check(ball.includes("var CLASS_SHORT=") && ball.includes('"Assault Rifle":"AR"')
   "the rows use short class names, so a long one cannot wrap");
 check(ball.includes(".rrow .rname{grid-area:name;white-space:nowrap"),
   "and the name cell cannot wrap whatever is in it");
+/* A weapon with damage and no rate of fire painted all nine zones the colour of a thing it
+   does not know: a grey mannequin beside a panel confidently reading 36.9 damage and three
+   shots. The figure carries shots to kill instead, on the same bands, and says so. */
+check(ball.includes("function zoneBand") && ball.includes("byShots"),
+  "the figure colours by shots to kill when there is no rate of fire to time");
+check(ball.includes("Nobody has counted its rate of fire yet"),
+  "and the readout says why its time to kill is a dash");
+
 /* The ranking is every weapon against one zone under one armour, and once the calculator
    has scrolled off nothing on the page said which. */
 check(ball.includes('id="rctx"') && ball.includes("function watchCtx") &&
