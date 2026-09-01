@@ -498,5 +498,59 @@ check(!/emptyState"\)\.style\.display/.test(src.replace(lift("syncEmptyState"), 
     "walking off something drops you, at the gravity a metre figure implies");
 }
 
+/* The walkthrough starts where you were looking.
+
+   It used to start at a fixed point six cells south of the whole base, facing it, with no
+   way to ask for anywhere else. That is one useful view, the attacker walking in off the
+   treeline, and it is a poor default: you have almost always just been working on one
+   corner, and what you want is to be standing in that corner.
+
+   The plan is the control, so there is no button to find: `view.x, view.y` is the world
+   point under the middle of the plan, and a selection beats it. Solids are stubbed out
+   here, because being pushed clear of whatever you picked is walkPush's job and is tested
+   above; what this pins is which point gets chosen in the first place.
+*/
+{
+  vm.runInContext([
+    "var view = { x: 0, y: 0, zoom: 26 };",
+    "var selection = new Set();",
+    "var walk = { x: 0, y: 0, z: 0, vz: 0, yaw: 0, pitch: 0 };",
+    "function walkSolids() { return []; }",
+    // stubbed so the old bounds-based spawn can be run against this too
+    "function walkBounds() { return { minX: -10, maxX: 10, minY: -10, maxY: 10 }; }",
+    lift("walkSpawn"),
+  ].join("\n"), sandbox);
+
+  const spawnAt = (pieces, v, sel) => {
+    vm.runInContext("design.pieces = " + JSON.stringify(pieces) +
+      "; view.x = " + v[0] + "; view.y = " + v[1] +
+      "; selection = new Set(" + JSON.stringify(sel || []) + "); walkSpawn();", sandbox);
+    return vm.runInContext("[walk.x, walk.y]", sandbox);
+  };
+  const base = [{ id: 1, type: "hesco-wall", x: 0, y: -10, rot: 0, level: 0 },
+                { id: 2, type: "bunker", x: 6, y: 6, rot: 0, level: 0 }];
+
+  const centred = spawnAt(base, [0, 0]);
+  check(centred[0] === 0 && centred[1] === 0,
+    "centre the plan on your base and you start inside it, not outside the wire",
+    centred.join(","));
+
+  const corner = spawnAt(base, [-7, -7]);
+  check(corner[0] === -7 && corner[1] === -7,
+    "pan to a corner and you start in that corner");
+
+  const outside = spawnAt(base, [0, -18]);
+  check(outside[1] === -18,
+    "and panning outside the wire on purpose still works, so the old view is not lost");
+
+  const picked = spawnAt(base, [0, 0], [2]);
+  check(picked[0] === 6 && picked[1] === 6,
+    "selecting a piece beats the view, because that is as explicit as asking gets");
+
+  const empty = spawnAt([], [40, 40]);
+  check(empty[0] === 0 && empty[1] === -6,
+    "an empty plan has no view worth honouring, so that one is a fixed spot");
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

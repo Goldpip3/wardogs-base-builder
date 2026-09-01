@@ -53,6 +53,9 @@ a single offline file and a library would be paid for on every download.
 - `walkPush` is collision: a circle against a rotated rect, not an axis-aligned box, since
   angled wall runs are the case this view exists to look at
 - `walkSolids` rebuilds every frame off `standHeights`, so raised pieces sit at their storey
+- `walkSpawn` starts you at `view.x, view.y`, the world point under the middle of the
+  plan, or at the selection if there is one. Panning the plan **is** the control for
+  where you come in, which is why there is no button for it
 - `walkLeaves` swings an entry open. A leaf is a rect like any other, so collision and
   drawing both get the swing for free from `walkSolids`. It is `WALK_LEAF` thick, **not the
   footprint depth**: a footprint's depth is the wall the entry sits in, and swinging all of

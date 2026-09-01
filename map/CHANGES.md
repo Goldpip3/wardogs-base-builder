@@ -8,6 +8,23 @@ Newest first. One entry per decision. Keep entries short.
 
 ## 2026-08-31
 
+### The walkthrough starts where you were looking
+
+It used to drop everyone at a fixed point six cells south of the whole base, facing it,
+with no way to ask for anywhere else. Owner's words: it puts your character outside the
+perimeter, and there was no way to pick a spot.
+
+**The plan is the control, so no button had to be found for it.** `view.x, view.y` is the
+world point under the middle of the plan, so panning is already how you choose. A
+selection beats it, because selecting a piece and asking to walk is as explicit as it
+gets. Empty plan keeps a fixed spot, since there is no view worth honouring.
+
+Then pushed clear of whatever the spot was inside, so picking the middle of a bunker
+leaves you beside it, and stood on whatever is underfoot, so a spot on a wall starts you
+on the wall. Walking in off the treeline is still there: pan outside the wire first.
+
+The status bar says which of the two it used, because the plan is not on screen to check.
+
 ### The target follows you down the ranking, and no row wraps
 
 The ranking is every weapon against **one zone under one set of armour**, and once the

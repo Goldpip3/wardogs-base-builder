@@ -1426,7 +1426,7 @@ const CLOUD_API = "https://wardogs-votes.wardogsbuilder.workers.dev";
    but it is inlined into both builds so the two differ in what they can reach and never in
    what they contain. */
 const DESIGN_TAGS = [{"id":"map","label":"Where it works","hint":"At least one. Pick the map it is laid out for, or Any map if the ground does not matter.","required":true,"tags":[{"id":"map-bakurani","label":"Bakurani"},{"id":"map-ozeti","label":"Ozeti"},{"id":"map-any","label":"Any map","exclusive":true}]},{"id":"role","label":"What it is for","hint":"Optional, as many as fit. This is what somebody scrolling the list is actually choosing between.","required":false,"tags":[{"id":"anti-infantry","label":"Anti-infantry","hint":"Built to stop people on foot: cover, wire, firing positions."},{"id":"anti-vehicle","label":"Anti-vehicle","hint":"Stingray, hedgehogs, anything that turns armour away."},{"id":"anti-air","label":"Anti-air","hint":"Vanguard CIWS or Talon 9K-SAM covering the sky above it."},{"id":"artillery","label":"Artillery","hint":"Built around a mortar and its shelter."},{"id":"zone-control","label":"Zone control","hint":"Meant to be planted on the objective and held."},{"id":"recon","label":"Recon","hint":"Towers, radio, eyes on ground you do not hold."},{"id":"starter","label":"Starter","hint":"Cheap and quick, for the first build of a match."}]}];
-const BUILD_STAMP = "20260901-031347";
+const BUILD_STAMP = "20260901-034259";
 const LS_TOKEN = "wardogs.token";
 
 const LS_DESIGNS = "wardogs.designs";
@@ -2870,17 +2870,37 @@ function walkStep(now) {
   requestAnimationFrame(walkStep);
 }
 
-/* Dropped in at the middle of the base and then pushed out of anything it landed inside, so
-   a start point inside a bunker does not trap the walker under its roof. */
+/* You start where you were looking.
+ *
+ * This used to drop everyone six cells south of the whole base, facing it. That is one
+ * useful view, the attacker's, and it is the wrong default: most of the time you have just
+ * been working on a corner and you want to be standing in that corner, not walking in from
+ * the treeline every time. There was no way to ask for anywhere else.
+ *
+ * `view.x, view.y` is the world point under the middle of the plan, so panning the plan is
+ * already the control for this and no button has to be found for it. Selecting a piece beats
+ * it, because selecting something and asking to walk is about as explicit as it gets.
+ *
+ * Then push out of whatever the spot turned out to be inside, so choosing the middle of a
+ * bunker leaves you beside it rather than sealed under its roof, and stand on whatever is
+ * underfoot, so a spot on top of a wall starts you on top of the wall.
+ */
 function walkSpawn() {
-  const b = design.pieces.length ? walkBounds() : { minX: -5, maxX: 5, minY: -5, maxY: 5 };
-  walk.x = (b.minX + b.maxX) / 2;
-  walk.y = b.minY - 6;
+  const sel = design.pieces.filter(p => selection.has(p.id));
+  if (sel.length) {
+    walk.x = sel.reduce((t, p) => t + p.x, 0) / sel.length;
+    walk.y = sel.reduce((t, p) => t + p.y, 0) / sel.length;
+  } else if (design.pieces.length) {
+    walk.x = view.x; walk.y = view.y;
+  } else {
+    walk.x = 0; walk.y = -6;
+  }
   walk.yaw = 0; walk.pitch = 0;
   walk.z = 0; walk.vz = 0;
-  const out = walkPush(walk.x, walk.y, walkSolids(), 0);
+  const solids = walkSolids();
+  const out = walkPush(walk.x, walk.y, solids, 0);
   walk.x = out[0]; walk.y = out[1];
-  walk.z = walkFloor(walk.x, walk.y, 0, walkSolids());
+  walk.z = walkFloor(walk.x, walk.y, 0, solids);
 }
 
 function setWalk(on) {
@@ -2895,6 +2915,8 @@ function setWalk(on) {
       document.getElementById("canvas").style.display = ""; alert("This browser has no WebGL, so the walkthrough cannot run."); return; }
     walk.doors = {};        // every entry shut again on the way in
     walkResize(); walkSpawn();
+    flashStatus(selection.size ? "Standing at the selection"
+                              : "Standing where the plan was centred");
     walk.last = performance.now();
     requestAnimationFrame(walkStep);
     cv.requestPointerLock && cv.requestPointerLock();
@@ -4425,9 +4447,10 @@ function updateHint() {
   const el = document.getElementById("hint");
   if (walk.on) {
     el.innerHTML = "Standing in it. <b>W A S D</b> to move &middot; mouse to look &middot; <b>Shift</b> to run &middot; " +
-      "<b>Esc</b> frees the mouse and clicking takes it back &middot; <b>3</b> or the button returns to the plan. " +
-      "Doors and gates open as you walk up to them. You can vault anything a block high, " +
-      "climb a Loudspeaker to the top, and nothing gets you over a Bremer or a Recon Tower.";
+      "<b>Esc</b> frees the mouse, clicking takes it back &middot; <b>3</b> returns to the plan. " +
+      "<b>You start where the plan was centred</b>, or on whatever you had selected, so pan " +
+      "there first. Doors open as you walk up. Vault a block, climb a Loudspeaker, and " +
+      "nothing gets you over a Bremer.";
     return;
   }
   if (view3d) {
