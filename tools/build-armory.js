@@ -113,12 +113,6 @@ Level 4 Helmet|$3,000
 12g Rifled Slug|$200/6
 Broadhead Arrow|$75/5
 Rambo Explosive Arrow|$150
-Ammo Supplies|$10/50
-Build Supplies|$10/50
-Fuel Supplies|$10/50
-Mechanical Supplies|$10/50
-Battery|$150
-High Capacity Battery|$300
 120mm HEAT-MP Shell|$210
 122mm HE Rocket|$450/3
 155mm HE Shell|$120/2
@@ -317,27 +311,35 @@ Individual First Aid Kit|$800
 Medical Bag|$2,000
 `,
   storage: `
-Ammo Supply Pallet|$400
 Arsenal Backpack + 2 Slings|$5,000
 Assault Backpack|$1,200
-Build Supply Pallet|$400
 Field Backpack|$650
-Fuel Supply Pallet|$400
 Gunner Backpack + Sling|$3,500
 Halftrack Backpack|$15,000
-Large Armored Crate|$800
-Large Crate|$300
 Large Tac Vest|$400
-Mechanical Supply Pallet|$400
 Medium Backpack + Sling|$1,400
 Medium Tac Vest|$250
 Operator Backpack|$800
 Pouch|Free
 Ruck Backpack|$2,400
 Scout Backpack|$350
+Small Tac Vest|$100
+`,
+  supply: `
+Ammo Supply Pallet|$400
+Build Supply Pallet|$400
+Fuel Supply Pallet|$400
+Mechanical Supply Pallet|$400
+Large Armored Crate|$800
+Large Crate|$300
 Small Armored Crate|$500
 Small Crate|$150
-Small Tac Vest|$100
+Ammo Supplies|$10/50
+Build Supplies|$10/50
+Fuel Supplies|$10/50
+Mechanical Supplies|$10/50
+Battery|$150
+High Capacity Battery|$300
 `,
   vehicles: `
 AH-6M [Miniguns]|$7,000
@@ -381,12 +383,13 @@ Vanguard CIWS|
 const CATEGORIES = [
   { id: "weapons",     name: "Weapons",         blurb: "Rifles, snipers, pistols and launchers." },
   { id: "attachments", name: "Attachments",     blurb: "Optics, muzzles, grips and magazines." },
-  { id: "ammunition",  name: "Ammunition",      blurb: "Calibres, shells and supplies, priced per pack." },
+  { id: "ammunition",  name: "Ammunition",      blurb: "Calibres and shells, priced per pack." },
   { id: "armour",      name: "Armour",          blurb: "Helmets, body armour and ghillie." },
   { id: "equipment",   name: "Equipment",       blurb: "Recon, repair and traversal gear." },
   { id: "throwables",  name: "Throwables",      blurb: "Grenades, charges and detonators." },
   { id: "medical",     name: "Medical",         blurb: "Bandages, kits and injectors." },
-  { id: "storage",     name: "Storage",         blurb: "Backpacks, vests, crates and supply pallets." },
+  { id: "storage",     name: "Storage",         blurb: "Backpacks, vests and pouches." },
+  { id: "supply",      name: "Supply",          blurb: "Pallets, crates and loose supplies." },
   { id: "vehicles",    name: "Vehicles",        blurb: "Ground and air transport." },
   { id: "mounted",     name: "Mounted weapons", blurb: "Vehicle guns, cannons and emplacements." },
 ];

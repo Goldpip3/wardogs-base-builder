@@ -98,11 +98,15 @@ function shot(load, zone, tiers, scalings, pellets) {
 /* Shots to kill, and the time those shots take. A one-shot kill has no gap in it, so its
    time to kill is zero rather than one reload: the number people want from a sniper is
    "one shot", and dressing that up as a duration reads as slower than a rifle. */
+/* A weapon with no measured rate of fire has no time to kill, and null says so. It used to
+   fall through to 0, which is the figure for a one-shot kill: the fastest thing on the page.
+   That mattered the moment a weapon could be figured for damage without one, which is where
+   the PKM sits until somebody counts its rounds. */
 function toKill(damage, rpm, health) {
   var hp = health || 100;
   if (!(damage > 0)) return { stk: Infinity, ttk: Infinity };
   var stk = Math.ceil(hp / damage);
-  var ttk = stk > 1 && rpm ? (stk - 1) / (rpm / 60) : 0;
+  var ttk = stk === 1 ? 0 : (rpm ? (stk - 1) / (rpm / 60) : null);
   return { stk: stk, ttk: ttk };
 }
 
@@ -119,8 +123,11 @@ function flightTime(calibre, metres) {
 /* Which of the time-to-kill bands a result falls in. Bands are a state scale, not a
    series palette, which is why they get the reserved status colours and always travel
    with their label. */
+/* No band for a weapon with no time to kill: the colour scale is seconds, and painting one
+   on would be a claim. Callers draw a dash instead. */
 function bandFor(bands, stk, ttk) {
   if (stk === 1) return bands[0];
+  if (ttk === null || ttk === undefined) return null;
   for (var i = 0; i < bands.length; i++) if (ttk <= bands[i].upTo) return bands[i];
   return bands[bands.length - 1];
 }

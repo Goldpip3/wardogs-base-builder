@@ -8,6 +8,56 @@ Newest first. One entry per decision. Keep entries short.
 
 ## 2026-08-31
 
+### Armory: no disclaimers, and Supply is its own shelf
+
+Owner's call: the panels were full of notes saying what was missing, what was a guess, and
+that nothing more was published. All gone. A price with no figure shows a dash. An item with
+no stats shows its name and price and stops. The vehicles heading no longer advertises what
+is not known about them.
+
+Supply is a category. The four pallets and four crates were under Storage next to the
+backpacks, and the six loose supplies were under Ammunition next to the rifle rounds.
+Neither is what either word means: a backpack is what you carry, a pallet is what you haul.
+
+Storage keeps backpacks, tac vests and the Pouch, because the loadout reads that category
+for both its Backpack and Rig slots.
+
+### The PKM is in, the shelf opens on a class, and the ranking can be read
+
+**Damage is what makes a weapon rankable, not a rate of fire.** The promotion waited for
+both, which kept the PKM off a page that could already say what it does per shot and how
+many of them it takes. It is a row now with a dash where its seconds go, and `toKill`
+returns `null` there rather than 0: zero is the figure for a one-shot kill, the fastest
+thing on the page. `bandFor` returns no band for a null, so nothing paints it a colour.
+
+**The weapon shelf opens on a class.** No All, since thirty-four weapons in one grid is a
+wall you read rather than a shelf you pick from, and it opens on the class of the weapon in
+hand. Order is the owner's: Assault Rifle, SMG, Shotgun, LMG, Marksman Rifle, Sniper, Bows,
+then anything the sheet has that this list does not.
+
+**The ranking filters by load.** Asking for hollow point gives the weapons that chamber it,
+with their own figures for it, and says how many were left out. It answered with every
+weapon in the game falling back to whatever it does chamber, which is a different question.
+
+**The legend is two labelled rows**, bar colour and time to kill, rather than nine chips in
+two colour scales with a hairline between them. A one-shot row names the zones it is one
+shot at on hover, since which zone depends on the armour and differs per weapon.
+
+**The slow band is orange rather than salmon**, `#f2701a`, picked by measuring against the
+gates the palette cleared: 28.1 from its nearest neighbour where the salmon was 28.0, and
+6.24 contrast on the panel. Two oranges that looked better came within 21 of the FMJ amber.
+
+### Every gun states its rate of fire
+
+On every ranking row rather than only when the list is sorted by it, and as a fourth readout
+in the calculator. It is half of what time to kill is made of, and two weapons with the same
+shots to kill were told apart by nothing on the page. All 28 figured weapons carry one, which
+`test/site.js` holds them to: a weapon without would draw a dash where every other row has a
+number.
+
+The readouts stack down the column now instead of sitting two across. A third at 32% of a
+300px column wrapped every label mid-phrase, "shots to / kill" against "rounds per / minute".
+
 ### The zone table goes, the ranking takes its place, and the colours say what they mean
 
 The nine-row table of this weapon against this armour sat between the calculator and the

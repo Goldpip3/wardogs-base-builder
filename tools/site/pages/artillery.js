@@ -97,6 +97,14 @@ module.exports = ctx => {
       " The link in your address bar carries the whole picture, so copy it to hand a" +
       " fire mission to someone else.</p>" +
 
+      /* The page's third unit, and it replaced the in-article one rather than joining it.
+         Owner's call, 2026-08-31: the reference reads better with nothing interrupting it
+         between the platform cards and what they mean for a base, and a unit here is met
+         once, on the way off the map, instead of in the middle of a sentence. It sits after
+         the coordinate note because that note belongs to the map above it, and before the
+         eyebrow because everything from there down is the article. */
+      adSlot("artilleryFoot") +
+
       '<span class="eyebrow" style="margin-top:40px">Indirect fire, checked ' +
       esc(A.checkedOn) + "</span>" +
       "<h1>Artillery</h1>" +
@@ -112,8 +120,6 @@ module.exports = ctx => {
       '<div class="grid" style="margin-top:18px;' +
       'grid-template-columns:repeat(auto-fit,minmax(420px,1fr))">' +
       A.platforms.map(platformCard).join("") + "</div>" +
-
-      adSlot("inArticle") +
 
       '<h2 style="margin-top:52px">What this means for a base</h2>' +
       "<p>A mortar in your FOB is not a way to defend your FOB. Its minimum range is " +

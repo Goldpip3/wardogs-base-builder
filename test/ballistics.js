@@ -191,7 +191,13 @@ const weaponBy = {};  B.weapons.forEach(w => { weaponBy[w.name] = w; });
    validator, which is the point. */
 {
   const SLOTS = ["#c98500", "#d55181", "#3987e5", "#199e70", "#9085e9"];
-  const STATUS = ["#0ca30c", "#fab219", "#ec835a", "#d03b3b"];
+  /* The slow band was #ec835a, which is a salmon: at a glance it read as skin rather than
+     as a warning, and the owner asked for a real orange. #f2701a was picked by measuring
+     rather than by eye, against the same gates the original palette cleared: its nearest
+     neighbour among the other seven colours on this page is 28.1 apart in Lab, where the
+     salmon was 28.0, and it holds 6.24 contrast on the panel. Two oranges that looked
+     better were rejected for coming within 21 of the FMJ amber. */
+  const STATUS = ["#0ca30c", "#fab219", "#f2701a", "#d03b3b"];
   check(B.rounds.map(r => r.tint).join(",") === SLOTS.join(","),
     "the five round tints are the validated palette slots, in the validated order",
     B.rounds.map(r => r.tint).join(","));

@@ -40,9 +40,12 @@ function promote(BALLISTICS, DAMAGE, MEASURED) {
   const promoted = [];
   BALLISTICS.unfiguredWeapons = BALLISTICS.unfiguredWeapons.filter(u => {
     const seen = (MEASURED.items || {})[u.name] || {};
-    const rpm = seen.rpm;
+    const rpm = seen.rpm || null;
     const cls = seen.class || u.class;
-    if (!rpm || !cls) return true;
+    /* Damage is what makes a weapon rankable, and the rate of fire only turns shots into
+       seconds. Waiting for both kept the PKM off a page that could already say what it does
+       per shot and how many of them it takes. Without an rpm its time to kill is a dash. */
+    if (!cls) return true;
     const calibre = idOf(u.calibre);
     const w = { name: u.name, calibre: calibre, class: cls, rpm: rpm, measured: seen.on };
     if (!calibre || !loadsFor(DAMAGE, w)) return true;

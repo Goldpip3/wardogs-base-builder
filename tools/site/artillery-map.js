@@ -46,6 +46,13 @@ module.exports = ctx => {
   const sideAdUnit = adSlot("artillery");
   const sideAd = sideAdUnit ? '<div class="amap-ad">' + sideAdUnit + "</div>" : "";
 
+  /* The right rail. Same rule: with no id there is no aside, and the body has to go back to
+     two columns or the map gets a 300px strip of nothing beside it, so the layout is a class
+     rather than a fixed grid. Owner's call, 2026-08-31: the map has width to spare that a
+     firing solution does not need, so the spare width earns instead of sitting empty. */
+  const railAdUnit = adSlot("artilleryRight");
+  const railAd = railAdUnit ? '<aside class="amap-rail">' + railAdUnit + "</aside>" : "";
+
   const barBtn = (id, label) =>
     '<button class="amap-btn" id="' + id + '">' + label + "</button>";
 
@@ -95,7 +102,7 @@ module.exports = ctx => {
     "</span>" +
     "</div>" +
 
-    '<div class="amap-body">' +
+    '<div class="amap-body' + (railAd ? " has-rail" : "") + '">' +
     '<aside class="amap-side">' +
 
     '<div class="amap-pick">' +
@@ -128,6 +135,11 @@ module.exports = ctx => {
     "</aside>" +
 
     '<div class="amap-stage" id="amap-stage"><canvas id="amap-canvas"></canvas></div>' +
+
+    /* After the stage in the markup as well as beside it on screen, so that when the grid
+       collapses on a narrow window the rail lands under the map rather than between the
+       controls and it. */
+    railAd +
     "</div>" +
 
     '<div class="amap-status">' +

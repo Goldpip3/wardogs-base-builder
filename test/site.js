@@ -232,6 +232,39 @@ check(noBounds.length === 0,
    forty times over. The colour carries it now. */
 check(!ball.includes("o.band.name.toLowerCase()"),
   "a ranking row states the number, and leaves the word to the legend");
+/* Rate of fire on every row, not only when the list is sorted by it: it is half of what
+   time to kill is made of, and two weapons with the same shots to kill are told apart by
+   nothing else. The data check is the one that matters, since a weapon with no rate of fire
+   would draw a dash where every other row has a number. */
+check(ball.includes("n rrpm") && ball.includes('id="rpm"'),
+  "the ranking and the calculator both state the rate of fire");
+/* A weapon can now be figured for damage without a rate of fire: the PKM is, until
+   somebody counts its rounds. What must never happen is the page treating a missing one as
+   zero seconds, which is the figure for the fastest kill on it. */
+const noRpm = bal.weapons.filter(w => !w.rpm).map(w => w.name);
+check(bal.weapons.filter(w => w.rpm).length >= bal.weapons.length - 2,
+  `${bal.weapons.length - noRpm.length} of ${bal.weapons.length} figured weapons state a rate of fire`,
+  noRpm.join(", "));
+const M = require(ROOT + "/tools/site/ballistics-model");
+check(M.toKill(30, null, 100).ttk === null,
+  "a weapon with no rate of fire has no time to kill, rather than a time of zero");
+check(M.toKill(500, null, 100).ttk === 0,
+  "a one shot kill still takes no time, rate of fire or not");
+check(M.bandFor(bal.ttkBands, 4, null) === null,
+  "and it wears no time to kill colour, since the scale is seconds");
+
+/* The picker opens on a class rather than on all thirty-four weapons, in the order the
+   owner reads them in, and the ranking can be narrowed to one load. */
+check(!ball.includes('data-wcls="" aria-pressed="true"') && !ball.includes('data-wcls=""'),
+  "the weapon shelf has no All: it opens on a class");
+const order = ["Assault Rifle", "SMG", "Shotgun", "LMG", "Marksman Rifle", "Sniper", "Bows"];
+const chipText = ball.split('data-wcls=').slice(1).map(p => p.split(">")[1].split("<")[0]);
+check(order.every((c, i) => chipText[i] === c),
+  `the classes are in the owner's order, and they are ${chipText.slice(0, 7).join(", ")}`);
+check(ball.includes('data-load=""') && bal.rounds.every(r => ball.includes('data-load="' + r.id + '"')),
+  "the ranking can be filtered to one load");
+check(ball.includes("oneShotZones"),
+  "a one shot row says which zones it is one shot at");
 
 // ---------- the planner still ships intact ----------
 check(app.includes("btnShare") && app.includes("buildIndex") && app.length > 100000,

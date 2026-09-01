@@ -6,7 +6,9 @@
     "leaderboard": "6283709418",
     "inArticle": "4970627748",
     "planner": "6502823960",
-    "artillery": "1475175210"
+    "artillery": "1475175210",
+    "artilleryRight": "",
+    "artilleryFoot": ""
   },
-  "_comment": "Advertising config, kept out of buildables.json because that file is inlined wholesale into the downloadable planner and an advertising identity has no business in a file people keep on a disk. Four slots. 'leaderboard' and 'inArticle' are placed by tools/site/context.js and need a matching entry in its AD_FORMATS table. 'artillery' is placed by tools/site/artillery-map.js at the foot of the map's control column and needs an AD_FORMATS entry too. 'planner' is the odd one: it is injected by build.ps1 into the hosted planner only, at the foot of the right panel, and the downloadable build gets an empty string in its place. Clearing publisherId removes all of it."
+  "_comment": "Advertising config, kept out of buildables.json because that file is inlined wholesale into the downloadable planner and an advertising identity has no business in a file people keep on a disk. Six slots. 'leaderboard' and 'inArticle' are placed by tools/site/context.js and need a matching entry in its AD_FORMATS table. 'artillery', 'artilleryRight' and 'artilleryFoot' are the artillery page's three of its own: the first two are placed by tools/site/artillery-map.js at the foot of the left control column and in the right rail, the third by tools/site/pages/artillery.js just under the tool. All three need an AD_FORMATS entry too. 'planner' is the odd one: it is injected by build.ps1 into the hosted planner only, at the foot of the right panel, and the downloadable build gets an empty string in its place. An empty id is a placement waiting for a unit: the markup exists, nothing is emitted, and the build stays green until the id is pasted in. Clearing publisherId removes all of it."
 }

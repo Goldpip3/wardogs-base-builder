@@ -560,11 +560,16 @@ svg.body .bz[data-on="1"]{stroke:var(--white);stroke-width:3;paint-order:stroke}
 .ctl input[type=range]{flex:1 1 150px;accent-color:var(--yellow);background:transparent}
 .ctl .n{font-family:var(--num);font-size:13px;color:var(--text)}
 .calc-out .hero{border-bottom:1px solid var(--line);padding:0 0 12px;margin:0 0 12px}
-.calc-out .hero:nth-child(2),.calc-out .hero:nth-child(3){display:inline-block;width:48%;
-  vertical-align:top;border-bottom:0}
+/* The damage figure keeps the top on its own, and the three that qualify it stack under
+   it: shots, time, and the rate of fire that turns one into the other. Two of them sat side
+   by side at 48% while there were two; a third at 32% of a 300px column left every label
+   wrapping mid-phrase, "shots to / kill" against "rounds per / minute". Full width down the
+   column reads as a list of four facts about one gun, which is what it is. */
+.calc-out .hero:nth-child(n+2){display:block;border-bottom:0;padding:0;margin:0 0 12px}
+.calc-out .hero:last-child{margin-bottom:0}
 .calc-out .hero b{display:block;font-family:var(--display);font-weight:700;font-size:40px;
   line-height:1;letter-spacing:0;color:var(--text);font-variant-numeric:tabular-nums}
-.calc-out .hero:nth-child(2) b,.calc-out .hero:nth-child(3) b{font-size:26px}
+.calc-out .hero:nth-child(n+2) b{font-size:24px}
 .calc-out .hero span{display:block;font-size:10px;font-weight:600;letter-spacing:.16em;
   text-transform:uppercase;color:var(--dim);margin-top:7px}
 .calc-out .fine{margin:10px 0 0}
@@ -578,6 +583,19 @@ svg.body .bz[data-on="1"]{stroke:var(--white);stroke-width:3;paint-order:stroke}
 .band{display:inline-flex;align-items:center;gap:6px;font-family:var(--num);font-size:12px;
   color:var(--text);border-left:3px solid var(--bd);padding-left:7px}
 tr[data-on="1"] td{background:var(--panel2);color:var(--text)}
+/* Two labelled rows rather than one strip of nine chips in two colour scales. The key is
+   a fixed column so both rows line up under each other and the eye reads down them. */
+.legend{margin-top:18px;border:1px solid var(--line);background:var(--panel);padding:12px 14px;
+  display:grid;gap:8px}
+.lgrow{display:grid;grid-template-columns:150px 1fr;gap:6px 14px;align-items:center}
+@media(max-width:640px){.lgrow{grid-template-columns:1fr}}
+.lgkey{font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--dim)}
+.chip .dot{display:inline-block;width:9px;height:9px;margin-right:6px;vertical-align:-1px}
+/* No band, because no rate of fire has been measured: a dash in the ink of a missing thing
+   rather than in one of the four colours, which would be a claim about how fast it is. */
+.band[data-none="1"]{--bd:var(--line2);color:var(--dim)}
+.legend .lgs{margin-top:0}
 .lgs{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;margin-top:18px;
   padding:12px 14px;border:1px solid var(--line);background:var(--panel)}
 .lg{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;
@@ -591,8 +609,8 @@ tr[data-on="1"] td{background:var(--panel2);color:var(--text)}
    the measure and a chart whose bars do not share a baseline is not a chart. */
 .rrow{display:grid;align-items:center;gap:6px 10px;padding:9px 10px;background:var(--panel);
   cursor:pointer;font-size:13px;
-  grid-template-columns:1fr auto auto;
-  grid-template-areas:"name name ttk" "track track track" "load dmg stk"}
+  grid-template-columns:1fr auto auto auto;
+  grid-template-areas:"name name ttk ttk" "track track track track" "load dmg stk rpm"}
 .rrow:hover{background:var(--panel2)}
 .rrow .rname{grid-area:name}
 .rrow .rtrack{grid-area:track}
@@ -600,9 +618,10 @@ tr[data-on="1"] td{background:var(--panel2);color:var(--text)}
 .rrow .rdmg{grid-area:dmg}
 .rrow .rstk{grid-area:stk}
 .rrow .rttk{grid-area:ttk}
+.rrow .rrpm{grid-area:rpm;color:var(--dim2)}
 @media(min-width:760px){
-  .rrow{grid-template-columns:210px minmax(80px,1fr) 132px 56px 72px 128px;
-    grid-template-areas:"name track load dmg stk ttk";padding:7px 10px}
+  .rrow{grid-template-columns:200px minmax(70px,1fr) 120px 52px 68px 76px 116px;
+    grid-template-areas:"name track load dmg stk rpm ttk";padding:7px 10px}
 }
 /* the equipped weapon as a control: its name, and the way to change it */
 .wpn-open{display:flex;width:100%;align-items:baseline;justify-content:space-between;gap:10px;

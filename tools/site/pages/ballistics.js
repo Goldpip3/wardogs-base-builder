@@ -37,9 +37,21 @@ module.exports = ctx => {
   const zoneById = {};
   ZONES.forEach(z => { zoneById[z.id] = z; });
 
+  /* The owner's order, which is how the game groups them rather than the alphabet: what
+     you reach for first, down to what you reach for last. Anything the sheet has that is not
+     in this list follows it rather than being dropped, so a new class arrives visibly at the
+     end instead of vanishing. The labels are the spoken names; the ids stay as the measured
+     sheet spells them, since that is the join. */
+  const CLASS_ORDER = ["Assault Rifle", "SMG", "Shotgun", "LMG", "Marksman", "Sniper", "Bow"];
+  const CLASS_LABEL = { Marksman: "Marksman Rifle", Bow: "Bows" };
   const classes = [];
   B.weapons.forEach(w => { if (classes.indexOf(w.class) < 0) classes.push(w.class); });
-  classes.sort();
+  classes.sort((x, y) => {
+    const a = CLASS_ORDER.indexOf(x), b = CLASS_ORDER.indexOf(y);
+    return (a < 0 ? 99 : a) - (b < 0 ? 99 : b) || x.localeCompare(y);
+  });
+  const classLabel = c => CLASS_LABEL[c] || c;
+  const FIRST_CLASS = classes[0];
 
   const chamberedBy = id => B.weapons.filter(w => w.calibre === id).map(w => w.name);
 
@@ -256,7 +268,14 @@ module.exports = ctx => {
   const roundLegend = B.rounds.map(r =>
     '<span class="lg"><i style="background:' + r.tint + '"></i>' + esc(r.name) +
     ' <span class="fine">' + esc(r.long) + "</span></span>").join("");
-  const legend = roundLegend + '<span class="lg-sep"></span>' + bandLegend;
+  /* Two groups, each said out loud. It was one strip of nine chips with a hairline in the
+     middle: five loads and four time bands, in two colour scales that mean different kinds
+     of thing, and nothing on the page said which half was which. */
+  const legend =
+    '<div class="lgrow"><span class="lgkey">Bar and dot colour</span>' +
+    '<span class="lgs">' + roundLegend + "</span></div>" +
+    '<div class="lgrow"><span class="lgkey">Time to kill</span>' +
+    '<span class="lgs">' + bandLegend + "</span></div>";
 
   write("ballistics/index.html", page({
     title: "WARDOGS Damage Calculator and Ammo Chart",
@@ -305,6 +324,7 @@ module.exports = ctx => {
           '<div class="hero"><b id="dmg">0</b><span>damage per shot</span></div>' +
           '<div class="hero"><b id="stk">0</b><span>shots to kill</span></div>' +
           '<div class="hero"><b id="ttk">0</b><span>time to kill</span></div>' +
+        '<div class="hero"><b id="rpm">0</b><span>rounds per minute</span></div>' +
           '<p class="fine" id="chain"></p>' +
           '<p class="fine" id="armnote"></p>' +
         "</div>" +
@@ -313,11 +333,13 @@ module.exports = ctx => {
       '<div class="vpicker" id="wpnShelf" hidden>' +
         '<p class="vpicker-head">Pick a weapon' +
         '<button type="button" class="vpicker-x" id="wpnClose">Close</button></p>' +
+        /* No All. Thirty-four weapons in one grid is a wall you read rather than a shelf you
+           pick from, and every one of them belongs to a class you already know before you
+           open this. It opens on the first class in the order instead. */
         '<div class="chips" role="group" aria-label="Filter by class" style="margin-bottom:12px">' +
-          '<button class="chip" data-wcls="" aria-pressed="true">All</button>' +
           classes.map(function (c) {
-            return '<button class="chip" data-wcls="' + esc(c) + '" aria-pressed="false">' +
-              esc(c) + "</button>";
+            return '<button class="chip" data-wcls="' + esc(c) + '" aria-pressed="' +
+              (c === FIRST_CLASS ? "true" : "false") + '">' + esc(classLabel(c)) + "</button>";
           }).join("") +
         "</div>" +
         '<div class="vgrid">' +
@@ -350,11 +372,20 @@ module.exports = ctx => {
       "<h2>Ranking</h2>" +
       '<p>Every weapon under the settings above. A weapon that cannot chamber the load you' +
       " picked falls back to what it does chamber, and says so.</p>" +
-      '<div class="lgs">' + legend + "</div>" +
+      '<div class="legend">' + legend + "</div>" +
       '<div class="chips" style="margin-top:18px">' +
         '<button class="chip" data-cls="" aria-pressed="true">All</button>' +
         classes.map(c => '<button class="chip" data-cls="' + esc(c) + '" aria-pressed="false">' +
-          esc(c) + "</button>").join("") +
+          esc(classLabel(c)) + "</button>").join("") +
+      "</div>" +
+      /* Show me the hollow point weapons. The ranking used to answer with every weapon in
+         the game, each falling back to whatever it does chamber, which is a different
+         question from the one being asked. */
+      '<div class="chips" style="margin-top:8px" role="group" aria-label="Filter by load">' +
+        '<button class="chip" data-load="" aria-pressed="true">Any load</button>' +
+        B.rounds.map(r => '<button class="chip" data-load="' + esc(r.id) + '"' +
+          ' aria-pressed="false"><i class="dot" style="background:' + r.tint + '"></i>' +
+          esc(r.name) + "</button>").join("") +
       "</div>" +
       '<div class="chips" style="margin-top:8px">' +
         '<button class="chip" data-by="ttk" aria-pressed="true">By time to kill</button>' +
@@ -499,7 +530,7 @@ module.exports = ctx => {
       "B.rounds.forEach(function(r){roundById[r.id]=r});" +
       "var byName={};B.weapons.forEach(function(w){byName[w.name]=w});" +
 
-      "var S={w:'M4',r:'FMJ',helmet:0,vest:0,zone:'chest',pellets:8,cls:'',by:'ttk'};" +
+      "var S={w:'M4',r:'FMJ',helmet:0,vest:0,zone:'chest',pellets:8,cls:'',load:'',by:'ttk'};" +
 
       /* the fragment is the setup, so a solution is a link. Same idea as the artillery
          page: nothing is stored, and pasting the URL to somebody reproduces the screen. */
@@ -526,24 +557,29 @@ module.exports = ctx => {
          it. loadFor falls back to whatever the weapon does have, so a shotgun asked for
          armour piercing answers with buckshot instead of a blank row. */
       "function loadsOf(w){return B.loads[w.name]||null;}" +
-      "function pick(w){" +
+      "function pick(w,type){" +
       " var ls=loadsOf(w);if(!ls)return null;" +
-      " var got=loadFor(ls,S.r);" +
+      " var got=loadFor(ls,type||S.r);" +
       " return got?{name:got.name,load:got.load}:null;}" +
       "function shotgun(){var p=pick(weapon());return !!(p&&p.load.pellets);}" +
       "function pelletsFor(w,p){" +
       " if(!p||!p.load.pellets)return null;" +
       " return {hit:(w.name===S.w?S.pellets:p.load.pellets)};}" +
       "function tiers(){return {helmet:S.helmet,vest:S.vest};}" +
-      "function fire(w,zone){" +
-      " var p=pick(w);" +
+      "function fire(w,zone,type){" +
+      " var p=pick(w,type);" +
       " if(!p)return {miss:true,s:{damage:0,base:0,keep:1,absorbed:0,slot:'',tier:0," +
       "  pelletsHit:0,pelletsOf:0,perPellet:0},k:{stk:Infinity,ttk:Infinity},p:null};" +
       " var s=shot(p.load,zone,tiers(),B.scalings,pelletsFor(w,p));" +
       " return {miss:false,s:s,k:toKill(s.damage,w.rpm,B.health),p:p};}" +
 
       "function fmt(n){return n>=100?String(Math.round(n)):String(Math.round(n*10)/10);}" +
-      "function secs(stk,ttk){return stk===1?'one shot':ttk.toFixed(2)+' s';}" +
+      /* One shot is one shot, a measured rate of fire is seconds, and a weapon with no rate
+         of fire yet is a dash. It was seconds or nothing, and nothing came out as 0.00 s,
+         which is the figure for the fastest kill on the page. */
+      "function secs(stk,ttk){" +
+      " if(stk===1)return 'one shot';" +
+      " return (ttk===null||ttk===undefined)?'\u2014':ttk.toFixed(2)+' s';}" +
       "function tint(type){var r=roundById[type];return r?r.tint:'var(--dim)';}" +
       "function label(type){var r=roundById[type];return r?r.name:type;}" +
 
@@ -577,7 +613,7 @@ module.exports = ctx => {
          than at the table under it is to compare, to see at a glance that the chest is red
          through a vest while the hands are still green. Selection is carried by the outline
          instead, so it can say which zone without taking the colour off the other eight. */
-      "  p.style.fill=f.miss?'var(--line2)':band.tint;" +
+      "  p.style.fill=(f.miss||!band)?'var(--line2)':band.tint;" +
       "  p.setAttribute('data-on',z.id===S.zone?'1':'0');" +
       "  var t=p.querySelector('title');" +
       "  if(t)t.textContent=z.name+': '+(f.miss?'no measured damage':fmt(f.s.damage)+" +
@@ -607,8 +643,10 @@ module.exports = ctx => {
       " el('dmg').title=f.miss?'nobody has measured this weapon yet':'measured in game';" +
       " el('stk').textContent=f.miss?'--':(isFinite(k.stk)?k.stk:'never');" +
       " el('ttk').textContent=f.miss?'--':secs(k.stk,k.ttk);" +
-      " el('ttk').style.color=f.miss?'var(--dim)':band.tint;" +
-      " el('ttk').parentNode.title=f.miss?'':band.name;" +
+      " el('ttk').style.color=(f.miss||!band)?'var(--dim)':band.tint;" +
+      " el('ttk').parentNode.title=(f.miss||!band)?'no measured rate of fire yet':band.name;" +
+      " el('rpm').textContent=w.rpm||'\u2014';" +
+      " el('rpm').parentNode.title=w.rpm?'':'nobody has counted this one yet';" +
       " if(f.miss){" +
       "  el('chain').textContent=w.name+' has no measured damage yet. Its class was tested," +
       " but not with this calibre in it.';" +
@@ -636,30 +674,53 @@ module.exports = ctx => {
          Fill is the load, which is identity and never magnitude, and the load is written on
          every row as well. A weapon nobody has measured is dropped rather than ranked at
          zero, and the note under the chart says how many that was. */
+      /* Every zone this weapon drops a man with one hit of the load it is firing, under the
+         armour set above. Worked out here rather than read off the figure, because the
+         figure is the selected weapon and this is a question about all of them. */
+      "function oneShotZones(w,type){" +
+      " var out=[];" +
+      " B.zones.forEach(function(z){" +
+      "  var f=fire(w,z,type);" +
+      "  if(!f.miss&&f.k.stk===1)out.push(z.name.toLowerCase());});" +
+      " return out;}" +
       "function renderRank(){" +
       " var z=zoneById[S.zone],box=el('rank');" +
       " var all=B.weapons.filter(function(w){return !S.cls||w.class===S.cls;});" +
-      " var rows=[],unmeasured=0;" +
+      " var rows=[],unmeasured=0,offLoad=0;" +
       " all.forEach(function(w){" +
-      "  var f=fire(w,z);" +
+      /* Asked for the filtered load rather than the calculator's, because the two are
+         different questions: the calculator is this weapon with this round, and the filter
+         is every weapon that fires that round, with its own figures for it. loadFor falls
+         back to what a weapon does chamber, so a weapon that comes back with something else
+         is one that cannot take it. */
+      "  var f=fire(w,z,S.load||null);" +
       "  if(f.miss){unmeasured++;return;}" +
-      "  rows.push({w:w,p:f.p,s:f.s,k:f.k,band:bandFor(B.bands,f.k.stk,f.k.ttk)});});" +
+      "  if(S.load&&f.p.load.type!==S.load){offLoad++;return;}" +
+      "  rows.push({w:w,p:f.p,s:f.s,k:f.k,band:bandFor(B.bands,f.k.stk,f.k.ttk)," +
+      "   one:oneShotZones(w,S.load||null)});});" +
       " var by=S.by;" +
+      /* A weapon with no rate of fire has no time to kill, and sorting a null as zero put
+         it at the top of the fastest. It goes last among its equals instead. */
+      " var t=function(o){return o.k.ttk===null?Infinity:o.k.ttk;};" +
       " rows.sort(function(a,b){" +
       "  if(by==='dmg')return b.s.damage-a.s.damage;" +
-      "  if(by==='stk')return (a.k.stk-b.k.stk)||(a.k.ttk-b.k.ttk);" +
+      "  if(by==='stk')return (a.k.stk-b.k.stk)||(t(a)-t(b));" +
       "  if(by==='rpm')return (b.w.rpm||0)-(a.w.rpm||0);" +
-      "  return (a.k.ttk-b.k.ttk)||(a.k.stk-b.k.stk);});" +
+      "  return (t(a)-t(b))||(a.k.stk-b.k.stk);});" +
       " var val=function(o){" +
       "  return by==='dmg'?o.s.damage:by==='stk'?(isFinite(o.k.stk)?o.k.stk:0):" +
-      "   by==='rpm'?(o.w.rpm||0):o.k.ttk;};" +
+      "   by==='rpm'?(o.w.rpm||0):(o.k.ttk===null?0:o.k.ttk);};" +
       " var max=0;rows.forEach(function(o){var v=val(o);if(isFinite(v)&&v>max)max=v;});" +
       " box.textContent='';" +
       " rows.forEach(function(o){" +
       "  var v=val(o),pct=max>0&&isFinite(v)?Math.max(1.5,(v/max)*100):1.5;" +
       "  var row=document.createElement('div');row.className='rrow';" +
       "  var t=o.p.load.type;" +
-      "  var sub=t!==S.r?(' <em class=\"fine\">no '+S.r+'</em>'):'';" +
+      /* "no FMJ" marks a weapon that fell back to something else because it cannot take
+         the round the calculator is set to. With the list filtered to one load there is no
+         falling back to mark: every row is that load, and the marker was reading as a
+         complaint about the filter itself. */
+      "  var sub=(!S.load&&t!==S.r)?(' <em class=\"fine\">no '+S.r+'</em>'):'';" +
       "  var ic=B.icon[o.w.name];" +
       "  row.innerHTML='<span class=\"rname\">'" +
       "   +(ic?'<img class=\"ricon\" src=\"/game-icons/'+ic+'.png\" alt=\"\" width=\"34\"'" +
@@ -671,11 +732,25 @@ module.exports = ctx => {
       "   +'<span class=\"rload\" style=\"--rd:'+tint(t)+'\">'+label(t)+sub+'</span>'" +
       "   +'<span class=\"n rdmg\" title=\"measured in game\">'+fmt(o.s.damage)+'</span>'" +
       "   +'<span class=\"n rstk\">'+o.k.stk+(o.k.stk===1?' shot':' shots')+'</span>'" +
+      /* The rate of fire, on every row rather than only when the list is sorted by it. It
+         is half of what time to kill is made of, and a reader comparing two weapons with
+         the same shots to kill has no way to see why one of them is faster without it. */
+      "   +'<span class=\"n rrpm\">'+(o.w.rpm?o.w.rpm+' rpm':'&mdash;')+'</span>'" +
       /* The number, in the colour of its band. The band's word was on every row as well,
          which is the legend printed forty times: the colour is the word, and the legend at
          the top says what each one is in seconds. */
-      "   +'<span class=\"n rttk\"><span class=\"band\" style=\"--bd:'+o.band.tint+'\"" +
-      " title=\"'+o.band.name+'\">'+secs(o.k.stk,o.k.ttk)+'</span></span>';" +
+      /* The number, in the colour of its band. The band's word was on every row as well,
+         which is the legend printed forty times: the colour is the word, and the legend at
+         the top says what each one is in seconds.
+
+         On a one shot the hover says where: "one shot" with no zone named is the question
+         it raises, since the answer changes with the armour and is different for every
+         weapon on the list. */
+      "   +'<span class=\"n rttk\"><span class=\"band\"'" +
+      "    +(o.band?' style=\"--bd:'+o.band.tint+'\"':' data-none=\"1\"')" +
+      "    +' title=\"'+(o.k.stk===1?(o.one.length?'One shot to the '+o.one.join(', the ')" +
+      "     :'One shot at this zone'):(o.band?o.band.name:'No measured rate of fire, so no" +
+      " time to kill'))+'\">'+secs(o.k.stk,o.k.ttk)+'</span></span>';" +
       "  row.addEventListener('click',function(){setWeapon(o.w.name);render();});" +
       "  box.appendChild(row);});" +
       " var unit=by==='dmg'?'damage at the '+z.name.toLowerCase():" +
@@ -683,6 +758,7 @@ module.exports = ctx => {
       "  'time to kill at the '+z.name.toLowerCase();" +
       " el('ranknote').textContent='Bar length is '+unit+'. '+rows.length+" +
       "  ' weapons'+(unmeasured?', and '+unmeasured+' left out for want of a measurement':'')+" +
+      "  (offLoad?', and '+offLoad+' that do not chamber '+label(S.load):'')+" +
       "  '. Colour says which load, never how good. Click a row to load that weapon" +
       " into the calculator.';}" +
       /* The chips are markup, so they start pressed on whatever the markup said. A setup
@@ -725,6 +801,7 @@ module.exports = ctx => {
       "group('helmet',function(v){S.helmet=+v;});" +
       "group('vest',function(v){S.vest=+v;});" +
       "group('cls',function(v){S.cls=v;});" +
+      "group('load',function(v){S.load=v;});" +
       "group('by',function(v){S.by=v;});" +
       /* Picking a weapon is a click on the weapon. setWeapon is the one way S.w changes, so
          the shelf, the name and the art can never disagree about what is equipped. */
@@ -739,7 +816,8 @@ module.exports = ctx => {
       " el('wpnShelf').hidden=!open;" +
       " el('wpnOpen').setAttribute('aria-expanded',open?'true':'false');" +
       " if(open){var f=el('wpnShelf').querySelector('[data-wpick]');if(f)f.focus({preventScroll:true});}}" +
-      "el('wpnOpen').addEventListener('click',function(){shelf(el('wpnShelf').hidden);});" +
+      "el('wpnOpen').addEventListener('click',function(){" +
+      " if(el('wpnShelf').hidden)openOnClass();shelf(el('wpnShelf').hidden);});" +
       "el('wpnClose').addEventListener('click',function(){shelf(false);el('wpnOpen').focus();});" +
       "document.addEventListener('keydown',function(e){" +
       " if(e.key==='Escape'&&!el('wpnShelf').hidden){shelf(false);el('wpnOpen').focus();}});" +
@@ -748,13 +826,21 @@ module.exports = ctx => {
       "  setWeapon(b.getAttribute('data-wpick'));shelf(false);render();});});" +
       /* Class chips narrow the shelf. Same hidden versus display trap as the vendor: .vcard
          is display:flex, so .vcard[hidden] in the stylesheet is what makes this work. */
+      "function showClass(want){" +
+      " Array.prototype.forEach.call(document.querySelectorAll('[data-wcls]'),function(o){" +
+      "  o.setAttribute('aria-pressed',o.getAttribute('data-wcls')===want?'true':'false');});" +
+      " Array.prototype.forEach.call(document.querySelectorAll('[data-wpick]'),function(c){" +
+      "  c.hidden=c.getAttribute('data-wclass')!==want;});}" +
       "Array.prototype.forEach.call(document.querySelectorAll('[data-wcls]'),function(b){" +
-      " b.addEventListener('click',function(){" +
-      "  var want=b.getAttribute('data-wcls');" +
-      "  Array.prototype.forEach.call(document.querySelectorAll('[data-wcls]'),function(o){" +
-      "   o.setAttribute('aria-pressed',o===b?'true':'false');});" +
-      "  Array.prototype.forEach.call(document.querySelectorAll('[data-wpick]'),function(c){" +
-      "   c.hidden=!!want&&c.getAttribute('data-wclass')!==want;});});});" +
+      " b.addEventListener('click',function(){showClass(b.getAttribute('data-wcls'));});});" +
+      /* The shelf opens on the class of the weapon in hand, so pressing Change weapon on an
+         SMG shows the other SMGs rather than the top of the alphabet. Falling back to the
+         first class in the order covers a weapon whose class is not on the shelf. */
+      "function openOnClass(){" +
+      " var w=weapon(),want=(w&&w.class)||" + JSON.stringify(FIRST_CLASS) + ";" +
+      " if(!document.querySelector('[data-wcls=\"'+want+'\"]'))want=" +
+      JSON.stringify(FIRST_CLASS) + ";" +
+      " showClass(want);}" +
       "el('pellets').addEventListener('input',function(e){S.pellets=+e.target.value;render();});" +
       "Array.prototype.forEach.call(document.querySelectorAll('.bz'),function(p){" +
       " p.addEventListener('click',function(){S.zone=p.getAttribute('data-zone');render();});" +

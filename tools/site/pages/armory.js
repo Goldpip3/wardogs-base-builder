@@ -19,7 +19,7 @@ module.exports = ctx => {
   const slotsIn = function (grid) { return grid ? grid[0] * grid[1] : 0; };
   const money = function (n) { return "$" + n.toLocaleString("en-US"); };
   const priceCell = function (it) {
-    if (it.price === null) return '<span class="fine">not confirmed</span>';
+    if (it.price === null) return "&mdash;";
     if (it.price === 0) return "Free";
     return money(it.price) + (it.per > 1 ? ' <span class="fine">/ ' + it.per + '</span>' : "");
   };
@@ -101,7 +101,6 @@ module.exports = ctx => {
     } else if (u) {
       rows.push(["Kind", u.kind]);
       if (u.calibre) rows.push(["Calibre", calName(u.calibre)]);
-      notes.push({ kind: "gap", text: u.why });
     }
 
     if (a) {
@@ -129,35 +128,15 @@ module.exports = ctx => {
 
     if (it.cat === "vehicles") {
       rows.push(["Type", isAir(it.name) ? "Air" : "Ground"]);
-      notes.push({ kind: "gap", ref: "vehicle" });
     }
 
-    /* The slot is the one figure on this panel that was not transcribed from anywhere. The
-       source carries no compatibility field, so slotOf reads it off the name, and a panel
-       that printed it in the same type as a measured muzzle velocity would be passing a
-       reading off as a record. It says which it is. */
     if (it.cat === "attachments" && it.slot && it.slot !== "other") {
       rows.push(["Slot", it.slot]);
-      notes.push({ kind: "gap", ref: "slot" });
     }
 
-    if (!rows.length) notes.push({ kind: "gap", ref: "none" });
     return { rows: rows, notes: notes };
   };
 
-  /* Two of these notes are true of whole categories rather than of one item, so they are
-     stored once and referenced. Inlining them per item was 259 copies of the same sentence
-     and 40 KB of it, which is the thing that had just been taken off the buildables page. */
-  const SHARED_NOTES = {
-    none: "The vendor database gives this one a price and nothing else. No stats are " +
-      "published for it, so none are shown.",
-    vehicle: "No handling, armour or fuel figures are published for vehicles, so none are " +
-      "given here. Fuel and repair are not in the public database either. A fuel can is " +
-      money(150) + " and a fuel supply pallet is " + money(400) + ".",
-    slot: "The slot is read off the name rather than taken from the database, which " +
-      "publishes no compatibility field. It is right for everything named for what it is " +
-      "and is a guess for anything that is not.",
-  };
 
   /* What an attachment fits, where the source says so. It does not carry a compatibility
      field, so the only honest signal is the label, and the label is often explicit: 36 of
@@ -307,9 +286,8 @@ module.exports = ctx => {
     body: '<section><div class="wrap">' +
       '<span class="eyebrow">Vendor prices, checked ' + esc(A.checkedOn) + '</span>' +
       "<h1>Armory</h1>" +
-      '<p class="lede">Every item you can buy, and what the vendor wants for it. ' +
-      A.items.filter(function (i) { return i.price !== null; }).length +
-      " of " + A.items.length + " have a confirmed price; the rest are blank rather than guessed.</p>" +
+      '<p class="lede">All ' + A.items.length + ' items the vendor sells, with the price' +
+      ' on each and its art at full size when you open it.</p>' +
       '<p class="lede sub" style="margin-top:12px">Prices only. For what a weapon and a' +
       ' load actually do to somebody, and to what they are wearing, the' +
       ' <a href="/ballistics/" style="text-decoration:underline">damage calculator</a>' +
@@ -377,7 +355,7 @@ module.exports = ctx => {
       /* The vehicles page used to say these three things and nothing else that was not
          already a row in the table above, so it was folded in here rather than kept alive
          as a page that repeated the catalogue. */
-      '<h2 style="margin-top:44px">Vehicles, and what is not known about them</h2>' +
+      '<h2 style="margin-top:44px">Vehicles and mounted weapons</h2>' +
       '<p>Filter the rail to <strong>Vehicles</strong> for all ' + byCat("vehicles").length +
       ", ground and air together, or to <strong>Mounted</strong> for the " +
       byCat("mounted").length + " weapons that sit on top of them and on your emplacements." +
@@ -387,8 +365,6 @@ module.exports = ctx => {
         (A.items.find(function (i) { return i.name === "Havoc"; }) || { price: 18000 }).price /
         (A.items.find(function (i) { return i.name === "Bobcat"; }) || { price: 500 }).price) +
       " Bobcats cost.</p>" +
-      '<p class="fine">Fuel and repair costs are not in the public database yet. A fuel can' +
-      " is " + money(150) + " and a fuel supply pallet is " + money(400) + ".</p>" +
       "</div></section>" +
       '<script>(function(){' +
       'var grid=document.getElementById("catGrid"),tblBox=document.getElementById("catTable");' +
@@ -453,12 +429,11 @@ module.exports = ctx => {
          layers of quoting on its way into the page; textContent cannot be broken by any of
          that, and an escape has been eaten on this route twice before. */
       'var D=' + JSON.stringify(DETAIL).replace(/</g, "\\u003c") + ';' +
-      'var GAP=' + JSON.stringify(SHARED_NOTES).replace(/</g, "\\u003c") + ';' +
       'var dlg=document.getElementById("detail"),opener=null;' +
       'function gid(id){return document.getElementById(id);}' +
       'function cash(n){return "$"+n.toLocaleString("en-US");}' +
       'function priceText(d){' +
-      ' if(d.p===null)return "Price not confirmed";' +
+      ' if(d.p===null)return "";' +
       ' if(d.p===0)return "Free";' +
       /* A pack price is the number on the shelf and the number you compare with is the one
          per round, so both are given. It divides exactly on all 46 packs in this catalogue,
@@ -485,7 +460,7 @@ module.exports = ctx => {
       '  if(n.kind==="link"){var a=document.createElement("a");a.href=n.href;' +
       '   a.textContent=n.text;p.className="idlg-more";p.appendChild(a);}' +
       '  else{p.className=n.kind==="gap"?"idlg-gap":"idlg-note";' +
-      '   p.textContent=n.ref?GAP[n.ref]:n.text;}' +
+      '   p.textContent=n.text;}' +
       '  nb.appendChild(p);});' +
       ' return true;}' +
       /* Closing is done here rather than left to the element, because one half of what

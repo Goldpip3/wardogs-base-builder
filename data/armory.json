@@ -16,7 +16,7 @@
   {
    "id": "ammunition",
    "name": "Ammunition",
-   "blurb": "Calibres, shells and supplies, priced per pack."
+   "blurb": "Calibres and shells, priced per pack."
   },
   {
    "id": "armour",
@@ -41,7 +41,12 @@
   {
    "id": "storage",
    "name": "Storage",
-   "blurb": "Backpacks, vests, crates and supply pallets."
+   "blurb": "Backpacks, vests and pouches."
+  },
+  {
+   "id": "supply",
+   "name": "Supply",
+   "blurb": "Pallets, crates and loose supplies."
   },
   {
    "id": "vehicles",
@@ -667,48 +672,6 @@
    "price": 150,
    "per": 1,
    "icon": "arrow-explosive"
-  },
-  {
-   "name": "Ammo Supplies",
-   "cat": "ammunition",
-   "price": 10,
-   "per": 50,
-   "icon": "munitionssupplies"
-  },
-  {
-   "name": "Build Supplies",
-   "cat": "ammunition",
-   "price": 10,
-   "per": 50,
-   "icon": "buildtoolsupply"
-  },
-  {
-   "name": "Fuel Supplies",
-   "cat": "ammunition",
-   "price": 10,
-   "per": 50,
-   "icon": "fuelsupplies"
-  },
-  {
-   "name": "Mechanical Supplies",
-   "cat": "ammunition",
-   "price": 10,
-   "per": 50,
-   "icon": "sparepartssupplies"
-  },
-  {
-   "name": "Battery",
-   "cat": "ammunition",
-   "price": 150,
-   "per": 1,
-   "icon": "battery"
-  },
-  {
-   "name": "High Capacity Battery",
-   "cat": "ammunition",
-   "price": 300,
-   "per": 1,
-   "icon": "largebattery"
   },
   {
    "name": "120mm HEAT-MP Shell",
@@ -2028,13 +1991,6 @@
    "icon": "medkit-standard"
   },
   {
-   "name": "Ammo Supply Pallet",
-   "cat": "storage",
-   "price": 400,
-   "per": 1,
-   "icon": "vehiclesupplycrate-pallet-munitionssupply"
-  },
-  {
    "name": "Arsenal Backpack + 2 Slings",
    "cat": "storage",
    "price": 5000,
@@ -2049,25 +2005,11 @@
    "icon": "bpak_006"
   },
   {
-   "name": "Build Supply Pallet",
-   "cat": "storage",
-   "price": 400,
-   "per": 1,
-   "icon": "vehiclesupplycrate-pallet-buildsupply"
-  },
-  {
    "name": "Field Backpack",
    "cat": "storage",
    "price": 650,
    "per": 1,
    "icon": "bpak_005"
-  },
-  {
-   "name": "Fuel Supply Pallet",
-   "cat": "storage",
-   "price": 400,
-   "per": 1,
-   "icon": "vehiclesupplycrate-pallet-fuelsupply"
   },
   {
    "name": "Gunner Backpack + Sling",
@@ -2084,32 +2026,11 @@
    "icon": "bpak_007"
   },
   {
-   "name": "Large Armored Crate",
-   "cat": "storage",
-   "price": 800,
-   "per": 1,
-   "icon": "vehiclesupplycrate-large-armoured"
-  },
-  {
-   "name": "Large Crate",
-   "cat": "storage",
-   "price": 300,
-   "per": 1,
-   "icon": "vehiclesupplycrate-large"
-  },
-  {
    "name": "Large Tac Vest",
    "cat": "storage",
    "price": 400,
    "per": 1,
    "icon": "largetacvest"
-  },
-  {
-   "name": "Mechanical Supply Pallet",
-   "cat": "storage",
-   "price": 400,
-   "per": 1,
-   "icon": "vehiclesupplycrate-pallet-sparepartssupply"
   },
   {
    "name": "Medium Backpack + Sling",
@@ -2155,25 +2076,109 @@
    "icon": "smallbackpack"
   },
   {
-   "name": "Small Armored Crate",
+   "name": "Small Tac Vest",
    "cat": "storage",
+   "price": 100,
+   "per": 1,
+   "icon": "smalltacvest"
+  },
+  {
+   "name": "Ammo Supply Pallet",
+   "cat": "supply",
+   "price": 400,
+   "per": 1,
+   "icon": "vehiclesupplycrate-pallet-munitionssupply"
+  },
+  {
+   "name": "Build Supply Pallet",
+   "cat": "supply",
+   "price": 400,
+   "per": 1,
+   "icon": "vehiclesupplycrate-pallet-buildsupply"
+  },
+  {
+   "name": "Fuel Supply Pallet",
+   "cat": "supply",
+   "price": 400,
+   "per": 1,
+   "icon": "vehiclesupplycrate-pallet-fuelsupply"
+  },
+  {
+   "name": "Mechanical Supply Pallet",
+   "cat": "supply",
+   "price": 400,
+   "per": 1,
+   "icon": "vehiclesupplycrate-pallet-sparepartssupply"
+  },
+  {
+   "name": "Large Armored Crate",
+   "cat": "supply",
+   "price": 800,
+   "per": 1,
+   "icon": "vehiclesupplycrate-large-armoured"
+  },
+  {
+   "name": "Large Crate",
+   "cat": "supply",
+   "price": 300,
+   "per": 1,
+   "icon": "vehiclesupplycrate-large"
+  },
+  {
+   "name": "Small Armored Crate",
+   "cat": "supply",
    "price": 500,
    "per": 1,
    "icon": "vehiclesupplycrate-small-armoured"
   },
   {
    "name": "Small Crate",
-   "cat": "storage",
+   "cat": "supply",
    "price": 150,
    "per": 1,
    "icon": "vehiclesupplycrate-small"
   },
   {
-   "name": "Small Tac Vest",
-   "cat": "storage",
-   "price": 100,
+   "name": "Ammo Supplies",
+   "cat": "supply",
+   "price": 10,
+   "per": 50,
+   "icon": "munitionssupplies"
+  },
+  {
+   "name": "Build Supplies",
+   "cat": "supply",
+   "price": 10,
+   "per": 50,
+   "icon": "buildtoolsupply"
+  },
+  {
+   "name": "Fuel Supplies",
+   "cat": "supply",
+   "price": 10,
+   "per": 50,
+   "icon": "fuelsupplies"
+  },
+  {
+   "name": "Mechanical Supplies",
+   "cat": "supply",
+   "price": 10,
+   "per": 50,
+   "icon": "sparepartssupplies"
+  },
+  {
+   "name": "Battery",
+   "cat": "supply",
+   "price": 150,
    "per": 1,
-   "icon": "smalltacvest"
+   "icon": "battery"
+  },
+  {
+   "name": "High Capacity Battery",
+   "cat": "supply",
+   "price": 300,
+   "per": 1,
+   "icon": "largebattery"
   },
   {
    "name": "AH-6M [Miniguns]",

@@ -36,7 +36,7 @@
   "ttkBands": [
     { "id": "fast",  "name": "Fast",      "upTo": 0.25, "tint": "#0ca30c" },
     { "id": "mid",   "name": "Average",   "upTo": 0.6,  "tint": "#fab219" },
-    { "id": "slow",  "name": "Slow",      "upTo": 1.2,  "tint": "#ec835a" },
+    { "id": "slow",  "name": "Slow",      "upTo": 1.2,  "tint": "#f2701a" },
     { "id": "vslow", "name": "Very slow", "upTo": null, "tint": "#d03b3b" }
   ],
 
