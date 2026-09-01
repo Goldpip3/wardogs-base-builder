@@ -8,6 +8,54 @@ Newest first. One entry per decision. Keep entries short.
 
 ## 2026-08-31
 
+### You can stand in the base and walk round it
+
+**Third state on the 3D button, not a fourth button.** The toolbar is capped at ten and
+the isometric view already fills it. Plan, then 3D, then Walk, and the label always names
+where the next press goes. Key 3 cycles the same way.
+
+**Hand written WebGL, no library.** three.js is about 150 KB gzipped. The planner ships as
+one downloadable file with no network, so that weight is paid by every download forever.
+One cube, one shader, flat shading off the face normal.
+
+**A person is sized from the metre figure the app already prints, not guessed.** The status
+bar says a cell is about 1.2 m. First cut set eye height to 1.65 *blocks* off a wall
+description, making the walker 1.98 m and its sprint 10.8 m/s, faster than the world
+record. Nothing in the view shows this: everything scales together, so a base full of
+giants looks normal. Now one `CELL_M` and every walk dimension divided by it.
+Pinned by `test/planner-tools.js`, proven red on all three.
+
+**Ground grid and fog.** Without a grid, walking on open ground looks like standing still.
+Fog to the clear colour so the ground ends at a horizon and not a visible edge.
+
+**Collision is a circle against a rotated rect.** A box round an angled wall would stop you
+a foot short of everything, and angled runs are what this view exists to look at. Being
+inside a solid pushes you out the nearest face rather than trapping you.
+
+**Stage one only. Doors and gates are solid**, and the hint says so. Opening them is next.
+
+### The ranking lists every load, draws what you sorted by, and compares two rows
+
+**One row per weapon and load.** With no filter on, the M4 is three rows, one for each round
+it chambers. Asking to see everything and being shown each weapon on whichever round it
+happened to fall back to was the page answering a question nobody asked. 81 rows where there
+were 29; picking a load narrows it to that one.
+
+**The bar draws the column you sorted by**, inverted for time and shots where lower is
+better. That is what puts the PKM back on the chart: it has no rate of fire, so it draws no
+bar under time, and a full one the moment you rank by damage.
+
+**Two rows can be compared.** Clicking picks a row, up to three, and the picks sit above the
+list as one small table with damage, shots, rate, time and the zones each is one shot at,
+with a button to set one up in the calculator. Comparing two weapons was reading a row,
+scrolling, and remembering it.
+
+**"One shot" was in two neighbouring cells**, the time and the shots. Time reads instant.
+
+**The chips are buttons.** They were cells in a grey band that spanned the column, so eight
+of them over a 1180px page drew four hundred pixels of empty grey and read as a broken table.
+Each carries its own edge now, and the row is as wide as what is in it.
+
 ### The ranking says one thing per column, and the bar points the right way
 
 **The bar was upside down.** Its length was time to kill, so the seven weapons that kill in

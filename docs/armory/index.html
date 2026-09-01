@@ -318,16 +318,20 @@ details.design summary::-webkit-details-marker{display:none}
 .tagpick .chips{margin:0 0 10px}
 .tagpick .chip{padding:6px 9px;font-size:10px;letter-spacing:.06em}
 /* --- catalogue: chips, search, grid and table --- */
-.chips{display:flex;flex-wrap:wrap;gap:1px;background:var(--line);border:1px solid var(--line)}
+/* Buttons in a row, each carrying its own edge. They used to be cells in a grey band that
+   spanned the column, so eight chips over a 1180px page drew four hundred pixels of empty
+   grey beside them and the row read as a broken table rather than as a set of controls. */
+.chips{display:flex;flex-wrap:wrap;gap:6px;background:none;border:0}
 /* A filter bar spans its column because it sits next to a search box that wants the rest of
    the width. Three sort tabs have nothing to sit next to, so a full width band left a grey
    stripe across the page with three words at one end of it. These are the width of what is
    in them. */
 .chips.sorts{display:inline-flex;flex-wrap:nowrap;width:auto}
-.chip{background:var(--panel);color:var(--dim2);border:0;cursor:pointer;font-family:var(--ui);
-  font-weight:600;font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:9px 13px}
-.chip:hover{background:var(--panel2);color:var(--text)}
-.chip[aria-pressed="true"]{background:var(--yellow);color:var(--bg)}
+.chip{background:transparent;color:var(--dim2);border:1px solid var(--line2);cursor:pointer;
+  font-family:var(--ui);font-weight:600;font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;padding:8px 13px}
+.chip:hover{border-color:var(--text);color:var(--text)}
+.chip[aria-pressed="true"]{background:var(--yellow);border-color:var(--yellow);color:var(--bg)}
 .chip small{opacity:.65;margin-left:6px;font-size:10px}
 .cat-search{flex:1 1 210px;min-width:180px;background:var(--panel);color:var(--text);
   border:1px solid var(--line2);padding:10px 13px;font-family:var(--ui);font-size:14px}
@@ -608,7 +612,7 @@ tr[data-on="1"] td{background:var(--panel2);color:var(--text)}
 .rrow{display:grid;align-items:center;gap:6px 10px;padding:9px 10px;background:var(--panel);
   cursor:pointer;font-size:13px;
   grid-template-columns:1fr auto auto auto;
-  grid-template-areas:"name name name name" "track track track track" "load dmg stk rpm"}
+  grid-template-areas:"name name ttk ttk" "track track track track" "load dmg stk rpm"}
 /* The header is the sort. Same grid as a row so each label sits over the numbers it names,
    and pressing one orders by it: four chips above the list saying "By damage" over a column
    of unlabelled numbers was two problems, and this is one answer to both. */
@@ -636,9 +640,30 @@ tr[data-on="1"] td{background:var(--panel2);color:var(--text)}
 .rrow .rdmg{grid-area:dmg}
 .rrow .rstk{grid-area:stk}
 .rrow .rrpm{grid-area:rpm;color:var(--dim2)}
+.rrow .rttk{grid-area:ttk}
+.rh-ttk{grid-area:ttk;text-align:right}
+/* Picked for comparison. The outline rather than a fill, so the bar keeps its own colour. */
+.rrow[data-picked="1"]{outline:1px solid var(--yellow);outline-offset:-1px;background:var(--panel2)}
+/* The caption over the bar says which column it is drawing, and is not a control. */
+.rh-bar{grid-area:track;color:var(--dim);cursor:default}
+
+/* two or three rows lifted out of the list and set side by side */
+.rcmp{border:1px solid var(--yellow);background:var(--panel);margin:14px 0 0;padding:12px 14px}
+.rcmp-h{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);
+  margin:0 0 10px}
+.rcmp-cols{display:grid;gap:12px;grid-template-columns:1fr}
+@media(min-width:640px){.rcmp-cols{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}}
+.rcmp-c{border:1px solid var(--line);padding:10px 12px;background:var(--bg)}
+.rcmp-n{font-family:var(--display);font-weight:700;font-size:15px;text-transform:uppercase;
+  letter-spacing:.02em;margin:0 0 8px;color:var(--text)}
+.rcmp-c dl{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;margin:0 0 10px;font-size:12px}
+.rcmp-c dt{color:var(--dim);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  align-self:center}
+.rcmp-c dd{margin:0;text-align:right;font-family:var(--num);color:var(--text)}
 @media(min-width:760px){
-  .rrow{grid-template-columns:210px minmax(120px,1fr) 96px 62px 54px 62px;
-    grid-template-areas:"name track load dmg stk rpm";padding:7px 10px}
+  .rrow{grid-template-columns:200px minmax(90px,1fr) 84px 58px 46px 54px 74px;
+    grid-template-areas:"name track load dmg stk rpm ttk";padding:7px 10px}
   .rrow.rhead{padding:4px 10px 6px}
 }
 /* the equipped weapon as a control: its name, and the way to change it */

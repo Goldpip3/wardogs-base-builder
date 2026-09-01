@@ -225,6 +225,10 @@
   /* Canvas area */
   #canvasWrap { flex: 1; position: relative; min-width: 0; background: #191b12; }
   #canvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: crosshair; }
+  #walkCanvas { position: absolute; inset: 0; width: 100%; height: 100%; display: none; cursor: none; }
+  #walkHint { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%);
+    background: rgba(12,12,12,.82); border: 1px solid #333; color: #fff7ea; padding: 7px 13px;
+    font-size: 12px; letter-spacing: .06em; display: none; pointer-events: none; }
   #emptyState {
     position: absolute; top: 50%; left: 50%; transform: translate(-50%, -60%);
     text-align: center; pointer-events: none; max-width: calc(360px * var(--s));
@@ -459,6 +463,8 @@
 
   <div id="canvasWrap">
     <canvas id="canvas"></canvas>
+    <canvas id="walkCanvas"></canvas>
+    <div id="walkHint">WASD to move, mouse to look, Shift to run. Esc frees the mouse.</div>
     <div id="emptyState">
       <div class="es-title">Plan your FOB</div>
       <p>Start with the <b>FOB</b> at the top of the list. it sets the square you can build inside.
@@ -1092,7 +1098,7 @@ function resize() {
   ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
   draw();
 }
-window.addEventListener("resize", resize);
+window.addEventListener("resize", () => { resize(); if (walk.on) walkResize(); });
 function toWorld(px, py) { return [ (px - canvas.clientWidth/2) / view.zoom + view.x, (py - canvas.clientHeight/2) / view.zoom + view.y ]; }
 function toScreen(wx, wy) { return [ (wx - view.x) * view.zoom + canvas.clientWidth/2, (wy - view.y) * view.zoom + canvas.clientHeight/2 ]; }
 
@@ -1555,17 +1561,382 @@ function spin3D(deg) {
   iso.yaw = ((iso.yaw + deg) % 360 + 360) % 360;
   draw();
 }
+function cycleView() {
+  if (walk.on) { setWalk(false); set3D(false); }
+  else if (view3d) { set3D(true); setWalk(true); }
+  else set3D(true);
+  paintViewButton();
+}
+function paintViewButton() {
+  const b = document.getElementById("btn3d");
+  b.classList.toggle("active", view3d || walk.on);
+  b.textContent = walk.on ? "\u25a6 Plan" : (view3d ? "\u21e2 Walk" : "\u25f2 3D");
+  for (const id of ["btnSpinL", "btnSpinR"])
+    document.getElementById(id).style.display = (view3d && !walk.on) ? "" : "none";
+}
 function set3D(on) {
   view3d = on;
-  document.getElementById("btn3d").classList.toggle("active", on);
-  document.getElementById("btn3d").textContent = on ? "▦ Plan" : "◲ 3D";
-  for (const id of ["btnSpinL", "btnSpinR"])
-    document.getElementById(id).style.display = on ? "" : "none";
+  paintViewButton();
   document.getElementById("btnSnap").style.display = on ? "none" : "";
   if (on) fit3D();
   updateHint();
   draw();
 }
+
+/* ============ WALK ============
+   Stage one: stand in the base and look at it from the inside. Move, look, and be stopped
+   by anything solid. Doors, gates and climbing are not in this pass, so every piece is a
+   wall and the only way through a gate is round it.
+
+   It is WebGL rather than the 2D canvas the plan and the isometric view share, because a
+   first person view needs a depth buffer and perspective, and doing either by hand in 2D is
+   how the isometric view ended up spending six passes on draw order. The depth buffer sorts
+   the scene for free and is correct about pieces that interpenetrate, which no painter's
+   ordering can be.
+
+   Nothing here is loaded from anywhere. WebGL is a browser API, so the downloadable file
+   still reaches no network, and the shaders below are the whole renderer: no library, about
+   ten kilobytes rather than the hundred and fifty a general one would add to a file that
+   just had six hundred cut out of it.
+
+   Scale. The status bar and the help both already print one cell as about 1.2 metres, so
+   that is the figure, and everything here is worked out from it rather than from a second
+   estimate. A number lives in one place. Sizing the walker by eye instead is exactly how
+   the view would end up quietly contradicting the bar at the bottom of the same screen.
+
+   One tension worth naming rather than hiding: the Sandbag Wall is one block tall and its
+   own description calls that "waist height", but one block at 1.2 m is nearer the chest.
+   The printed figure wins, because it is the one the rest of the app is built on.
+
+   The isometric view stretches a block to 1.45 cells on purpose, to make height legible at
+   a glance. That is the right call there and the wrong one here, where the whole point is
+   standing next to the thing at its real size, so this uses 1.0 and says so. */
+const WALK_BLOCK = 1.0;     // block height in cells. Not ISO_Z: see above.
+const CELL_M = 1.2;         // metres per cell, the figure the status bar prints
+const WALK_EYE = 1.65 / CELL_M;   // a standing adult's eyes, 1.65 m
+const WALK_R = 0.38 / CELL_M;     // shoulder half width, so a 0.76 m walker
+const WALK_WALK = 4.0 / CELL_M;   // 4 m/s, a shooter's walk rather than a real one
+const WALK_RUN = 6.5 / CELL_M;    // 6.5 m/s sprint. 9 cells/s was 10.8 m/s, which is a world record
+const WALK_SKY = [0.085, 0.090, 0.075];   // fog and clear are one colour on purpose
+const walk = { on: false, x: 0, y: 0, yaw: 0, pitch: 0, keys: {}, gl: null, last: 0 };
+
+/* ---- small matrix helpers, column major, enough for one camera and a lot of boxes ---- */
+function m4mul(a, b) {
+  const o = new Float32Array(16);
+  for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) {
+    o[c * 4 + r] = a[r] * b[c * 4] + a[4 + r] * b[c * 4 + 1] +
+                   a[8 + r] * b[c * 4 + 2] + a[12 + r] * b[c * 4 + 3];
+  }
+  return o;
+}
+function m4persp(fovy, aspect, near, far) {
+  const f = 1 / Math.tan(fovy / 2), o = new Float32Array(16);
+  o[0] = f / aspect; o[5] = f; o[10] = (far + near) / (near - far);
+  o[11] = -1; o[14] = 2 * far * near / (near - far);
+  return o;
+}
+/* The camera, built directly rather than through a lookAt: yaw about the up axis then
+   pitch, which is what a first person view is and cannot gimbal because pitch is clamped. */
+function m4view(x, y, z, yaw, pitch) {
+  const cy = Math.cos(yaw), sy = Math.sin(yaw);
+  const cp = Math.cos(pitch), sp = Math.sin(pitch);
+  const fx = sy * cp, fy = cy * cp, fz = sp;          // forward
+  const rx = cy, ry = -sy, rz = 0;                    // right
+  const ux = sy * -sp, uy = cy * -sp, uz = cp;        // up
+  const o = new Float32Array(16);
+  o[0] = rx; o[4] = ry; o[8] = rz;
+  o[1] = ux; o[5] = uy; o[9] = uz;
+  o[2] = -fx; o[6] = -fy; o[10] = -fz;
+  o[12] = -(rx * x + ry * y + rz * z);
+  o[13] = -(ux * x + uy * y + uz * z);
+  o[14] = fx * x + fy * y + fz * z;
+  o[15] = 1;
+  return o;
+}
+function m4model(cx, cy, z, w, d, h, rot) {
+  const c = Math.cos(rot), s = Math.sin(rot), o = new Float32Array(16);
+  o[0] = c * w; o[1] = s * w;
+  o[4] = -s * d; o[5] = c * d;
+  o[10] = h;
+  o[12] = cx; o[13] = cy; o[14] = z; o[15] = 1;
+  return o;
+}
+
+/* A unit cube centred on x and y and sitting on z=0, so a model matrix is footprint by
+   height with no offset to remember. Normals ride along so a face can be shaded by which
+   way it points, which is the whole lighting model. */
+const WALK_CUBE = (function () {
+  const f = [
+    [[-.5,-.5,0],[.5,-.5,0],[.5,.5,0],[-.5,.5,0],[0,0,-1]],
+    [[-.5,-.5,1],[-.5,.5,1],[.5,.5,1],[.5,-.5,1],[0,0,1]],
+    [[-.5,-.5,0],[-.5,-.5,1],[.5,-.5,1],[.5,-.5,0],[0,-1,0]],
+    [[.5,.5,0],[.5,.5,1],[-.5,.5,1],[-.5,.5,0],[0,1,0]],
+    [[.5,-.5,0],[.5,-.5,1],[.5,.5,1],[.5,.5,0],[1,0,0]],
+    [[-.5,.5,0],[-.5,.5,1],[-.5,-.5,1],[-.5,-.5,0],[-1,0,0]],
+  ];
+  const v = [];
+  for (const q of f) {
+    const n = q[4];
+    for (const i of [0, 1, 2, 0, 2, 3]) v.push(q[i][0], q[i][1], q[i][2], n[0], n[1], n[2]);
+  }
+  return new Float32Array(v);
+}());
+
+/* Flat shading off the face normal, plus the world position, which the fragment shader
+   needs for both the ground grid and the fog. */
+const WALK_VS =
+  "attribute vec3 aP;attribute vec3 aN;uniform mat4 uMVP;uniform mat4 uM;" +
+  "varying float vL;varying vec3 vW;varying vec3 vN;" +
+  "void main(){vec4 w=uM*vec4(aP,1.0);gl_Position=uMVP*vec4(aP,1.0);" +
+  "vec3 n=normalize(mat3(uM[0].xyz,uM[1].xyz,uM[2].xyz)*aN);vN=n;" +
+  "vL=0.55+0.45*max(dot(n,normalize(vec3(0.4,0.6,0.9))),0.0);vW=w.xyz;}";
+
+/* Two things beyond the flat colour, and both are there so the view reads as a place
+   rather than shapes on black.
+
+   A grid on the ground, one line per cell and a brighter one every eight, the same
+   spacing the plan draws. Without it there is nothing to see moving past and walking
+   forward on open ground looks identical to standing still. The line is widened with
+   distance instead of being measured with fwidth, because that needs an extension
+   WebGL1 does not promise, and a line that thins to nothing far away just shimmers.
+
+   Fog to the clear colour, so the ground stops at a horizon rather than at a visible
+   edge with the void past it. It saturates at about seventy cells, well inside the
+   ground quad, which is what lets that edge never be reached. */
+const WALK_FS =
+  "precision mediump float;uniform vec3 uC;uniform vec3 uEye;uniform vec3 uFog;" +
+  "uniform float uGrid;varying float vL;varying vec3 vW;varying vec3 vN;" +
+  "void main(){vec3 c=uC*vL;float dist=length(vW-uEye);" +
+  "if(uGrid>0.5&&vN.z>0.5){" +
+  "float lw=0.03+dist*0.006;" +
+  "vec2 g1=abs(fract(vW.xy)-0.5);" +
+  "vec2 g8=abs(fract(vW.xy/8.0)-0.5)*8.0;" +
+  "float d1=min(g1.x,g1.y),d8=min(g8.x,g8.y);" +
+  "float l1=1.0-smoothstep(lw*0.5,lw,d1),l8=1.0-smoothstep(lw*0.5,lw,d8);" +
+  "c=mix(c,vec3(0.30,0.32,0.24),l1*0.55);c=mix(c,vec3(0.42,0.44,0.32),l8*0.75);}" +
+  "gl_FragColor=vec4(mix(c,uFog,clamp((dist-8.0)/62.0,0.0,1.0)),1.0);}";
+
+function walkGL() {
+  if (walk.gl) return walk.gl;
+  const cv = document.getElementById("walkCanvas");
+  const gl = cv.getContext("webgl", { antialias: true, alpha: false });
+  if (!gl) return null;
+  const sh = function (type, src) {
+    const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s;
+  };
+  const pr = gl.createProgram();
+  gl.attachShader(pr, sh(gl.VERTEX_SHADER, WALK_VS));
+  gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, WALK_FS));
+  gl.linkProgram(pr); gl.useProgram(pr);
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, WALK_CUBE, gl.STATIC_DRAW);
+  const aP = gl.getAttribLocation(pr, "aP"), aN = gl.getAttribLocation(pr, "aN");
+  gl.enableVertexAttribArray(aP); gl.vertexAttribPointer(aP, 3, gl.FLOAT, false, 24, 0);
+  gl.enableVertexAttribArray(aN); gl.vertexAttribPointer(aN, 3, gl.FLOAT, false, 24, 12);
+  gl.enable(gl.DEPTH_TEST);
+  walk.gl = { gl: gl, cv: cv, uMVP: gl.getUniformLocation(pr, "uMVP"),
+              uM: gl.getUniformLocation(pr, "uM"), uC: gl.getUniformLocation(pr, "uC"),
+              uEye: gl.getUniformLocation(pr, "uEye"),
+              uFog: gl.getUniformLocation(pr, "uFog"),
+              uGrid: gl.getUniformLocation(pr, "uGrid") };
+  return walk.gl;
+}
+
+function hex3(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  return [(n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255];
+}
+
+/* Every solid piece as a rect in cells plus the band of height it occupies. Built once per
+   frame rather than per test, because collision asks about all of them on every step. */
+function walkSolids() {
+  const z = standHeights(), out = [];
+  for (const p of design.pieces) {
+    const d = byId[p.type]; if (!d) continue;
+    const r = pieceRect(p); if (!r) continue;
+    out.push({ r: r, base: (z.get(p.id) || 0) * WALK_BLOCK,
+               top: ((z.get(p.id) || 0) + (d.height || 1)) * WALK_BLOCK,
+               role: d.role, fob: !!d.isFob });
+  }
+  return out;
+}
+
+/* Circle against a rotated rectangle, resolved by pushing the walker back out along the
+   shallowest way out. Exact rather than an axis-aligned approximation, because a wall run
+   laid at an angle is the case this view exists to look at and a box drawn round it would
+   stop you a foot short of everything. */
+function walkPush(nx, ny, solids) {
+  for (let pass = 0; pass < 3; pass++) {
+    let hit = false;
+    for (const s of solids) {
+      if (s.base > WALK_EYE * WALK_BLOCK) continue;      // walk under it
+      const r = s.r, c = Math.cos(-r.rot), sn = Math.sin(-r.rot);
+      const dx = nx - r.cx, dy = ny - r.cy;
+      const lx = dx * c - dy * sn, ly = dx * sn + dy * c;
+      const hw = r.w / 2, hh = r.h / 2;
+      const qx = Math.max(-hw, Math.min(hw, lx)), qy = Math.max(-hh, Math.min(hh, ly));
+      let ox = lx - qx, oy = ly - qy;
+      let dist = Math.sqrt(ox * ox + oy * oy);
+      if (dist > WALK_R) continue;
+      if (dist < 1e-6) {
+        /* inside: leave by the nearest edge */
+        const l = hw - Math.abs(lx), b = hh - Math.abs(ly);
+        if (l < b) { ox = lx < 0 ? -1 : 1; oy = 0; dist = 0; }
+        else { ox = 0; oy = ly < 0 ? -1 : 1; dist = 0; }
+        const push = (l < b ? l : b) + WALK_R;
+        const wx = ox * push, wy = oy * push;
+        nx += wx * c + wy * sn; ny += -wx * sn + wy * c;
+      } else {
+        const k = (WALK_R - dist) / dist;
+        const wx = ox * k, wy = oy * k;
+        nx += wx * c + wy * sn; ny += -wx * sn + wy * c;
+      }
+      hit = true;
+    }
+    if (!hit) break;
+  }
+  return [nx, ny];
+}
+
+/* Bounds of everything placed, in cells, the same way fit3D takes them. */
+function walkBounds() {
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  for (const p of design.pieces) {
+    const b = rectAABB(pieceRect(p));
+    x0 = Math.min(x0, b.x0); y0 = Math.min(y0, b.y0);
+    x1 = Math.max(x1, b.x1); y1 = Math.max(y1, b.y1);
+  }
+  return { minX: x0, maxX: x1, minY: y0, maxY: y1 };
+}
+
+function walkResize() {
+  const g = walkGL(); if (!g) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const w = g.cv.clientWidth, h = g.cv.clientHeight;
+  g.cv.width = Math.round(w * dpr); g.cv.height = Math.round(h * dpr);
+  g.gl.viewport(0, 0, g.cv.width, g.cv.height);
+}
+
+function walkDraw() {
+  const g = walkGL(); if (!g) return;
+  const gl = g.gl;
+  gl.clearColor(WALK_SKY[0], WALK_SKY[1], WALK_SKY[2], 1);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  const aspect = g.cv.width / Math.max(1, g.cv.height);
+  const proj = m4persp(75 * Math.PI / 180, aspect, 0.05, 400);
+  const view = m4view(walk.x, walk.y, WALK_EYE * WALK_BLOCK, walk.yaw, walk.pitch);
+  const vp = m4mul(proj, view);
+  gl.uniform3fv(g.uEye, [walk.x, walk.y, WALK_EYE * WALK_BLOCK]);
+  gl.uniform3fv(g.uFog, WALK_SKY);
+
+  /* The ground first, one flat box under everything, so the base has something to stand on
+     and the horizon is not the void. */
+  const b = design.pieces.length ? walkBounds() : { minX: -20, maxX: 20, minY: -20, maxY: 20 };
+  const gw = (b.maxX - b.minX) + 400, gd = (b.maxY - b.minY) + 400;
+  const gm = m4model((b.minX + b.maxX) / 2, (b.minY + b.maxY) / 2, -0.2, gw, gd, 0.2, 0);
+  gl.uniformMatrix4fv(g.uM, false, gm);
+  gl.uniformMatrix4fv(g.uMVP, false, m4mul(vp, gm));
+  gl.uniform3fv(g.uC, [0.17, 0.18, 0.14]);
+  gl.uniform1f(g.uGrid, 1);
+  gl.drawArrays(gl.TRIANGLES, 0, 36);
+  gl.uniform1f(g.uGrid, 0);
+
+  for (const s of walkSolids()) {
+    const m = m4model(s.r.cx, s.r.cy, s.base, s.r.w, s.r.h,
+                      Math.max(0.05, s.top - s.base), s.r.rot);
+    gl.uniformMatrix4fv(g.uM, false, m);
+    gl.uniformMatrix4fv(g.uMVP, false, m4mul(vp, m));
+    gl.uniform3fv(g.uC, hex3(s.fob ? "#6b6f76" : (ROLE_COLOR[s.role] || "#8a8f98")));
+    gl.drawArrays(gl.TRIANGLES, 0, 36);
+  }
+}
+
+function walkStep(now) {
+  if (!walk.on) return;
+  const dt = Math.min(0.05, (now - walk.last) / 1000 || 0);
+  walk.last = now;
+  const k = walk.keys;
+  let fwd = (k.w ? 1 : 0) - (k.s ? 1 : 0), side = (k.d ? 1 : 0) - (k.a ? 1 : 0);
+  if (fwd || side) {
+    const len = Math.sqrt(fwd * fwd + side * side);
+    fwd /= len; side /= len;
+    const speed = (k.shift ? WALK_RUN : WALK_WALK) * dt;
+    const sy = Math.sin(walk.yaw), cy = Math.cos(walk.yaw);
+    let nx = walk.x + (sy * fwd + cy * side) * speed;
+    let ny = walk.y + (cy * fwd - sy * side) * speed;
+    const out = walkPush(nx, ny, walkSolids());
+    walk.x = out[0]; walk.y = out[1];
+  }
+  walkDraw();
+  requestAnimationFrame(walkStep);
+}
+
+/* Dropped in at the middle of the base and then pushed out of anything it landed inside, so
+   a start point inside a bunker does not trap the walker under its roof. */
+function walkSpawn() {
+  const b = design.pieces.length ? walkBounds() : { minX: -5, maxX: 5, minY: -5, maxY: 5 };
+  walk.x = (b.minX + b.maxX) / 2;
+  walk.y = b.minY - 6;
+  walk.yaw = 0; walk.pitch = 0;
+  const out = walkPush(walk.x, walk.y, walkSolids());
+  walk.x = out[0]; walk.y = out[1];
+}
+
+function setWalk(on) {
+  walk.on = on;
+  const cv = document.getElementById("walkCanvas");
+  /* block, not the empty string: the stylesheet defaults this canvas to none, so
+     clearing the inline style leaves it hidden rather than showing it. */
+  cv.style.display = on ? "block" : "none";
+  document.getElementById("canvas").style.display = on ? "none" : "";
+  if (on) {
+    if (!walkGL()) { walk.on = false; cv.style.display = "none";
+      document.getElementById("canvas").style.display = ""; alert("This browser has no WebGL, so the walkthrough cannot run."); return; }
+    walkResize(); walkSpawn();
+    walk.last = performance.now();
+    requestAnimationFrame(walkStep);
+    cv.requestPointerLock && cv.requestPointerLock();
+    updateHint();
+  } else {
+    if (document.pointerLockElement) document.exitPointerLock();
+    document.getElementById("walkHint").style.display = "none";
+    updateHint();
+  }
+}
+
+/* ---- walk input ----
+   Mouse look only while the pointer is locked, so a click on the toolbar is still a click.
+   Esc gives the mouse back without leaving the walkthrough, and clicking the view takes it
+   again, which is what every game that does this does. */
+document.addEventListener('pointerlockchange', function () {
+  document.getElementById('walkHint').style.display =
+    (walk.on && !document.pointerLockElement) ? '' : 'none';
+});
+document.getElementById('walkCanvas').addEventListener('mousedown', function () {
+  if (walk.on && !document.pointerLockElement) this.requestPointerLock();
+});
+document.addEventListener('mousemove', function (e) {
+  if (!walk.on || document.pointerLockElement !== document.getElementById('walkCanvas')) return;
+  walk.yaw += e.movementX * 0.0026;
+  walk.pitch -= e.movementY * 0.0026;
+  const lim = Math.PI / 2 - 0.02;
+  walk.pitch = Math.max(-lim, Math.min(lim, walk.pitch));
+});
+/* Captured, so movement keys reach the walkthrough before the planner's own shortcuts read
+   them as tools. W and D in particular are already bound in the plan. */
+window.addEventListener('keydown', function (e) {
+  if (!walk.on) return;
+  const k = e.key.toLowerCase();
+  if (k === 'w' || k === 'a' || k === 's' || k === 'd') { walk.keys[k] = true; e.preventDefault(); e.stopPropagation(); }
+  else if (k === 'shift') walk.keys.shift = true;
+}, true);
+window.addEventListener('keyup', function (e) {
+  if (!walk.on) return;
+  const k = e.key.toLowerCase();
+  if (k === 'shift') walk.keys.shift = false;
+  else if (walk.keys[k] !== undefined) { walk.keys[k] = false; e.preventDefault(); e.stopPropagation(); }
+}, true);
 
 /* ============ DRAW ============ */
 /* Input events fire far faster than the screen refreshes, so collapse every request
@@ -2937,7 +3308,7 @@ window.addEventListener("keydown", e => {
   else if (k === "r") rotateSelection(e.shiftKey ? -rotStep() : rotStep());
   else if (k === "delete" || k === "backspace") deleteSelection();
   else if (k === "f") { view3d ? fit3D() : zoomFit(); draw(); }
-  else if (k === "3") set3D(!view3d);           // was V, which read as Ctrl+V's letter
+  else if (k === "3") cycleView();              // was V, which read as Ctrl+V's letter
   else if (view3d && (k === "q" || k === "e")) spin3D(k === "q" ? -ISO_STEP : ISO_STEP);
   else if (["arrowup","arrowdown","arrowleft","arrowright"].includes(k)) {
     e.preventDefault();
@@ -3038,6 +3409,12 @@ function renderCrewStrip() {
 }
 function updateHint() {
   const el = document.getElementById("hint");
+  if (walk.on) {
+    el.innerHTML = "Standing in it. <b>W A S D</b> to move &middot; mouse to look &middot; <b>Shift</b> to run &middot; " +
+      "<b>Esc</b> frees the mouse and clicking takes it back &middot; <b>3</b> or the button returns to the plan. " +
+      "Doors and gates are solid in this pass, so walk round them.";
+    return;
+  }
   if (view3d) {
     el.innerHTML = "Looking at it in 3D. Drag to move · wheel to zoom · <b>Q</b> and <b>E</b> or the " +
       "<b>↺ ↻</b> buttons turn it 15° at a time · click a piece to select it · " +
@@ -3117,7 +3494,7 @@ function stepUiScale(dir) {
 /* ============ TOP BAR wiring ============ */
 document.getElementById("btnSnap").onclick = toggleSnap;
 document.getElementById("btnFit").onclick = () => { view3d ? fit3D() : zoomFit(); draw(); };
-document.getElementById("btn3d").onclick = () => set3D(!view3d);
+document.getElementById("btn3d").onclick = () => cycleView();
 document.getElementById("btnSpinL").onclick = () => spin3D(-ISO_STEP);
 document.getElementById("btnSpinR").onclick = () => spin3D(ISO_STEP);
 document.getElementById("btnUndo").onclick = undo;

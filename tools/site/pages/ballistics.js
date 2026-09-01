@@ -390,12 +390,14 @@ module.exports = ctx => {
       "</div>" +
       /* The columns are the sort. Four chips saying "By damage" above a list whose columns
          were unlabelled is two problems solved by one row: the header says what each number
-         is, and pressing it orders by that number. */
+         is, and pressing it orders by that number.
+
+         The bar column is not one of them. It draws whichever column is sorted, so its
+         heading is a caption saying which, and pressing a number is what changes it. */
       '<div class="rrow rhead" role="row">' +
         '<button type="button" class="rh rh-name" data-by="name"' +
           ' aria-pressed="false">Weapon</button>' +
-        '<button type="button" class="rh rh-ttk" data-by="ttk"' +
-          ' aria-pressed="true">How fast it kills</button>' +
+        '<span class="rh rh-bar" id="rankby">Ranked by time to kill</span>' +
         '<button type="button" class="rh rh-load" data-by="load"' +
           ' aria-pressed="false">Load</button>' +
         '<button type="button" class="rh rh-dmg" data-by="dmg"' +
@@ -404,8 +406,13 @@ module.exports = ctx => {
           ' aria-pressed="false">Shots</button>' +
         '<button type="button" class="rh rh-rpm" data-by="rpm"' +
           ' aria-pressed="false">Rate</button>' +
+        '<button type="button" class="rh rh-ttk" data-by="ttk"' +
+          ' aria-pressed="true">Time</button>' +
       "</div>" +
       '<div class="rank" id="rank"></div>' +
+      /* Two rows picked out of the list, side by side. Comparing two weapons was reading one
+         row, scrolling, and remembering it. */
+      '<div class="rcmp" id="rcmp" hidden></div>' +
       '<p class="fine" id="ranknote"></p>' +
       adSlot("inArticle") +
       "</div></section>" +
@@ -589,6 +596,12 @@ module.exports = ctx => {
       /* One shot is one shot, a measured rate of fire is seconds, and a weapon with no rate
          of fire yet is a dash. It was seconds or nothing, and nothing came out as 0.00 s,
          which is the figure for the fastest kill on the page. */
+      /* What a kill costs in time, in the one place that says it. A one-shot kill takes no
+         time to speak of, and "one shot" beside a shots column already reading 1 was the
+         same fact in two neighbouring cells. */
+      "function kills(k){" +
+      " if(k.stk===1)return 'instant';" +
+      " return (k.ttk===null||k.ttk===undefined)?'\u2014':k.ttk.toFixed(2)+' s';}" +
       "function secs(stk,ttk){" +
       " if(stk===1)return 'one shot';" +
       " return (ttk===null||ttk===undefined)?'\u2014':ttk.toFixed(2)+' s';}" +
@@ -695,47 +708,111 @@ module.exports = ctx => {
       "  var f=fire(w,z,type);" +
       "  if(!f.miss&&f.k.stk===1)out.push(z.name.toLowerCase());});" +
       " return out;}" +
+      /* ---- the ranking ----
+         One row per weapon and load, not per weapon. With no filter on, a weapon that
+         chambers three rounds is three rows: asking to see everything and being shown each
+         weapon on whichever round it happened to fall back to was the page answering a
+         question nobody asked. Picking a load narrows it to that one. */
+      "function rankRows(){" +
+      " var z=zoneById[S.zone],out=[],unmeasured=0,offLoad=0;" +
+      " B.weapons.forEach(function(w){" +
+      "  if(S.cls&&w.class!==S.cls)return;" +
+      "  var ls=loadsOf(w);" +
+      "  if(!ls){unmeasured++;return;}" +
+      "  var types=[];" +
+      "  Object.keys(ls).forEach(function(n){" +
+      "   if(types.indexOf(ls[n].type)<0)types.push(ls[n].type);});" +
+      /* Not an array literal of one: tools/check-build.js reads a bracket with a dot in it
+         as a character class whose escapes were eaten on the way into the page, which is a
+         real bug it has caught before and worth keeping loud. */
+      "  var want=S.load?types.filter(function(x){return x===S.load;}):types;" +
+      "  var got=0;" +
+      "  want.forEach(function(tp){" +
+      "   var f=fire(w,z,tp);" +
+      "   if(f.miss)return;" +
+      "   got++;" +
+      "   out.push({w:w,p:f.p,s:f.s,k:f.k,type:tp," +
+      "    band:bandFor(B.bands,f.k.stk,f.k.ttk),one:oneShotZones(w,tp)," +
+      "    key:w.name+'|'+tp});});" +
+      "  if(!got){if(S.load)offLoad++;else unmeasured++;}});" +
+      " return {rows:out,unmeasured:unmeasured,offLoad:offLoad};}" +
+
+      /* What the bar draws: whichever column is sorted. Time and shots are better lower, so
+         those two are inverted and the fastest fills the track; damage and rate are better
+         higher and fill it directly. A weapon the measure is unknown for draws no bar,
+         which is how the PKM reads until somebody counts its rounds, and why it still draws
+         one the moment you sort by damage. */
+      "var BARBY={ttk:{lower:true,label:'time to kill'},stk:{lower:true,label:'shots to kill'}," +
+      " dmg:{lower:false,label:'damage'},rpm:{lower:false,label:'rate of fire'}};" +
+      "function measureOf(o,by){" +
+      " if(by==='dmg')return o.s.damage;" +
+      " if(by==='stk')return isFinite(o.k.stk)?o.k.stk:null;" +
+      " if(by==='rpm')return o.w.rpm||null;" +
+      " return o.k.ttk;}" +
+
+      /* Comparing two weapons meant reading a row, scrolling, and remembering it. Clicking
+         a row picks it instead, and the picks sit above the list as one small table. Three
+         is the cap: a fourth column stops being a comparison and starts being the list you
+         already have. */
+      "var PICKED=[];" +
+      "function togglePick(key){" +
+      " var at=PICKED.indexOf(key);" +
+      " if(at>=0)PICKED.splice(at,1);" +
+      " else{PICKED.push(key);if(PICKED.length>3)PICKED.shift();}" +
+      " renderRank();}" +
+      "function renderCompare(rows){" +
+      " var box=el('rcmp');" +
+      " var picks=PICKED.map(function(k){" +
+      "  for(var i=0;i<rows.length;i++)if(rows[i].key===k)return rows[i];" +
+      "  return null;}).filter(Boolean);" +
+      " if(picks.length<1){box.hidden=true;box.textContent='';return;}" +
+      " box.hidden=false;" +
+      " var head='<div class=\"rcmp-h\"><b>Comparing</b>'" +
+      "  +'<button type=\"button\" class=\"chip\" data-clearcmp>Clear</button></div>';" +
+      " var cols=picks.map(function(o){" +
+      "  return '<div class=\"rcmp-c\">'" +
+      "   +'<p class=\"rcmp-n\">'+o.w.name+' <span class=\"fine\">'+label(o.type)+'</span></p>'" +
+      "   +'<dl>'" +
+      "    +'<dt>Damage</dt><dd>'+fmt(o.s.damage)+'</dd>'" +
+      "    +'<dt>Shots to kill</dt><dd>'+o.k.stk+'</dd>'" +
+      "    +'<dt>Rate of fire</dt><dd>'+(o.w.rpm||'\u2014')+'</dd>'" +
+      "    +'<dt>Time to kill</dt><dd><span class=\"band\"'" +
+      "     +(o.band?' style=\"--bd:'+o.band.tint+'\"':' data-none=\"1\"')+'>'" +
+      "     +kills(o.k)+'</span></dd>'" +
+      "    +'<dt>One shot at</dt><dd>'+(o.one.length?o.one.join(', '):'nowhere')+'</dd>'" +
+      "   +'</dl>'" +
+      "   +'<button type=\"button\" class=\"chip\" data-setup=\"'+o.w.name+'\">Set it up</button>'" +
+      "   +'</div>';}).join('');" +
+      " box.innerHTML=head+'<div class=\"rcmp-cols\">'+cols+'</div>';}" +
+      "document.addEventListener('click',function(e){" +
+      " var c=e.target.closest&&e.target.closest('[data-clearcmp]');" +
+      " if(c){PICKED=[];renderRank();return;}" +
+      " var su=e.target.closest&&e.target.closest('[data-setup]');" +
+      " if(su){setWeapon(su.getAttribute('data-setup'));render();" +
+      "  el('wpnOpen').scrollIntoView({block:'center'});}});" +
       "function renderRank(){" +
-      " var z=zoneById[S.zone],box=el('rank');" +
-      " var all=B.weapons.filter(function(w){return !S.cls||w.class===S.cls;});" +
-      " var rows=[],unmeasured=0,offLoad=0;" +
-      " all.forEach(function(w){" +
-      /* Asked for the filtered load rather than the calculator's, because the two are
-         different questions: the calculator is this weapon with this round, and the filter
-         is every weapon that fires that round, with its own figures for it. loadFor falls
-         back to what a weapon does chamber, so a weapon that comes back with something else
-         is one that cannot take it. */
-      "  var f=fire(w,z,S.load||null);" +
-      "  if(f.miss){unmeasured++;return;}" +
-      "  if(S.load&&f.p.load.type!==S.load){offLoad++;return;}" +
-      "  rows.push({w:w,p:f.p,s:f.s,k:f.k,band:bandFor(B.bands,f.k.stk,f.k.ttk)," +
-      "   one:oneShotZones(w,S.load||null)});});" +
-      " var by=S.by;" +
-      /* A weapon with no rate of fire has no time to kill, and sorting a null as zero put
-         it at the top of the fastest. It goes last among its equals instead. */
+      " var box=el('rank'),got=rankRows(),rows=got.rows;" +
+      " var by=S.by,barBy=BARBY[by]?by:'ttk';" +
       " var t=function(o){return o.k.ttk===null?Infinity:o.k.ttk;};" +
       " rows.sort(function(a,b){" +
-      "  if(by==='name')return a.w.name.localeCompare(b.w.name);" +
-      "  if(by==='load')return a.p.load.type.localeCompare(b.p.load.type)||(t(a)-t(b));" +
+      "  if(by==='name')return a.w.name.localeCompare(b.w.name)||a.type.localeCompare(b.type);" +
+      "  if(by==='load')return a.type.localeCompare(b.type)||(t(a)-t(b));" +
       "  if(by==='dmg')return b.s.damage-a.s.damage;" +
       "  if(by==='stk')return (a.k.stk-b.k.stk)||(t(a)-t(b));" +
       "  if(by==='rpm')return (b.w.rpm||0)-(a.w.rpm||0);" +
       "  return (t(a)-t(b))||(a.k.stk-b.k.stk);});" +
-      " var val=function(o){" +
-      "  return by==='dmg'?o.s.damage:by==='stk'?(isFinite(o.k.stk)?o.k.stk:0):" +
-      "   by==='rpm'?(o.w.rpm||0):(o.k.ttk===null?0:o.k.ttk);};" +
-      " var max=0;rows.forEach(function(o){var v=val(o);if(isFinite(v)&&v>max)max=v;});" +
+      " var lower=BARBY[barBy].lower,most=0;" +
+      " rows.forEach(function(o){var v=measureOf(o,barBy);" +
+      "  if(v!==null&&isFinite(v)&&v>most)most=v;});" +
+      " el('rankby').textContent='Ranked by '+BARBY[barBy].label;" +
       " box.textContent='';" +
-      /* Bar length is how fast the kill is, not how long it takes. It was the time itself,
-         so the seven weapons that kill in one shot drew a 1.5% stub and the slowest drew a
-         full bar: the top of a ranking read as empty and the bottom looked like the winner.
-         Full bar is the fastest thing in the list. */
-      " var slowest=0;" +
-      " rows.forEach(function(o){var t2=t(o);if(isFinite(t2)&&t2>slowest)slowest=t2;});" +
       " rows.forEach(function(o){" +
-      "  var t2=t(o);" +
-      "  var pct=!isFinite(t2)?0:(slowest>0?6+94*(1-t2/slowest):100);" +
+      "  var v=measureOf(o,barBy);" +
+      "  var pct=(v===null||!isFinite(v)||most<=0)?0:" +
+      "   (lower?6+94*(1-v/most):6+94*(v/most));" +
       "  var row=document.createElement('div');row.className='rrow';" +
+      "  row.setAttribute('data-key',o.key);" +
+      "  if(PICKED.indexOf(o.key)>=0)row.setAttribute('data-picked','1');" +
       "  var ic=B.icon[o.w.name];" +
       "  var title=o.k.stk===1?(o.one.length?'One shot to the '+o.one.join(', the ')" +
       "    :'One shot at this zone')" +
@@ -744,25 +821,23 @@ module.exports = ctx => {
       "   +(ic?'<img class=\"ricon\" src=\"/game-icons/'+ic+'.png\" alt=\"\" width=\"34\"'" +
       "    +' height=\"20\" loading=\"lazy\">':'')" +
       "   +o.w.name+' <span class=\"fine\">'+o.w.class+'</span></span>'" +
-      /* The time sits at the end of its own bar rather than in a column of its own: the bar
-         is the answer and the number is what the bar is worth. */
-      "   +'<span class=\"rtrack\" title=\"'+title+'\">'" +
-      "    +'<span class=\"rbar\" style=\"width:'+pct.toFixed(1)+'%'" +
-      "     +(o.band?';background:'+o.band.tint:'')+'\"></span>'" +
-      "    +'<b class=\"rbarv\"'+(o.band?'':' data-none=\"1\"')+'>'" +
-      "     +secs(o.k.stk,o.k.ttk)+'</b></span>'" +
-      "   +'<span class=\"rload\">'+label(o.p.load.type)+'</span>'" +
+      "   +'<span class=\"rtrack\"><span class=\"rbar\" style=\"width:'+pct.toFixed(1)+'%'" +
+      "    +(o.band?';background:'+o.band.tint:'')+'\"></span></span>'" +
+      "   +'<span class=\"rload\">'+label(o.type)+'</span>'" +
       "   +'<span class=\"n rdmg\" title=\"measured in game\">'+fmt(o.s.damage)+'</span>'" +
       "   +'<span class=\"n rstk\">'+o.k.stk+'</span>'" +
-      "   +'<span class=\"n rrpm\">'+(o.w.rpm||'\u2014')+'</span>';" +
-      "  row.addEventListener('click',function(){setWeapon(o.w.name);render();});" +
+      "   +'<span class=\"n rrpm\">'+(o.w.rpm||'\u2014')+'</span>'" +
+      "   +'<span class=\"n rttk\" title=\"'+title+'\">'" +
+      "    +'<span class=\"band\"'+(o.band?' style=\"--bd:'+o.band.tint+'\"'" +
+      "     :' data-none=\"1\"')+'>'+kills(o.k)+'</span></span>';" +
+      "  row.addEventListener('click',function(){togglePick(o.key);});" +
       "  box.appendChild(row);});" +
-      " var unit='how fast the kill is at the '+z.name.toLowerCase()+', longest is fastest';" +
-      " el('ranknote').textContent='Bar length is '+unit+'. '+rows.length+" +
-      "  ' weapons'+(unmeasured?', and '+unmeasured+' left out for want of a measurement':'')+" +
-      "  (offLoad?', and '+offLoad+' that do not chamber '+label(S.load):'')+" +
-      "  '. Press a column to sort by it. Click a row to load that weapon" +
-      " into the calculator.';}" +
+      " renderCompare(rows);" +
+      " el('ranknote').textContent=rows.length+' rows, one per weapon and load'+" +
+      "  (got.unmeasured?', '+got.unmeasured+' weapons left out for want of a measurement':'')+" +
+      "  (got.offLoad?', '+got.offLoad+' that do not chamber '+label(S.load):'')+" +
+      "  '. Bar length is the column you sorted by. Click two rows to compare them.';}" +
+
       /* The chips are markup, so they start pressed on whatever the markup said. A setup
          arriving in the fragment has to move them, or the page shows a level 3 vest in the
          figure and "None" on the button, which is the sort of disagreement that makes a

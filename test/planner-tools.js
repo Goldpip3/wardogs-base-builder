@@ -242,8 +242,8 @@ for (const [combo, fn] of [["z", "undo"], ["y", "redo"], ["d", "duplicateSelecti
     `Ctrl+${combo.toUpperCase()} does the Word thing (${fn})`);
 
 // and the 3D view is off the letter that made Ctrl+V ambiguous to read
-check(!/k === "v"\)\s*set3D/.test(keys), "the 3D view is no longer on V");
-check(/k === "3"\)\s*set3D/.test(keys), "it is on 3, which nothing else wants");
+check(!/k === "v"\)\s*(set3D|cycleView)/.test(keys), "the 3D view is no longer on V");
+check(/k === "3"\)\s*(set3D|cycleView)/.test(keys), "it is on 3, which nothing else wants");
 check(!/<kbd>V<\/kbd>/.test(html) && !/3D view \(V\)/.test(html),
   "and nothing still tells the user to press V");
 check(/<kbd>3<\/kbd>/.test(html), "the shortcut list says 3");
@@ -315,6 +315,39 @@ check(!/emptyState"\)\.style\.display/.test(src.replace(lift("syncEmptyState"), 
     "panel showing an empty base next to a full one");
   check(/afterChange\(false\)/.test(fn),
     "and does it without saving, because nothing changed by being reopened");
+}
+
+/* The walkthrough sizes a person, and that size has to come from the cell figure the app
+   already prints rather than from a second guess. The first cut set eye height to 1.65
+   blocks, reasoning off a wall description. At the printed 1.2 m a cell that makes the
+   walker 1.98 m tall and its sprint 10.8 m/s, which is faster than the world record.
+
+   Neither is visible from inside the view. Everything is scaled together, so a base full
+   of giants looks perfectly ordinary until a real figure stands next to it, and the bar
+   along the bottom of the same screen had been printing 1.2 m the whole time.
+
+   So: one metres-per-cell constant, every walk dimension worked out from it, and the
+   constant agreeing with what the status bar prints.
+*/
+{
+  const m = html.match(/const CELL_M = ([\d.]+);/);
+  check(!!m, "the walkthrough has one metres-per-cell constant");
+  const bar = html.match(/1 cell = 1 Hesco block \u2248 ([\d.]+) m/);
+  check(!!bar, "and the status bar still prints a metre figure to check it against");
+  if (m && bar) check(m[1] === bar[1], "and the two agree: " + m[1] + " against " + bar[1]);
+
+  for (const name of ["WALK_EYE", "WALK_R", "WALK_WALK", "WALK_RUN"]) {
+    const d = html.match(new RegExp("const " + name + " = ([^;]+);"));
+    check(!!d && /\/ CELL_M/.test(d[1]),
+      name + " is worked out from CELL_M rather than written in cells");
+  }
+
+  const eye = html.match(/const WALK_EYE = ([\d.]+) \/ CELL_M;/);
+  check(!!eye && +eye[1] > 1.4 && +eye[1] < 1.85,
+    "and eye height is a person's, in metres");
+  const run = html.match(/const WALK_RUN = ([\d.]+) \/ CELL_M;/);
+  check(!!run && +run[1] < 8,
+    "and the sprint is not faster than a human being");
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

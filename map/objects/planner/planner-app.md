@@ -42,6 +42,19 @@ configured, it therefore cannot reach the network, and the hosted copy does have
   its role, so a quad and a wedged block are one body. The same-type mask it also returns
   is what the name and the height badge key off, so an odd piece mid-run still speaks
 
+The walkthrough is its own block, `WALK_*` and `walk*`, drawing into a second canvas over
+the plan one. Hand written WebGL1, one cube and one shader, because the planner downloads as
+a single offline file and a library would be paid for on every download.
+
+- `cycleView` steps plan, 3D, walk. One button with three states, because the toolbar is
+  capped at ten and the isometric view already fills it
+- `CELL_M` is metres per cell, and every walk dimension is worked out from it. It has to
+  agree with the figure the status bar prints at `:477`, which `test/planner-tools.js` pins
+- `walkPush` is collision: a circle against a rotated rect, not an axis-aligned box, since
+  angled wall runs are the case this view exists to look at
+- `walkSolids` rebuilds every frame off `standHeights`, so raised pieces sit at their storey
+- Doors and gates are solid here. Opening them is stage two, and the hint says so
+
 Citations: substitution at `build.ps1:34`, outputs at `build.ps1:52` and `:60`.
 
 ## Connected to

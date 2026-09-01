@@ -265,6 +265,19 @@ check(ball.includes('data-load=""') && bal.rounds.every(r => ball.includes('data
   "the ranking can be filtered to one load");
 check(ball.includes("oneShotZones"),
   "a one shot row says which zones it is one shot at");
+/* One row per weapon and load, not per weapon: with no filter the M4 is three rows, one for
+   each round it chambers, where before it was one row on whichever round it fell back to. */
+check(ball.includes("function rankRows") && ball.includes("w.name+'|'+tp"),
+  "the ranking lists every load a weapon chambers, not one of them");
+/* The bar draws the sorted column, which is what puts a weapon with no rate of fire back on
+   the chart the moment you rank by damage. */
+check(ball.includes("var BARBY=") && ball.includes("measureOf"),
+  "the bar draws whichever column is sorted");
+check(ball.includes("function togglePick") && ball.includes("renderCompare"),
+  "two rows can be picked out of the list and compared");
+/* "one shot" sat in the time cell beside a shots cell already reading 1. */
+check(ball.includes("return 'instant'") && !ball.includes("stk===1?'one shot'"),
+  "a one shot kill is stated once, as instant, not twice");
 
 // ---------- the planner still ships intact ----------
 check(app.includes("btnShare") && app.includes("buildIndex") && app.length > 100000,
