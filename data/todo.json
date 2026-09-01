@@ -39,9 +39,19 @@
       "where": "the damage page states it in the lede"
     },
     {
-      "what": "What every item weighs, and how much each backpack holds",
-      "why": "The game puts weight at the top of the inventory screen beside the value and it decides how fast you move, and a bag is chosen for what fits in it. Neither is in the source the prices came from. The loadout page says both are not measured rather than guessing. Weight goes on the line in tools/build-armory.js as 3.4kg after the price and nothing else changes; capacity has nowhere to live yet.",
+      "what": "What every item weighs, and how many slots each bag holds",
+      "why": "Neither is in the item database the prices came from: wardogs.zone publishes names and prices only. Searched 2026-08-31. Two fan sites do publish figures and they cannot both be trusted: wardogshandbook.com gives Pouch 3x2=6, Scout 4x2=8, Field 6x2=12, Operator 5x3=15, Assault 5x5=21 (which is not what 5x5 is), Ruck and Gunner and Arsenal 6x4=24, no Halftrack at all, and vest prices of $10,000 and $25,000 against the $250 and $400 in the database. MetaForge agrees on Operator 5x3=15 at 0.8kg but blocks reading. The only figure corroborated twice and checked against a price is the bandage stack of five, at $200 each and $1,000 for five. So nothing is transcribed: read the grid and the kg off the inventory screen instead. Weight goes on the line in tools/build-armory.js as 3.4kg, slots as 12 slots, and both light up the loadout page with no other change.",
       "where": "tools/build-armory.js, RAW"
+    },
+    {
+      "what": "Which items stack, and to how many",
+      "why": "The loadout page stacks throwables and medical five to a slot, which the owner reported from the game and which the item database backs for bandages. Everything else takes a slot each, which is the safe way to be wrong: the bag looks fuller than it is. What is not known is whether every throwable and every medical item really stacks to five, or whether it varies by item.",
+      "where": "tools/site/pages/armory.js, STACK"
+    },
+    {
+      "what": "The unlock level on gear, not just weapons",
+      "why": "The shelves are ordered cheapest first as a stand-in for the order you get things. One fan site puts levels on them, Field 12, Operator 20, Assault 32, Ruck 56, Gunner 73, Arsenal 150, Medium vest 14, Large vest 50, and that order happens to match price order exactly, which is why cheapest first is a fair stand-in and not evidence. data/progression.json holds the weapon ladder and has room for gear.",
+      "where": "data/progression.json"
     }
   ],
   "work": [

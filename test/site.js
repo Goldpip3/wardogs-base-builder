@@ -175,14 +175,24 @@ check(storage.includes('id="bag-slot"') && storage.includes('id="cells"'),
   "storage is its own column, with the bag slot and the grid that fills as you build");
 check(kit.includes("function gateBag") && kit.includes("Pick a backpack before you buy"),
   "the items shelf locks until a backpack is chosen");
-/* Nothing in the catalogue carries a weight, so the page says the figure is not measured.
-   The day one does, this goes red and the sentence saying it is unmeasured is what has to
-   change: a page carrying both the figure and the disclaimer would be the worse of the two
-   states, because the disclaimer is what people read. */
-const anyKg = require(ROOT + "/data/armory.json").items.some(i => typeof i.kg === "number");
-check(anyKg ? !kit.includes("reads as not measured") : kit.includes("reads as not measured"),
-  anyKg ? "the catalogue has weights, so the page no longer calls them unmeasured"
-        : "weight is stated as unmeasured while nothing in the catalogue carries one");
+/* Five to a slot for the things that stack, one each for everything else, and the two
+   figures nobody has measured are marked work in progress rather than filled in. */
+check(kit.includes("var STACK=") && kit.includes("Math.min(per,left)"),
+  "things that stack fill a slot five at a time");
+check(kit.includes("var BAGSLOTS=") && kit.includes('" of "+room+" slots"'),
+  "the bag draws to its capacity as soon as one is measured");
+const armoury = require(ROOT + "/data/armory.json").items;
+const anyKg = armoury.some(i => typeof i.kg === "number");
+const anySlots = armoury.some(i => typeof i.slots === "number");
+/* Nothing in the catalogue carries either figure, so the page says work in progress. The
+   day one lands this goes red, and what has to change is the sentence: a page carrying both
+   the number and the disclaimer is the worse of the two states, because the disclaimer is
+   what gets read. Sources for both were searched on 2026-08-31 and the ones that publish
+   them contradict each other and the item database, which is why none was transcribed. */
+check(anyKg || anySlots ? !kit.includes("work in progress") : kit.includes("work in progress"),
+  anyKg || anySlots
+    ? "the catalogue has weights or capacities, so the page stops calling them work in progress"
+    : "weight and bag capacity are marked work in progress while nothing carries either");
 
 // ---------- the planner still ships intact ----------
 check(app.includes("btnShare") && app.includes("buildIndex") && app.length > 100000,

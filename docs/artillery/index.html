@@ -822,6 +822,10 @@ tr[data-on="1"] td{background:var(--panel2);color:var(--text)}
    would be three words of unreadable type over the art it is describing. */
 .vcell span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
 .vcell-empty{background:var(--panel2);border-style:dashed;border-color:var(--line)}
+/* More in the bag than the bag holds. Only reachable once a capacity has been measured:
+   with none, the grid grows and claims nothing. */
+.vcells[data-over="1"]{border-color:var(--red)}
+.vcells[data-over="1"] + .vpack-foot{color:var(--red)}
 .vcells[data-locked="1"]{grid-template-columns:1fr;background:var(--panel2);
   border-style:dashed;border-color:var(--line2);min-height:96px;align-content:center}
 .vcells-none{font-size:12px;color:var(--dim);text-align:center;padding:14px 12px;margin:0}
@@ -1197,7 +1201,7 @@ function zoneNote(){
    A pyramid is calibrated to a box in game coordinates, which is not exactly the map
    extent: the imagery was captured against its own edges and lands a few metres off the
    round number. Without bounds the whole layer sits skewed. */
-var TILE={}, TILEBAD={};
+var TILE={}, TILEBAD={}, TILEQ=[];
 function tileBox(){
  return map.tiles.bounds||{minX:0,maxX:map.extent,minY:0,maxY:map.extent};}
 /* Two things decide how sharp the terrain looks, and both were wrong.
@@ -1215,33 +1219,76 @@ function tileZoomFor(){
    not there: zoom quickly and a hundred loads start and some are dropped. Marking those
    dead for the session is what left the two black squares on the map, because nothing ever
    asked for them again. Three tries, backing off, then it gives up for real. */
+function tileUrl(z,x,y){
+ return map.tiles.path+"/zoom_"+z+"/"+x+"_"+y+"."+map.tiles.extension;}
+/* Read only. Answers with a tile that is already here and never starts a request, which is
+   what lets the coarse fallback below look upwards without paying for the look. */
+function cachedTile(z,x,y){
+ var img=TILE[map.id+":"+z+":"+x+":"+y];
+ return (img&&img.complete&&img.naturalWidth)?img:null;}
 function getTile(z,x,y){
  var key=map.id+":"+z+":"+x+":"+y;
  if(TILEBAD[key]>=3)return null;
  var img=TILE[key];
  if(img)return (img.complete&&img.naturalWidth)?img:null;
  img=new Image();
+ /* Decode off the main thread. A tile decoded inline blocks the frame it lands in, which
+    on a burst of twenty is the difference between the map easing in and the page hitching. */
+ img.decoding="async";
  img.onload=function(){requestDraw();};
  img.onerror=function(){
   var n=(TILEBAD[key]||0)+1;TILEBAD[key]=n;
   if(n<3)setTimeout(function(){delete TILE[key];requestDraw();},300*n);};
- img.src=map.tiles.path+"/zoom_"+z+"/"+x+"_"+y+"."+map.tiles.extension;
- TILE[key]=img;
+ img.src=tileUrl(z,x,y);
+ TILE[key]=img;TILEQ.push(key);
+ evictTiles();
  return null;}
+/* The cache used to grow for as long as the tab was open. Both terrains together are 10,922
+   tiles and a decoded 256 square costs about a quarter of a megabyte, so panning around at
+   full zoom could hold a few hundred megabytes of imagery nobody is looking at. It keeps the
+   most recent CAP and drops the oldest, never touching the base level below, which is the
+   one thing that has to stay resident to be worth priming. */
+var TILECAP=360;
+function evictTiles(){
+ while(TILEQ.length>TILECAP){
+  var key=TILEQ.shift();
+  if(BASEKEY[key]){TILEQ.push(key);
+   /* everything left is base: stop rather than spin */
+   if(TILEQ.length<=BASECOUNT)return;
+   continue;}
+  delete TILE[key];delete TILEBAD[key];}}
+/* One coarse level, fetched once per terrain, so there is always something to draw under a
+   tile that has not landed. This replaces the old behaviour, which was to ask for a tile's
+   coarser ancestors the moment it was missing: that read well and cost badly, because every
+   one of the twenty odd tiles on screen asked for up to three more, and a fast zoom turned
+   that into the request storm the retry logic above exists to survive. Measured on a first
+   paint of Bakurani: 24 tiles on screen fetched 12 ancestors nobody displayed. The base is
+   21 tiles, fetched once, and the amplification is gone. */
+var BASEKEY={},BASECOUNT=0;
+function primeBase(){
+ if(!map.tiles)return;
+ BASEKEY={};BASECOUNT=0;
+ var lo=map.tiles.minZoom,hi=Math.min(map.tiles.maxZoom,lo+1);
+ for(var z=lo;z<=hi;z++){
+  var n=Math.pow(2,z);
+  for(var x=0;x<n;x++)for(var y=0;y<n;y++){
+   BASEKEY[map.id+":"+z+":"+x+":"+y]=true;BASECOUNT++;
+   getTile(z,x,y);}}}
 
 /* Nothing loaded for this square yet, so draw the piece of a coarser tile that covers it.
    That is what stops the terrain blinking out on the way between zoom levels: the map goes
-   soft for a moment instead of going black, and sharpens when the real tile lands. Three
-   levels up is plenty and bounds the extra requests. */
+   soft for a moment instead of going black, and sharpens when the real tile lands. It only
+   ever looks at what is already cached, so a miss costs nothing but a lookup. */
 function drawTileAt(z,x,y,dx,dy,dw,dh){
  var img=getTile(z,x,y);
  if(img){g2.drawImage(img,dx,dy,dw,dh);return;}
  var zz=z,xx=x,yy=y,f=1;
- while(zz>map.tiles.minZoom&&f<8){
+ while(zz>map.tiles.minZoom){
   zz--;xx=Math.floor(xx/2);yy=Math.floor(yy/2);f*=2;
-  var up=getTile(zz,xx,yy);
+  var up=cachedTile(zz,xx,yy);
   if(up){
    var t=up.naturalWidth/f;
+   if(t<1)return;
    g2.drawImage(up,(x-xx*f)*t,(y-yy*f)*t,t,t,dx,dy,dw,dh);
    return;}}}
 function drawTiles(){
@@ -1274,11 +1321,28 @@ function w2sX(x){return (x-cam.x)*cam.k+canvas.clientWidth/2;}
 function w2sY(y){return canvas.clientHeight/2-(y-cam.y)*cam.k;}
 function s2wX(sx){return (sx-canvas.clientWidth/2)/cam.k+cam.x;}
 function s2wY(sy){return cam.y-(sy-canvas.clientHeight/2)/cam.k;}
-function fit(){
+/* Zooming out stops when the whole terrain is on screen, and the terrain cannot be dragged
+   off its own canvas. Past that point there is nothing left to reveal: the map is already
+   entirely visible and every further notch just adds black around it, which reads as the
+   map having got lost rather than as the map being fully shown. On an axis where the
+   terrain is narrower than the canvas there is nowhere to pan to, so it is centred and
+   held there rather than sliding about in the margin. */
+function minK(){
  var b=map.bounds,w=canvas.clientWidth,h=canvas.clientHeight;
+ return Math.min(w/(b.maxX-b.minX+6),h/(b.maxY-b.minY+6));}
+function clampCam(){
+ var b=map.bounds,w=canvas.clientWidth,h=canvas.clientHeight;
+ cam.k=Math.max(minK(),Math.min(cam.k,600));
+ var halfW=w/2/cam.k,halfH=h/2/cam.k;
+ if(halfW*2>=b.maxX-b.minX)cam.x=(b.minX+b.maxX)/2;
+ else cam.x=Math.max(b.minX+halfW,Math.min(b.maxX-halfW,cam.x));
+ if(halfH*2>=b.maxY-b.minY)cam.y=(b.minY+b.maxY)/2;
+ else cam.y=Math.max(b.minY+halfH,Math.min(b.maxY-halfH,cam.y));}
+function fit(){
+ var b=map.bounds;
  cam.x=(b.minX+b.maxX)/2;cam.y=(b.minY+b.maxY)/2;
- cam.k=Math.min(w/(b.maxX-b.minX+6),h/(b.maxY-b.minY+6));
- draw();}
+ cam.k=minK();
+ clampCam();draw();}
 /* A shared link already says where the interesting ground is, so open on the shot rather
    than on the whole terrain, where two markers 600 m apart are a few pixels of each other. */
 function fitPoints(){
@@ -1292,7 +1356,7 @@ function fitPoints(){
  cam.x=(minX+maxX)/2;cam.y=(minY+maxY)/2;
  cam.k=Math.min(canvas.clientWidth/((maxX-minX)+pad*2),
                 canvas.clientHeight/((maxY-minY)+pad*2));
- cam.k=Math.max(1,Math.min(cam.k,300));
+ clampCam();
  draw();}
 /* the control zone is where the match happens, so it is one button away at all times */
 function toZone(){
@@ -1300,6 +1364,7 @@ function toZone(){
  var r=map.zone.radiusMetres/UNIT;
  cam.x=map.zone.centre.x;cam.y=map.zone.centre.y;
  cam.k=Math.min(canvas.clientWidth,canvas.clientHeight)/(r*2*1.6);
+ clampCam();
  draw();}
 
 /* ---------- drawing ---------- */
@@ -1476,7 +1541,7 @@ canvas.addEventListener("pointermove",function(e){
  if(drag.what==="pan"){
   var dx=sx-drag.sx,dy=sy-drag.sy;
   if(Math.abs(dx)+Math.abs(dy)>4)drag.moved=true;
-  if(drag.moved){cam.x=drag.cx-dx/cam.k;cam.y=drag.cy+dy/cam.k;requestDraw();}
+  if(drag.moved){cam.x=drag.cx-dx/cam.k;cam.y=drag.cy+dy/cam.k;clampCam();requestDraw();}
  } else {
   var p={x:s2wX(sx),y:s2wY(sy)};
   if(drag.what==="gun")gun=p;else tgt=p;
@@ -1499,9 +1564,9 @@ canvas.addEventListener("wheel",function(e){
  var d=e.deltaY;
  if(e.deltaMode===1)d*=16;else if(e.deltaMode===2)d*=canvas.clientHeight;
  cam.k*=Math.pow(1.0018,-Math.max(-240,Math.min(240,d)));
- cam.k=Math.max(1,Math.min(cam.k,600));
  cam.x=wx-(sx-canvas.clientWidth/2)/cam.k;
  cam.y=wy+(sy-canvas.clientHeight/2)/cam.k;
+ clampCam();
  requestDraw();},{passive:false});
 
 /* ---------- controls ---------- */
@@ -1548,7 +1613,7 @@ Array.prototype.forEach.call(document.querySelectorAll("[data-map]"),function(b)
   Array.prototype.forEach.call(document.querySelectorAll("[data-map]"),function(o){
    o.setAttribute("aria-pressed",o===b?"true":"false");});
   MAPS.forEach(function(m){if(m.id===b.getAttribute("data-map"))map=m;});
-  fit();update();});});
+  primeBase();fit();update();});});
 Array.prototype.forEach.call(document.querySelectorAll("[data-plat]"),function(b){
  b.addEventListener("click",function(){
   Array.prototype.forEach.call(document.querySelectorAll("[data-plat]"),function(o){
@@ -1593,11 +1658,11 @@ function applyState(){
  if(gun&&tgt)setActive("tgt");}
 /* a shared link pasted into a page that is already open still has to land */
 window.addEventListener("hashchange",function(){
- readHash();applyState();
+ readHash();applyState();primeBase();
  if(gun||tgt)fitPoints(); else toZone();
  update();});
 readHash();applyState();
-size();ensureFramed();update();
+size();primeBase();ensureFramed();update();
 }());</script>
 <div class="wrap"><div class="ad-slot" style="min-height:90px">
   <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-7658713831499963"

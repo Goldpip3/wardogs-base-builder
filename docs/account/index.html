@@ -823,6 +823,10 @@ tr[data-on="1"] td{background:var(--panel2);color:var(--text)}
    would be three words of unreadable type over the art it is describing. */
 .vcell span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
 .vcell-empty{background:var(--panel2);border-style:dashed;border-color:var(--line)}
+/* More in the bag than the bag holds. Only reachable once a capacity has been measured:
+   with none, the grid grows and claims nothing. */
+.vcells[data-over="1"]{border-color:var(--red)}
+.vcells[data-over="1"] + .vpack-foot{color:var(--red)}
 .vcells[data-locked="1"]{grid-template-columns:1fr;background:var(--panel2);
   border-style:dashed;border-color:var(--line2);min-height:96px;align-content:center}
 .vcells-none{font-size:12px;color:var(--dim);text-align:center;padding:14px 12px;margin:0}

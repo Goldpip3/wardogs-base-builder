@@ -8,6 +8,54 @@ Newest first. One entry per decision, not per commit.
 
 ## 2026-08-31
 
+### The map stops zooming out when it is all on screen, and stops fetching tiles nobody sees
+
+**Zoom out ends at the fit.** It bottomed out at a hardcoded `cam.k` of 1, far past the point
+where the whole terrain is visible, so the map became a small square adrift in black that
+could still be dragged around its own margin. `clampCam` holds it at or above the fit and keeps
+the view inside the terrain bounds, centring and pinning an axis narrower than the canvas.
+Measured: a 500px drag at full zoom out moves the world under a fixed pixel by exactly zero.
+
+**The coarse fallback was buying its blur with requests.** A tile that had not landed sent
+the draw up three ancestor levels looking for something to paint, using `getTile`, which
+*starts a request* for anything absent. Measured on a first paint of Bakurani: 24 tiles
+displayed, 12 ancestors fetched that nothing drew. Under a fast zoom that is the request
+storm the retry logic exists to survive, and it was self-inflicted. The lookup is read-only
+now, and a fixed base of five tiles is fetched once per terrain. **First paint went 36
+requests to 29, and zoom 5 to 6 now costs the four tiles it shows.**
+
+Also `decoding="async"`, so a decode does not block the frame it lands in, and the cache is
+bounded at 360 tiles, evicting oldest first and never the base. It used to grow for as long
+as the tab was open across 10,922 tiles. The eviction was proved to terminate against an
+all-base cache and a zero cap.
+
+Checked against wardogs-artillery.com, which advertises improved tile loading: it sets
+`decoding` and its ancestor lookup is already read-only, which is where this came from. Two
+things there are deliberately not copied. **It picks a zoom with `Math.round` and no
+device-pixel term**, so its tiles upscale on any 2x display. And it draws from every tile
+onload, so twenty tiles run twenty full draws; this coalesces into one frame.
+
+### The kit has a bag, and nothing is bought without one
+
+The loadout page sold grenades, bandages and spare magazines to somebody carrying nothing,
+which is a kit that cannot exist in the game. **The backpack is its own column now** and the
+items shelf and magazine count stay locked until one is chosen. Taking the bag away empties
+it, since paid-for items with nowhere to be is the same lie in the other direction. Weapon,
+sidearm, armour and rig are deliberately not gated: they are held or worn, not carried.
+
+**The Pouch was on the rig shelf**, so the backpack shelf opened with nothing free in it and
+the free option sat two slots away under a name nobody was looking for. It leads that shelf.
+
+**What is in the bag is drawn as a bag**, in cells with the item's art, a magazine reading
+its round count the way the game's grid does. It was a list of names, weapon and helmet
+included, which is a receipt: the rifle is in your hands, not taking up room in anything.
+
+**Weight is the figure this screen is missing**, and it says so rather than adding up what it
+does not have. `tools/build-armory.js` takes `|3.4kg` after the price and the sum works the
+moment a figure lands, and **it refuses to report a total while any piece is unweighed,
+because a light total and an unweighed rifle look identical on a readout.** Measuring them is
+in `data/todo.json`, which is why that shelf is ordered by price.
+
 ### An old design takes the current build zone, and the copy stopped commenting on itself
 
 Bases drawn before the FOB zone went from 100 to 200 recorded 100 and kept it, and so did
@@ -76,72 +124,39 @@ leaves. **Nothing in the nav ranks the tools above the references any more:** th
 stopped doing that when every link got one, and this was the last thing carrying it. To make
 them lead again use order or a different treatment, not a gap.
 
-### The kit has a bag, and nothing is bought without one
-
-The loadout page sold grenades, bandages and spare magazines to somebody carrying nothing,
-which is a kit that cannot exist in the game. **The backpack is its own column now**, beside
-the slots rather than filed under gear with the helmet, and the items shelf and the magazine
-count stay locked until one is chosen. Taking the bag away again empties it, since paid-for
-items with nowhere to be is the same lie in the other direction. The weapon, sidearm, armour
-and rig are deliberately not gated: they are held or worn, not carried.
-
-**The Pouch was on the rig shelf**, beside the tac vests, so the backpack shelf opened with
-nothing free in it and the free option sat two slots away under a name nobody was looking
-for. It is the bag you start with and it leads that shelf, cheapest first.
-
-**What is in the bag is drawn as a bag**, in cells with the item's own art, a magazine
-reading its round count the way the game's own grid does. It was a list of names down the
-side, weapon and helmet included, which is a receipt: the rifle is in your hands and is not
-taking up room in anything.
-
-**Weight is the figure this screen is missing**, and it says so rather than adding up what it
-does not have: the source the prices came from does not publish one, so no item carries a kg
-and the readout reads as not measured. `tools/build-armory.js` takes `|3.4kg` after the
-price and the sum works the moment a figure lands, and it refuses to report a total while any
-piece of a kit is unweighed, because a light total and an unweighed rifle look identical on a
-readout. Measuring them is in `data/todo.json`, with how much each bag holds, which is why
-that shelf is ordered by price.
-
 ### Designs carry tags, and the list filters on them
 
-A list of base layouts is a list of pictures, and the question somebody arrives with is
-narrower than the whole list: which map, and what do I need it to stop. `/designs/` now has
-a chip bar over it, in two rows: **Where it works** and **What it is for**. Two chips in one
-row means either of them; a chip in each row means both, because the rows are different
+`/designs/` has a chip bar in two rows, **Where it works** and **What it is for**. Two chips
+in one row means either; a chip in each row means both, because the rows ask different
 questions and the other reading hands somebody a filter that can only return nothing.
 
-**Every submission has to say where it works.** That is the one tag rule, and it is the
-only one the worker can enforce, which is why every tag in that group is prefixed `map-`:
-the worker holds no copy of the vocabulary and must not. It is deployed on its own, and a
-list inside it would make each new tag a deploy somebody forgets, leaving the site offering
-a tag the server refuses. So it checks the shape of an id, a cap of eight, and the presence
-of one `map-` tag, and stores whatever else it is handed. The site draws only the tags it
-knows, so an unrecognised id renders as nothing rather than as text nobody chose.
+**Every submission has to say where it works**, and that is the one rule the worker can
+enforce, which is why every tag in that group is prefixed `map-`: **the worker holds no copy
+of the vocabulary and must not.** It deploys on its own, so a list inside it would make each
+new tag a deploy somebody forgets, leaving the site offering a tag the server refuses. It
+checks the shape of an id, a cap of eight, and the presence of one `map-` tag, and stores
+whatever else it is handed. The site draws only the tags it knows, so an unrecognised id
+renders as nothing rather than as text nobody chose.
 
-**The list lives in `data/community.json` and nowhere else.** The site reads it through
-`tools/site/context.js`; `build.ps1` inlines the same array into the planner beside the
-catalog. `test/tags.js` holds the two built files to it byte for byte, checks every id
-against the regex it lifts out of the worker, and fails if a map in `data/artillery-maps.json`
-has no tag of its own, which is what makes adding a third map one edit rather than three.
+**The vocabulary lives in `data/community.json` and nowhere else.** The site reads it through
+`tools/site/context.js`; `build.ps1` inlines the same array into the planner. `test/tags.js`
+holds both built files to it byte for byte, checks every id against the regex it lifts out of
+the worker, and fails if a map in `data/artillery-maps.json` has no tag, which is what makes
+adding a third map one edit rather than three.
 
-**Both places that submit now ask.** The planner's Designs panel and the **Put it up for
-voting** button on your own saved designs, which is all of them: the paste-a-share-code form
-had already stopped being rendered, and its dead handler went with this rather than becoming
-a third copy of the picker. Tags are asked for at the moment of publishing rather than kept
-on the design, because they do not travel in the share code and nothing edits them
-afterwards. **Any map** clears the named maps and a named map clears it, in both pickers.
-
-A design submitted before any of this carries no tags, shows none, and simply does not
-match a filter. Counts on the chips are what pressing them would leave you with, so every
-other row's filter counts and its own does not: a chip that said nine and handed back
-nothing would be worse than no count at all.
+Both places that submit ask at the moment of publishing rather than storing tags on the
+design, because they do not travel in the share code and nothing edits them afterwards.
+**Any map** clears the named maps and a named map clears it. A design submitted before this
+carries no tags and simply does not match a filter. Chip counts are what pressing them would
+leave you with, so each row counts the other rows' filters and not its own: a chip saying
+nine and handing back nothing is worse than no count.
 
 ### The artillery map always draws the spawns
 
 They were a layer toggle beside Terrain, Grid, Zone and Towers. Where the three factions come
 in is not a preference about the drawing: a gun position is chosen against it, and the only
-thing turning it off ever achieved was hiding it. The button is gone and the spawns are
-always on. Four toggles left, all of them about how much detail is under the rings.
+thing turning it off achieved was hiding it. Four toggles left, all about detail under the
+rings.
 
 ### Damage is measured now, not solved
 
@@ -151,26 +166,20 @@ and the page runs on it. **Two things the derived model had wrong, both stated i
 
 - **Coverage grows with tier.** A helmet is the head, and from level 3 the neck. A vest is
   the chest and abdomen, and from level 4 the shoulders and groin. The page said outright
-  that a helmet is worth nothing to a neck shot. `test/ballistics.js` pins each zone's tier.
+  that a helmet is worth nothing to a neck shot.
 - **The class fires the round, not the calibre.** 9mm from an SMG and from a pistol came
   back different. One figure per calibre could not express it.
 
-Zones went twelve to nine, the game's own taxonomy. The artwork is remapped rather than
-redrawn: three torso bands become two, hands and feet become one zone of four paths.
+Zones went twelve to nine, the game own taxonomy, remapping the artwork rather than redrawing.
 
 **The bare column and the scalings are transcribed. Armoured damage is not**, it is bare
-times the scaling, because the sheet's armoured block contradicts its own scaling table in
-25 cells: `45acp AP` from a pistol at tiers 3 and 4, computed off a base 1.22 times the bare
-row; `50cal FMJ` from a sniper at tiers 1 and 3, using AP scalings; one stray leg cell.
-Importing both ships the contradiction and fixing the sheet here hides it, so they are
-recorded in `sheetDisagrees` and the suite fails if that record is dropped.
+times the scaling, because the sheet armoured block contradicts its own scaling table in 25
+cells. Importing both ships the contradiction and fixing the sheet here hides it, so they are
+recorded in `sheetDisagrees` and the suite fails if that record is dropped. Listed in OPEN.
 
-The Scout Rifle TD has no measurement, being a marksman rifle in 5.56 where that tab was
-tested in 7.62 and .308. It is named in `tools/check-build.js`, which also fails if the gap
-closes and the list goes stale. `data/ballistics.json` still owns rate of fire, velocity,
-the vendor joins and the palette; the join to it has no foreign key, so check 3d2 pins the
-count. A rename on either side lands nothing and draws every zone as a dash, which still
-builds and still looks deliberate.
+`data/ballistics.json` still owns rate of fire, velocity, the vendor joins and the palette.
+The join to it has no foreign key, so check 3d2 pins the count: a rename on either side lands
+nothing and draws every zone as a dash, which still builds and still looks deliberate.
 
 ### Your own designs sit under the community's, on the same page
 

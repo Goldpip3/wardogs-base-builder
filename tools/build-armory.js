@@ -325,7 +325,7 @@ Ammo Supply Pallet|$400
 Arsenal Backpack + 2 Slings|$5,000
 Assault Backpack|$1,200
 Build Supply Pallet|$400
-Field Backpack|$650|0.88kg|12 slots
+Field Backpack|$650
 Fuel Supply Pallet|$400
 Gunner Backpack + Sling|$3,500
 Halftrack Backpack|$15,000

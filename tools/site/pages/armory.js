@@ -2,7 +2,7 @@
    Body sits at column zero deliberately. Indenting it would add whitespace inside
    these template literals, and that whitespace is page content. */
 module.exports = ctx => {
-  const { esc, ARMORY, BALLISTICS, adSlot, page, write } = ctx;
+  const { esc, ARMORY, ARMORY_STATS, BALLISTICS, adSlot, page, write } = ctx;
 
 /* ---------- armory, loadouts and vehicles ----------
    One transcribed vendor catalogue behind all three. The armory browses it, the loadout
@@ -11,6 +11,12 @@ module.exports = ctx => {
    confirmed shows as blank instead of a guess. */
 {
   const A = ARMORY;
+  /* Weight, footprint, stack and unlock, joined by exact name. Every key in the file is a
+     catalogue name, which tools/check-build.js holds it to, so a lookup that misses means
+     the source simply publishes nothing for that item rather than that the join broke. */
+  const ST = ARMORY_STATS.items;
+  const statOf = function (name) { return ST[name] || {}; };
+  const slotsIn = function (grid) { return grid ? grid[0] * grid[1] : 0; };
   const money = function (n) { return "$" + n.toLocaleString("en-US"); };
   const priceCell = function (it) {
     if (it.price === null) return '<span class="fine">not confirmed</span>';
@@ -570,11 +576,22 @@ module.exports = ctx => {
      Sorting by price is a stand-in for sorting by how much each holds, which is the figure
      this shelf actually wants and which nobody has measured. It is in data/todo.json under
      confirm; when it exists, sort on it and say the capacity on the card. */
+  /* The order you get them in, which is what the shelf is for: the free one you start with
+     first, then by the level that opens it, and anything with no stated level by price. A
+     bag with no unlock is one you have from the start. */
+  const openOrder = function (i) {
+    const u = statOf(i.name).unlock;
+    return u ? u.level : 0;
+  };
   const bags = nameHas(byCat("storage"), "backpack")
     .concat(nameHas(byCat("storage"), "pouch"))
-    .sort(function (a, b) { return (a.price || 0) - (b.price || 0); });
+    .sort(function (a, b) {
+      return openOrder(a) - openOrder(b) || (a.price || 0) - (b.price || 0);
+    });
   const rigs = nameHas(byCat("storage"), "tac vest")
-    .sort(function (a, b) { return (a.price || 0) - (b.price || 0); });
+    .sort(function (a, b) {
+      return openOrder(a) - openOrder(b) || (a.price || 0) - (b.price || 0);
+    });
   /* The rest of the storage category is crates and supply pallets, which are things you
      drive to a base rather than things you wear. They belong to the planner, not to a kit,
      and neither shelf offers them. */
@@ -810,29 +827,34 @@ module.exports = ctx => {
          The map is emitted empty rather than left out, and the page says the figure is not
          measured rather than adding up the ones it happens to have. Filling in kg on the
          lines in tools/build-armory.js is the whole job: nothing here changes. */
-      /* How many of a thing go in one slot before it takes another. Five, for the things
-         that stack: grenades, smokes and bandages, reported by the owner from the game and
-         matched by the item database, which prices a stack of five bandages at $1,000 and
-         each one at $200. Anything else takes a slot of its own until somebody says
-         otherwise, which is the safe way to be wrong: a bag looks fuller than it is rather
-         than emptier.
-
-         By category rather than per item, because that is as fine as the report goes.
-         data/todo.json carries the question of which items really stack and to what. */
+      /* How many of a thing go in one slot before it takes another, straight from the source
+         rather than from a rule of thumb. It is not five across the board: a bandage stacks
+         five, a C4 charge and an adrenaline pen three, and rounds stack by calibre, 80 of
+         5.56 and 24 of 12 gauge. A grenade does not stack at all, which the guess of "five
+         for anything throwable" had wrong. Absent means one to a slot. */
       'var STACK=' + JSON.stringify(A.items.reduce(function (m, i) {
-        if (i.cat === "throwables" || i.cat === "medical") m[i.name] = 5;
+        const st = statOf(i.name);
+        if (st.stack) m[i.name] = st.stack;
         return m;
       }, {})) + ';' +
-      /* How many slots a bag has, when anybody has measured one. Empty for now, which is
-         why the grid grows to fit rather than filling up: a bag that never says full is
-         wrong in a way you can see, and a bag with a made up capacity is wrong in a way you
-         cannot. */
+      /* How many slots a thing takes up, from its own footprint: a rifle magazine is 1x2 and
+         a drum is 2x2, so two magazines do not cost what two grenades cost. */
+      'var TAKES=' + JSON.stringify(A.items.reduce(function (m, i) {
+        const n = slotsIn(statOf(i.name).grid);
+        if (n > 1) m[i.name] = n;
+        return m;
+      }, {})) + ';' +
+      /* What a bag holds, as the grid the game gives it: the Pouch is 3x2 and the Arsenal
+         is 5x6. Counted as area, which is honest about what it is doing: the game packs
+         shapes into a grid, so a bag with room left over can still refuse a long item. */
       'var BAGSLOTS=' + JSON.stringify(A.items.reduce(function (m, i) {
-        if (typeof i.slots === "number") m[i.name] = i.slots;
+        const n = slotsIn(statOf(i.name).storage);
+        if (n) m[i.name] = n;
         return m;
       }, {})) + ';' +
       'var KG=' + JSON.stringify(A.items.reduce(function (m, i) {
-        if (typeof i.kg === "number") m[i.name] = i.kg;
+        const st = statOf(i.name);
+        if (typeof st.kg === "number") m[i.name] = st.kg;
         return m;
       }, {})) + ';' +
       'var SLOTS=["w","sec","opt","muz","grip","mag","ammo","hel","arm","bag","vest"];' +
