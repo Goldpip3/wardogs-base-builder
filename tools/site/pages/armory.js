@@ -786,15 +786,16 @@ module.exports = ctx => {
       /* Two figures this screen wants and nobody has. Saying so is the point: a weight of
          0.0 kg and a bag that never fills would both look like answers, and the second one
          is the sort of thing somebody plans a kit around. */
-      '<p class="fine" style="margin-top:18px;max-width:70ch">Two things the game shows that' +
-      " this page does not, both marked work in progress rather than filled with a guess." +
-      " <strong>Weight</strong> is not in the item database these prices came from, so it" +
-      " needs reading off the inventory screen piece by piece. <strong>How much each" +
-      " backpack holds</strong> is a grid of slots in game, and the fan sites that publish" +
-      " one disagree with each other and with the database on the rest of the item, so" +
-      " nothing here is filled in from them: the shelf is ordered cheapest first, which is" +
-      " also the order they unlock in, and the bag takes whatever you put in it. Things that" +
-      " stack do stack five to a slot.</p>" +
+      /* Where the numbers on this screen come from, said once, because two of them are a
+         different kind of thing from the prices: read in bulk off the same database rather
+         than typed off it, and neither has been checked against the game. */
+      '<p class="fine" style="margin-top:18px;max-width:70ch">Weight, how much room a thing' +
+      " takes, how many go in a slot and what unlocks it are transcribed from the same item" +
+      " database as the prices, read on " + esc(ARMORY_STATS.readOn) + ". They are not" +
+      " measured in game: a bag is counted as squares, and the game packs shapes, so a bag" +
+      " with room left in it can still refuse a long item. A kit that carries something the" +
+      " database has no weight for says so with a plus on the total rather than quietly" +
+      " leaving it out.</p>" +
 
       adSlot("inArticle") +
 
@@ -818,15 +819,11 @@ module.exports = ctx => {
       }())) + ';' +
       'var ATTFIT=' + JSON.stringify(attOwner) + ';' +
       'var WSLOTS=' + JSON.stringify(weaponSlots) + ';' +
-      /* What each thing weighs, which the game puts at the top of this very screen next to
-         the value and which decides how fast you move under it. Nothing in the catalogue
-         carries one yet: the vendor database this was transcribed from does not publish a
-         weight, so every figure would have to be read off the inventory screen item by item.
-         That is in data/todo.json under confirm.
-
-         The map is emitted empty rather than left out, and the page says the figure is not
-         measured rather than adding up the ones it happens to have. Filling in kg on the
-         lines in tools/build-armory.js is the whole job: nothing here changes. */
+      /* ---- what the source publishes about each item, beyond its price ----
+         Weight, footprint, stack size and the grid a bag holds, all from the one pull in
+         data/armory-stats.json. The page had none of these a day ago and said so; they are
+         a transcription rather than a measurement, and the note under the vendor says which
+         it is. */
       /* How many of a thing go in one slot before it takes another, straight from the source
          rather than from a rule of thumb. It is not five across the board: a bandage stacks
          five, a C4 charge and an adrenaline pen three, and rounds stack by calibre, 80 of
@@ -837,19 +834,20 @@ module.exports = ctx => {
         if (st.stack) m[i.name] = st.stack;
         return m;
       }, {})) + ';' +
-      /* How many slots a thing takes up, from its own footprint: a rifle magazine is 1x2 and
-         a drum is 2x2, so two magazines do not cost what two grenades cost. */
+      /* The room a thing takes, as its own footprint rather than a count: a rifle magazine
+         is 1x2 and a drum is 2x2, so two magazines do not cost what two grenades cost, and
+         the tile drawn for it is the shape the game draws. Anything the source is silent
+         about is left out and treated as one square, which is the least it can be. */
       'var TAKES=' + JSON.stringify(A.items.reduce(function (m, i) {
-        const n = slotsIn(statOf(i.name).grid);
-        if (n > 1) m[i.name] = n;
+        const g = statOf(i.name).grid;
+        if (g && slotsIn(g) > 1) m[i.name] = g;
         return m;
       }, {})) + ';' +
-      /* What a bag holds, as the grid the game gives it: the Pouch is 3x2 and the Arsenal
-         is 5x6. Counted as area, which is honest about what it is doing: the game packs
-         shapes into a grid, so a bag with room left over can still refuse a long item. */
-      'var BAGSLOTS=' + JSON.stringify(A.items.reduce(function (m, i) {
-        const n = slotsIn(statOf(i.name).storage);
-        if (n) m[i.name] = n;
+      /* The grid a bag gives you, not just how many squares it comes to: the Pouch is 3x2
+         and the Arsenal 5x6, and the shape is what the picture is drawn on. */
+      'var BAGGRID=' + JSON.stringify(A.items.reduce(function (m, i) {
+        const g = statOf(i.name).storage;
+        if (g) m[i.name] = g;
         return m;
       }, {})) + ';' +
       'var KG=' + JSON.stringify(A.items.reduce(function (m, i) {
@@ -986,63 +984,69 @@ module.exports = ctx => {
 
          Icons come from the cards already on the page rather than from a second table of
          slugs, so a cell can never show art the shelf does not. */
-      'function cell(src,label,sub){' +
+      'function cell(src,label,sub,w,h){' +
       ' var d=document.createElement("div");d.className="vcell";' +
+      ' if(w>1)d.style.gridColumn="span "+w;' +
+      ' if(h>1)d.style.gridRow="span "+h;' +
       ' if(src){var im=document.createElement("img");im.src=src;im.alt="";' +
-      '  im.width=44;im.height=44;im.loading="lazy";d.appendChild(im);}' +
+      '  im.loading="lazy";d.appendChild(im);}' +
       ' if(sub){var b=document.createElement("b");b.textContent=sub;d.appendChild(b);}' +
       ' d.title=label;' +
       ' var s=document.createElement("span");s.textContent=label;d.appendChild(s);' +
       ' return d;}' +
       'function iconOf(c){var g=c&&attr(c,"data-icon");' +
       ' return g?"/game-icons/"+g+".png":"";}' +
+      /* A thing's footprint, as the game gives it: 1x2 for a rifle magazine, 2x2 for a drum,
+         1x1 for a grenade. Anything the source says nothing about takes one square, which
+         is the smallest thing it could be and so the least the bag can be made to look. */
+      'function foot(name){var g=TAKES[name];return g?g:[1,1];}' +
       'function fillCells(){' +
       ' var box=el("cells");box.textContent="";' +
-      ' var bag=chosen.bag,n=0;' +
+      ' var bag=chosen.bag,n=0,used=0;' +
       ' box.setAttribute("data-locked",bag?"0":"1");' +
       ' if(!bag){' +
       '  var p=document.createElement("p");p.className="vcells-none";' +
       '  p.textContent="Nothing can be carried until you pick a backpack.";' +
-      '  box.appendChild(p);' +
+      '  box.appendChild(p);box.style.removeProperty("--cols");' +
       '  el("packcount").textContent="Empty";' +
       '  el("packnote").textContent="Pick a backpack";' +
       '  return;}' +
-      /* One cell per magazine, labelled with what is in it, which is the thing the game's
-         own grid says and the thing three magazines of one round and three of another
-         cannot say as a single line of text. */
+      /* The bag is drawn on its own grid, the shape the game gives it: three across for a
+         Pouch, five for an Arsenal. Tiles are laid dense, so a tall magazine and a square
+         drum pack the way they do in the game rather than each taking a row. */
+      ' var grid=BAGGRID[nameOf("bag")]||[3,2];' +
+      ' var cols=grid[0],room=grid[0]*grid[1];' +
+      ' box.style.setProperty("--cols",cols);' +
+      /* One tile per magazine, labelled with what is in it: three magazines of one round
+         and three of another cannot be said in a single line of text. */
       ' var mags=+el("mags").value||0,mc=chosen.mag,ac=chosen.ammo;' +
       ' if(mc&&mags){' +
-      '  var size=MAGSIZE[nameOf("mag")]||30;' +
+      '  var mn=nameOf("mag"),size=MAGSIZE[mn]||30,f=foot(mn);' +
       '  var load=ac?nameOf("ammo"):"empty";' +
-      '  for(var i=0;i<mags;i++){n++;' +
-      '   box.appendChild(cell(iconOf(mc),nameOf("mag")+", "+load,size+"/"+size));}}' +
+      '  for(var i=0;i<mags;i++){n++;used+=f[0]*f[1];' +
+      '   box.appendChild(cell(iconOf(mc),mn+", "+load,size+"/"+size,f[0],f[1]));}}' +
       ' else if(ac&&mags){' +
-      '  var r=ammoCost().rounds;' +
-      '  if(r){n++;box.appendChild(cell(iconOf(ac),nameOf("ammo"),String(r)));}}' +
-      /* Five to a slot, then a new slot. Six frags is two cells reading 5 and 1, which is
-         what the bag actually looks like and what makes the sixth one cost room. */
+      '  var r=ammoCost().rounds,an=nameOf("ammo"),fa=foot(an),per=STACK[an]||1;' +
+      '  var left=r;' +
+      '  while(left>0){var here=Math.min(per,left);left-=here;n++;used+=fa[0]*fa[1];' +
+      '   box.appendChild(cell(iconOf(ac),an,String(here),fa[0],fa[1]));}}' +
+      /* Stacks come off the source rather than a rule of thumb: five bandages to a slot,
+         three charges, eighty rounds of 5.56, and a grenade on its own because a grenade
+         does not stack at all. */
       ' Object.keys(extras).forEach(function(k){' +
       '  var q=extras[k].q;n+=q;' +
       '  var card=document.querySelector("[data-extra=\\""+k.replace(/"/g,"")+"\\"]");' +
       '  var im0=card&&card.querySelector("img");' +
-      '  var per=STACK[k]||1,left=q;' +
-      '  while(left>0){var here=Math.min(per,left);left-=here;' +
-      '   box.appendChild(cell(im0?im0.src:"",k,here>1?String(here):""));}});' +
-      /* Empty cells to the end of the row, so a part-filled bag reads as a bag with room in
-         it rather than as a ragged edge. They say nothing about how much it holds: that is
-         not measured, and the note under the grid says so rather than a made up cell count. */
-      ' var per=window.matchMedia&&window.matchMedia("(max-width:599px)").matches?4:3;' +
-      ' var used=box.querySelectorAll(".vcell").length;' +
-      ' var room=BAGSLOTS[nameOf("bag")]||0;' +
-      /* With a measured capacity the empties run to the end of the bag and stop, and going
-         over it is said rather than silently allowed. Without one they only finish the row,
-         which claims nothing about how much fits. */
-      ' var fill=room?Math.max(0,room-used):(used?(per-(used%per))%per:per);' +
-      ' for(var j=0;j<fill;j++){var e=document.createElement("div");' +
+      '  var per=STACK[k]||1,f=foot(k),left=q;' +
+      '  while(left>0){var here=Math.min(per,left);left-=here;used+=f[0]*f[1];' +
+      '   box.appendChild(cell(im0?im0.src:"",k,here>1?String(here):"",f[0],f[1]));}});' +
+      /* The rest of the bag, drawn empty. A bag is a picture of how much room is left, and
+         a grid that stopped at the last thing in it would not be one. */
+      ' for(var j=0;j<Math.max(0,room-used);j++){var e=document.createElement("div");' +
       '  e.className="vcell vcell-empty";box.appendChild(e);}' +
-      ' box.setAttribute("data-over",room&&used>room?"1":"0");' +
-      ' el("packcount").textContent=n?(room?used+" of "+room+" slots":n+" in the bag"):"Empty";' +
-      ' el("packnote").textContent=room&&used>room?"Over what it holds":nameOf("bag");}' +
+      ' box.setAttribute("data-over",used>room?"1":"0");' +
+      ' el("packcount").textContent=used?used+" of "+room+" slots":"Empty";' +
+      ' el("packnote").textContent=used>room?"More than it holds":nameOf("bag");}' +
 
       'function render(){' +
       ' var total=0,unknown=0,parts=[];' +
@@ -1075,12 +1079,22 @@ module.exports = ctx => {
       ' var have=0,miss=0,kg=0;' +
       ' var add=function(name,q){ if(!name)return;' +
       '  if(typeof KG[name]==="number"){have++;kg+=KG[name]*q;} else miss++; };' +
-      ' SLOTS.forEach(function(id){ if(id!=="ammo")add(nameOf(id),1); });' +
+      /* Three magazines weigh three magazines. The slot says which one is chosen and the
+         stepper says how many are in the bag, and counting the slot once had a kit carrying
+         ninety rounds report the weight of thirty. */
+      ' SLOTS.forEach(function(id){ if(id!=="ammo"&&id!=="mag")add(nameOf(id),1); });' +
+      ' add(nameOf("mag"),+el("mags").value||0);' +
       ' Object.keys(extras).forEach(function(k){ add(k,extras[k].q); });' +
-      ' if(!have&&!miss){out.textContent="work in progress";out.setAttribute("data-soft","1");return;}' +
-      ' if(miss){out.textContent="work in progress";out.setAttribute("data-soft","1");return;}' +
+      ' if(!have){out.textContent=miss?"work in progress":"--";' +
+      '  out.setAttribute("data-soft","1");out.title="";return;}' +
       ' out.removeAttribute("data-soft");' +
-      ' out.textContent=(Math.round(kg*10)/10)+" kg";}' +
+      /* A total with a plus on it rather than no total at all. The source has a weight for
+         most of the catalogue and not all of it, and a kit with one unweighed piece in it
+         still tells you more as "12.2 kg and a bit" than as a shrug. The plus is the part
+         that stops it being a lie, and the tooltip says which piece. */
+      ' out.textContent=(Math.round(kg*10)/10)+" kg"+(miss?" +":"");' +
+      ' out.title=miss?miss+" thing"+(miss>1?"s have":" has")+" no published weight, so the '+
+      'real figure is higher":"";}' +
 
       /* ---- nothing is bought that nothing can carry ----
          The items shelf sold grenades and bandages to somebody with no bag, which is a kit

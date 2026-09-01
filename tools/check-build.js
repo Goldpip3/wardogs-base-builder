@@ -111,6 +111,30 @@ check(!mojibake, "no mojibake from a codepage mismatch",
    wherever in the file it lives, and check the file exists as well as that it was inlined:
    a name pointing at nothing inlines nothing and would otherwise fail silently. */
 {
+  /* ---- the pulled item stats join the catalogue by name ----
+     data/armory-stats.json carries weight, footprint, stack size and unlock level, read in
+     bulk from the same database the prices were typed from. It is keyed by item name, so a
+     name that drifts on either side silently drops the figures for that item: the loadout
+     page would go on working and quietly stop counting a rifle's weight. A key that is not
+     a catalogue name is the loud half of that, and it is what this catches. */
+  {
+    const stats = JSON.parse(fs.readFileSync(path.join(proj, "data", "armory-stats.json"), "utf8"));
+    const armoury = JSON.parse(fs.readFileSync(path.join(proj, "data", "armory.json"), "utf8"));
+    const names = new Set(armoury.items.map(i => i.name));
+    const strays = Object.keys(stats.items).filter(n => !names.has(n));
+    check(strays.length === 0,
+      `all ${Object.keys(stats.items).length} pulled item stats join the catalogue by name`,
+      strays.slice(0, 6).join(", "));
+    const kits = armoury.items.filter(i => i.cat !== "vehicles" && i.cat !== "mounted");
+    const covered = kits.filter(i => stats.items[i.name]);
+    check(covered.length > kits.length * 0.9,
+      `${covered.length} of ${kits.length} kit items carry pulled stats`);
+    /* The file says when it was read and where from. Without that it is a pile of numbers
+       nobody can re-check, which is the state the weights were in before it existed. */
+    check(!!stats.source && !!stats.readOn,
+      "the pulled stats name their source and the day they were read");
+  }
+
   const named = [];
   (function collect(node, where) {
     if (!node || typeof node !== "object") return;

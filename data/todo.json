@@ -39,19 +39,14 @@
       "where": "the damage page states it in the lede"
     },
     {
-      "what": "What every item weighs, and how many slots each bag holds",
-      "why": "Neither is in the item database the prices came from: wardogs.zone publishes names and prices only. Searched 2026-08-31. Two fan sites do publish figures and they cannot both be trusted: wardogshandbook.com gives Pouch 3x2=6, Scout 4x2=8, Field 6x2=12, Operator 5x3=15, Assault 5x5=21 (which is not what 5x5 is), Ruck and Gunner and Arsenal 6x4=24, no Halftrack at all, and vest prices of $10,000 and $25,000 against the $250 and $400 in the database. MetaForge agrees on Operator 5x3=15 at 0.8kg but blocks reading. The only figure corroborated twice and checked against a price is the bandage stack of five, at $200 each and $1,000 for five. So nothing is transcribed: read the grid and the kg off the inventory screen instead. Weight goes on the line in tools/build-armory.js as 3.4kg, slots as 12 slots, and both light up the loadout page with no other change.",
-      "where": "tools/build-armory.js, RAW"
+      "what": "The pulled item stats: weight, footprint, stack size, bag grids and unlock levels",
+      "why": "data/armory-stats.json was read out of the MetaForge database on 2026-08-31, the same source the prices were typed from, and every price in the pull matched the catalogue, which is how the join was checked. It is still a transcription and not a measurement. The ones worth checking first are the ones the loadout page leans on: the bag grids, since the Field Backpack comes out 3x3 where one fan site says 6x2, and the stack sizes, since a frag grenade is listed as not stacking at all.",
+      "where": "data/armory-stats.json"
     },
     {
-      "what": "Which items stack, and to how many",
-      "why": "The loadout page stacks throwables and medical five to a slot, which the owner reported from the game and which the item database backs for bandages. Everything else takes a slot each, which is the safe way to be wrong: the bag looks fuller than it is. What is not known is whether every throwable and every medical item really stacks to five, or whether it varies by item.",
-      "where": "tools/site/pages/armory.js, STACK"
-    },
-    {
-      "what": "The unlock level on gear, not just weapons",
-      "why": "The shelves are ordered cheapest first as a stand-in for the order you get things. One fan site puts levels on them, Field 12, Operator 20, Assault 32, Ruck 56, Gunner 73, Arsenal 150, Medium vest 14, Large vest 50, and that order happens to match price order exactly, which is why cheapest first is a fair stand-in and not evidence. data/progression.json holds the weapon ladder and has room for gear.",
-      "where": "data/progression.json"
+      "what": "Whether the first ladder is called Assault or Infantry",
+      "why": "data/progression.json says Assault, confirmed by the owner on 2026-08-31 against a write-up that said Infantry. The MetaForge unlock data pulled into data/armory-stats.json calls that same ladder Infantry on every item. One of them is out of date rather than wrong, and the loadout shelves order by level so nothing depends on the name yet.",
+      "where": "data/progression.json, data/armory-stats.json"
     }
   ],
   "work": [

@@ -805,15 +805,17 @@ tr[data-on="1"] td{background:var(--panel2);color:var(--text)}
    of names down the side said the same words and none of the same thing: you read a kit by
    looking at it. Three across at this column width, four on a phone where the column is the
    whole page and the cells shrink. */
-.vcells{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--line);
+/* The bag is drawn on the grid the game gives it, so the columns come from the bag rather
+   than from the page: --cols is set when a bag is chosen. Dense flow lets a 1x2 magazine and
+   a 2x2 drum pack into the gaps the way they do in game instead of each taking a row. */
+.vcells{display:grid;grid-template-columns:repeat(var(--cols,3),1fr);grid-auto-rows:1fr;
+  grid-auto-flow:row dense;gap:4px;background:var(--line);
   border:1px solid var(--line);padding:4px;margin-top:14px;min-height:104px;
   align-content:start}
-@media(max-width:899px){.vcells{grid-template-columns:repeat(4,1fr)}}
-@media(max-width:420px){.vcells{grid-template-columns:repeat(3,1fr)}}
 .vcell{position:relative;background:var(--bg);border:1px solid var(--line2);
-  aspect-ratio:1/1;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;padding:4px;overflow:hidden}
-.vcell img{max-width:100%;max-height:44px;object-fit:contain}
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;padding:4px;overflow:hidden;min-height:52px}
+.vcell img{max-width:100%;max-height:100%;object-fit:contain}
 /* The count sits where the game puts it, bottom right, and reads as a number rather than as
    a label: it is 30/30 on a magazine and a multiplier on anything that stacks. */
 .vcell b{position:absolute;right:3px;bottom:2px;font-family:var(--num);font-weight:400;

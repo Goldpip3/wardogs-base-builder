@@ -10,20 +10,16 @@
  * with no price is one the source does not have confirmed yet, and it stays blank rather
  * than being guessed at. Checked 30 August 2026 against the closed beta build.
  *
- * Line format:  Name | price | weight
+ * Line format:  Name | price
  *   $1,600      a price
  *   Free        costs nothing
  *   (blank)     not confirmed yet
  *   $15/10      a price for a pack of ten
- *   3.2kg       what it weighs, optional and absent from every line so far
- *   12slots     how much a bag holds, same rules
  *
- * The weight is the figure the game puts at the top of the inventory screen beside the
- * value, and it decides how fast you move under the kit. The database these prices came
- * from does not publish one, so no line carries a weight yet and the loadout page says the
- * figure is not measured rather than adding up the empty set. Reading them off the game
- * item by item is the whole job; it is listed in data/todo.json under confirm. Write it
- * here when it is measured and nothing else has to change.
+ * Prices only. Weight, footprint, stack size and unlock level are the same source read a
+ * different way, in bulk rather than typed, and they live in data/armory-stats.json with a
+ * note on how that pull is repeated. Two homes for one number is what this codebase keeps
+ * getting caught by, so do not add them back to these lines.
  */
 const fs = require("fs");
 const path = require("path");
@@ -476,28 +472,10 @@ const problems = [];
 for (const [cat, block] of Object.entries(RAW)) {
   const lines = block.trim().split("\n").map(l => l.trim()).filter(Boolean);
   for (const line of lines) {
-    /* The weight and the slot count are taken off the end first, so the price is still the
-       last field of what is left and a line carrying neither parses exactly as it always
-       did. A bag holds a grid of slots in game; nothing here states one yet, and the fan
-       sites that publish a figure disagree with each other, so the loadout page draws the
-       bag as bottomless and says so rather than picking a number off one of them. */
-    let body = line, kg = null, slots = null;
-    const sm = body.match(/\|\s*(\d+)\s*slots?\s*$/i);
-    if (sm) {
-      slots = Number(sm[1]);
-      if (!(slots > 0)) { problems.push("bad slot count on " + line); continue; }
-      body = body.slice(0, sm.index);
-    }
-    const wm = body.match(/\|\s*([\d.]+)\s*kg\s*$/i);
-    if (wm) {
-      kg = Number(wm[1]);
-      if (!(kg > 0)) { problems.push("bad weight on " + line); continue; }
-      body = body.slice(0, wm.index);
-    }
-    const bar = body.lastIndexOf("|");
+    const bar = line.lastIndexOf("|");
     if (bar < 0) { problems.push("no separator: " + line); continue; }
-    const name = body.slice(0, bar).trim();
-    const raw = body.slice(bar + 1).trim();
+    const name = line.slice(0, bar).trim();
+    const raw = line.slice(bar + 1).trim();
 
     let price = null, per = 1, free = false;
     if (raw === "Free") { price = 0; free = true; }
@@ -509,8 +487,6 @@ for (const [cat, block] of Object.entries(RAW)) {
     }
     const item = { name, cat, price, per };
     if (free) item.free = true;
-    if (kg !== null) item.kg = kg;
-    if (slots !== null) item.slots = slots;
     if (cat === "weapons" && WEAPON_CALIBRE[name]) item.calibre = WEAPON_CALIBRE[name];
     const slug = iconFor(name);
     if (slug) item.icon = slug;

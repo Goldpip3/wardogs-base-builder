@@ -175,24 +175,24 @@ check(storage.includes('id="bag-slot"') && storage.includes('id="cells"'),
   "storage is its own column, with the bag slot and the grid that fills as you build");
 check(kit.includes("function gateBag") && kit.includes("Pick a backpack before you buy"),
   "the items shelf locks until a backpack is chosen");
-/* Five to a slot for the things that stack, one each for everything else, and the two
-   figures nobody has measured are marked work in progress rather than filled in. */
-check(kit.includes("var STACK=") && kit.includes("Math.min(per,left)"),
-  "things that stack fill a slot five at a time");
-check(kit.includes("var BAGSLOTS=") && kit.includes('" of "+room+" slots"'),
-  "the bag draws to its capacity as soon as one is measured");
-const armoury = require(ROOT + "/data/armory.json").items;
-const anyKg = armoury.some(i => typeof i.kg === "number");
-const anySlots = armoury.some(i => typeof i.slots === "number");
-/* Nothing in the catalogue carries either figure, so the page says work in progress. The
-   day one lands this goes red, and what has to change is the sentence: a page carrying both
-   the number and the disclaimer is the worse of the two states, because the disclaimer is
-   what gets read. Sources for both were searched on 2026-08-31 and the ones that publish
-   them contradict each other and the item database, which is why none was transcribed. */
-check(anyKg || anySlots ? !kit.includes("work in progress") : kit.includes("work in progress"),
-  anyKg || anySlots
-    ? "the catalogue has weights or capacities, so the page stops calling them work in progress"
-    : "weight and bag capacity are marked work in progress while nothing carries either");
+/* Stacking is per item and comes from the pull, not from a rule of thumb: a bandage is
+   five to a slot, a grenade is one, and 5.56 is eighty. The page had "five for anything
+   throwable" for a few hours, which was wrong about grenades in the direction that makes a
+   bag look emptier than it is. */
+const stats = require(ROOT + "/data/armory-stats.json").items;
+check(stats["Bandage"] && stats["Bandage"].stack === 5 &&
+  !(stats["M67 Frag Grenade"] || {}).stack,
+  "the pulled stacks are per item: a bandage stacks, a frag grenade does not");
+check(kit.includes("var STACK=") && kit.includes("STACK[k]||1"),
+  "the bag stacks by what the source says, one to a slot when it says nothing");
+check(kit.includes("var BAGGRID=") && kit.includes('" of "+room+" slots"'),
+  "the bag is drawn on its own grid and counts what is in it");
+/* Every figure on this screen that is not a price is a transcription rather than a
+   measurement, and the page has to say so: it is the difference between a number somebody
+   checked in game and a number read off a fan database on one particular day. */
+const pulled = require(ROOT + "/data/armory-stats.json");
+check(kit.includes("transcribed from the same item") && kit.includes(pulled.readOn),
+  "the page says where the weights and capacities came from and when");
 
 // ---------- the planner still ships intact ----------
 check(app.includes("btnShare") && app.includes("buildIndex") && app.length > 100000,
