@@ -405,6 +405,13 @@ check(!!bar, "the hosted planner carries the site banner");
    A 28px hand-written lookalike shipped first and was sent straight back. */
 check(bar.includes('class="brand') && (bar.match(/class="[^"]*cta[^"]*"/g) || []).length === 7,
   "with the site's own brand and its seven bordered boxes");
+/* The account control is not optional dressing. The row is centred in what the brand and
+   the name leave either side of it, so leaving it out moved every box in the nav and the
+   banner visibly shifted between the planner and the rest of the site. */
+check(bar.includes('id="acct" class="acct"'),
+  "and the account control, without which the whole nav sits in a different place");
+check(app.includes('document.getElementById("acct")') && !app.includes("acctChip"),
+  "the planner fills it from its own sign-in rather than keeping a second one");
 check(app.includes(require(PROJ + "tools/site-header-css.js").trim()),
   "and the site's own rules for them, lifted rather than copied");
 ["/artillery/", "/designs/", "/armory/", "/ballistics/", "/loadouts/", "/feedback/"]

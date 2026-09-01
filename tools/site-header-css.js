@@ -23,7 +23,7 @@ const CSS = require(path.join(__dirname, "site", "css.js"));
 /* Selectors that draw the banner. A rule is kept when its selector list mentions any of
    these, so `nav.site a.cta:hover` and the responsive overrides come along without being
    listed one by one. */
-const WANTED = ["header.site", "nav.site", ".brand"];
+const WANTED = ["header.site", "nav.site", ".brand", ".acct"];
 /* .wrap is the column every page on the site is poured into, and the header is one of them:
    without it the banner runs the full width of the window and the wordmark sits against the
    glass. Only the bare rule is wanted, not `.hero.has-video .wrap` and the rest, so it is

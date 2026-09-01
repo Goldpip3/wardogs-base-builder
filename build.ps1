@@ -112,12 +112,14 @@ $navLinks = ($siteLinks | ForEach-Object {
   else { '<a class="leaveLink cta" href="{0}">{1}</a>' -f $_.href, $_.label }
 }) -join ""
 # The site's own header markup, class for class, so the stylesheet lifted out of
-# tools/site/css.js draws it here exactly as it draws the landing page. The one thing left
-# out is the account control: this page has its own sign-in in the tool bar below, and two
-# of them in one column would be a worse banner than a slightly emptier one.
+# tools/site/css.js draws it here exactly as it draws the landing page. That includes the
+# account control: leaving it out was not a cosmetic saving, it moved the whole nav, because
+# the row is centred in what the brand and the name leave. The planner fills #acct itself
+# from the same /me it already asks, rather than running the site's auth script beside its
+# own. The tool bar's sign-in came out in the same move.
 $siteNav = '<header class="site"><div class="wrap">' +
   '<a href="/" class="brand leaveLink">WARDOGS</a>' +
-  '<nav class="site">' + $navLinks + '</nav>' +
+  '<nav class="site">' + $navLinks + '<span id="acct" class="acct"></span></nav>' +
   '</div></header>'
 
 # ...and the rules that draw it, read out of the site's stylesheet rather than typed again

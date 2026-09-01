@@ -525,7 +525,9 @@ th.sortable[data-dir="desc"]::after{content:"↓";opacity:1;color:var(--yellow)}
 .acct .who{color:var(--text);background:none;border:0;padding:4px 0;cursor:pointer;
   font:inherit;letter-spacing:inherit;text-transform:inherit;display:inline-flex;
   align-items:center;gap:6px}
-.acct .who:hover{color:var(--accent)}
+/* var(--accent) was written here and this stylesheet has never declared one, so the name in
+   the header had no hover colour at all. The yellow is --yellow. */
+.acct .who:hover{color:var(--yellow)}
 .acct .caret{font-size:9px;color:var(--dim2)}
 .acct-menu{position:absolute;top:calc(100% + 6px);right:0;z-index:60;display:flex;
   flex-direction:column;min-width:150px;background:var(--panel);
