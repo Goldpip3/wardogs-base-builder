@@ -86,8 +86,10 @@ header.site .wrap{display:flex;align-items:center;gap:28px;min-height:74px}
    than a page that moves under you. A Discord name longer than about fourteen characters is
    what still reaches it on a 1440px screen, and a name that drops to its own row is a good
    deal better than one that pushes the page wider than the window. */
-nav.site{display:flex;align-items:center;gap:14px;row-gap:10px;flex-wrap:wrap;flex:1}
-.nav-gap{flex:1}
+/* One group, centred in what the brand leaves. The spacer that used to split the two
+   tools off the references opened a hole most of a column wide at full width. */
+nav.site{display:flex;align-items:center;justify-content:center;gap:14px;row-gap:10px;
+  flex-wrap:wrap;flex:1}
 nav.site a{font-weight:600;text-transform:uppercase;letter-spacing:.12em;font-size:12px;color:var(--dim2)}
 nav.site a:hover{color:var(--text)}
 nav.site a[aria-current]{color:var(--text)}
@@ -853,8 +855,7 @@ ul,ol{padding-left:22px}li{margin:6px 0}
   /* flex:none matters: flex-basis:0 from the desktop rule beats width:100% inside a flex
      row, which left the nav as a tall column beside the brand instead of a wrapped block
      under it. */
-  nav.site{flex:none;margin-left:0;gap:14px;width:100%;flex-wrap:wrap}
-  .nav-gap{display:none}
+  nav.site{flex:none;margin-left:0;gap:14px;width:100%;flex-wrap:wrap;justify-content:flex-start}
 }
 /* --- the nav on a phone, once every link became a box ---
    Two boxes among six plain links wrapped to about 120px. Seven boxes at desktop size did
@@ -1039,7 +1040,6 @@ document.addEventListener("click",function(e){
     
     <a href="/planner/" class="cta">Planner</a>
     <a href="/artillery/" class="cta">Artillery</a>
-    <span class="nav-gap"></span>
     <a href="/designs/" class="cta">Designs</a>
     <a href="/armory/" class="cta">Armory</a>
     <a href="/ballistics/" class="cta">Damage</a>

@@ -87,8 +87,10 @@ header.site .wrap{display:flex;align-items:center;gap:28px;min-height:74px}
    than a page that moves under you. A Discord name longer than about fourteen characters is
    what still reaches it on a 1440px screen, and a name that drops to its own row is a good
    deal better than one that pushes the page wider than the window. */
-nav.site{display:flex;align-items:center;gap:14px;row-gap:10px;flex-wrap:wrap;flex:1}
-.nav-gap{flex:1}
+/* One group, centred in what the brand leaves. The spacer that used to split the two
+   tools off the references opened a hole most of a column wide at full width. */
+nav.site{display:flex;align-items:center;justify-content:center;gap:14px;row-gap:10px;
+  flex-wrap:wrap;flex:1}
 nav.site a{font-weight:600;text-transform:uppercase;letter-spacing:.12em;font-size:12px;color:var(--dim2)}
 nav.site a:hover{color:var(--text)}
 nav.site a[aria-current]{color:var(--text)}
@@ -648,7 +650,12 @@ tr[data-on="1"] td{background:var(--panel2);color:var(--text)}
 .vend-cash b{font-family:var(--display);font-weight:700;font-size:28px;line-height:1;
   color:var(--yellow);font-variant-numeric:tabular-nums}
 .vend-body{display:grid;grid-template-columns:1fr;gap:1px;background:var(--line)}
-@media(min-width:900px){.vend-body{grid-template-columns:26px 1fr 268px}}
+@media(min-width:900px){.vend-body{grid-template-columns:26px 1fr 300px}}
+/* The backpack shelf belongs to a 300px column and does not fit in one, so it takes a row
+   under everything and spans the lot. Hidden with the picker inside it: an empty grid row
+   still draws its own hairline, which read as a line ruled under the vendor for no reason. */
+.vend-shelf{grid-column:1/-1;background:var(--panel);padding:0 20px 20px}
+.vend-shelf[hidden]{display:none}
 /* the vendor's own spine, vertical down the left edge, decoration only */
 .vend-rail{display:none;background:var(--bg);color:var(--dim);font-size:10px;font-weight:600;
   letter-spacing:.28em;text-transform:uppercase;writing-mode:vertical-rl;
@@ -793,12 +800,46 @@ tr[data-on="1"] td{background:var(--panel2);color:var(--text)}
 .vcard[aria-pressed="true"] .vcard-name{background:var(--yellow);color:var(--bg)}
 
 /* the bag, listed back to you */
-.vpack{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:1px}
-.vpack li{display:flex;align-items:center;gap:9px;background:var(--bg);padding:7px 9px;
-  font-size:12px;color:var(--dim2)}
-.vpack img{width:26px;height:26px;object-fit:contain;flex:0 0 auto}
-.vpack span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.vpack b{font-family:var(--num);font-size:11px;color:var(--text);font-weight:400}
+/* --- the bag, drawn as a bag ---
+   The game shows what you are carrying as a grid of cells on the right of the screen, each
+   one holding the thing's own art, and a magazine reading how many rounds are in it. A list
+   of names down the side said the same words and none of the same thing: you read a kit by
+   looking at it. Three across at this column width, four on a phone where the column is the
+   whole page and the cells shrink. */
+.vcells{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--line);
+  border:1px solid var(--line);padding:4px;margin-top:14px;min-height:104px;
+  align-content:start}
+@media(max-width:899px){.vcells{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:420px){.vcells{grid-template-columns:repeat(3,1fr)}}
+.vcell{position:relative;background:var(--bg);border:1px solid var(--line2);
+  aspect-ratio:1/1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;padding:4px;overflow:hidden}
+.vcell img{max-width:100%;max-height:44px;object-fit:contain}
+/* The count sits where the game puts it, bottom right, and reads as a number rather than as
+   a label: it is 30/30 on a magazine and a multiplier on anything that stacks. */
+.vcell b{position:absolute;right:3px;bottom:2px;font-family:var(--num);font-weight:400;
+  font-size:9px;color:var(--yellow);background:var(--bg);padding:0 2px;line-height:1.4}
+/* The name is there for a reader and a screen reader, not for the eye: at 60px square it
+   would be three words of unreadable type over the art it is describing. */
+.vcell span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.vcell-empty{background:var(--panel2);border-style:dashed;border-color:var(--line)}
+.vcells[data-locked="1"]{grid-template-columns:1fr;background:var(--panel2);
+  border-style:dashed;border-color:var(--line2);min-height:96px;align-content:center}
+.vcells-none{font-size:12px;color:var(--dim);text-align:center;padding:14px 12px;margin:0}
+.vpack-foot{display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+  margin-top:10px;font-size:10px;font-weight:600;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--dim)}
+.vpack-foot #packnote{color:var(--dim2);letter-spacing:.06em;text-transform:none;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* A shelf you cannot buy from says so by looking shut, and its buttons are disabled rather
+   than merely faded: a dimmed control you can still press is worse than no signal at all. */
+[data-panel="items"][data-locked="1"] .vgrid{opacity:.4;pointer-events:none}
+[data-panel="items"][data-locked="1"] .vend-hint{color:var(--yellow)}
+.veq-qty[data-locked="1"]{opacity:.45}
+/* The weight, which nothing has been measured for yet: it says so in the readout rather
+   than printing a total that is only true of the empty set. */
+.vend-cash b[data-soft="1"]{font-size:14px;color:var(--dim);font-family:var(--ui);
+  font-weight:600;letter-spacing:.06em;text-transform:none}
 .chip img{width:18px;height:18px;object-fit:contain;vertical-align:-4px;margin-right:6px}
 
 ul,ol{padding-left:22px}li{margin:6px 0}
@@ -815,8 +856,7 @@ ul,ol{padding-left:22px}li{margin:6px 0}
   /* flex:none matters: flex-basis:0 from the desktop rule beats width:100% inside a flex
      row, which left the nav as a tall column beside the brand instead of a wrapped block
      under it. */
-  nav.site{flex:none;margin-left:0;gap:14px;width:100%;flex-wrap:wrap}
-  .nav-gap{display:none}
+  nav.site{flex:none;margin-left:0;gap:14px;width:100%;flex-wrap:wrap;justify-content:flex-start}
 }
 /* --- the nav on a phone, once every link became a box ---
    Two boxes among six plain links wrapped to about 120px. Seven boxes at desktop size did
@@ -1001,7 +1041,6 @@ document.addEventListener("click",function(e){
     
     <a href="/planner/" class="cta">Planner</a>
     <a href="/artillery/" class="cta">Artillery</a>
-    <span class="nav-gap"></span>
     <a href="/designs/" class="cta">Designs</a>
     <a href="/armory/" class="cta">Armory</a>
     <a href="/ballistics/" class="cta">Damage</a>
@@ -1022,7 +1061,7 @@ document.addEventListener("click",function(e){
     <h2 style="margin-top:34px">Confirm in game</h2>
     <p class="lede sub" style="margin:0 0 6px">Early access opens and the game can be read directly instead of inferred. Earliest
     2026-09-02.</p>
-    <ul class="tds"><li class="td"><b>Weapon progression: which track and level unlocks each weapon, and the one-time cost</b><span class="td-n">29 weapons carried unconfirmed, of 34</span><p>Carried as unconfirmed. Gathered from public write-ups before launch and never verified in game. The track names are settled, the rows are not: read the buy screen for each weapon.</p><code class="td-w">data/progression.json</code></li><li class="td"><b>Which weapons are sidearms rather than primaries</b><span class="td-n">5 named</span><p>Five are treated as sidearms and the loadout page splits the shelves on that. Unverified.</p><code class="td-w">tools/site/pages/armory.js, SIDEARMS</code></li><li class="td"><b>Attachment compatibility, weapon by weapon</b><span class="td-n">65 of 146 attachments placed by label</span><p>Derived from labels: a magazine that names its weapon is trusted, everything else is treated as unknown and shown. The buy screen knows the real answer.</p><code class="td-w">tools/site/pages/armory.js, attOwner</code></li><li class="td"><b>Buildable footprints still marked with a question mark</b><span class="td-n">8 of 20 estimated</span><p>Estimated off beta footage. Place one and read the grid.</p><code class="td-w">data/buildables.json, sizeConfirmed</code></li><li class="td"><b>Damage figures for the weapons with none</b><span class="td-n">6 weapons</span><p>No published shots-to-kill row to solve from.</p><code class="td-w">data/ballistics.json, unfiguredWeapons</code></li><li class="td"><b>The open artillery questions</b><span class="td-n">7 questions</span><p>Each one names what would close it. All of them need somebody with the game open.</p><code class="td-w">data/artillery.json, open</code></li><li class="td"><b>Range falloff</b><p>Every damage figure on the site is point blank, because nobody has published enough to work out the curve honestly. This is the single biggest gap.</p><code class="td-w">the damage page states it in the lede</code></li></ul>
+    <ul class="tds"><li class="td"><b>Weapon progression: which track and level unlocks each weapon, and the one-time cost</b><span class="td-n">29 weapons carried unconfirmed, of 34</span><p>Carried as unconfirmed. Gathered from public write-ups before launch and never verified in game. The track names are settled, the rows are not: read the buy screen for each weapon.</p><code class="td-w">data/progression.json</code></li><li class="td"><b>Which weapons are sidearms rather than primaries</b><span class="td-n">5 named</span><p>Five are treated as sidearms and the loadout page splits the shelves on that. Unverified.</p><code class="td-w">tools/site/pages/armory.js, SIDEARMS</code></li><li class="td"><b>Attachment compatibility, weapon by weapon</b><span class="td-n">65 of 146 attachments placed by label</span><p>Derived from labels: a magazine that names its weapon is trusted, everything else is treated as unknown and shown. The buy screen knows the real answer.</p><code class="td-w">tools/site/pages/armory.js, attOwner</code></li><li class="td"><b>Buildable footprints still marked with a question mark</b><span class="td-n">8 of 20 estimated</span><p>Estimated off beta footage. Place one and read the grid.</p><code class="td-w">data/buildables.json, sizeConfirmed</code></li><li class="td"><b>Damage figures for the weapons with none</b><span class="td-n">6 weapons</span><p>No published shots-to-kill row to solve from.</p><code class="td-w">data/ballistics.json, unfiguredWeapons</code></li><li class="td"><b>The open artillery questions</b><span class="td-n">7 questions</span><p>Each one names what would close it. All of them need somebody with the game open.</p><code class="td-w">data/artillery.json, open</code></li><li class="td"><b>Range falloff</b><p>Every damage figure on the site is point blank, because nobody has published enough to work out the curve honestly. This is the single biggest gap.</p><code class="td-w">the damage page states it in the lede</code></li><li class="td"><b>What every item weighs, and how much each backpack holds</b><p>The game puts weight at the top of the inventory screen beside the value and it decides how fast you move, and a bag is chosen for what fits in it. Neither is in the source the prices came from. The loadout page says both are not measured rather than guessing. Weight goes on the line in tools/build-armory.js as 3.4kg after the price and nothing else changes; capacity has nowhere to live yet.</p><code class="td-w">tools/build-armory.js, RAW</code></li></ul>
 
     <h2 style="margin-top:40px">Work</h2>
     <ul class="tds"><li class="td"><b>15 attachments land in no slot at all</b><span class="td-n">15 of 146</span><p>slotOf classifies by name, and what it cannot place becomes &#39;other&#39;, which no shelf shows. They are reachable in the armory and unpickable in a kit.</p><code class="td-w">tools/site/pages/armory.js, slotOf</code></li><li class="td"><b>Tower and the storey badge are 11.8 apart in Lab</b><p>Under about 12 two colours stop being distinguishable. It is a fill against a badge rather than two lines, so it is milder than the fault and route pair that was fixed, but it is the closest pair left on the planner canvas.</p><code class="td-w">src/shared/design-view.js, ROLE_COLOR</code></li><li class="td"><b>The planner puts the map 819px down a phone screen</b><p>Nav, eleven buttons and four coordinate boxes render before any map. The map wants to come first on a narrow screen. Measured, not decided.</p><code class="td-w">map/OPEN.md</code></li><li class="td"><b>Two sessions in one checkout commit each other&#39;s work</b><p>git add -A takes whatever the other has open. It happened repeatedly, once carrying a half-finished share-format change. Separate worktrees would end it.</p><code class="td-w">CLAUDE.md, trap 8</code></li></ul>

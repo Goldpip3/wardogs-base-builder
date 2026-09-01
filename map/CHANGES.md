@@ -8,6 +8,44 @@ Newest first. One entry per decision, not per commit.
 
 ## 2026-08-31
 
+### The nav is one group, centred
+
+A `.nav-gap` span held Planner and Artillery apart from the other five. At full width that
+spacer took every pixel the row did not need, so it opened a hole most of a column wide
+between Artillery and Designs, which reads as a broken row rather than as a grouping. It is
+gone; the seven sit together at one 14px gap and centre in what the brand leaves.
+
+**Nothing in the nav ranks the tools above the references any more.** The boxes stopped
+doing it when every link got one, and this was the last thing carrying it. If they need to
+lead again, lead with order or with a different treatment on those two, not by pushing the
+other five away.
+
+### The kit has a bag, and nothing is bought without one
+
+The loadout page sold grenades, bandages and spare magazines to somebody carrying nothing,
+which is a kit that cannot exist in the game. **The backpack is its own column now**, beside
+the slots rather than filed under gear with the helmet, and the items shelf and the magazine
+count stay locked until one is chosen. Taking the bag away again empties it, since paid-for
+items with nowhere to be is the same lie in the other direction. The weapon, sidearm, armour
+and rig are deliberately not gated: they are held or worn, not carried.
+
+**The Pouch was on the rig shelf**, beside the tac vests, so the backpack shelf opened with
+nothing free in it and the free option sat two slots away under a name nobody was looking
+for. It is the bag you start with and it leads that shelf, cheapest first.
+
+**What is in the bag is drawn as a bag**, in cells with the item's own art, a magazine
+reading its round count the way the game's own grid does. It was a list of names down the
+side, weapon and helmet included, which is a receipt: the rifle is in your hands and is not
+taking up room in anything.
+
+**Weight is the figure this screen is missing**, and it says so rather than adding up what it
+does not have: the source the prices came from does not publish one, so no item carries a kg
+and the readout reads as not measured. `tools/build-armory.js` takes `|3.4kg` after the
+price and the sum works the moment a figure lands, and it refuses to report a total while any
+piece of a kit is unweighed, because a light total and an unweighed rifle look identical on a
+readout. Measuring them is in `data/todo.json`, with how much each bag holds, which is why
+that shelf is ordered by price.
+
 ### Designs carry tags, and the list filters on them
 
 A list of base layouts is a list of pictures, and the question somebody arrives with is
@@ -172,8 +210,8 @@ link.** The build fails if that refresh tag goes missing. Weight was measured, n
 **Every nav link is boxed now**, which is the owner's call. The two tools were boxed and the
 references were plain; the owner reads the box as finished rather than as primary, and these
 are finished. The consequence, written down because the code cannot say it: a box on
-everything marks nothing, so `.nav-gap` is the only thing still ranking the tools above the
-references.
+everything marks nothing, so nothing in the nav ranks the tools above the references. A
+`.nav-gap` spacer carried that split until it came out the same day, below.
 
 ### The buildables page uses the armory's rail, and serves its icons as files
 

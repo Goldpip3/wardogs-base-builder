@@ -50,9 +50,12 @@ ${AUTH_SCRIPT}
           the reading that a box marks the thing to go and do. The owner reads the box as
           finished rather than as primary, and these are all finished now.
 
-          The consequence to know before changing it: a box on everything marks nothing, so
-          the nav no longer ranks the tools above the references. .nav-gap is what carries
-          that split now, and it is the only thing carrying it.
+          The nav no longer ranks the tools above the references, and nothing in it does.
+          A .nav-gap span used to hold Planner and Artillery apart from the rest, which at
+          full width opened a hole most of a column wide between Artillery and Designs and
+          read as a broken row rather than as a grouping. Owner's call, 2026-08-31: one
+          group, centred. If the tools need to lead again, lead with order or with a
+          different treatment on those two, not by pushing the other five away.
 
           Buildables and Vehicles are deliberately absent. Neither page is gone and neither
           must be. /buildables/ is reached from the home page grid and the footer, and
@@ -61,7 +64,6 @@ ${AUTH_SCRIPT}
           deleting either file turns a live URL into a permanent 404. */""}
     <a href="/planner/" class="cta">Planner</a>
     <a href="/artillery/" class="cta">Artillery</a>
-    <span class="nav-gap"></span>
     <a href="/designs/" class="cta">Designs</a>
     <a href="/armory/" class="cta">Armory</a>
     <a href="/ballistics/" class="cta">Damage</a>
