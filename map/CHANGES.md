@@ -8,6 +8,21 @@ Newest first. One entry per decision, not per commit.
 
 ## 2026-08-31
 
+### The owner is a Discord id, not a display name
+
+`/todo/` decided you were the owner by lowercasing your Discord display name and comparing
+it to a string baked into the page, so anyone who renamed themselves got in. `/me` now
+answers `owner: true` for the one id in `OWNER_DISCORD_ID`, and the page asks rather than
+deciding. The same flag draws Moderate and To do in the account menu, which is why it was
+built: both are unlisted and the URLs were being kept in someone's head.
+
+**It authorises nothing.** A Discord id is public, so it decides what a page offers to show
+and never what `/admin` does, which still wants `ADMIN_TOKEN`. `test/worker.mjs` pins both,
+and its name-impostor check fails against the old comparison, which is how it was proven
+worth having. `/todo/` stays unlisted rather than private and still says so on itself;
+`tools/check-build.js` holds the built page to the flag, because nothing else reads that
+page and a regression would look identical to the owner.
+
 ### The armory holds the vehicles, and every item opens
 
 **Clicking an item now opens a panel** with its art at full size and whatever is actually
@@ -694,38 +709,34 @@ first two fixes each looked right and were not.
 
 ### A way in is a run, and only where somebody can stand (`e9868d9`)
 
-`climbRuns` groups touching pieces of the same verdict so a run counts once, and
-`reachableFromOutside` floods the ground at half a cell from beyond the design's bounds.
-Wire and hedgehogs deliberately do not stop the flood: treating them as solid would hide a
-whole perimeter behind one line of wire. A design past the cell budget calls everything
-reachable, because **over-reporting is the safe way to be wrong about a way in**. Pinned in
-`test/planner.js`.
+`climbRuns` groups touching pieces of one verdict so a run counts once;
+`reachableFromOutside` floods from beyond the bounds. Wire and hedgehogs do not stop the
+flood, or one line of wire would hide a perimeter. Past the cell budget everything is called
+reachable: **over-reporting is the safe way to be wrong about a way in**. `test/planner.js`.
 
 ### A gap you cannot see is named, not merged away (`e9868d9`)
 
 `hairlineGap` states the distance rather than closing it: **widening the merge tolerance
-would make the plan lie about a hole in a wall**. `HAIRLINE` also widens the spatial index,
-because a rule about pieces that do not touch cannot be answered by an index that only
-pairs pieces that do. Anything past it is a firing slit or a doorway and is left alone.
-Pinned in `test/issues.js`.
+would make the plan lie about a hole in a wall**. `HAIRLINE` widens the spatial index too,
+since a rule about pieces that do not touch cannot come from an index that only pairs ones
+that do. Anything past it is a firing slit. `test/issues.js`.
 
 ### The panel leads with pallets, and stopped asking (`592ad7c`)
 
-The supplies-in-FOB question is gone; `pallets = ceil((supplies - startingSupplies) /
-suppliesPerPallet)` is the headline. `tools/site/context.js` computes it identically for
-community design pages, because the planner and the page describing the same base must not
-disagree. The help text said 1,900 and the catalog said 1,800 for months, so prose
-interpolates both and `tools/check-build.js` fails on any supply figure the catalog does
-not state. Reload cost is unpublished and stays an open question, not a guess.
+`pallets = ceil((supplies - startingSupplies) / suppliesPerPallet)` is the headline, and
+`tools/site/context.js` computes it identically for design pages, since the planner and the
+page about the same base must not disagree. Help text said 1,900 while the catalog said
+1,800 for months, so prose interpolates and `tools/check-build.js` fails on any supply
+figure the catalog does not state. Reload cost stays unpublished, not guessed.
 
 ### One wall draws as one wall (`615fab9`, completed by `41488cb`)
 
-`seamFamily` merges anything tagged `wall` with any other wall of its role; gates, bunkers
-and towers carry cover without being walls and stay separate. Labels and height badges key
-off the buildable, not the family. **`41488cb` is the half that matters: seam bits are
-worked out in world space and drawn inside `ctx.rotate()`, so a rotated wall suppressed the
-wrong edges. Read that commit before touching either.** The icon cap also moved from a flat
-66px to about two cells, since a pixel cap shrinks the art the further you zoom in.
+`seamFamily` merges anything tagged `wall` with another wall of its role; gates, bunkers and
+towers carry cover without being walls and stay separate. Labels key off the buildable, not
+the family. **`41488cb` is the half that matters: seam bits are worked out in world space
+and drawn inside `ctx.rotate()`, so a rotated wall suppressed the wrong edges. Read that
+commit before touching either.** The icon cap moved to about two cells, since a pixel cap
+shrinks the art the further you zoom in.
 
 ### The front page says what the site is for (`c5e57bf`)
 

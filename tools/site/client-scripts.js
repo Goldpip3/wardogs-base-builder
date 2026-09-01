@@ -60,6 +60,13 @@ A.ready=fetch(API+"/me",{headers:A.headers()})
             esc(j.user.name)+'<span class="caret">&#9662;</span></button>'+
           '<div class="acct-menu" hidden>'+
             '<a href="/account/">Your designs</a>'+
+            /* The owner's two unlisted pages, so they are reachable without keeping the
+               URLs in your head. The worker decides who sees this by Discord id; the menu
+               only draws what it is told. Neither page is protected by being hidden here:
+               /moderate/ is guarded by the admin token the worker checks, and /todo/ is
+               unlisted rather than secret and says so on itself. */
+            (j.owner ? '<a href="/moderate/">Moderate</a>'+
+                       '<a href="/todo/">To do</a>' : '')+
             '<a href="#" data-signout>Sign out</a>'+
           '</div>'
         : '<a href="'+A.signInUrl()+'">Sign in</a>';

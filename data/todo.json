@@ -1,6 +1,5 @@
 {
-  "_note": "The owner's working list. Rendered at /todo/, which is noindex and unlinked and only draws for the signed-in owner. Counts that can be derived are NOT written here: tools/site/pages/todo.js computes them from the other data files so this list cannot quote a stale number. Add items here, never in the page.",
-  "owner": "AVGVSTVS",
+  "_note": "The owner's working list. Rendered at /todo/, which is noindex and unlinked and only draws for the owner, who is whoever the worker's OWNER_DISCORD_ID names. Counts that can be derived are NOT written here: tools/site/pages/todo.js computes them from the other data files so this list cannot quote a stale number. Add items here, never in the page.",
   "confirmOn": "2026-09-02",
   "confirmWhy": "Early access opens and the game can be read directly instead of inferred.",
   "confirm": [

@@ -30,6 +30,13 @@
  *   wrangler secret put DISCORD_CLIENT_ID
  *   wrangler secret put DISCORD_CLIENT_SECRET
  *
+ * Optional, so the site knows which signed-in account is yours:
+ *
+ *   wrangler secret put OWNER_DISCORD_ID   # your Discord user id, not your name
+ *
+ * That makes /me report owner:true to you alone, which is what puts Moderate and To do in
+ * the account menu and what opens /todo/. It is a convenience, not a lock: see isOwner.
+ *
  * with the redirect URI in the Discord app set to <worker url>/auth/callback. Leave both
  * unset and everything stays open; see NEEDS_LOGIN below for what each one gates.
  *
@@ -276,6 +283,19 @@ const bearerOf = request => (request.headers.get("Authorization") || "").replace
 const loginConfigured = env =>
   !!(env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET && hasSecrets(env));
 
+/* Who the owner is, by Discord user id and never by display name.
+
+   A display name is chosen by the person holding it and can be changed to anybody else's in
+   a few seconds, so a check against one hands ownership to whoever renames themselves first.
+   An id cannot be changed, and it is not a secret: it says who somebody is, it does not
+   authorise them. That is why this only decides what a page offers to show and never what
+   /admin will do, which still wants ADMIN_TOKEN.
+
+   With OWNER_DISCORD_ID unset nobody is the owner. An unconfigured deploy should show the
+   owner's pages to no one rather than to everyone. */
+const isOwner = (env, user) =>
+  !!(env.OWNER_DISCORD_ID && user && String(user.id) === String(env.OWNER_DISCORD_ID));
+
 /* Share codes are base64url. Anything else is not a design and should not be stored.
    Too long and malformed are different problems and get different messages: telling
    somebody their design "will not encode" when it is merely bigger than a limit sends them
@@ -429,6 +449,8 @@ export default {
         loginEnabled: loginConfigured(env),
         needs: loginConfigured(env) ? NEEDS_LOGIN : { comment: false, submit: false, feedback: false },
         user: user ? { id: user.id, name: user.name } : null,
+        // A hint to the page about what to offer. Nothing is authorised by it.
+        owner: isOwner(env, user),
       }, origin);
     }
 

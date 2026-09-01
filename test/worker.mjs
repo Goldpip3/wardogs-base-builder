@@ -207,6 +207,40 @@ j = await jsonOf(await callAs(await tokenFor({ id: "42", name: "Old", exp: Date.
 check(j.user === null, "an expired token is not signed in");
 j = await jsonOf(await callAs(await tokenFor({ id: "9", name: "Forger", exp: Date.now() + 6e5 }, "wrong-secret"), "GET", "/me"));
 check(j.user === null, "a token signed with the wrong secret is not signed in");
+/* ---- who the owner is ----
+   The bug this replaces: /todo/ decided you were the owner by comparing your Discord
+   display name to a string, so anyone willing to rename themselves became the owner. The
+   third check here is that bug, and it fails against a name comparison. */
+console.log("\n--- owner ---");
+env = { VOTES: fakeKV(), VOTE_SALT: "s", ADMIN_TOKEN: "secret",
+        DISCORD_CLIENT_ID: "cid", DISCORD_CLIENT_SECRET: "csec", OWNER_DISCORD_ID: "42" };
+
+j = await jsonOf(await callAs(good, "GET", "/me"));
+check(j.owner === true, "the configured id is the owner");
+
+j = await jsonOf(await call("GET", "/me"));
+check(j.owner === false, "a signed out visitor is not the owner");
+
+const impostor = await tokenFor({ id: "99", name: "Tester", exp: Date.now() + 6e5 });
+j = await jsonOf(await callAs(impostor, "GET", "/me"));
+check(j.owner === false && j.user.name === "Tester",
+  "somebody using the owner's display name is not the owner");
+
+env = { VOTES: fakeKV(), VOTE_SALT: "s", ADMIN_TOKEN: "secret",
+        DISCORD_CLIENT_ID: "cid", DISCORD_CLIENT_SECRET: "csec" };
+j = await jsonOf(await callAs(good, "GET", "/me"));
+check(j.owner === false, "with no OWNER_DISCORD_ID set, nobody is the owner");
+
+/* Being the owner is an identity, not a permission. It must not open /admin, which is
+   what would make a Discord id into a credential. */
+env = { VOTES: fakeKV(), VOTE_SALT: "s", ADMIN_TOKEN: "secret",
+        DISCORD_CLIENT_ID: "cid", DISCORD_CLIENT_SECRET: "csec", OWNER_DISCORD_ID: "42" };
+check((await callAs(good, "GET", "/admin/feedback")).status === 401,
+  "and being the owner still does not open /admin without the token");
+
+env = { VOTES: fakeKV(), VOTE_SALT: "s", ADMIN_TOKEN: "secret",
+        DISCORD_CLIENT_ID: "cid", DISCORD_CLIENT_SECRET: "csec" };
+
 
 r = await callAs(good, "POST", "/submit", { name: "Signed Base", author: "typed-in-name", code: CODE });
 j = await jsonOf(r);

@@ -389,6 +389,26 @@ check(!mojibake, "no mojibake from a codepage mismatch",
     "the vehicles stub is not advertised in the sitemap");
 }
 
+/* -- 3g. the owner's pages are gated on identity, not on a name --
+   /todo/ used to open for anyone whose Discord display name matched a string, and a name
+   is something anybody can take. It now asks the worker, which compares Discord user ids.
+   Nothing else reads this built page, so a regression here would be silent: the list would
+   start drawing for strangers and look exactly the same to the owner.
+
+   Three checks rather than one. Asserting only that no name comparison is left would pass
+   on a page that gated on nothing at all, since a page with no check also has no bad one. */
+{
+  const todo = fs.readFileSync(path.join(proj, "docs/todo/index.html"), "utf8");
+  const gate = todo.slice(todo.indexOf("wardogsAuth.ready"));
+  check(gate.includes("j.owner===true"),
+    "the todo page gates on the owner flag the worker sends");
+  check(!todo.includes("var OWNER="),
+    "and carries no owner name of its own to compare against");
+  check(!gate.includes("toLowerCase()==="),
+    "and decides nothing by comparing display names");
+  check(/content="noindex/.test(todo), "the todo page stays out of the index");
+}
+
 /* -- 4. nothing reaches the network: offline is the whole promise --
    Read the downloadable file, not the hosted one. The two were interchangeable for this
    purpose until the hosted copy started loading an ad script. Had this stayed pointed at

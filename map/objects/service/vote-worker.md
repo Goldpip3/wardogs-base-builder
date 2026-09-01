@@ -31,6 +31,16 @@ no guilds.
 the worker itself, which is a public file, so a deploy that had lost its secrets signed
 sessions with a key anybody could read. See [security](../../processes/security.md).
 
+**`OWNER_DISCORD_ID` says which account is the owner's, and authorises nothing.** `/me`
+returns `owner: true` to that Discord id alone, which is what puts Moderate and To do in the
+account menu and what opens `/todo/`. It is deliberately an identity and not a credential:
+an admin route still wants `ADMIN_TOKEN`, and `test/worker.mjs` holds it to that. Unset, and
+nobody is the owner, so an unconfigured deploy shows the owner's pages to no one rather than
+to everyone.
+
+The comparison is on the id, never on the display name. `/todo/` used to compare names, and
+a Discord name is something anybody can change to yours in seconds.
+
 ## Shape
 
 Routes dispatched off a trimmed pathname in `fetch` at `worker/vote-worker.js:382`:
