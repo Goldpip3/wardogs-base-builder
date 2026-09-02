@@ -39,8 +39,13 @@ const palletCash  = catalog.logistics.palletCash;
 
 // --- home ---
 write("index.html", page({
-  title: "WARDOGS field manual: costs, damage, artillery and a base planner",
-  desc: `Build Supply costs for all ${nBuildables} WARDOGS buildables, damage by armour tier and hit zone, artillery firing solutions, ${nPrices} vendor prices, loadouts and vehicles. Includes a planner that lays out a FOB and totals the supply run.`,
+  /* "Wiki" is in the title because it is the word people type. Nobody searches for a
+     field manual; they search for the wardogs wiki, and this site is one. It leads rather
+     than trails, since a title is cut short in a result and the first words are the ones
+     that survive. The rest of the title stays specific: "wiki" alone competes with every
+     wiki on the internet, and costs, damage and artillery are what this one actually has. */
+  title: "WARDOGS wiki: costs, damage, artillery and a base planner",
+  desc: `A WARDOGS wiki and field manual. Build Supply costs for all ${nBuildables} buildables, damage by armour tier and hit zone, artillery firing solutions, ${nPrices} vendor prices, weapons, loadouts and vehicles. Includes a planner that lays out a FOB and totals the supply run.`,
   canonical: "/",
   body: `${FORWARD_SHARED}
 <section class="hero has-video">
@@ -64,8 +69,8 @@ write("index.html", page({
   <p class="lede">Build costs, damage by armour tier and hit zone, artillery firing solutions,
   ${nPrices} vendor prices, loadouts, vehicles and both maps, with a planner that lays out a
   whole FOB and totals the supply run.</p>
-  <p class="lede sub">One catalogue underneath all of it, so the armory, the damage calculator
-  and the planner cannot quote different numbers for the same round.</p>
+  <p class="lede sub">A player-run wiki with one catalogue underneath all of it, so the armory,
+  the damage calculator and the planner cannot quote different numbers for the same round.</p>
   <div class="actions">
     <a class="btn primary" href="/planner/">Open the planner</a>
     <a class="btn" href="/artillery/">Artillery</a>

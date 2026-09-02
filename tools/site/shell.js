@@ -29,7 +29,7 @@ module.exports = ctx => {
 <link rel="canonical" href="${SITE}${canonical}">${noindex ? '\n<meta name="robots" content="noindex,nofollow">' : ""}${head ? "\n" + head : ""}
 <meta name="theme-color" content="#12140d">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="WARDOGS Builder">
+<meta property="og:site_name" content="WARDOGS">
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(desc)}">
 <meta property="og:url" content="${SITE}${canonical}">
@@ -38,6 +38,12 @@ module.exports = ctx => {
 <meta name="twitter:image" content="${SITE}${ogImage}">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%2312140d'/><rect x='6' y='14' width='20' height='12' rx='2' fill='%23dcaa26'/><rect x='11' y='8' width='10' height='7' rx='2' fill='%2386ad55'/></svg>">
 <style>${CSS}</style>
+${/* What the site is called, for search engines that would otherwise guess from the domain
+      and call it "wardogsbuilder". People look for a wiki, so the name it is also known by
+      says so. Nothing here is a claim the pages do not make: same name, same description,
+      one URL. A bare JSON object rather than code, which is why tools/check-build.js skips
+      it when it parses every inline script on every page. */""}
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"WARDOGS","alternateName":["WARDOGS Wiki","WARDOGS Builder","WARDOGS field manual"],"url":"${SITE}/","inLanguage":"en","description":"A player-run WARDOGS wiki: build costs, weapon damage by armour tier and hit zone, artillery firing solutions, vendor prices, loadouts, vehicles and a FOB planner.","about":{"@type":"VideoGame","name":"WARDOGS"}}</script>
 ${adScript}
 ${AUTH_SCRIPT}
 </head>
@@ -80,7 +86,7 @@ ${/* Under the header, not in the head, because it paints the cached name and th
 ${body}
 ${adSlot("leaderboard") ? `<div class="wrap">${adSlot("leaderboard")}</div>` : ""}
 <footer class="site"><div class="wrap">
-  <span class="fine">A free, fan-made manual and planner for WARDOGS, written by a player. Not
+  <span class="fine">A free, fan-made wiki and planner for WARDOGS, written by a player. Not
   affiliated with, endorsed by, or connected to BULKHEAD Interactive or Team17. WARDOGS and all
   related marks and imagery belong to their respective owners.</span>
   <a href="/planner/">Planner</a><a href="/designs/">Designs</a>

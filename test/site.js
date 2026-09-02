@@ -388,6 +388,27 @@ check(!ball.includes("IntersectionObserver") || ball.indexOf("function watchCtx"
     .indexOf("IntersectionObserver") < 0,
   "the strip reads scroll position rather than waiting on an observer");
 
+// ---------- what people type into a search box ----------
+/* Nobody searches for a field manual. They search for the wardogs wiki, and this is one, so
+   the word is in the title, the description, the page itself and the site's own name for
+   itself. Structured data because a search engine with nothing to go on names a site after
+   its domain, which here would be "wardogsbuilder". */
+const homeHtml = fs.readFileSync(DOCS + "index.html", "utf8");
+check(/<title>[^<]*wiki/i.test(homeHtml),
+  "the front page's title carries the word people actually type");
+check(/name="description" content="[^"]*wiki/i.test(homeHtml),
+  "and so does its description");
+const ldOpen = '<script type="application/ld+json">';
+const ldFrom = homeHtml.indexOf(ldOpen) + ldOpen.length;
+const ld = homeHtml.slice(ldFrom, homeHtml.indexOf("</scr" + "ipt>", ldFrom));
+let ldOk = false, ldName = "";
+try { const j = JSON.parse(ld); ldOk = j["@type"] === "WebSite"; ldName = [].concat(j.alternateName || []).join(" "); }
+catch (e) {}
+check(ldOk, "the site says what it is in structured data, and that data parses");
+check(/wiki/i.test(ldName), "including the name people look for it under");
+check(!homeHtml.includes('og:site_name" content="WARDOGS Builder'),
+  "and it is called WARDOGS everywhere, Builder included");
+
 // ---------- the planner still ships intact ----------
 check(app.includes("btnShare") && app.includes("buildIndex") && app.length > 100000,
   "planner page is the full app");
