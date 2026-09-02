@@ -22,10 +22,11 @@ the panel is still kept, and the panel's input steps by one now that the figure 
 `test/saved-designs.js` pins all of it. It is a count in cells, not metres, so it settles
 nothing about range rings.
 
-**Four footprints off the same session**: the L81 Mortar and the Stingray are 3x3, the Talon
-9K-SAM is 2x2, and the Vanguard CIWS is the 4x4 it already was. All four carry a `sizeNote`
-saying so, and `sizeConfirmed: true`. The mortar had been marked confirmed at 4x4; an
-owner's reading outranks whatever that was.
+**Seven footprints off the same session**: the L81 Mortar and the Stingray are 3x3, the
+Talon 9K-SAM is 2x2, the Indirect Fire Shelter is 5x5 (it was 3x3, unconfirmed), and the
+Vanguard CIWS, the Bunker and the Recon Tower are the 4x4 they already were. All seven carry
+a `sizeNote` saying so, and `sizeConfirmed: true`. The mortar had been marked confirmed at
+4x4; an owner's reading outranks whatever that was.
 
 ### Click the ground in 3D to stand there, and Space to get over a wall
 

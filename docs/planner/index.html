@@ -1523,7 +1523,8 @@ const CATALOG_DEFAULT = {
       "tags": [
         "shelter",
         "firing-position"
-      ]
+      ],
+      "sizeNote": "4x4, read off the running game by the owner on 2026-09-02."
     },
     {
       "id": "ifs",
@@ -1535,17 +1536,18 @@ const CATALOG_DEFAULT = {
       "costConfirmed": true,
       "requiresFob": true,
       "footprint": {
-        "w": 3,
-        "d": 3
+        "w": 5,
+        "d": 5
       },
       "height": 2,
-      "sizeConfirmed": false,
+      "sizeConfirmed": true,
       "desc": "Protection against indirect fire; four doorways for custom configuration. Roof = 9 flat Hescos (3x3), walkable/expandable platform.",
       "icon": "ifs.webp",
       "tags": [
         "shelter",
         "platform"
-      ]
+      ],
+      "sizeNote": "5x5, read off the running game by the owner on 2026-09-02. Was 3x3 from a pre-launch write-up."
     },
     {
       "id": "recon-tower",
@@ -1569,7 +1571,8 @@ const CATALOG_DEFAULT = {
         "no-stack",
         "climbable",
         "climb-inside"
-      ]
+      ],
+      "sizeNote": "4x4, read off the running game by the owner on 2026-09-02."
     },
     {
       "id": "l81-mortar",
@@ -1734,7 +1737,7 @@ const CLOUD_API = "https://wardogs-votes.wardogsbuilder.workers.dev";
    but it is inlined into both builds so the two differ in what they can reach and never in
    what they contain. */
 const DESIGN_TAGS = [{"id":"map","label":"Where it works","hint":"At least one. Pick the map it is laid out for, or Any map if the ground does not matter.","required":true,"tags":[{"id":"map-bakurani","label":"Bakurani"},{"id":"map-ozeti","label":"Ozeti"},{"id":"map-any","label":"Any map","exclusive":true}]},{"id":"role","label":"What it is for","hint":"Optional, as many as fit. This is what somebody scrolling the list is actually choosing between.","required":false,"tags":[{"id":"anti-infantry","label":"Anti-infantry","hint":"Built to stop people on foot: cover, wire, firing positions."},{"id":"anti-vehicle","label":"Anti-vehicle","hint":"Stingray, hedgehogs, anything that turns armour away."},{"id":"anti-air","label":"Anti-air","hint":"Vanguard CIWS or Talon 9K-SAM covering the sky above it."},{"id":"artillery","label":"Artillery","hint":"Built around a mortar and its shelter."},{"id":"zone-control","label":"Zone control","hint":"Meant to be planted on the objective and held."},{"id":"recon","label":"Recon","hint":"Towers, radio, eyes on ground you do not hold."},{"id":"starter","label":"Starter","hint":"Cheap and quick, for the first build of a match."}]}];
-const BUILD_STAMP = "20260902-231548";
+const BUILD_STAMP = "20260902-231558";
 const LS_TOKEN = "wardogs.token";
 
 const LS_DESIGNS = "wardogs.designs";
