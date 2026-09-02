@@ -23,7 +23,7 @@ const CSS = require(path.join(__dirname, "site", "css.js"));
 /* Selectors that draw the banner. A rule is kept when its selector list mentions any of
    these, so `nav.site a.cta:hover` and the responsive overrides come along without being
    listed one by one. */
-const WANTED = ["header.site", "nav.site", ".brand", ".acct"];
+const WANTED = ["header.site", "nav.site", ".brand", ".acct", "::view-transition"];
 /* .wrap is the column every page on the site is poured into, and the header is one of them:
    without it the banner runs the full width of the window and the wordmark sits against the
    glass. Only the bare rule is wanted, not `.hero.has-video .wrap` and the rest, so it is
@@ -72,6 +72,14 @@ function headerRules() {
       if (inner.length) {
         kept.push(b.at + "{" + inner.map(r => r.whole).join("") + "}");
       }
+      continue;
+    }
+    /* The page turn comes along with the banner, because it is the same effect and the
+       banner is the part of it that has to hold still. Both documents have to opt in for a
+       cross document transition to happen at all, and the planner opting in with its own
+       copy of the numbers is how the two ends come to disagree about how long it lasts. */
+    if (b.at.startsWith("@view-transition") || /^@keyframes\s+wd-/.test(b.at)) {
+      kept.push(b.whole);
       continue;
     }
     if (b.at.startsWith("@")) continue;

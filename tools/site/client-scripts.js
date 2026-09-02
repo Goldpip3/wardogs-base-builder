@@ -48,45 +48,29 @@ A.ready=fetch(API+"/me",{headers:A.headers()})
     A.me=j;
     // a token the worker will not accept is not worth keeping
     if(j.loginEnabled && A.token() && !j.user){ try{localStorage.removeItem(KEY);}catch(e){} }
-    var el=document.getElementById("acct");
-    if(el && j.loginEnabled){
-      el.className="acct on";
-      /* Your name is the control, and what you can do with the account sits under it.
-         Sign out used to be a second link in the header, level with the name and with
-         everything else up there, which put the one destructive account action in the
-         busiest row on the page next to things you press all the time. */
-      el.innerHTML = j.user
-        ? '<button type="button" class="who" data-acctmenu aria-expanded="false">'+
-            esc(j.user.name)+'<span class="caret">&#9662;</span></button>'+
-          '<div class="acct-menu" hidden>'+
-            '<a href="/account/">Your designs</a>'+
-            /* The owner's two unlisted pages, so they are reachable without keeping the
-               URLs in your head. The worker decides who sees this by Discord id; the menu
-               only draws what it is told. Neither page is protected by being hidden here:
-               /moderate/ is guarded by the admin token the worker checks, and /todo/ is
-               unlisted rather than secret and says so on itself. */
-            (j.owner ? '<a href="/moderate/">Moderate</a>'+
-                       '<a href="/todo/">To do</a>' : '')+
-            '<a href="#" data-signout>Sign out</a>'+
-          '</div>'
-        : '<a href="'+A.signInUrl()+'">Sign in</a>';
-      var btn=el.querySelector("[data-acctmenu]"), menu=el.querySelector(".acct-menu");
-      if(btn){
-        var shut=function(){ menu.hidden=true; btn.setAttribute("aria-expanded","false"); };
-        btn.addEventListener("click",function(ev){
-          ev.stopPropagation();
-          menu.hidden=!menu.hidden;
-          btn.setAttribute("aria-expanded",String(!menu.hidden));
-        });
-        document.addEventListener("click",function(ev){ if(!el.contains(ev.target)) shut(); });
-        document.addEventListener("keydown",function(ev){ if(ev.key==="Escape") shut(); });
-      }
-    }
+    /* The banner is drawn by src/shared/acct-bar.js, which the shell inlines under the
+       header and the planner inlines under its copy of it. One renderer, because the name
+       is part of the banner's geometry and two of these drifting moves the boxes on one
+       page and not the other.
+
+       By DOMContentLoaded that script has certainly run. Before it, this reply can beat the
+       parser to the body on a warm cache, and calling a painter that does not exist yet
+       loses the answer entirely. */
+    var show=function(){
+      if(!window.wardogsAcct) return;
+      wardogsAcct.remember(j);
+      wardogsAcct.paint(j, A.signInUrl());
+    };
+    if(document.readyState==="loading")
+      document.addEventListener("DOMContentLoaded",show);
+    else show();
     return j;
   })
   .catch(function(){ A.me={loginEnabled:false,needs:{},user:null}; return A.me; });
 document.addEventListener("click",function(e){
-  if(e.target.closest("[data-signout]")){ e.preventDefault(); A.signOut(); }
+  if(e.target.closest("[data-signout]")){ e.preventDefault();
+    if(window.wardogsAcct) wardogsAcct.forget();
+    A.signOut(); }
 });
 })();
 </script>`;
@@ -114,6 +98,12 @@ function voteWidget(slug) {
    none of those and the list would carry the whole catalog to every reader for nothing. */
 const SHARED_VIEW = fs.readFileSync(
   path.join(ROOT, "src/shared/design-view.js"), "utf8");
+
+/* The banner's account control, inlined under the header rather than run from the head, so
+   it paints the cached name while the page is still parsing. See the file for why the first
+   frame matters. build.ps1 inlines the same file into the planner. */
+const ACCT_BAR = "<scr" + "ipt>" +
+  fs.readFileSync(path.join(ROOT, "src/shared/acct-bar.js"), "utf8") + "</scr" + "ipt>";
 const CREW_LABELS = JSON.stringify(
   (((ctx.catalog.crewSizes || {}).options) || []).reduce((m, o) => {
     m[o.id] = o.label;
@@ -879,5 +869,5 @@ if(m)location.replace("/planner/#d="+m[1]);})();
    re-sorts on the fetched scores. Baking a stale ranking into a cached page would be
    worse than starting from newest. */
 
-  return { AUTH_SCRIPT, COMMUNITY_SCRIPT, voteWidget, FORWARD_SHARED };
+  return { AUTH_SCRIPT, ACCT_BAR, COMMUNITY_SCRIPT, voteWidget, FORWARD_SHARED };
 };

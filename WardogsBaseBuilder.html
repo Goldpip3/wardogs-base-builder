@@ -134,19 +134,10 @@
      leaves both placeholders empty there. */
   
 
-  /* The same page turn the rest of the site uses. It only does anything on the hosted copy,
-     because it only fires on a navigation and the download never makes one. The banner's own
-     view-transition-name comes in with the block above, so it sits still while the page
-     turns under it, exactly as it does between two site pages. */
-  @view-transition { navigation: auto; }
-  @keyframes wd-turn-out { to { opacity: 0; transform: perspective(1400px) translateX(-2.5%) rotateY(-5deg); } }
-  @keyframes wd-turn-in { from { opacity: 0; transform: perspective(1400px) translateX(2.5%) rotateY(5deg); } }
-  ::view-transition-old(root) { animation: wd-turn-out .2s cubic-bezier(.4,0,1,1) both; mix-blend-mode: normal; }
-  ::view-transition-new(root) { animation: wd-turn-in .28s cubic-bezier(0,0,.2,1) both; mix-blend-mode: normal; }
-  ::view-transition-old(wd-head), ::view-transition-new(wd-head) { animation: none; mix-blend-mode: normal; }
-  @media (prefers-reduced-motion: reduce) {
-    ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
-  }
+  /* The page turn comes in with the block above, from the same stylesheet, because a cross
+     document transition only happens if both ends opt in and two copies of the numbers is
+     how the two ends come to disagree about how long it lasts. It does nothing in the
+     download, which never navigates anywhere. */
 
   /* Top bar */
   #topbar {
@@ -5216,51 +5207,33 @@ function renderDesigns() {
    racing for one hash and one localStorage entry. */
 async function refreshAccountChip() {
   const el = document.getElementById("acct");
-  if (!el) return;
-  if (!CLOUD_API) { el.className = "acct"; el.innerHTML = ""; return; }
+  if (!el || !window.wardogsAcct) return;
+  if (!CLOUD_API) { wardogsAcct.paint(null); return; }
   let me;
-  try { me = await cloudCall("/me"); }
-  catch (e) { el.className = "acct"; el.innerHTML = ""; return; }
+  /* A banner that empties itself because one request failed is worse than one showing the
+     last thing it knew, so a failed call leaves whatever the cache already painted. */
+  try { me = await cloudCall("/me"); } catch (e) { return; }
   cloudUser = me.user || false;
-  /* Same gate the site uses: an account control on a build with logins turned off is a
-     control that cannot do anything, and it stays hidden rather than empty. */
-  if (me.loginEnabled === false) { el.className = "acct"; el.innerHTML = ""; return; }
-  el.className = "acct on";
-  if (!me.user) {
-    el.innerHTML = `<a href="${esc(cloudSignInUrl())}">Sign in</a>`;
-    return;
-  }
-  el.innerHTML =
-    `<button type="button" class="who" aria-expanded="false">${esc(cloudUser.name)}` +
-      `<span class="caret">&#9662;</span></button>` +
-    `<div class="acct-menu" hidden>` +
-      `<a href="/account/" class="leaveLink">Your designs</a>` +
-      (me.owner ? `<a href="/moderate/" class="leaveLink">Moderate</a>` +
-                  `<a href="/todo/" class="leaveLink">To do</a>` : "") +
-      `<a href="#" id="acctOut">Sign out</a>` +
-    `</div>`;
-  const btn = el.querySelector(".who"), menu = el.querySelector(".acct-menu");
-  const shut = () => { menu.hidden = true; btn.setAttribute("aria-expanded", "false"); };
-  btn.onclick = ev => {
-    ev.stopPropagation();
-    menu.hidden = !menu.hidden;
-    btn.setAttribute("aria-expanded", String(!menu.hidden));
-  };
-  document.addEventListener("click", ev => { if (!el.contains(ev.target)) shut(); });
-  document.addEventListener("keydown", ev => { if (ev.key === "Escape") shut(); });
-  document.getElementById("acctOut").onclick = ev => {
-    ev.preventDefault();
-    try { localStorage.removeItem(LS_TOKEN); } catch (e) {}
-    cloudUser = false;
-    refreshAccountChip();
-    if (document.getElementById("cloudBox")) loadCloudSection();
-    toast("Signed out.");
-  };
-  /* The menu's links leave the planner, so they go through the same save-first guard as
-     the nav above them. The handler is bound once at boot, over links that did not exist
-     then, so it has to be rebound for these. */
+  wardogsAcct.remember(me);
+  wardogsAcct.paint(me, cloudSignInUrl());
+  /* The menu's links leave the planner, so they go through the same save-first guard as the
+     nav above them. The guard is bound at boot, over links that did not exist then. */
   wireLeaveLinks();
 }
+
+/* Signing out is the planner's own: the shared renderer draws the link and each page says
+   what it means. Here it is the token, the cached name, and everything on screen that was
+   drawn for somebody. */
+document.addEventListener("click", ev => {
+  if (!ev.target.closest("[data-signout]")) return;
+  ev.preventDefault();
+  try { localStorage.removeItem(LS_TOKEN); } catch (e) {}
+  if (window.wardogsAcct) wardogsAcct.forget();
+  cloudUser = false;
+  refreshAccountChip();
+  if (document.getElementById("cloudBox")) loadCloudSection();
+  toast("Signed out.");
+});
 
 function cloudSectionShell() {
   if (!CLOUD_API) return "";

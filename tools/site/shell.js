@@ -11,7 +11,7 @@
    nobody adds them later believing the site is covered. All of them need something in front of
    GitHub Pages that can set real headers: see map/processes/security.md. */
 module.exports = ctx => {
-  const { SITE, esc, adScript, adSlot, CSS, AUTH_SCRIPT } = ctx;
+  const { SITE, esc, adScript, adSlot, CSS, AUTH_SCRIPT, ACCT_BAR } = ctx;
   /* `head` exists for one thing: a meta refresh on a page that has moved. GitHub Pages
      cannot send a 301, so that tag is the only redirect a page here can perform. Keep it to
      that. Anything else wanting into <head> is asking for a per-page style or script, and
@@ -73,6 +73,10 @@ ${AUTH_SCRIPT}
     <span id="acct" class="acct"></span>
   </nav>
 </div></header>
+${/* Under the header, not in the head, because it paints the cached name and the element
+      has to exist for that. The banner's boxes are centred in what the brand and the name
+      leave, so a name that arrives after the first frame moves the whole row, which read as
+      a flicker on every navigation. */""}${ACCT_BAR}
 ${body}
 ${adSlot("leaderboard") ? `<div class="wrap">${adSlot("leaderboard")}</div>` : ""}
 <footer class="site"><div class="wrap">

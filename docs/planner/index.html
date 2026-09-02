@@ -164,7 +164,35 @@ nav.site a.cta{display:inline-flex;align-items:center;justify-content:center;gap
   border:1px solid var(--yellow);color:var(--text);background:transparent;
   padding:0 10px;min-width:100px;height:40px;letter-spacing:.14em}
 nav.site a.cta:hover{background:var(--yellow);border-color:var(--yellow);color:var(--bg)}
+/* --- moving between pages ---
+   Every page here is a full document load, and a full document load blinks white and then
+   redraws, which is the one thing that makes a set of static pages feel like a set of files
+   rather than like an app. This is the browser's own cross document transition: the old
+   page turns away and the new one turns in behind it, about a quarter of a second, no
+   JavaScript and nothing to wait for.
+
+   It needs the opt in on both documents, so the planner carries the same block in
+   src/app-template.html. Browsers without it navigate exactly as they did before, which is
+   the whole reason this is done in CSS rather than by holding the click and animating.
+
+   The header keeps its own name and no animation, so the banner sits still while the page
+   turns under it. That is what makes it read as one app with a bar across the top rather
+   than as two pages that happen to share a design. */
+@view-transition{navigation:auto}
+@keyframes wd-turn-out{to{opacity:0;transform:perspective(1400px) translateX(-2.5%) rotateY(-5deg)}}
+@keyframes wd-turn-in{from{opacity:0;transform:perspective(1400px) translateX(2.5%) rotateY(5deg)}}
+::view-transition-old(root){animation:wd-turn-out .2s cubic-bezier(.4,0,1,1) both;
+  mix-blend-mode:normal}
+::view-transition-new(root){animation:wd-turn-in .28s cubic-bezier(0,0,.2,1) both;
+  mix-blend-mode:normal}
 header.site{view-transition-name:wd-head}
+/* The banner is 92% opaque with a blur behind it, which is right on a page you scroll and
+   wrong for the quarter second the page is turning: the outgoing page slides sideways
+   underneath and you can see it through the bar, which reads as the banner flickering
+   rather than as the page moving. For the length of the turn it is solid. */
+::view-transition-old(wd-head),::view-transition-new(wd-head){animation:none;
+  mix-blend-mode:normal;background:var(--bg)}
+@media(prefers-reduced-motion:reduce){::view-transition-old(root),::view-transition-new(root){animation:none}}
 /* --- account control in the header --- */
 .acct{display:none;align-items:center;gap:8px;font-weight:600;font-size:11px;white-space:nowrap;
   letter-spacing:.1em;text-transform:uppercase}
@@ -195,19 +223,10 @@ header.site{view-transition-name:wd-head}
 header.site a{color:var(--text);text-decoration:none}
 header.site a:hover{color:var(--yellow)}
 
-  /* The same page turn the rest of the site uses. It only does anything on the hosted copy,
-     because it only fires on a navigation and the download never makes one. The banner's own
-     view-transition-name comes in with the block above, so it sits still while the page
-     turns under it, exactly as it does between two site pages. */
-  @view-transition { navigation: auto; }
-  @keyframes wd-turn-out { to { opacity: 0; transform: perspective(1400px) translateX(-2.5%) rotateY(-5deg); } }
-  @keyframes wd-turn-in { from { opacity: 0; transform: perspective(1400px) translateX(2.5%) rotateY(5deg); } }
-  ::view-transition-old(root) { animation: wd-turn-out .2s cubic-bezier(.4,0,1,1) both; mix-blend-mode: normal; }
-  ::view-transition-new(root) { animation: wd-turn-in .28s cubic-bezier(0,0,.2,1) both; mix-blend-mode: normal; }
-  ::view-transition-old(wd-head), ::view-transition-new(wd-head) { animation: none; mix-blend-mode: normal; }
-  @media (prefers-reduced-motion: reduce) {
-    ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
-  }
+  /* The page turn comes in with the block above, from the same stylesheet, because a cross
+     document transition only happens if both ends opt in and two copies of the numbers is
+     how the two ends come to disagree about how long it lasts. It does nothing in the
+     download, which never navigates anywhere. */
 
   /* Top bar */
   #topbar {
@@ -469,7 +488,107 @@ header.site a:hover{color:var(--yellow)}
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7658713831499963" crossorigin="anonymous"></script>
 </head>
 <body>
-<header class="site"><div class="wrap"><a href="/" class="brand leaveLink">WARDOGS</a><nav class="site"><a class="cta" aria-current="page">Planner</a><a class="leaveLink cta" href="/artillery/">Artillery</a><a class="leaveLink cta" href="/designs/">Designs</a><a class="leaveLink cta" href="/armory/">Armory</a><a class="leaveLink cta" href="/ballistics/">Damage</a><a class="leaveLink cta" href="/loadouts/">Loadouts</a><a class="leaveLink cta" href="/feedback/">Feedback</a><span id="acct" class="acct"></span></nav></div></header>
+<header class="site"><div class="wrap"><a href="/" class="brand leaveLink">WARDOGS</a><nav class="site"><a class="cta" aria-current="page">Planner</a><a class="leaveLink cta" href="/artillery/">Artillery</a><a class="leaveLink cta" href="/designs/">Designs</a><a class="leaveLink cta" href="/armory/">Armory</a><a class="leaveLink cta" href="/ballistics/">Damage</a><a class="leaveLink cta" href="/loadouts/">Loadouts</a><a class="leaveLink cta" href="/feedback/">Feedback</a><span id="acct" class="acct"></span></nav></div></header><script>/* The account control in the site banner, on every page including the planner.
+ *
+ * It exists as a shared file for one reason: the banner's row of boxes is centred in what
+ * the brand and the name leave either side of it, so the name is part of the banner's
+ * geometry. Two copies of this drifting apart moves the boxes on one page and not the other,
+ * which is the fault this file was written to close.
+ *
+ * The other half of that fault is time. Who you are comes back from the worker, and until
+ * it did the banner was drawn with an empty name and then redrawn with one, so every
+ * navigation ended in the nav jumping sideways: a flicker rather than the page turn the rest
+ * of the transition does. So the last answer is kept in localStorage and painted while the
+ * page is still parsing, before anything is fetched. The fetch still happens and still wins;
+ * it just no longer decides what the first frame looks like.
+ *
+ * The cache holds a display name and two flags. No token, no id, nothing the page could not
+ * already read: the token lives under its own key and the worker is the only thing that
+ * decides what a token is worth.
+ *
+ * Inlined by tools/site/shell.js for the site and by build.ps1 for the planner. Neither side
+ * keeps a copy. The downloadable planner gets none of it, along with the rest of the banner.
+ */
+(function () {
+  var KEY = "wardogs.me";
+  var esc = function (s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  };
+
+  /* What the worker said, reduced to what the banner draws. Storing the whole reply would
+     put a token's worth of account detail in a place nothing needs it. */
+  var keep = function (me) {
+    return {
+      loginEnabled: me.loginEnabled !== false,
+      owner: !!me.owner,
+      user: me.user ? { name: me.user.name } : null,
+    };
+  };
+
+  var markup = function (me, signInUrl) {
+    if (!me.user) return '<a href="' + esc(signInUrl || "#") + '">Sign in</a>';
+    return '<button type="button" class="who" aria-expanded="false">' +
+        esc(me.user.name) + '<span class="caret">&#9662;</span></button>' +
+      '<div class="acct-menu" hidden>' +
+        '<a href="/account/" class="leaveLink">Your designs</a>' +
+        /* The owner's two unlisted pages, so they are reachable without keeping the URLs in
+           your head. The worker decides who sees this by Discord id; the menu only draws
+           what it is told. Neither page is protected by being absent from this menu:
+           /moderate/ is guarded by the admin token the worker checks, and /todo/ is
+           unlisted rather than secret and says so on itself. */
+        (me.owner ? '<a href="/moderate/" class="leaveLink">Moderate</a>' +
+                    '<a href="/todo/" class="leaveLink">To do</a>' : "") +
+        '<a href="#" data-signout>Sign out</a>' +
+      "</div>";
+  };
+
+  var wire = function (el) {
+    var btn = el.querySelector(".who"), menu = el.querySelector(".acct-menu");
+    if (!btn) return;
+    var shut = function () { menu.hidden = true; btn.setAttribute("aria-expanded", "false"); };
+    btn.addEventListener("click", function (ev) {
+      ev.stopPropagation();
+      menu.hidden = !menu.hidden;
+      btn.setAttribute("aria-expanded", String(!menu.hidden));
+    });
+    document.addEventListener("click", function (ev) { if (!el.contains(ev.target)) shut(); });
+    document.addEventListener("keydown", function (ev) { if (ev.key === "Escape") shut(); });
+  };
+
+  window.wardogsAcct = {
+    key: KEY,
+    cached: function () {
+      try { return JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) { return null; }
+    },
+    remember: function (me) {
+      try { localStorage.setItem(KEY, JSON.stringify(keep(me))); } catch (e) {}
+    },
+    forget: function () { try { localStorage.removeItem(KEY); } catch (e) {} },
+    /* signInUrl is a function rather than a string because the two pages build it
+       differently and neither one can build it before the script that owns the API base has
+       run. Drawing from cache does not need it: a cached signed-out state is the one case
+       where waiting for the real answer costs nothing, since "Sign in" is the same width
+       whichever way it is built. */
+    paint: function (me, signInUrl) {
+      var el = document.getElementById("acct");
+      if (!el) return;
+      if (!me || me.loginEnabled === false) { el.className = "acct"; el.innerHTML = ""; return; }
+      el.className = "acct on";
+      el.innerHTML = markup(me, signInUrl);
+      wire(el);
+    },
+    /* Called while the page is still parsing, from the script tag under the banner. */
+    fromCache: function () {
+      var c = this.cached();
+      if (c && c.user) this.paint(c);
+    },
+  };
+
+  window.wardogsAcct.fromCache();
+}());
+</script>
 <div id="topbar">
   <!-- The wordmark used to live here, because there was nothing above it. There is now, and
        two WARDOGS stacked one on the other read as a mistake, so this row keeps the tool's
@@ -1494,7 +1613,7 @@ const CLOUD_API = "https://wardogs-votes.wardogsbuilder.workers.dev";
    but it is inlined into both builds so the two differ in what they can reach and never in
    what they contain. */
 const DESIGN_TAGS = [{"id":"map","label":"Where it works","hint":"At least one. Pick the map it is laid out for, or Any map if the ground does not matter.","required":true,"tags":[{"id":"map-bakurani","label":"Bakurani"},{"id":"map-ozeti","label":"Ozeti"},{"id":"map-any","label":"Any map","exclusive":true}]},{"id":"role","label":"What it is for","hint":"Optional, as many as fit. This is what somebody scrolling the list is actually choosing between.","required":false,"tags":[{"id":"anti-infantry","label":"Anti-infantry","hint":"Built to stop people on foot: cover, wire, firing positions."},{"id":"anti-vehicle","label":"Anti-vehicle","hint":"Stingray, hedgehogs, anything that turns armour away."},{"id":"anti-air","label":"Anti-air","hint":"Vanguard CIWS or Talon 9K-SAM covering the sky above it."},{"id":"artillery","label":"Artillery","hint":"Built around a mortar and its shelter."},{"id":"zone-control","label":"Zone control","hint":"Meant to be planted on the objective and held."},{"id":"recon","label":"Recon","hint":"Towers, radio, eyes on ground you do not hold."},{"id":"starter","label":"Starter","hint":"Cheap and quick, for the first build of a match."}]}];
-const BUILD_STAMP = "20260901-202731";
+const BUILD_STAMP = "20260902-020947";
 const LS_TOKEN = "wardogs.token";
 
 const LS_DESIGNS = "wardogs.designs";
@@ -5282,51 +5401,33 @@ function renderDesigns() {
    racing for one hash and one localStorage entry. */
 async function refreshAccountChip() {
   const el = document.getElementById("acct");
-  if (!el) return;
-  if (!CLOUD_API) { el.className = "acct"; el.innerHTML = ""; return; }
+  if (!el || !window.wardogsAcct) return;
+  if (!CLOUD_API) { wardogsAcct.paint(null); return; }
   let me;
-  try { me = await cloudCall("/me"); }
-  catch (e) { el.className = "acct"; el.innerHTML = ""; return; }
+  /* A banner that empties itself because one request failed is worse than one showing the
+     last thing it knew, so a failed call leaves whatever the cache already painted. */
+  try { me = await cloudCall("/me"); } catch (e) { return; }
   cloudUser = me.user || false;
-  /* Same gate the site uses: an account control on a build with logins turned off is a
-     control that cannot do anything, and it stays hidden rather than empty. */
-  if (me.loginEnabled === false) { el.className = "acct"; el.innerHTML = ""; return; }
-  el.className = "acct on";
-  if (!me.user) {
-    el.innerHTML = `<a href="${esc(cloudSignInUrl())}">Sign in</a>`;
-    return;
-  }
-  el.innerHTML =
-    `<button type="button" class="who" aria-expanded="false">${esc(cloudUser.name)}` +
-      `<span class="caret">&#9662;</span></button>` +
-    `<div class="acct-menu" hidden>` +
-      `<a href="/account/" class="leaveLink">Your designs</a>` +
-      (me.owner ? `<a href="/moderate/" class="leaveLink">Moderate</a>` +
-                  `<a href="/todo/" class="leaveLink">To do</a>` : "") +
-      `<a href="#" id="acctOut">Sign out</a>` +
-    `</div>`;
-  const btn = el.querySelector(".who"), menu = el.querySelector(".acct-menu");
-  const shut = () => { menu.hidden = true; btn.setAttribute("aria-expanded", "false"); };
-  btn.onclick = ev => {
-    ev.stopPropagation();
-    menu.hidden = !menu.hidden;
-    btn.setAttribute("aria-expanded", String(!menu.hidden));
-  };
-  document.addEventListener("click", ev => { if (!el.contains(ev.target)) shut(); });
-  document.addEventListener("keydown", ev => { if (ev.key === "Escape") shut(); });
-  document.getElementById("acctOut").onclick = ev => {
-    ev.preventDefault();
-    try { localStorage.removeItem(LS_TOKEN); } catch (e) {}
-    cloudUser = false;
-    refreshAccountChip();
-    if (document.getElementById("cloudBox")) loadCloudSection();
-    toast("Signed out.");
-  };
-  /* The menu's links leave the planner, so they go through the same save-first guard as
-     the nav above them. The handler is bound once at boot, over links that did not exist
-     then, so it has to be rebound for these. */
+  wardogsAcct.remember(me);
+  wardogsAcct.paint(me, cloudSignInUrl());
+  /* The menu's links leave the planner, so they go through the same save-first guard as the
+     nav above them. The guard is bound at boot, over links that did not exist then. */
   wireLeaveLinks();
 }
+
+/* Signing out is the planner's own: the shared renderer draws the link and each page says
+   what it means. Here it is the token, the cached name, and everything on screen that was
+   drawn for somebody. */
+document.addEventListener("click", ev => {
+  if (!ev.target.closest("[data-signout]")) return;
+  ev.preventDefault();
+  try { localStorage.removeItem(LS_TOKEN); } catch (e) {}
+  if (window.wardogsAcct) wardogsAcct.forget();
+  cloudUser = false;
+  refreshAccountChip();
+  if (document.getElementById("cloudBox")) loadCloudSection();
+  toast("Signed out.");
+});
 
 function cloudSectionShell() {
   if (!CLOUD_API) return "";

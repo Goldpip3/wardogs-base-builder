@@ -412,6 +412,23 @@ check(bar.includes('id="acct" class="acct"'),
   "and the account control, without which the whole nav sits in a different place");
 check(app.includes('document.getElementById("acct")') && !app.includes("acctChip"),
   "the planner fills it from its own sign-in rather than keeping a second one");
+/* One renderer for the name, inlined by both sides. The name is part of the banner's
+   geometry, so two of these drifting moves the boxes on one page and not the other. */
+const acctBar = fs.readFileSync(PROJ + "src/shared/acct-bar.js", "utf8").trim();
+check(app.includes(acctBar) && home.includes(acctBar),
+  "the planner and the site draw the account name with the same file, not two copies");
+/* And it paints the last known name while the page is still parsing. Waiting for the fetch
+   meant the row of boxes moved after the first frame, on every navigation, which is what
+   the page turn was flickering at. */
+check(acctBar.includes("wardogsAcct.fromCache()") &&
+  app.indexOf("wardogsAcct") > app.indexOf("</header>"),
+  "from a cache, under the header, before anything is fetched");
+/* The page turn is written once as well, and lifted into the planner with the banner: a
+   cross document transition only happens if both ends opt in, and two copies of the timings
+   is how the two ends come to disagree about how long it lasts. */
+const tplSrc = fs.readFileSync(PROJ + "src/app-template.html", "utf8");
+check(!tplSrc.includes("@view-transition") && !tplSrc.includes("wd-turn"),
+  "and the planner keeps no second copy of the page turn");
 check(app.includes(require(PROJ + "tools/site-header-css.js").trim()),
   "and the site's own rules for them, lifted rather than copied");
 ["/artillery/", "/designs/", "/armory/", "/ballistics/", "/loadouts/", "/feedback/"]

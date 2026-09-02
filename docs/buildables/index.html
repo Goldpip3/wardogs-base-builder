@@ -123,8 +123,12 @@ nav.site a.cta:hover{background:var(--yellow);border-color:var(--yellow);color:v
 ::view-transition-new(root){animation:wd-turn-in .28s cubic-bezier(0,0,.2,1) both;
   mix-blend-mode:normal}
 header.site{view-transition-name:wd-head}
+/* The banner is 92% opaque with a blur behind it, which is right on a page you scroll and
+   wrong for the quarter second the page is turning: the outgoing page slides sideways
+   underneath and you can see it through the bar, which reads as the banner flickering
+   rather than as the page moving. For the length of the turn it is solid. */
 ::view-transition-old(wd-head),::view-transition-new(wd-head){animation:none;
-  mix-blend-mode:normal}
+  mix-blend-mode:normal;background:var(--bg)}
 /* A page that turns is decoration. Somebody who has asked for less of it gets the plain
    crossfade the browser does on its own. */
 @media(prefers-reduced-motion:reduce){
@@ -1176,45 +1180,29 @@ A.ready=fetch(API+"/me",{headers:A.headers()})
     A.me=j;
     // a token the worker will not accept is not worth keeping
     if(j.loginEnabled && A.token() && !j.user){ try{localStorage.removeItem(KEY);}catch(e){} }
-    var el=document.getElementById("acct");
-    if(el && j.loginEnabled){
-      el.className="acct on";
-      /* Your name is the control, and what you can do with the account sits under it.
-         Sign out used to be a second link in the header, level with the name and with
-         everything else up there, which put the one destructive account action in the
-         busiest row on the page next to things you press all the time. */
-      el.innerHTML = j.user
-        ? '<button type="button" class="who" data-acctmenu aria-expanded="false">'+
-            esc(j.user.name)+'<span class="caret">&#9662;</span></button>'+
-          '<div class="acct-menu" hidden>'+
-            '<a href="/account/">Your designs</a>'+
-            /* The owner's two unlisted pages, so they are reachable without keeping the
-               URLs in your head. The worker decides who sees this by Discord id; the menu
-               only draws what it is told. Neither page is protected by being hidden here:
-               /moderate/ is guarded by the admin token the worker checks, and /todo/ is
-               unlisted rather than secret and says so on itself. */
-            (j.owner ? '<a href="/moderate/">Moderate</a>'+
-                       '<a href="/todo/">To do</a>' : '')+
-            '<a href="#" data-signout>Sign out</a>'+
-          '</div>'
-        : '<a href="'+A.signInUrl()+'">Sign in</a>';
-      var btn=el.querySelector("[data-acctmenu]"), menu=el.querySelector(".acct-menu");
-      if(btn){
-        var shut=function(){ menu.hidden=true; btn.setAttribute("aria-expanded","false"); };
-        btn.addEventListener("click",function(ev){
-          ev.stopPropagation();
-          menu.hidden=!menu.hidden;
-          btn.setAttribute("aria-expanded",String(!menu.hidden));
-        });
-        document.addEventListener("click",function(ev){ if(!el.contains(ev.target)) shut(); });
-        document.addEventListener("keydown",function(ev){ if(ev.key==="Escape") shut(); });
-      }
-    }
+    /* The banner is drawn by src/shared/acct-bar.js, which the shell inlines under the
+       header and the planner inlines under its copy of it. One renderer, because the name
+       is part of the banner's geometry and two of these drifting moves the boxes on one
+       page and not the other.
+
+       By DOMContentLoaded that script has certainly run. Before it, this reply can beat the
+       parser to the body on a warm cache, and calling a painter that does not exist yet
+       loses the answer entirely. */
+    var show=function(){
+      if(!window.wardogsAcct) return;
+      wardogsAcct.remember(j);
+      wardogsAcct.paint(j, A.signInUrl());
+    };
+    if(document.readyState==="loading")
+      document.addEventListener("DOMContentLoaded",show);
+    else show();
     return j;
   })
   .catch(function(){ A.me={loginEnabled:false,needs:{},user:null}; return A.me; });
 document.addEventListener("click",function(e){
-  if(e.target.closest("[data-signout]")){ e.preventDefault(); A.signOut(); }
+  if(e.target.closest("[data-signout]")){ e.preventDefault();
+    if(window.wardogsAcct) wardogsAcct.forget();
+    A.signOut(); }
 });
 })();
 </script>
@@ -1235,6 +1223,107 @@ document.addEventListener("click",function(e){
     <span id="acct" class="acct"></span>
   </nav>
 </div></header>
+<script>/* The account control in the site banner, on every page including the planner.
+ *
+ * It exists as a shared file for one reason: the banner's row of boxes is centred in what
+ * the brand and the name leave either side of it, so the name is part of the banner's
+ * geometry. Two copies of this drifting apart moves the boxes on one page and not the other,
+ * which is the fault this file was written to close.
+ *
+ * The other half of that fault is time. Who you are comes back from the worker, and until
+ * it did the banner was drawn with an empty name and then redrawn with one, so every
+ * navigation ended in the nav jumping sideways: a flicker rather than the page turn the rest
+ * of the transition does. So the last answer is kept in localStorage and painted while the
+ * page is still parsing, before anything is fetched. The fetch still happens and still wins;
+ * it just no longer decides what the first frame looks like.
+ *
+ * The cache holds a display name and two flags. No token, no id, nothing the page could not
+ * already read: the token lives under its own key and the worker is the only thing that
+ * decides what a token is worth.
+ *
+ * Inlined by tools/site/shell.js for the site and by build.ps1 for the planner. Neither side
+ * keeps a copy. The downloadable planner gets none of it, along with the rest of the banner.
+ */
+(function () {
+  var KEY = "wardogs.me";
+  var esc = function (s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  };
+
+  /* What the worker said, reduced to what the banner draws. Storing the whole reply would
+     put a token's worth of account detail in a place nothing needs it. */
+  var keep = function (me) {
+    return {
+      loginEnabled: me.loginEnabled !== false,
+      owner: !!me.owner,
+      user: me.user ? { name: me.user.name } : null,
+    };
+  };
+
+  var markup = function (me, signInUrl) {
+    if (!me.user) return '<a href="' + esc(signInUrl || "#") + '">Sign in</a>';
+    return '<button type="button" class="who" aria-expanded="false">' +
+        esc(me.user.name) + '<span class="caret">&#9662;</span></button>' +
+      '<div class="acct-menu" hidden>' +
+        '<a href="/account/" class="leaveLink">Your designs</a>' +
+        /* The owner's two unlisted pages, so they are reachable without keeping the URLs in
+           your head. The worker decides who sees this by Discord id; the menu only draws
+           what it is told. Neither page is protected by being absent from this menu:
+           /moderate/ is guarded by the admin token the worker checks, and /todo/ is
+           unlisted rather than secret and says so on itself. */
+        (me.owner ? '<a href="/moderate/" class="leaveLink">Moderate</a>' +
+                    '<a href="/todo/" class="leaveLink">To do</a>' : "") +
+        '<a href="#" data-signout>Sign out</a>' +
+      "</div>";
+  };
+
+  var wire = function (el) {
+    var btn = el.querySelector(".who"), menu = el.querySelector(".acct-menu");
+    if (!btn) return;
+    var shut = function () { menu.hidden = true; btn.setAttribute("aria-expanded", "false"); };
+    btn.addEventListener("click", function (ev) {
+      ev.stopPropagation();
+      menu.hidden = !menu.hidden;
+      btn.setAttribute("aria-expanded", String(!menu.hidden));
+    });
+    document.addEventListener("click", function (ev) { if (!el.contains(ev.target)) shut(); });
+    document.addEventListener("keydown", function (ev) { if (ev.key === "Escape") shut(); });
+  };
+
+  window.wardogsAcct = {
+    key: KEY,
+    cached: function () {
+      try { return JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) { return null; }
+    },
+    remember: function (me) {
+      try { localStorage.setItem(KEY, JSON.stringify(keep(me))); } catch (e) {}
+    },
+    forget: function () { try { localStorage.removeItem(KEY); } catch (e) {} },
+    /* signInUrl is a function rather than a string because the two pages build it
+       differently and neither one can build it before the script that owns the API base has
+       run. Drawing from cache does not need it: a cached signed-out state is the one case
+       where waiting for the real answer costs nothing, since "Sign in" is the same width
+       whichever way it is built. */
+    paint: function (me, signInUrl) {
+      var el = document.getElementById("acct");
+      if (!el) return;
+      if (!me || me.loginEnabled === false) { el.className = "acct"; el.innerHTML = ""; return; }
+      el.className = "acct on";
+      el.innerHTML = markup(me, signInUrl);
+      wire(el);
+    },
+    /* Called while the page is still parsing, from the script tag under the banner. */
+    fromCache: function () {
+      var c = this.cached();
+      if (c && c.user) this.paint(c);
+    },
+  };
+
+  window.wardogsAcct.fromCache();
+}());
+</script>
 <section><div class="wrap">
   <span class="eyebrow">Reference</span>
   <h1>Buildables</h1>

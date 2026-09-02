@@ -117,10 +117,17 @@ $navLinks = ($siteLinks | ForEach-Object {
 # the row is centred in what the brand and the name leave. The planner fills #acct itself
 # from the same /me it already asks, rather than running the site's auth script beside its
 # own. The tool bar's sign-in came out in the same move.
+
+# The account control's renderer, the site's own file, inlined under the banner so it paints
+# the cached name while this page is still parsing. Without it the name arrived after the
+# first frame and the whole row of boxes moved, which is what the page turn was flickering
+# at. Concatenated rather than interpolated: the file is full of $ and backticks and a
+# double-quoted PowerShell string would eat them.
+$acctBar = [IO.File]::ReadAllText("$proj\src\shared\acct-bar.js", $utf8)
 $siteNav = '<header class="site"><div class="wrap">' +
   '<a href="/" class="brand leaveLink">WARDOGS</a>' +
   '<nav class="site">' + $navLinks + '<span id="acct" class="acct"></span></nav>' +
-  '</div></header>'
+  '</div></header>' + '<script>' + $acctBar + '</script>'
 
 # ...and the rules that draw it, read out of the site's stylesheet rather than typed again
 # here. See tools/site-header-css.js for why this is extracted rather than copied.

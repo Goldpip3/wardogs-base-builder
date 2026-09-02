@@ -106,8 +106,12 @@ nav.site a.cta:hover{background:var(--yellow);border-color:var(--yellow);color:v
 ::view-transition-new(root){animation:wd-turn-in .28s cubic-bezier(0,0,.2,1) both;
   mix-blend-mode:normal}
 header.site{view-transition-name:wd-head}
+/* The banner is 92% opaque with a blur behind it, which is right on a page you scroll and
+   wrong for the quarter second the page is turning: the outgoing page slides sideways
+   underneath and you can see it through the bar, which reads as the banner flickering
+   rather than as the page moving. For the length of the turn it is solid. */
 ::view-transition-old(wd-head),::view-transition-new(wd-head){animation:none;
-  mix-blend-mode:normal}
+  mix-blend-mode:normal;background:var(--bg)}
 /* A page that turns is decoration. Somebody who has asked for less of it gets the plain
    crossfade the browser does on its own. */
 @media(prefers-reduced-motion:reduce){
