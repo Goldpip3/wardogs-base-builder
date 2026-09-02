@@ -67,6 +67,14 @@
       "on": "2026-09-02",
       "note": "Recon ladder screen, level 37: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
+    "12 Gauge Suppressor": {
+      "unlock": {
+        "role": "Support",
+        "level": 40
+      },
+      "on": "2026-09-02",
+      "note": "Support ladder screen, level 40, named on screen. Cost not read"
+    },
     "12g Rifled Slug": {
       "unlock": {
         "role": "Wardog",
@@ -114,6 +122,14 @@
       },
       "on": "2026-09-02",
       "note": "Recon ladder screen, level 11: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "40mm": {
+      "unlock": {
+        "role": "Support",
+        "level": 35
+      },
+      "on": "2026-09-02",
+      "note": "Support ladder screen, level 35, named on screen. Cost not read"
     },
     "45 Degree Angled Foregrip": {
       "unlock": {
@@ -234,6 +250,22 @@
       },
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 28, named by the owner clicking it. Cost not read"
+    },
+    "93mm": {
+      "unlock": {
+        "role": "Support",
+        "level": 5
+      },
+      "on": "2026-09-02",
+      "note": "Support ladder screen, level 5, named on screen. Cost not read"
+    },
+    "9K333 Verba": {
+      "unlock": {
+        "role": "Support",
+        "level": 16
+      },
+      "on": "2026-09-02",
+      "note": "Support ladder screen, level 16: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
     "9mm Armor Piercing (AP)": {
       "unlock": {
@@ -450,6 +482,14 @@
       "on": "2026-09-02",
       "note": "Recon ladder screen, level 17, named on screen. Cost not read"
     },
+    "C4 Charge": {
+      "unlock": {
+        "role": "Support",
+        "level": 2
+      },
+      "on": "2026-09-02",
+      "note": "Support ladder screen, level 2: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
     "CQ-2x Prism Combat Scope": {
       "unlock": {
         "role": "Assault",
@@ -635,6 +675,14 @@
       "on": "2026-09-02",
       "note": "Recon ladder screen, level 43: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
+    "Full Choke": {
+      "unlock": {
+        "role": "Support",
+        "level": 19
+      },
+      "on": "2026-09-02",
+      "note": "Support ladder screen, level 19: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
     "GGX 17": {
       "unlock": {
         "role": "Wardog",
@@ -747,6 +795,14 @@
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 73: the icon there is this item and the level matches the database pull, which supplies the name and cost"
     },
+    "Heavy Drill": {
+      "unlock": {
+        "role": "Support",
+        "level": 28
+      },
+      "on": "2026-09-02",
+      "note": "Support ladder screen, level 28: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
     "Hexagon 762 Suppressor": {
       "unlock": {
         "role": "Recon",
@@ -778,6 +834,22 @@
       },
       "on": "2026-09-02",
       "note": "Assault ladder screen, level 22: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Hybrid Grip Pod": {
+      "unlock": {
+        "role": "Support",
+        "level": 50
+      },
+      "on": "2026-09-02",
+      "note": "Support ladder screen, level 50, named on screen. Cost not read"
+    },
+    "Improved Cylinder Choke": {
+      "unlock": {
+        "role": "Support",
+        "level": 14
+      },
+      "on": "2026-09-02",
+      "note": "Support ladder screen, level 14: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
     "Individual First Aid Kit": {
       "unlock": {
@@ -891,6 +963,14 @@
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 100, named by the owner clicking it. Cost not read"
     },
+    "Light Drill": {
+      "unlock": {
+        "role": "Support",
+        "level": 1
+      },
+      "on": "2026-09-02",
+      "note": "Support ladder screen, level 1: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
     "M18 Smoke Grenade: Black": {
       "unlock": {
         "role": "Medic",
@@ -931,6 +1011,38 @@
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 40: the icon there is this item and the level matches the database pull, which supplies the name and cost"
     },
+    "M249 100 RND Fabric Magazine": {
+      "unlock": {
+        "role": "Support",
+        "level": 15
+      },
+      "on": "2026-09-02",
+      "note": "Support ladder screen, level 15, named on screen. Cost not read"
+    },
+    "M249 200 RND Box": {
+      "unlock": {
+        "role": "Support",
+        "level": 23
+      },
+      "on": "2026-09-02",
+      "note": "Support ladder screen, level 23: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "M249 Bipod": {
+      "unlock": {
+        "role": "Support",
+        "level": 18
+      },
+      "on": "2026-09-02",
+      "note": "Support ladder screen, level 18: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "M249 SAW": {
+      "unlock": {
+        "role": "Support",
+        "level": 15
+      },
+      "on": "2026-09-02",
+      "note": "Support ladder screen, level 15, named on screen. Cost not read"
+    },
     "M4": {
       "unlock": {
         "role": "Assault",
@@ -938,6 +1050,38 @@
       },
       "on": "2026-09-02",
       "note": "Assault ladder screen, level 20: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "M500": {
+      "unlock": {
+        "role": "Support",
+        "level": 10
+      },
+      "on": "2026-09-02",
+      "note": "Support ladder screen, level 10, named on screen. Cost not read"
+    },
+    "M500 Sabre Brake": {
+      "unlock": {
+        "role": "Support",
+        "level": 11
+      },
+      "on": "2026-09-02",
+      "note": "Support ladder screen, level 11: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "MAAWS": {
+      "unlock": {
+        "role": "Support",
+        "level": 20
+      },
+      "on": "2026-09-02",
+      "note": "Support ladder screen, level 20, named on screen. Cost not read"
+    },
+    "MGL-40": {
+      "unlock": {
+        "role": "Support",
+        "level": 35
+      },
+      "on": "2026-09-02",
+      "note": "Support ladder screen, level 35, named on screen. Cost not read"
     },
     "MK22": {
       "unlock": {
@@ -1051,6 +1195,14 @@
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 20: the icon there is this item and the level matches the database pull, which supplies the name and cost"
     },
+    "Orpheus Max Brake": {
+      "unlock": {
+        "role": "Support",
+        "level": 45
+      },
+      "on": "2026-09-02",
+      "note": "Support ladder screen, level 45, named on screen. Cost not read"
+    },
     "PBS-4 Suppressor": {
       "unlock": {
         "role": "Assault",
@@ -1058,6 +1210,38 @@
       },
       "on": "2026-09-02",
       "note": "Assault ladder screen, level 27, named on screen. Cost not read"
+    },
+    "PGO-7": {
+      "unlock": {
+        "role": "Support",
+        "level": 12
+      },
+      "on": "2026-09-02",
+      "note": "Support ladder screen, level 12: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "PKM": {
+      "unlock": {
+        "role": "Support",
+        "level": 30
+      },
+      "on": "2026-09-02",
+      "note": "Support ladder screen, level 30: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "PKM 100 RND Box": {
+      "unlock": {
+        "role": "Support",
+        "level": 30
+      },
+      "on": "2026-09-02",
+      "note": "Support ladder screen, level 30: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "PKM Bipod": {
+      "unlock": {
+        "role": "Support",
+        "level": 33
+      },
+      "on": "2026-09-02",
+      "note": "Support ladder screen, level 33: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
     "PP-19 50 RND Vityaz Drum Magazine": {
       "unlock": {
@@ -1139,6 +1323,14 @@
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 15: the icon there is this item and the level matches the database pull, which supplies the name and cost"
     },
+    "RPG-7": {
+      "unlock": {
+        "role": "Support",
+        "level": 5
+      },
+      "on": "2026-09-02",
+      "note": "Support ladder screen, level 5, named on screen. Cost not read"
+    },
     "RVG Vertical Foregrip": {
       "unlock": {
         "role": "Medic",
@@ -1154,6 +1346,14 @@
       },
       "on": "2026-09-02",
       "note": "Recon ladder screen, level 8: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Remote Detonator": {
+      "unlock": {
+        "role": "Support",
+        "level": 2
+      },
+      "on": "2026-09-02",
+      "note": "Support ladder screen, level 2: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
     "Rubberized Ergonomic Foregrip": {
       "unlock": {
@@ -1322,6 +1522,22 @@
       "on": "2026-09-02",
       "note": "Recon ladder screen, level 28: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
+    "Slotted Flash Hider": {
+      "unlock": {
+        "role": "Support",
+        "level": 26
+      },
+      "on": "2026-09-02",
+      "note": "Support ladder screen, level 26, named on screen. Cost not read"
+    },
+    "Spectr 4x": {
+      "unlock": {
+        "role": "Support",
+        "level": 21
+      },
+      "on": "2026-09-02",
+      "note": "Support ladder screen, level 21, named on screen. Cost not read"
+    },
     "Spitfire 3X": {
       "unlock": {
         "role": "Assault",
@@ -1409,6 +1625,14 @@
       },
       "on": "2026-09-02",
       "note": "Assault ladder screen, level 5: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Tread Brake": {
+      "unlock": {
+        "role": "Support",
+        "level": 17
+      },
+      "on": "2026-09-02",
+      "note": "Support ladder screen, level 17: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
     "Tricon 1.5x Compact Prism Scope": {
       "unlock": {
