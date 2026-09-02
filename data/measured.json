@@ -291,6 +291,22 @@
       "on": "2026-09-02",
       "note": "Assault ladder screen, level 14, named on screen. Cost not read"
     },
+    "AH-6M [Miniguns]": {
+      "unlock": {
+        "role": "Pilot",
+        "level": 4
+      },
+      "on": "2026-09-02",
+      "note": "Pilot ladder screen, level 4: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "AH-6R [Rockets]": {
+      "unlock": {
+        "role": "Pilot",
+        "level": 20
+      },
+      "on": "2026-09-02",
+      "note": "Pilot ladder screen, level 20, named on screen. Cost not read"
+    },
     "AK74": {
       "unlock": {
         "role": "Assault",
@@ -811,6 +827,14 @@
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 73: the icon there is this item and the level matches the database pull, which supplies the name and cost"
     },
+    "Havoc": {
+      "unlock": {
+        "role": "Pilot",
+        "level": 35
+      },
+      "on": "2026-09-02",
+      "note": "Pilot ladder screen, level 35, named on screen. Cost not read"
+    },
     "Heavy Drill": {
       "unlock": {
         "role": "Support",
@@ -946,6 +970,14 @@
       },
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 35: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Large Armored Crate": {
+      "unlock": {
+        "role": "Pilot",
+        "level": 15
+      },
+      "on": "2026-09-02",
+      "note": "Pilot ladder screen, level 15: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
     "Large Crate": {
       "unlock": {
@@ -1609,6 +1641,14 @@
       },
       "on": "2026-09-02",
       "note": "Support ladder screen, level 26, named on screen. Cost not read"
+    },
+    "Small Armored Crate": {
+      "unlock": {
+        "role": "Pilot",
+        "level": 2
+      },
+      "on": "2026-09-02",
+      "note": "Pilot ladder screen, level 2: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
     "Spectr 4x": {
       "unlock": {

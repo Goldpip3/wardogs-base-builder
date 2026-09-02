@@ -310,6 +310,34 @@
         "ladder": "driver",
         "level": 28,
         "on": "2026-09-02"
+      },
+      {
+        "name": "YOU ARE NOT INVITED - MOKUMOKU",
+        "kind": "cassette",
+        "ladder": "pilot",
+        "level": 5,
+        "on": "2026-09-02"
+      },
+      {
+        "name": "RIDE OF THE VALKYRIES - RICHARD WAGNER",
+        "kind": "cassette",
+        "ladder": "pilot",
+        "level": 13,
+        "on": "2026-09-02"
+      },
+      {
+        "name": "TIANQI XU - VODKA BOMB",
+        "kind": "cassette",
+        "ladder": "pilot",
+        "level": 23,
+        "on": "2026-09-02"
+      },
+      {
+        "name": "HORA - IRINA RIMES & JERRY HEIL",
+        "kind": "cassette",
+        "ladder": "pilot",
+        "level": 28,
+        "on": "2026-09-02"
       }
     ]
   }
