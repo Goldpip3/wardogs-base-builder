@@ -3,7 +3,7 @@
    these template literals, and that whitespace is page content. */
 module.exports = ctx => {
   const { esc, ARMORY, ARMORY_STATS, ITEM_STATS, MEASURED, BALLISTICS,
-          classLabel, classRank, ladderLabel, adSlot, page, write } = ctx;
+          classLabel, classRank, ladderLabel, xpFor, adSlot, page, write } = ctx;
 
 /* ---------- armory, loadouts and vehicles ----------
    One transcribed vendor catalogue behind all three. The armory browses it, the loadout
@@ -105,7 +105,9 @@ module.exports = ctx => {
     const u = statOf(name).unlock;
     if (u && u.starter) return "Nothing: it is there from the first match";
     if (!u || !u.role) return "";
+    const xp = u.level ? xpFor(u.role, u.level) : undefined;
     return ladderLabel(u.role) + (u.level ? " level " + u.level : " ladder, level not read yet") +
+      (xp ? " (" + xp.toLocaleString() + " XP)" : "") +
       (u.cash ? ", " + money(u.cash) : "");
   };
 

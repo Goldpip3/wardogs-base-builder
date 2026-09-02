@@ -287,6 +287,14 @@ for (const [name, seen] of Object.entries(MEASURED.items)) {
    at display and left untouched in data/armory-stats.json. */
 const LADDER_LABEL = { Infantry: "Assault", Career: "Wardog" };
 const ladderLabel = r => LADDER_LABEL[r] || r;
+/* XP printed on a ladder's level cards, read off the game and kept in data/progression.json
+   under ladderXp by ladder id. Only the levels somebody read are present, so this answers
+   with nothing for a level nobody has looked at rather than a figure off a curve. */
+const PROGRESSION = JSON.parse(fs.readFileSync(path.join(ROOT, "data/progression.json"), "utf8"));
+const xpFor = (role, level) => {
+  const ladder = (PROGRESSION.ladderXp || {})[String(ladderLabel(role)).toLowerCase()];
+  return ladder ? ladder[String(level)] : undefined;
+};
 const DAMAGE = JSON.parse(fs.readFileSync(path.join(ROOT, "data/damage.json"), "utf8"));
 const ARTILLERY = JSON.parse(fs.readFileSync(path.join(ROOT, "data/artillery.json"), "utf8"));
 const ARTILLERY_MAPS = JSON.parse(fs.readFileSync(path.join(ROOT, "data/artillery-maps.json"), "utf8"));
@@ -448,7 +456,7 @@ const VOTE_API = (COMMUNITY.voteApi || "").replace(/\/$/, "");
     ADS, adsOn, adScript, adSlot,
     encodeDesign, P, run, ring, pit,
     COMMUNITY, BALLISTICS, ARMORY, ARMORY_STATS, MEASURED, ITEM_STATS, loadsFor,
-    CLASS_ORDER, classLabel, classShort, classRank, ladderLabel, DAMAGE, ARTILLERY, ARTILLERY_MAPS, DESIGNS, stats,
+    CLASS_ORDER, classLabel, classShort, classRank, ladderLabel, xpFor, DAMAGE, ARTILLERY, ARTILLERY_MAPS, DESIGNS, stats,
     CSS, write, written, sweepDesignPages,
     decodeShared, withStats, designCard, VOTE_API,
     TAG_GROUPS, TAG_BY_ID, tagPills,
