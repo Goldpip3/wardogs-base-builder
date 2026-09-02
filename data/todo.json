@@ -5,7 +5,7 @@
   "confirm": [
     {
       "what": "Unlock cash for the items read off the Unlock screen",
-      "why": "All seven ladders were walked on 2026-09-02 and every card is recorded in data/measured.json with ladder and level, 226 records. The one-time cash to unlock was not on those screens, so the panel still shows the database figure where it has one. Read it off the buy screen, one item at a time.",
+      "why": "All seven ladders were walked on 2026-09-02 and every card is recorded in data/measured.json with ladder and level, 226 records. The one-time cash to unlock was not on those screens, so the panel still shows the database figure where it has one. Read it off the buy screen, one item at a time. Not readable yet, 2026-09-02: the only screen the owner can open is the firing range, where everything is already unlocked and no price is shown. It needs a progression profile with items still locked.",
       "where": "data/measured.json, unlock.cash"
     },
     {
