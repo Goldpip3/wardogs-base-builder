@@ -267,6 +267,10 @@ check(unlocked.length >= 15,
 const kit = fs.readFileSync(DOCS + "loadouts/index.html", "utf8");
 const bagShelf = between(kit, 'id="bag-grid"', "</div></div>");
 const rigShelf = between(kit, 'id="vest-grid"', "</div></div>");
+/* A pack with side pockets counts all of them: the Assault Backpack is a 3x5 body plus two
+   1x3 pockets, read off the game on 2026-09-02, 21 slots and not 15. */
+check(bagShelf.includes("3x5+1x3+1x3, 21 slots"),
+  "the Assault Backpack card counts its side pockets into 21 slots");
 check(bagShelf.includes('data-name="Pouch"'),
   "the Pouch is on the backpack shelf, where the free option belongs");
 check(!rigShelf.includes('data-name="Pouch"') && rigShelf.includes("Tac Vest"),

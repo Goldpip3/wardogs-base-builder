@@ -635,11 +635,18 @@ module.exports = ctx => {
          these is that the pulled ones are suspect. */
       (function (st) {
         if (!st.storage) return "";
-        const n = st.storage[0] * st.storage[1];
+        /* A pack is not always one rectangle: the Assault Backpack is a 3x5 body with two
+           1x3 side pockets, read off the game, and its 21 slots are all of them. */
+        const pockets = st.pockets || [];
+        const n = st.storage[0] * st.storage[1] +
+          pockets.reduce(function (t, g) { return t + g[0] * g[1]; }, 0);
         const seen = st.measured && st.measured.storage;
         return '<span class="vcard-sub"' + (seen ? ' data-measured="1"' : "") +
           ' title="' + (seen ? "Measured in game " + esc(seen) : "From the item database, not measured") +
-          '">' + st.storage[0] + "x" + st.storage[1] + ", " + n + " slots</span>";
+          '">' + st.storage[0] + "x" + st.storage[1] +
+          pockets.map(function (g) { return "+" + g[0] + "x" + g[1]; }).join("") +
+          ", " + n + " slots" +
+          (st.slings ? " + " + st.slings + " sling" + (st.slings > 1 ? "s" : "") : "") + "</span>";
       }(statOf(it.name))) +
       "</button>";
   };
@@ -986,6 +993,11 @@ module.exports = ctx => {
         if (g) m[i.name] = g;
         return m;
       }, {})) + ';' +
+      'var BAGPOCK=' + JSON.stringify(A.items.reduce(function (m, i) {
+        const pk = statOf(i.name).pockets;
+        if (pk && pk.length) m[i.name] = pk;
+        return m;
+      }, {})) + ';' +
       'var KG=' + JSON.stringify(A.items.reduce(function (m, i) {
         const st = statOf(i.name);
         if (typeof st.kg === "number") m[i.name] = st.kg;
@@ -1168,7 +1180,11 @@ module.exports = ctx => {
          Pouch, five for an Arsenal. Tiles are laid dense, so a tall magazine and a square
          drum pack the way they do in the game rather than each taking a row. */
       ' var grid=BAGGRID[nameOf("bag")]||[3,2];' +
-      ' var cols=grid[0],room=grid[0]*grid[1];' +
+      /* Side pockets count into the room and are drawn as extra cells after the body, so a
+         21 slot pack reads as 21 rather than as the 15 of its main grid. */
+      ' var pk=BAGPOCK[nameOf("bag")]||[],extra=0;' +
+      ' pk.forEach(function(g){extra+=g[0]*g[1];});' +
+      ' var cols=grid[0],room=grid[0]*grid[1]+extra;' +
       ' box.style.setProperty("--cols",cols);' +
       /* One tile per magazine, labelled with what is in it: three magazines of one round
          and three of another cannot be said in a single line of text. */
@@ -1199,7 +1215,8 @@ module.exports = ctx => {
       '  e.className="vcell vcell-empty";box.appendChild(e);}' +
       ' box.setAttribute("data-over",used>room?"1":"0");' +
       ' el("packcount").textContent=used?used+" of "+room+" slots":"Empty";' +
-      ' el("packnote").textContent=used>room?"More than it holds":nameOf("bag");}' +
+      ' el("packnote").textContent=used>room?"More than it holds":nameOf("bag")+' +
+      '  (pk.length?" ("+grid[0]+"x"+grid[1]+pk.map(function(g){return "+"+g[0]+"x"+g[1];}).join("")+")":"");}' +
 
       'function render(){' +
       ' var total=0,unknown=0,parts=[];' +

@@ -468,7 +468,13 @@
         "level": 150
       },
       "on": "2026-09-02",
-      "note": "Wardog Level screen, level 150, named by the owner clicking it. Cost not read"
+      "note": "Card tooltip on the vendor Gear tab, 2026-09-02",
+      "storage": [
+        4,
+        6
+      ],
+      "slings": 2,
+      "kg": 1.5
     },
     "Assault Backpack": {
       "unlock": {
@@ -476,7 +482,21 @@
         "level": 32
       },
       "on": "2026-09-02",
-      "note": "Wardog Level screen, level 32: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+      "note": "Vendor Gear tab, 2026-09-02: two side pockets, each one across and three down, beside the 3x5 body. 15 + 6 = 21 matches CAP.",
+      "storage": [
+        3,
+        5
+      ],
+      "pockets": [
+        [
+          1,
+          3
+        ],
+        [
+          1,
+          3
+        ]
+      ]
     },
     "BMR-308": {
       "unlock": {
@@ -746,7 +766,11 @@
         "level": 12
       },
       "on": "2026-09-02",
-      "note": "Wardog Level screen, level 12: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+      "note": "Vendor Gear tab with the Field Backpack equipped, 2026-09-02: three 2x2 blocks side by side, six across and two down, CAP. 0/12",
+      "storage": [
+        6,
+        2
+      ]
     },
     "Field Resuscitator": {
       "unlock": {
@@ -922,7 +946,12 @@
         "level": 73
       },
       "on": "2026-09-02",
-      "note": "Wardog Level screen, level 73: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+      "note": "Vendor Gear tab, 2026-09-02: one rifle-silhouette slot beside the grid, counted in CAP. 0/25",
+      "storage": [
+        4,
+        6
+      ],
+      "slings": 1
     },
     "Halligan Bar": {
       "class": "Tactical",
@@ -1750,7 +1779,11 @@
         "level": 56
       },
       "on": "2026-09-02",
-      "note": "Wardog Level screen, level 56, named on screen. Cost not read"
+      "note": "Vendor Gear tab with the Ruck Backpack equipped, 2026-09-02: one block four across and six down, CAP. 0/24",
+      "storage": [
+        4,
+        6
+      ]
     },
     "SG Multi-Caliber Suppressor": {
       "unlock": {

@@ -33,6 +33,16 @@ const FIELDS = {
     parse: v => grid(v),
     read: "the loadout page draws the bag on it and counts slots against it",
   },
+  pockets: {
+    what: "side pockets beside a bag's main grid, as WxH+WxH, for a pack that is not one rectangle",
+    parse: v => String(v).split("+").map(grid),
+    read: "the loadout page adds their cells to the pack's room and the card counts them",
+  },
+  slings: {
+    what: "weapon sling slots on a pack, a count; the game adds each to CAP. but they hold a weapon, not items",
+    parse: v => whole(v),
+    read: "the bag card names them beside the grid; they do not count as item cells",
+  },
   grid: {
     what: "the room an item takes in a bag, as WxH",
     parse: v => grid(v),
