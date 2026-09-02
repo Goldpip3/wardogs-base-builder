@@ -510,7 +510,7 @@
         </div>
       </div>
       <div class="rp-row" id="fobSizeRow" style="display:none"><label>Build zone (cells)</label>
-        <input type="number" id="fobSize" min="10" max="400" step="2">
+        <input type="number" id="fobSize" min="10" max="400" step="1">
       </div>
       <div class="rp-row"><label>Note</label><input id="selNote" style="width:130px"></div>
       <div class="rp-row" style="margin-top:8px">
@@ -653,16 +653,18 @@ function fobZone(p) {
   return (p && p.zone) || catalog.fob.buildRadiusUnits || LEGACY_FOB_ZONE;
 }
 /* A design records the build zone it was drawn under, and every base drawn before the
-   figure moved recorded 100 because that was the default then, not because anybody chose
-   it. Those were left alone and went on drawing a zone half the size of the one the game
-   gives you, on old designs and on every shared link, since the wire format writes the same
-   100 for a design that carries no zone at all. Opening one takes the catalog's figure now.
-   Anything recording a number that was never the default was typed in the panel and is
+   figure moved recorded whatever the default was then, not a number anybody chose. Those
+   were left alone and went on drawing the wrong zone, on old designs and on every shared
+   link, since the wire format writes the same 100 for a design that carries no zone at all.
+   Opening one takes the catalog's figure now. The figure has been 100 and then 200, both
+   estimates, and the measured one is neither, so both former defaults are adopted.
+   Anything recording a number that was never a default was typed in the panel and is
    kept. */
-const LEGACY_FOB_ZONE = 100;
+const LEGACY_FOB_ZONE = 100;               // the wire format's own default, see packDesign
+const FORMER_FOB_ZONES = [100, 200];       // every default a saved design might still carry
 function adopted(d) {
   for (const p of (d && d.pieces) || [])
-    if (p.type === "__fob__" && (!p.zone || p.zone === LEGACY_FOB_ZONE))
+    if (p.type === "__fob__" && (!p.zone || FORMER_FOB_ZONES.includes(p.zone)))
       p.zone = catalog.fob.buildRadiusUnits || LEGACY_FOB_ZONE;
   return d;
 }

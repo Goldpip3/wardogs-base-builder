@@ -8,6 +8,25 @@ Newest first. One entry per decision. Keep entries short.
 
 ## 2026-09-02
 
+### The build zone is measured: 39 blocks out from the FOB, and four emplacements resized
+
+The owner read it off the running game: from the middle cell of the 3x3 FOB, 39 single Hesco
+blocks fit between it and the edge of the build zone in every direction. So the square is
+39 + 1 + 39 = 79 cells across, and `buildRadiusUnits` in `data/buildables.json` says so
+with `radiusConfirmed: true`. **The raw count is kept beside the figure** as
+`radiusReading`, so the arithmetic can be checked or redone. The first write-up of this
+reading took "Hesco walls" to mean the 4-wide Quad and recorded 312; it was single blocks.
+Both former defaults, 100 and then 200, were estimates, so a design still recording either
+takes the measured figure when opened (`FORMER_FOB_ZONES` in the planner); a zone typed in
+the panel is still kept, and the panel's input steps by one now that the figure is odd.
+`test/saved-designs.js` pins all of it. It is a count in cells, not metres, so it settles
+nothing about range rings.
+
+**Four footprints off the same session**: the L81 Mortar and the Stingray are 3x3, the Talon
+9K-SAM is 2x2, and the Vanguard CIWS is the 4x4 it already was. All four carry a `sizeNote`
+saying so, and `sizeConfirmed: true`. The mortar had been marked confirmed at 4x4; an
+owner's reading outranks whatever that was.
+
 ### Click the ground in 3D to stand there, and Space to get over a wall
 
 The walkthrough started you wherever the plan happened to be centred, which was as often
@@ -487,63 +506,6 @@ Shelves stay in price order, with the unlock level on each card: two bags publis
 and sorting on the missing figure put a $15,000 bag third. None of this is measured in game,
 which the page says and `data/todo.json` tracks.
 
-### Map: zoom out stops at the fit, tiles stop over-fetching
-
-Zoom bottomed out at `cam.k` 1, far past the whole map fitting, so it shrank into black and
-still panned. `clampCam` holds it at the fit and inside bounds. An axis narrower than the
-canvas is centred and pinned.
-
-The coarse fallback used `getTile`, which **requests** missing ancestors. First paint of
-Bakurani: 24 tiles drawn, 12 ancestors fetched and never drawn. That was the request storm
-the retry logic exists to survive. Lookup is read-only now, plus a 5 tile base fetched once
-per terrain. First paint 36 requests to 29.
-
-Also `decoding="async"`, and the cache is capped at 360, oldest first, never the base.
-
-Do not copy wardogs-artillery.com's zoom pick: it uses `Math.round` with no device-pixel
-term, so it upscales on 2x displays. Ours uses `ceil` times the ratio.
-
-### Loadout: a bag is required before items
-
-Selling grenades to somebody carrying nothing is a kit the game cannot make. Backpack is its
-own column. Items shelf and magazine count lock until a bag is chosen. Removing the bag
-empties it. Weapon, sidearm, armour and rig are not gated: worn, not carried.
-
-The Pouch moved to the backpack shelf and leads it. It is the free option.
-
-Weight is unmeasured and says so. `tools/build-armory.js` takes `|3.4kg` after the price.
-**It refuses a total while any piece is unweighed**, because a light total and an unweighed
-rifle look the same on a readout.
-
-### Three weapons had the wrong class
-
-Scout Rifle TD showed no damage. It was a marksman rifle in 5.56 and no marksman tab was
-tested with 5.56. The wiki publishes a class per weapon; checking all 28 found three wrong:
-Scout Rifle TD is a sniper, FAL an assault rifle, GGX 18 a pistol. All 28 have damage now.
-
-BMR-308, SVD and SKS are not wrong. The wiki writes "Marksman Rifle", this repo writes
-"Marksman".
-
-Class is stated twice, `data/ballistics.json` and `ROWS` in `tools/solve-ballistics.js`. Fix
-both or the repo says two things about one gun.
-
-Also `renderCalc` wrote to `#flight` and `#cost` after they were removed, so it threw before
-`renderZones`, leaving a dashed hero over the previous weapon's numbers. Stages run through
-`stage()` now: one failing does not take the page down.
-
-### Designs carry tags and filter on them
-
-Two chip rows: where it works, what it is for. Same row means either, across rows means both.
-
-Every submission needs one `map-` tag. **The worker holds no copy of the vocabulary and must
-not**: it deploys separately, so a list inside it makes each new tag a forgotten deploy. It
-checks id shape, a cap of eight, and one `map-` tag. Unknown ids render as nothing.
-
-Vocabulary lives in `data/community.json` only. `test/tags.js` holds both built files to it
-byte for byte and fails if a map in `data/artillery-maps.json` has no tag.
-
-Tags are asked at publish, not stored on the design: they do not travel in the share code.
-
 ### Damage is measured, not solved
 
 Owner measured it in game. `tools/pull-damage-sheet.js` reads the sheet into
@@ -668,6 +630,21 @@ piece dropped nearby paints over its label.
 
 Each one carries the file that pins it, and `git show` still has the full story.
 
+- **Map zoom stops at the fit, and the coarse tile fallback is read-only.** `clampCam` holds
+  the artillery map at the fit; the fallback used to request every missing ancestor, which
+  was the request storm the retry logic exists to survive. Cache capped at 360, never the
+  base. Do not copy wardogs-artillery.com's zoom pick, it upscales on 2x displays.
+- **A bag is required before items on the loadout page.** Items and magazine count lock until
+  a bag is chosen; worn kit is not gated. `tools/build-armory.js` refuses a weight total
+  while any piece is unweighed, because a light total and an unweighed rifle read the same.
+- **Three weapons had the wrong class**: Scout Rifle TD is a sniper, FAL an assault rifle,
+  GGX 18 a pistol. Class is stated in `data/ballistics.json` and `ROWS` in
+  `tools/solve-ballistics.js`; fix both. Calculator stages run through `stage()` so one
+  failing does not take the page down.
+- **Designs carry tags and filter on them.** Vocabulary lives in `data/community.json`
+  only; the worker holds no copy and checks only id shape, a cap of eight and one `map-`
+  tag. Tags are asked at publish and do not travel in the share code. `test/tags.js` holds
+  both built files to the vocabulary.
 - **Owner is a Discord id, not a name.** `/me` answers `owner:true` for `OWNER_DISCORD_ID`;
   it decides what a page shows, never what `/admin` does, which still wants `ADMIN_TOKEN`.
 - **Not everything worth hardening is in the code.** Pages cannot set response headers, so no

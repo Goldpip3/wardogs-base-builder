@@ -814,7 +814,7 @@ header.site a:hover{color:var(--yellow)}
         </div>
       </div>
       <div class="rp-row" id="fobSizeRow" style="display:none"><label>Build zone (cells)</label>
-        <input type="number" id="fobSize" min="10" max="400" step="2">
+        <input type="number" id="fobSize" min="10" max="400" step="1">
       </div>
       <div class="rp-row"><label>Note</label><input id="selNote" style="width:130px"></div>
       <div class="rp-row" style="margin-top:8px">
@@ -1231,10 +1231,11 @@ const CATALOG_DEFAULT = {
     },
     "height": 2,
     "sizeConfirmed": true,
-    "buildRadiusUnits": 200,
-    "radiusConfirmed": false,
+    "buildRadiusUnits": 79,
+    "radiusConfirmed": true,
+    "radiusReading": "39 Hesco blocks from the FOB's middle cell to the edge of the zone, the same in every direction, read off the running game by the owner on 2026-09-02",
     "icon": "fob.webp",
-    "radiusNote": "The square the FOB lets you build inside, in cells. Raised from 100 to 200 on 2026-08-31 as a better estimate, not a reading: nobody has stood at the edge of one and counted. It stays unconfirmed until somebody does, and it is what blocks range rings on the plan. A design records its own zone, and one still recording the old 100 takes this figure when it is opened, since 100 was the default rather than anybody's choice. A zone typed in the panel is kept."
+    "radiusNote": "The square the FOB lets you build inside, in cells, the whole side. Measured on 2026-09-02: from the middle cell of the 3x3 FOB, 39 single Hesco blocks fit between it and the edge in every direction, so the square is 39 + 1 + 39 = 79 cells across, centred on the FOB. The count is in radiusReading, kept so the arithmetic can be checked or redone. Before that it was 100, then 200 from 2026-08-31 as a better estimate, neither of them a reading. A design records its own zone, and one still recording 100 or 200 takes this figure when it is opened, since those were defaults rather than anybody's choice. A zone typed in the panel is kept."
   },
   "buildables": [
     {
@@ -1580,8 +1581,8 @@ const CATALOG_DEFAULT = {
       "costConfirmed": false,
       "requiresFob": true,
       "footprint": {
-        "w": 4,
-        "d": 4
+        "w": 3,
+        "d": 3
       },
       "height": 2,
       "sizeConfirmed": true,
@@ -1591,7 +1592,8 @@ const CATALOG_DEFAULT = {
         "emplacement",
         "needs-sky",
         "uses-ammo"
-      ]
+      ],
+      "sizeNote": "3x3, read off the running game by the owner on 2026-09-02. Was 4x4 from a pre-launch write-up."
     },
     {
       "id": "vanguard-ciws",
@@ -1615,7 +1617,8 @@ const CATALOG_DEFAULT = {
         "anti-air",
         "needs-sky",
         "uses-ammo"
-      ]
+      ],
+      "sizeNote": "4x4, read off the running game by the owner on 2026-09-02."
     },
     {
       "id": "stingray",
@@ -1627,8 +1630,8 @@ const CATALOG_DEFAULT = {
       "costConfirmed": true,
       "requiresFob": true,
       "footprint": {
-        "w": 4,
-        "d": 4
+        "w": 3,
+        "d": 3
       },
       "height": 2,
       "sizeConfirmed": true,
@@ -1646,7 +1649,8 @@ const CATALOG_DEFAULT = {
         "launchCash": 5000,
         "confirmed": true,
         "note": "Read off play. The station is built with Build Supplies like anything else; this is what each UAV costs on top."
-      }
+      },
+      "sizeNote": "3x3, read off the running game by the owner on 2026-09-02. Was 4x4 from a pre-launch write-up."
     },
     {
       "id": "talon-9k-sam",
@@ -1658,11 +1662,11 @@ const CATALOG_DEFAULT = {
       "costConfirmed": true,
       "requiresFob": true,
       "footprint": {
-        "w": 4,
-        "d": 4
+        "w": 2,
+        "d": 2
       },
       "height": 2,
-      "sizeConfirmed": false,
+      "sizeConfirmed": true,
       "desc": "Reloadable heat-seeking anti-air missile station. Reload converts Ammo supplies into missiles. Needs open sky.",
       "icon": "talon-9k-sam.webp",
       "tags": [
@@ -1670,7 +1674,8 @@ const CATALOG_DEFAULT = {
         "anti-air",
         "needs-sky",
         "uses-ammo"
-      ]
+      ],
+      "sizeNote": "2x2, read off the running game by the owner on 2026-09-02. Was 4x4 from a pre-launch write-up."
     },
     {
       "id": "drill-rig",
@@ -1729,7 +1734,7 @@ const CLOUD_API = "https://wardogs-votes.wardogsbuilder.workers.dev";
    but it is inlined into both builds so the two differ in what they can reach and never in
    what they contain. */
 const DESIGN_TAGS = [{"id":"map","label":"Where it works","hint":"At least one. Pick the map it is laid out for, or Any map if the ground does not matter.","required":true,"tags":[{"id":"map-bakurani","label":"Bakurani"},{"id":"map-ozeti","label":"Ozeti"},{"id":"map-any","label":"Any map","exclusive":true}]},{"id":"role","label":"What it is for","hint":"Optional, as many as fit. This is what somebody scrolling the list is actually choosing between.","required":false,"tags":[{"id":"anti-infantry","label":"Anti-infantry","hint":"Built to stop people on foot: cover, wire, firing positions."},{"id":"anti-vehicle","label":"Anti-vehicle","hint":"Stingray, hedgehogs, anything that turns armour away."},{"id":"anti-air","label":"Anti-air","hint":"Vanguard CIWS or Talon 9K-SAM covering the sky above it."},{"id":"artillery","label":"Artillery","hint":"Built around a mortar and its shelter."},{"id":"zone-control","label":"Zone control","hint":"Meant to be planted on the objective and held."},{"id":"recon","label":"Recon","hint":"Towers, radio, eyes on ground you do not hold."},{"id":"starter","label":"Starter","hint":"Cheap and quick, for the first build of a match."}]}];
-const BUILD_STAMP = "20260902-220617";
+const BUILD_STAMP = "20260902-230034";
 const LS_TOKEN = "wardogs.token";
 
 const LS_DESIGNS = "wardogs.designs";
@@ -1751,16 +1756,18 @@ function fobZone(p) {
   return (p && p.zone) || catalog.fob.buildRadiusUnits || LEGACY_FOB_ZONE;
 }
 /* A design records the build zone it was drawn under, and every base drawn before the
-   figure moved recorded 100 because that was the default then, not because anybody chose
-   it. Those were left alone and went on drawing a zone half the size of the one the game
-   gives you, on old designs and on every shared link, since the wire format writes the same
-   100 for a design that carries no zone at all. Opening one takes the catalog's figure now.
-   Anything recording a number that was never the default was typed in the panel and is
+   figure moved recorded whatever the default was then, not a number anybody chose. Those
+   were left alone and went on drawing the wrong zone, on old designs and on every shared
+   link, since the wire format writes the same 100 for a design that carries no zone at all.
+   Opening one takes the catalog's figure now. The figure has been 100 and then 200, both
+   estimates, and the measured one is neither, so both former defaults are adopted.
+   Anything recording a number that was never a default was typed in the panel and is
    kept. */
-const LEGACY_FOB_ZONE = 100;
+const LEGACY_FOB_ZONE = 100;               // the wire format's own default, see packDesign
+const FORMER_FOB_ZONES = [100, 200];       // every default a saved design might still carry
 function adopted(d) {
   for (const p of (d && d.pieces) || [])
-    if (p.type === "__fob__" && (!p.zone || p.zone === LEGACY_FOB_ZONE))
+    if (p.type === "__fob__" && (!p.zone || FORMER_FOB_ZONES.includes(p.zone)))
       p.zone = catalog.fob.buildRadiusUnits || LEGACY_FOB_ZONE;
   return d;
 }

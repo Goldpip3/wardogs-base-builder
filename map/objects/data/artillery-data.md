@@ -64,9 +64,10 @@ Citations: `data/artillery.json`, read at `tools/site/context.js:105`, rendered 
   gives back its own elevation on its own arc, that each envelope matches its tables' ends,
   and that no grouping angle has come back, in the file or on the page.
 - **Does not hit:** the planner. It has no range rings, deliberately: drawing one needs a
-  plan-cell-to-metre conversion and nothing published establishes one. `buildRadiusUnits`
-  in the buildables catalog is marked `radiusConfirmed: false` for the same reason. The
-  rings live on `/artillery/`, where coordinates are the game's own.
+  plan-cell-to-metre conversion and nothing published establishes one. The build zone in
+  the buildables catalog is measured now (39 blocks out from the FOB, 2026-09-02) but that
+  is a count in cells, not in metres, so it settles nothing here. The rings live on
+  `/artillery/`, where coordinates are the game's own.
 
 ## Surfaces
 

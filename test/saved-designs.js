@@ -56,6 +56,7 @@ vm.runInContext(`
   // the real catalog, so the build zone here is the one the app ships with
   var catalog = ${fs.readFileSync(ROOT + "/data/buildables.json", "utf8")};
   var ${src.match(/const (LEGACY_FOB_ZONE = \d+);/)[1]};
+  var ${src.match(/const (FORMER_FOB_ZONES = \[[\d, ]+\]);/)[1]};
   var design = { name: "", pieces: [], nextId: 1 };
   var currentSavedName = null;
   var byId = {};
@@ -90,15 +91,19 @@ const designs = () => JSON.parse(store["wardogs.designs"] || "{}");
 const names = () => Object.keys(designs()).sort();
 
 /* ---------- the build zone a design was drawn under ----------
- * The FOB's zone went from 100 cells square to 200, and a design records the figure it was
- * drawn under, so every base made before that went on drawing a zone half the size of the
- * one the game gives you. The wire format writes the same 100 for a design carrying no zone
- * at all, so shared links landed the same way. Opening one takes the catalog's figure.
+ * The FOB's zone went from 100 cells square to 200, both estimates, and then to the measured
+ * 79: 39 single Hesco blocks from the FOB's middle cell to the edge, every direction.
+ * A design records the figure it was drawn under, so every base made under an estimate went
+ * on drawing the wrong zone. The wire format writes the same 100 for a design carrying no
+ * zone at all, so shared links landed the same way. Opening one takes the catalog's figure.
  */
 {
-  const zoneNow = JSON.parse(fs.readFileSync(ROOT + "/data/buildables.json", "utf8"))
-    .fob.buildRadiusUnits;
-  check(zoneNow === 200, "the catalog's FOB build zone is 200 cells square");
+  const fob = JSON.parse(fs.readFileSync(ROOT + "/data/buildables.json", "utf8")).fob;
+  const zoneNow = fob.buildRadiusUnits;
+  check(zoneNow === 39 + 1 + 39 && fob.radiusConfirmed === true,
+    "the catalog's FOB build zone is 79 cells square, measured: 39 blocks out from the middle cell");
+  check(typeof fob.radiusReading === "string" && /39 Hesco blocks/.test(fob.radiusReading),
+    "and the raw reading is kept beside the converted figure");
 
   const openZones = pieces => {
     run(`openDesign({ name:"z", pieces:${JSON.stringify(pieces)}, nextId:9 }, "z")`);
@@ -106,6 +111,8 @@ const names = () => Object.keys(designs()).sort();
   };
   check(openZones([{ id: 1, type: "__fob__", x: 0, y: 0, zone: 100 }])[0] === zoneNow,
     "a design drawn under the old 100 opens with the current zone");
+  check(openZones([{ id: 1, type: "__fob__", x: 0, y: 0, zone: 200 }])[0] === zoneNow,
+    "and so does one drawn under the 200 estimate, which was a default and not a choice");
   check(openZones([{ id: 1, type: "__fob__", x: 0, y: 0 }])[0] === zoneNow,
     "and so does one that records no zone at all, which is what a shared link decodes to");
   check(openZones([{ id: 1, type: "__fob__", x: 0, y: 0, zone: 140 }])[0] === 140,

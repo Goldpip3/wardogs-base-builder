@@ -93,10 +93,11 @@
     },
     "height": 2,
     "sizeConfirmed": true,
-    "buildRadiusUnits": 200,
-    "radiusConfirmed": false,
+    "buildRadiusUnits": 79,
+    "radiusConfirmed": true,
+    "radiusReading": "39 Hesco blocks from the FOB's middle cell to the edge of the zone, the same in every direction, read off the running game by the owner on 2026-09-02",
     "icon": "fob.webp",
-    "radiusNote": "The square the FOB lets you build inside, in cells. Raised from 100 to 200 on 2026-08-31 as a better estimate, not a reading: nobody has stood at the edge of one and counted. It stays unconfirmed until somebody does, and it is what blocks range rings on the plan. A design records its own zone, and one still recording the old 100 takes this figure when it is opened, since 100 was the default rather than anybody's choice. A zone typed in the panel is kept."
+    "radiusNote": "The square the FOB lets you build inside, in cells, the whole side. Measured on 2026-09-02: from the middle cell of the 3x3 FOB, 39 single Hesco blocks fit between it and the edge in every direction, so the square is 39 + 1 + 39 = 79 cells across, centred on the FOB. The count is in radiusReading, kept so the arithmetic can be checked or redone. Before that it was 100, then 200 from 2026-08-31 as a better estimate, neither of them a reading. A design records its own zone, and one still recording 100 or 200 takes this figure when it is opened, since those were defaults rather than anybody's choice. A zone typed in the panel is kept."
   },
   "buildables": [
     {
@@ -442,8 +443,8 @@
       "costConfirmed": false,
       "requiresFob": true,
       "footprint": {
-        "w": 4,
-        "d": 4
+        "w": 3,
+        "d": 3
       },
       "height": 2,
       "sizeConfirmed": true,
@@ -453,7 +454,8 @@
         "emplacement",
         "needs-sky",
         "uses-ammo"
-      ]
+      ],
+      "sizeNote": "3x3, read off the running game by the owner on 2026-09-02. Was 4x4 from a pre-launch write-up."
     },
     {
       "id": "vanguard-ciws",
@@ -477,7 +479,8 @@
         "anti-air",
         "needs-sky",
         "uses-ammo"
-      ]
+      ],
+      "sizeNote": "4x4, read off the running game by the owner on 2026-09-02."
     },
     {
       "id": "stingray",
@@ -489,8 +492,8 @@
       "costConfirmed": true,
       "requiresFob": true,
       "footprint": {
-        "w": 4,
-        "d": 4
+        "w": 3,
+        "d": 3
       },
       "height": 2,
       "sizeConfirmed": true,
@@ -508,7 +511,8 @@
         "launchCash": 5000,
         "confirmed": true,
         "note": "Read off play. The station is built with Build Supplies like anything else; this is what each UAV costs on top."
-      }
+      },
+      "sizeNote": "3x3, read off the running game by the owner on 2026-09-02. Was 4x4 from a pre-launch write-up."
     },
     {
       "id": "talon-9k-sam",
@@ -520,11 +524,11 @@
       "costConfirmed": true,
       "requiresFob": true,
       "footprint": {
-        "w": 4,
-        "d": 4
+        "w": 2,
+        "d": 2
       },
       "height": 2,
-      "sizeConfirmed": false,
+      "sizeConfirmed": true,
       "desc": "Reloadable heat-seeking anti-air missile station. Reload converts Ammo supplies into missiles. Needs open sky.",
       "icon": "talon-9k-sam.webp",
       "tags": [
@@ -532,7 +536,8 @@
         "anti-air",
         "needs-sky",
         "uses-ammo"
-      ]
+      ],
+      "sizeNote": "2x2, read off the running game by the owner on 2026-09-02. Was 4x4 from a pre-launch write-up."
     },
     {
       "id": "drill-rig",
