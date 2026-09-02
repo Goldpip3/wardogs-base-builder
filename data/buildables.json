@@ -162,12 +162,13 @@
         "d": 1
       },
       "height": 2,
-      "sizeConfirmed": false,
+      "sizeConfirmed": true,
       "desc": "Tall, durable barrier that provides full-body cover from small arms and explosives.",
       "icon": "hesco-tall.webp",
       "tags": [
         "wall"
-      ]
+      ],
+      "sizeNote": "1x1, 2 tall, read off the running game by the owner on 2026-09-02. Matched what was recorded."
     },
     {
       "id": "hesco-wall",
@@ -183,13 +184,14 @@
         "d": 1
       },
       "height": 2,
-      "sizeConfirmed": false,
+      "sizeConfirmed": true,
       "desc": "Consists of four Large Hesco Blocks. Perfect for building long perimeter walls.",
       "icon": "hesco-wall.webp",
       "tags": [
         "wall",
         "perimeter"
-      ]
+      ],
+      "sizeNote": "4x1, 2 tall, read off the running game by the owner on 2026-09-02. Matched what was recorded."
     },
     {
       "id": "bremer-wall",
@@ -228,12 +230,13 @@
         "d": 1
       },
       "height": 2,
-      "sizeConfirmed": false,
+      "sizeConfirmed": true,
       "desc": "Secure infantry access point, team-only. Auto-closes. Needs back-wall clearance to swing.",
       "icon": "door.webp",
       "tags": [
         "access"
-      ]
+      ],
+      "sizeNote": "1x1, 2 tall, read off the running game by the owner on 2026-09-02. Matched what was recorded."
     },
     {
       "id": "gate",
@@ -293,13 +296,14 @@
         "d": 1
       },
       "height": 1,
-      "sizeConfirmed": false,
+      "sizeConfirmed": true,
       "desc": "Anti-vehicle barrier used to block or channel enemy vehicles. Does not require a FOB.",
       "icon": "hedgehog.webp",
       "tags": [
         "area-denial",
         "anti-vehicle"
-      ]
+      ],
+      "sizeNote": "1x1, 1 tall, read off the running game by the owner on 2026-09-02. Matched what was recorded."
     },
     {
       "id": "recon-tent",
@@ -336,12 +340,13 @@
         "d": 1
       },
       "height": 1,
-      "sizeConfirmed": false,
+      "sizeConfirmed": true,
       "desc": "Plays music around your FOB, a place to get some R&R.",
       "icon": "builders-radio.webp",
       "tags": [
         "utility"
-      ]
+      ],
+      "sizeNote": "2x1, 1 tall, read off the running game by the owner on 2026-09-02. Matched what was recorded."
     },
     {
       "id": "loudspeaker",
@@ -552,18 +557,19 @@
       "costConfirmed": false,
       "requiresFob": true,
       "footprint": {
-        "w": 4,
-        "d": 4
+        "w": 3,
+        "d": 3
       },
-      "height": 4,
-      "sizeConfirmed": false,
+      "height": 6,
+      "sizeConfirmed": true,
       "desc": "When active, pulls the Hotzone to its location (like an active drill tower). Requires Fuel supplies in the FOB to activate; has a cooldown.",
       "icon": "drill-rig.webp",
       "tags": [
         "objective",
         "uses-fuel",
         "endgame"
-      ]
+      ],
+      "sizeNote": "3x3, 6 tall, read off the running game by the owner on 2026-09-02. Was 4x4 and 4 tall from a pre-launch write-up."
     }
   ],
   "mechanics": {

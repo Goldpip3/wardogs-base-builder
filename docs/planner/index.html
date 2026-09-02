@@ -1300,12 +1300,13 @@ const CATALOG_DEFAULT = {
         "d": 1
       },
       "height": 2,
-      "sizeConfirmed": false,
+      "sizeConfirmed": true,
       "desc": "Tall, durable barrier that provides full-body cover from small arms and explosives.",
       "icon": "hesco-tall.webp",
       "tags": [
         "wall"
-      ]
+      ],
+      "sizeNote": "1x1, 2 tall, read off the running game by the owner on 2026-09-02. Matched what was recorded."
     },
     {
       "id": "hesco-wall",
@@ -1321,13 +1322,14 @@ const CATALOG_DEFAULT = {
         "d": 1
       },
       "height": 2,
-      "sizeConfirmed": false,
+      "sizeConfirmed": true,
       "desc": "Consists of four Large Hesco Blocks. Perfect for building long perimeter walls.",
       "icon": "hesco-wall.webp",
       "tags": [
         "wall",
         "perimeter"
-      ]
+      ],
+      "sizeNote": "4x1, 2 tall, read off the running game by the owner on 2026-09-02. Matched what was recorded."
     },
     {
       "id": "bremer-wall",
@@ -1366,12 +1368,13 @@ const CATALOG_DEFAULT = {
         "d": 1
       },
       "height": 2,
-      "sizeConfirmed": false,
+      "sizeConfirmed": true,
       "desc": "Secure infantry access point, team-only. Auto-closes. Needs back-wall clearance to swing.",
       "icon": "door.webp",
       "tags": [
         "access"
-      ]
+      ],
+      "sizeNote": "1x1, 2 tall, read off the running game by the owner on 2026-09-02. Matched what was recorded."
     },
     {
       "id": "gate",
@@ -1431,13 +1434,14 @@ const CATALOG_DEFAULT = {
         "d": 1
       },
       "height": 1,
-      "sizeConfirmed": false,
+      "sizeConfirmed": true,
       "desc": "Anti-vehicle barrier used to block or channel enemy vehicles. Does not require a FOB.",
       "icon": "hedgehog.webp",
       "tags": [
         "area-denial",
         "anti-vehicle"
-      ]
+      ],
+      "sizeNote": "1x1, 1 tall, read off the running game by the owner on 2026-09-02. Matched what was recorded."
     },
     {
       "id": "recon-tent",
@@ -1474,12 +1478,13 @@ const CATALOG_DEFAULT = {
         "d": 1
       },
       "height": 1,
-      "sizeConfirmed": false,
+      "sizeConfirmed": true,
       "desc": "Plays music around your FOB, a place to get some R&R.",
       "icon": "builders-radio.webp",
       "tags": [
         "utility"
-      ]
+      ],
+      "sizeNote": "2x1, 1 tall, read off the running game by the owner on 2026-09-02. Matched what was recorded."
     },
     {
       "id": "loudspeaker",
@@ -1690,18 +1695,19 @@ const CATALOG_DEFAULT = {
       "costConfirmed": false,
       "requiresFob": true,
       "footprint": {
-        "w": 4,
-        "d": 4
+        "w": 3,
+        "d": 3
       },
-      "height": 4,
-      "sizeConfirmed": false,
+      "height": 6,
+      "sizeConfirmed": true,
       "desc": "When active, pulls the Hotzone to its location (like an active drill tower). Requires Fuel supplies in the FOB to activate; has a cooldown.",
       "icon": "drill-rig.webp",
       "tags": [
         "objective",
         "uses-fuel",
         "endgame"
-      ]
+      ],
+      "sizeNote": "3x3, 6 tall, read off the running game by the owner on 2026-09-02. Was 4x4 and 4 tall from a pre-launch write-up."
     }
   ],
   "mechanics": {
@@ -1737,7 +1743,7 @@ const CLOUD_API = "https://wardogs-votes.wardogsbuilder.workers.dev";
    but it is inlined into both builds so the two differ in what they can reach and never in
    what they contain. */
 const DESIGN_TAGS = [{"id":"map","label":"Where it works","hint":"At least one. Pick the map it is laid out for, or Any map if the ground does not matter.","required":true,"tags":[{"id":"map-bakurani","label":"Bakurani"},{"id":"map-ozeti","label":"Ozeti"},{"id":"map-any","label":"Any map","exclusive":true}]},{"id":"role","label":"What it is for","hint":"Optional, as many as fit. This is what somebody scrolling the list is actually choosing between.","required":false,"tags":[{"id":"anti-infantry","label":"Anti-infantry","hint":"Built to stop people on foot: cover, wire, firing positions."},{"id":"anti-vehicle","label":"Anti-vehicle","hint":"Stingray, hedgehogs, anything that turns armour away."},{"id":"anti-air","label":"Anti-air","hint":"Vanguard CIWS or Talon 9K-SAM covering the sky above it."},{"id":"artillery","label":"Artillery","hint":"Built around a mortar and its shelter."},{"id":"zone-control","label":"Zone control","hint":"Meant to be planted on the objective and held."},{"id":"recon","label":"Recon","hint":"Towers, radio, eyes on ground you do not hold."},{"id":"starter","label":"Starter","hint":"Cheap and quick, for the first build of a match."}]}];
-const BUILD_STAMP = "20260902-232304";
+const BUILD_STAMP = "20260902-232413";
 const LS_TOKEN = "wardogs.token";
 
 const LS_DESIGNS = "wardogs.designs";
