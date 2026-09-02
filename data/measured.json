@@ -1880,6 +1880,14 @@
       "on": "2026-09-02",
       "note": "Recon ladder screen, level 14: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
+    "Scout Backpack": {
+      "storage": [
+        2,
+        4
+      ],
+      "on": "2026-09-02",
+      "note": "Vendor Gear tab with the Scout Backpack equipped, 2026-09-02: the empty pack draws two cells across and four down, CAP. 0/8"
+    },
     "Scout Rifle TD": {
       "unlock": {
         "starter": true
