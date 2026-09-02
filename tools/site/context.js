@@ -246,7 +246,10 @@ const MEASURED = JSON.parse(fs.readFileSync(path.join(ROOT, "data/measured.json"
    so a fresh pull with no measurement still lands on the same shelf. CLASS_LABEL is what a
    chip says, CLASS_SHORT what a crowded row says. */
 const CLASS_ORDER = ["Assault Rifle", "Submachine Gun", "Shotgun", "Light Machine Gun",
-  "Marksman Rifle", "Sniper Rifle", "Bow", "Equipment", "Pistol", "Launcher"];
+  "Marksman Rifle", "Sniper Rifle", "Bow", "Equipment", "Pistol",
+  /* The Specialist slot's six tabs, in the order the Equipment Vendor draws them, read off
+     the game on 2026-09-02. Each specialist item carries its tab as its class. */
+  "Launcher", "Medical", "Building", "Recon", "Vehicle", "Tactical"];
 const CLASS_LABEL = {
   "Submachine Gun": "SMG", "Light Machine Gun": "LMG", "Sniper Rifle": "Sniper",
   Bow: "Bows", Equipment: "Bows",

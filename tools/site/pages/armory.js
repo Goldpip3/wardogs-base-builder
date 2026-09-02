@@ -264,6 +264,15 @@ module.exports = ctx => {
      next pull. */
   const SIDEARMS = ["Deagle", "M1911", "Judge", "GGX 17", "GGX 18"];
   const isSidearm = function (n) { return SIDEARMS.indexOf(n) >= 0; };
+  /* The third slot. The Equipment Vendor's Specialist slot has six tabs and twenty items,
+     read off the game on 2026-09-02: the four launchers, which were sitting on the primary
+     shelf beside the rifles, and sixteen tools and kits that were only reachable as bag
+     items. Each carries its tab as its measured class in data/measured.json, so this list
+     is the tabs and nothing else is written twice. */
+  const SPEC_TABS = ["Launcher", "Medical", "Building", "Recon", "Vehicle", "Tactical"];
+  const isSpecialist = function (n) {
+    return SPEC_TABS.indexOf((ITEM_STATS[n] || {}).class) >= 0;
+  };
 
   const ALL_SLOTS = ["opt", "muz", "grip", "mag"];
   const slotsFor = function (name) {
@@ -783,6 +792,7 @@ module.exports = ctx => {
             '<div class="vslots">' +
               slot("w", "Primary", "No weapon") +
               slot("sec", "Sidearm", "None") +
+              slot("spec", "Specialist", "None") +
               slot("opt", "Optic", "None", "w") +
               slot("muz", "Muzzle", "None", "w") +
               slot("grip", "Grip or bipod", "None", "w") +
@@ -816,11 +826,14 @@ module.exports = ctx => {
               "</div>" +
             "</div>" +
             picker("w", "Primary weapon", byCat("weapons").filter(function (i) {
-              return !isSidearm(i.name);
+              return !isSidearm(i.name) && !isSpecialist(i.name);
             }), "No weapon", true) +
             picker("sec", "Sidearm", byCat("weapons").filter(function (i) {
               return isSidearm(i.name);
             }), "None") +
+            picker("spec", "Specialist", A.items.filter(function (i) {
+              return isSpecialist(i.name);
+            }), "None", true) +
             picker("opt", "Optic", attSlot("optic"), "None") +
             picker("muz", "Muzzle", attSlot("muzzle"), "None") +
             picker("grip", "Grip or bipod", attSlot("grip"), "None") +
@@ -856,7 +869,12 @@ module.exports = ctx => {
             '<p class="vend-head">Items<span class="vend-hint">Set how many of each you carry</span></p>' +
             [["throwables", "Throwables"], ["medical", "Medical"], ["equipment", "Equipment"]]
               .map(function (g) {
-                const list = byCat(g[0]).filter(function (i) { return i.price !== null; });
+                /* A specialist item is picked into its slot, not counted into the bag, so it
+                   is not offered twice. Whether a spare can ride in the pack as well is not
+                   known yet. */
+                const list = byCat(g[0]).filter(function (i) {
+                  return i.price !== null && !isSpecialist(i.name);
+                });
                 if (!list.length) return "";
                 return '<p class="vitem-group">' + esc(g[1]) +
                   "<span>" + list.length + "</span></p>" +
@@ -975,7 +993,7 @@ module.exports = ctx => {
         if (typeof st.kg === "number") m[i.name] = st.kg;
         return m;
       }, {})) + ';' +
-      'var SLOTS=["w","sec","opt","muz","grip","mag","ammo","hel","arm","bag","vest"];' +
+      'var SLOTS=["w","sec","spec","opt","muz","grip","mag","ammo","hel","arm","bag","vest"];' +
       'var extras={},chosen={},openSlot=null,hadBag=false;' +
       'function el(id){return document.getElementById(id);}' +
       'function money(n){return "$"+n.toLocaleString("en-US");}' +

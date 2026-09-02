@@ -159,6 +159,24 @@ check(kitPage.includes('data-pcls="w|Assault Rifle"') && kitPage.includes('data-
   "the primary weapon shelf is cut into classes");
 check(kitPage.includes('id="w-grid" hidden data-split="Assault Rifle"'),
   "and opens on one of them rather than on all thirty-four");
+/* The game's third slot. Launchers were on the primary shelf beside the rifles; the vendor
+   files them under Specialist with five more tabs, read off the game on 2026-09-02. */
+const between = (html, from, to) => {
+  const a = html.indexOf(from);
+  if (a < 0) return "";
+  const b = html.indexOf(to, a + from.length);
+  return html.slice(a, b < 0 ? html.length : b);
+};
+const specShelf = between(kitPage, 'id="spec-grid"', "</div></div>");
+const primShelf = between(kitPage, 'id="w-grid"', "</div></div>");
+check(kitPage.includes('id="spec-slot"') && specShelf.includes('data-name="RPG-7"') &&
+  specShelf.includes('data-name="Defibrillator"') && specShelf.includes('data-name="Halligan Bar"'),
+  "the loadout has a Specialist slot holding launchers, kits and tools");
+check(["Launcher", "Medical", "Building", "Recon", "Vehicle", "Tactical"].every(t =>
+  specShelf.includes('data-pcls="spec|' + t + '"')),
+  "cut into the vendor's six Specialist tabs");
+check(!primShelf.includes('data-name="RPG-7"') && !primShelf.includes('data-name="MGL-40"'),
+  "and no launcher is left on the primary shelf");
 /* The pull, with anything read off the running game laid over it per field, the same
    precedence tools/site/context.js applies: a vehicle the database never listed can still be
    filed Ground or Air by somebody looking at its card. */
@@ -247,12 +265,6 @@ check(unlocked.length >= 15,
    screen if they slip: the Pouch is a backpack rather than a rig, and nothing is carried
    before there is something to carry it in. */
 const kit = fs.readFileSync(DOCS + "loadouts/index.html", "utf8");
-const between = (html, from, to) => {
-  const a = html.indexOf(from);
-  if (a < 0) return "";
-  const b = html.indexOf(to, a + from.length);
-  return html.slice(a, b < 0 ? html.length : b);
-};
 const bagShelf = between(kit, 'id="bag-grid"', "</div></div>");
 const rigShelf = between(kit, 'id="vest-grid"', "</div></div>");
 check(bagShelf.includes('data-name="Pouch"'),
