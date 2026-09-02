@@ -85,7 +85,8 @@
       "Includes free Small + Medium hammers, wrenches, signal grenades at the FOB computer"
     ],
     "placement": "White highlight = valid, red = obstructed. Cannot be moved after placement.",
-    "startingSupplies": 1750,
+    "startingSupplies": 1250,
+    "startingSuppliesNote": "Read off the running game by the owner on 2026-09-02. It was 1750 before that, from a pre-launch write-up.",
     "footprint": {
       "w": 3,
       "d": 3

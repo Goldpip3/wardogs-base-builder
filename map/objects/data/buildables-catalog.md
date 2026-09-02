@@ -26,7 +26,7 @@ lives in a separate file and not here. See [build-config](build-config.md).
 
 - `buildables[]`: id, name, cost in Build Supplies, `footprint {w,d}`, `height`, `tier`,
   `role`, `tags`, `icon`
-- `fob`: footprint, height, `startingSupplies` (1750)
+- `fob`: footprint, height, `startingSupplies` (1250, read off the game 2026-09-02)
 - `logistics`: `suppliesPerPallet` (1800), `palletCash` (400)
 - `tags` drive the rules: `ground-only`, `no-stack`, `top-layer`, `needs-sky`, `overlay`
 - and the climb rules: `vaultable`, `anti-climb`, `climbable`, and `climb-inside` for a

@@ -81,7 +81,7 @@ const FAQ = [
   },
   {
     q: "What does a FOB cost, and what does it come with?",
-    a: `$${fob.vendorPrice.toLocaleString()} at the vendor, and it lands with ${fob.startingSupplies.toLocaleString()} build supplies already inside, which is most of a pallet's worth before anything has been hauled in. It cannot be moved once it is down.`,
+    a: `$${fob.vendorPrice.toLocaleString()} at the vendor, and it lands with ${fob.startingSupplies.toLocaleString()} build supplies already inside, about ${Math.round(fob.startingSupplies / catalog.logistics.suppliesPerPallet * 100)}% of a pallet before anything has been hauled in. It cannot be moved once it is down.`,
     href: "/buildables/", link: "Every structure and what it costs",
   },
   {
