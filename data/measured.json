@@ -75,6 +75,22 @@
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 26, named on screen. Cost not read"
     },
+    "3 Prong Flash Hider": {
+      "unlock": {
+        "role": "Assault",
+        "level": 24
+      },
+      "on": "2026-09-02",
+      "note": "Assault ladder screen, level 24: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "3-Chamber Brake": {
+      "unlock": {
+        "role": "Assault",
+        "level": 45
+      },
+      "on": "2026-09-02",
+      "note": "Assault ladder screen, level 45, named on screen. Cost not read"
+    },
     "3x Tactical Prism Scope": {
       "unlock": {
         "role": "Wardog",
@@ -90,6 +106,14 @@
       },
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 33, named by the owner clicking it. Cost not read"
+    },
+    "4x Combat Prism Scope with Reflex": {
+      "unlock": {
+        "role": "Assault",
+        "level": 43
+      },
+      "on": "2026-09-02",
+      "note": "Assault ladder screen, level 43: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
     "5.45mm Armor Piercing (AP)": {
       "unlock": {
@@ -187,12 +211,60 @@
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 6, named by the owner clicking it. Cost not read"
     },
+    "AFG Angled Foregrip": {
+      "unlock": {
+        "role": "Assault",
+        "level": 14
+      },
+      "on": "2026-09-02",
+      "note": "Assault ladder screen, level 14, named on screen. Cost not read"
+    },
+    "AK74": {
+      "unlock": {
+        "role": "Assault",
+        "level": 3
+      },
+      "on": "2026-09-02",
+      "note": "Assault ladder screen, level 3: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "AK74 30 RND Magazine": {
+      "unlock": {
+        "role": "Assault",
+        "level": 3
+      },
+      "on": "2026-09-02",
+      "note": "Assault ladder screen, level 3: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "AK74 60 RND Magazine": {
+      "unlock": {
+        "role": "Assault",
+        "level": 25
+      },
+      "on": "2026-09-02",
+      "note": "Assault ladder screen, level 25, named on screen. Cost not read"
+    },
+    "AK74 75 RND Drum Magazine": {
+      "unlock": {
+        "role": "Assault",
+        "level": 40
+      },
+      "on": "2026-09-02",
+      "note": "Assault ladder screen, level 40, named on screen. Cost not read"
+    },
     "AMP-9": {
       "unlock": {
         "starter": true
       },
       "on": "2026-09-02",
       "note": "Owner read it off the buy screen: no ladder, level or cost"
+    },
+    "AR Multi-Caliber Suppressor": {
+      "unlock": {
+        "role": "Assault",
+        "level": 21
+      },
+      "on": "2026-09-02",
+      "note": "Assault ladder screen, level 21: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
     "Arsenal Backpack + 2 Slings": {
       "unlock": {
@@ -209,6 +281,38 @@
       },
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 32: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Birdcage Flash Hider": {
+      "unlock": {
+        "role": "Assault",
+        "level": 16
+      },
+      "on": "2026-09-02",
+      "note": "Assault ladder screen, level 16: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "CQ-2x Prism Combat Scope": {
+      "unlock": {
+        "role": "Assault",
+        "level": 17
+      },
+      "on": "2026-09-02",
+      "note": "Assault ladder screen, level 17: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "CQB 74 Brake": {
+      "unlock": {
+        "role": "Assault",
+        "level": 8
+      },
+      "on": "2026-09-02",
+      "note": "Assault ladder screen, level 8, named on screen. Cost not read"
+    },
+    "CQR Tactical Front Rail Grip": {
+      "unlock": {
+        "role": "Assault",
+        "level": 38
+      },
+      "on": "2026-09-02",
+      "note": "Assault ladder screen, level 38: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
     "Compact T-2 Red Dot": {
       "unlock": {
@@ -238,6 +342,30 @@
       },
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 90: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "FAL": {
+      "unlock": {
+        "role": "Assault",
+        "level": 35
+      },
+      "on": "2026-09-02",
+      "note": "Assault ladder screen, level 35, named on screen. Cost not read"
+    },
+    "FAL 20 RND Magazine": {
+      "unlock": {
+        "role": "Assault",
+        "level": 35
+      },
+      "on": "2026-09-02",
+      "note": "Assault ladder screen, level 35, named on screen. Cost not read"
+    },
+    "FAL 30 RND Magazine": {
+      "unlock": {
+        "role": "Assault",
+        "level": 50
+      },
+      "on": "2026-09-02",
+      "note": "Assault ladder screen, level 50: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
     "Field Backpack": {
       "unlock": {
@@ -287,6 +415,22 @@
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 80: the icon there is this item and the level matches the database pull, which supplies the name and cost"
     },
+    "Galil": {
+      "unlock": {
+        "role": "Assault",
+        "level": 10
+      },
+      "on": "2026-09-02",
+      "note": "Assault ladder screen, level 10: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Galil 50 RND Magazine": {
+      "unlock": {
+        "role": "Assault",
+        "level": 15
+      },
+      "on": "2026-09-02",
+      "note": "Assault ladder screen, level 15: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
     "Gunner Backpack + Sling": {
       "unlock": {
         "role": "Wardog",
@@ -295,6 +439,14 @@
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 73: the icon there is this item and the level matches the database pull, which supplies the name and cost"
     },
+    "Hexagon Brake": {
+      "unlock": {
+        "role": "Assault",
+        "level": 2
+      },
+      "on": "2026-09-02",
+      "note": "Assault ladder screen, level 2, named on screen. Cost not read"
+    },
     "High Capacity Battery": {
       "unlock": {
         "role": "Wardog",
@@ -302,6 +454,14 @@
       },
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 45: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Holographic Sight": {
+      "unlock": {
+        "role": "Assault",
+        "level": 22
+      },
+      "on": "2026-09-02",
+      "note": "Assault ladder screen, level 22: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
     "Judge": {
       "unlock": {
@@ -423,6 +583,14 @@
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 40: the icon there is this item and the level matches the database pull, which supplies the name and cost"
     },
+    "M4": {
+      "unlock": {
+        "role": "Assault",
+        "level": 20
+      },
+      "on": "2026-09-02",
+      "note": "Assault ladder screen, level 20: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
     "Medium Tac Vest": {
       "unlock": {
         "role": "Wardog",
@@ -439,6 +607,14 @@
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 38, named on screen. Cost not read"
     },
+    "OKP 7 Reflex": {
+      "unlock": {
+        "role": "Assault",
+        "level": 33
+      },
+      "on": "2026-09-02",
+      "note": "Assault ladder screen, level 33: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
     "Operator Backpack": {
       "unlock": {
         "role": "Wardog",
@@ -447,6 +623,22 @@
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 20: the icon there is this item and the level matches the database pull, which supplies the name and cost"
     },
+    "PBS-4 Suppressor": {
+      "unlock": {
+        "role": "Assault",
+        "level": 27
+      },
+      "on": "2026-09-02",
+      "note": "Assault ladder screen, level 27, named on screen. Cost not read"
+    },
+    "RC-556 Suppressor": {
+      "unlock": {
+        "role": "Assault",
+        "level": 29
+      },
+      "on": "2026-09-02",
+      "note": "Assault ladder screen, level 29: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
     "RK6 Tactical Foregrip": {
       "unlock": {
         "role": "Wardog",
@@ -454,6 +646,14 @@
       },
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 15: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Rubberized Ergonomic Foregrip": {
+      "unlock": {
+        "role": "Assault",
+        "level": 11
+      },
+      "on": "2026-09-02",
+      "note": "Assault ladder screen, level 11: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
     "Ruck Backpack": {
       "unlock": {
@@ -471,12 +671,44 @@
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 55: the icon there is this item and the level matches the database pull, which supplies the name and cost"
     },
+    "STANAG 30 RND Magazine": {
+      "unlock": {
+        "role": "Assault",
+        "level": 6
+      },
+      "on": "2026-09-02",
+      "note": "Assault ladder screen, level 6: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "STANAG 60 RND Magazine": {
+      "unlock": {
+        "role": "Assault",
+        "level": 30
+      },
+      "on": "2026-09-02",
+      "note": "Assault ladder screen, level 30: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
     "Scout Rifle TD": {
       "unlock": {
         "starter": true
       },
       "on": "2026-09-02",
       "note": "Owner read it off the buy screen: no ladder, level or cost"
+    },
+    "Shift Foregrip": {
+      "unlock": {
+        "role": "Assault",
+        "level": 48
+      },
+      "on": "2026-09-02",
+      "note": "Assault ladder screen, level 48, named on screen. Cost not read"
+    },
+    "Spitfire 3X": {
+      "unlock": {
+        "role": "Assault",
+        "level": 26
+      },
+      "on": "2026-09-02",
+      "note": "Assault ladder screen, level 26: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
     "Sport Parachute": {
       "unlock": {
@@ -493,6 +725,30 @@
       },
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 58: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "TGP-A Suppressor 5.45": {
+      "unlock": {
+        "role": "Assault",
+        "level": 19
+      },
+      "on": "2026-09-02",
+      "note": "Assault ladder screen, level 19, named on screen. Cost not read"
+    },
+    "TopComp Brake": {
+      "unlock": {
+        "role": "Assault",
+        "level": 5
+      },
+      "on": "2026-09-02",
+      "note": "Assault ladder screen, level 5: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Tricon 1.5x Compact Prism Scope": {
+      "unlock": {
+        "role": "Assault",
+        "level": 12
+      },
+      "on": "2026-09-02",
+      "note": "Assault ladder screen, level 12: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     }
   }
 }
