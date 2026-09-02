@@ -53,9 +53,20 @@ a single offline file and a library would be paid for on every download.
 - `walkPush` is collision: a circle against a rotated rect, not an axis-aligned box, since
   angled wall runs are the case this view exists to look at
 - `walkSolids` rebuilds every frame off `standHeights`, so raised pieces sit at their storey
-- `walkSpawn` starts you at `view.x, view.y`, the world point under the middle of the
-  plan, or at the selection if there is one. Panning the plan **is** the control for
-  where you come in, which is why there is no button for it
+- `walkSpawn` starts you where you clicked on the ground in the 3D view (`walk.drop`, set
+  by the 3D `mouseup` off `isoGround`, isoPt run backwards, and spent on use), else at the
+  selection, else at `view.x, view.y`, the world point under the middle of the plan. A
+  click faces you at the base; the other two face north. A figure follows the pointer over
+  open ground in 3D (`isoHover`, drawn at the end of `draw3DNow`) so the click is promised
+  before it is made; over a piece the click still selects
+- A one block wall is **solid on foot**. `walkPush` stops you at anything above the feet,
+  and `Space` mantles you over it: `walkVaultTarget` is what is ahead, above the feet,
+  within `walkReach`, within `WALK_VAULT_REACH` of the shoulder and with room on top;
+  `walkVaultStep` plays it over `WALK_VAULT_T` seconds, feet first then body, and nothing
+  else moves the walker meanwhile. It used to be walked straight onto, with the feet
+  snapping up a block in one frame, which read as the floor lurching. `walkFloor` counts a
+  thing as underfoot only within half a radius, because the push leaves you exactly a
+  radius clear and at exactly a radius float noise put you back on top of the wall
 - `walkLeaves` swings an entry open. A leaf is a rect like any other, so collision and
   drawing both get the swing for free from `walkSolids`. It is `WALK_LEAF` thick, **not the
   footprint depth**: a footprint's depth is the wall the entry sits in, and swinging all of

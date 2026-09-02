@@ -2728,7 +2728,13 @@ function walkLadder(solids) {
 }
 
 /* What is under the walker's feet at (x,y): the highest thing they are over and could
-   have got onto. Ground is 0. */
+   have got onto. Ground is 0.
+
+   Over means under the middle of the body, half a radius in, not merely touching. The push
+   leaves the walker exactly one radius clear of whatever stopped them, and at exactly one
+   radius it was floating point noise that decided whether the wall they had just been
+   stopped by was also under their feet. When it said yes, the feet snapped up onto it,
+   which was the whole lurch this vault exists to replace, back by another door. */
 function walkFloor(x, y, z, solids) {
   let best = 0;
   for (const s of solids) {
@@ -2736,7 +2742,7 @@ function walkFloor(x, y, z, solids) {
        these, so the line below catches them anyway. Kept because "nothing stands on top of
        a Bremer" should be true here whatever walkReach is ever changed to say. */
     if (s.noClimb) continue;
-    if (rectDist(s.r, x, y) >= WALK_R) continue;
+    if (rectDist(s.r, x, y) > WALK_R / 2) continue;
     if (s.top > z + walkReach(s)) continue;        // too high to have got up there
     if (s.top > best) best = s.top;
   }

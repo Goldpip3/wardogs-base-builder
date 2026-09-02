@@ -588,6 +588,13 @@ check(!/emptyState"\)\.style\.display/.test(src.replace(lift("syncEmptyState"), 
   const onTop = pushed(1, [wall(1)]);
   check(onTop[1] === 1.6,
     "and is no obstacle to somebody already standing on it");
+  /* The push leaves you exactly a radius clear, and at exactly a radius it was float noise
+     that decided whether the wall was also under your feet. Stopped by a wall must never
+     mean standing on it, or the snap is back. */
+  const held = vm.runInContext("(function(){ const w = " + JSON.stringify([wall(1)]) +
+    "; const p = walkPush(2, 1.3, w, 0); return walkFloor(p[0], p[1], 0, w); })()", sandbox);
+  check(held === 0,
+    "being stopped by a wall does not put you on top of it");
 
   const target = (yaw, z, solids) => vm.runInContext(
     "walkVaultTarget(0, 1.1, " + z + ", " + yaw + ", " + JSON.stringify(solids) + ")", sandbox);

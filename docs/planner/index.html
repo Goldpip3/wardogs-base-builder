@@ -1729,7 +1729,7 @@ const CLOUD_API = "https://wardogs-votes.wardogsbuilder.workers.dev";
    but it is inlined into both builds so the two differ in what they can reach and never in
    what they contain. */
 const DESIGN_TAGS = [{"id":"map","label":"Where it works","hint":"At least one. Pick the map it is laid out for, or Any map if the ground does not matter.","required":true,"tags":[{"id":"map-bakurani","label":"Bakurani"},{"id":"map-ozeti","label":"Ozeti"},{"id":"map-any","label":"Any map","exclusive":true}]},{"id":"role","label":"What it is for","hint":"Optional, as many as fit. This is what somebody scrolling the list is actually choosing between.","required":false,"tags":[{"id":"anti-infantry","label":"Anti-infantry","hint":"Built to stop people on foot: cover, wire, firing positions."},{"id":"anti-vehicle","label":"Anti-vehicle","hint":"Stingray, hedgehogs, anything that turns armour away."},{"id":"anti-air","label":"Anti-air","hint":"Vanguard CIWS or Talon 9K-SAM covering the sky above it."},{"id":"artillery","label":"Artillery","hint":"Built around a mortar and its shelter."},{"id":"zone-control","label":"Zone control","hint":"Meant to be planted on the objective and held."},{"id":"recon","label":"Recon","hint":"Towers, radio, eyes on ground you do not hold."},{"id":"starter","label":"Starter","hint":"Cheap and quick, for the first build of a match."}]}];
-const BUILD_STAMP = "20260902-214225";
+const BUILD_STAMP = "20260902-214451";
 const LS_TOKEN = "wardogs.token";
 
 const LS_DESIGNS = "wardogs.designs";
@@ -3035,7 +3035,13 @@ function walkLadder(solids) {
 }
 
 /* What is under the walker's feet at (x,y): the highest thing they are over and could
-   have got onto. Ground is 0. */
+   have got onto. Ground is 0.
+
+   Over means under the middle of the body, half a radius in, not merely touching. The push
+   leaves the walker exactly one radius clear of whatever stopped them, and at exactly one
+   radius it was floating point noise that decided whether the wall they had just been
+   stopped by was also under their feet. When it said yes, the feet snapped up onto it,
+   which was the whole lurch this vault exists to replace, back by another door. */
 function walkFloor(x, y, z, solids) {
   let best = 0;
   for (const s of solids) {
@@ -3043,7 +3049,7 @@ function walkFloor(x, y, z, solids) {
        these, so the line below catches them anyway. Kept because "nothing stands on top of
        a Bremer" should be true here whatever walkReach is ever changed to say. */
     if (s.noClimb) continue;
-    if (rectDist(s.r, x, y) >= WALK_R) continue;
+    if (rectDist(s.r, x, y) > WALK_R / 2) continue;
     if (s.top > z + walkReach(s)) continue;        // too high to have got up there
     if (s.top > best) best = s.top;
   }

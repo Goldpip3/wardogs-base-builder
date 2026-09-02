@@ -8,6 +8,25 @@ Newest first. One entry per decision. Keep entries short.
 
 ## 2026-09-02
 
+### Click the ground in 3D to stand there, and Space to get over a wall
+
+The walkthrough started you wherever the plan happened to be centred, which was as often
+as not inside a box, and there was no way to point at a spot. In the 3D view a figure the
+walker's height now follows the pointer over open ground, and a click drops you there facing
+the base. `isoGround` is `isoPt` run backwards for z=0; `test/planner-tools.js` holds it to
+round-tripping at every turn of the view. Clicking a piece still selects it; right-click
+still clears the selection, which is the job a ground click used to do.
+
+**A one block wall is solid on foot, and Space mantles you over it.** It used to be no
+obstacle at all: walk at it and the feet snapped up a block in one frame, which read as the
+floor lurching rather than as anybody climbing. `walkVaultTarget` finds what is ahead and in
+reach, `walkVaultStep` plays the climb over `WALK_VAULT_T` seconds, feet first then body, and
+the plan's `VAULT_HEIGHT` still decides what is reachable. **The floor test had to change
+with it**: the push leaves you exactly one radius clear, and at exactly one radius float
+noise decided whether the wall was also under your feet, so the snap came back by another
+door. `walkFloor` now wants the thing under the middle of the body. The suite holds all of
+it, and every new check was seen to fail against the previous build first.
+
 ### The page turns the way you went
 
 Every turn was the same turn: a move back along the banner looked exactly like a move
