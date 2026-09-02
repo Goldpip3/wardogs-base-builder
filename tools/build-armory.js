@@ -323,9 +323,7 @@ Arsenal Backpack + 2 Slings|$5,000
 Assault Backpack|$1,200
 Field Backpack|$650
 Gunner Backpack + Sling|$3,500
-Halftrack Backpack|$15,000
 Large Tac Vest|$400
-Medium Backpack + Sling|$1,400
 Medium Tac Vest|$250
 Operator Backpack|$800
 Pouch|Free

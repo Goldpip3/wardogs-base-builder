@@ -2014,17 +2014,6 @@
         "cash": 125000
       }
     },
-    "Halftrack Backpack": {
-      "kg": 2.78,
-      "grid": [
-        3,
-        3
-      ],
-      "storage": [
-        3,
-        3
-      ]
-    },
     "Havoc": {
       "class": "Air",
       "unlock": {
@@ -2912,17 +2901,6 @@
         "level": 24,
         "cash": 75000
       }
-    },
-    "Medium Backpack + Sling": {
-      "kg": 4,
-      "grid": [
-        3,
-        5
-      ],
-      "storage": [
-        3,
-        5
-      ]
     },
     "Medium Tac Vest": {
       "kg": 1.65,
@@ -4171,6 +4149,40 @@
       "to": "Z20 Lakota [Miniguns]",
       "on": "2026-09-02",
       "why": "Same rename as the base aircraft; the Pilot level 25 card reads Z20 Lakota [Miniguns], named by the owner."
+    }
+  ],
+  "_removed": [
+    {
+      "name": "Halftrack Backpack",
+      "on": "2026-09-02",
+      "why": "Not in the game: the vendor Gear tab lists eight packs and neither is among them, confirmed by the owner. The pulled row is dropped so the stats join the catalogue.",
+      "was": {
+        "kg": 2.78,
+        "grid": [
+          3,
+          3
+        ],
+        "storage": [
+          3,
+          3
+        ]
+      }
+    },
+    {
+      "name": "Medium Backpack + Sling",
+      "on": "2026-09-02",
+      "why": "Not in the game: the vendor Gear tab lists eight packs and neither is among them, confirmed by the owner. The pulled row is dropped so the stats join the catalogue.",
+      "was": {
+        "kg": 4,
+        "grid": [
+          3,
+          5
+        ],
+        "storage": [
+          3,
+          5
+        ]
+      }
     }
   ]
 }

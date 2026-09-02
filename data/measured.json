@@ -1582,7 +1582,12 @@
         "level": 20
       },
       "on": "2026-09-02",
-      "note": "Wardog Level screen, level 20: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+      "note": "Card tooltip on the vendor Gear tab, 2026-09-02",
+      "storage": [
+        3,
+        5
+      ],
+      "kg": 0.88
     },
     "Orpheus Max Brake": {
       "unlock": {

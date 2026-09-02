@@ -2075,25 +2075,11 @@
    "icon": "largeslingbackpack"
   },
   {
-   "name": "Halftrack Backpack",
-   "cat": "storage",
-   "price": 15000,
-   "per": 1,
-   "icon": "bpak_007"
-  },
-  {
    "name": "Large Tac Vest",
    "cat": "storage",
    "price": 400,
    "per": 1,
    "icon": "largetacvest"
-  },
-  {
-   "name": "Medium Backpack + Sling",
-   "cat": "storage",
-   "price": 1400,
-   "per": 1,
-   "icon": "mediumslingbackpack"
   },
   {
    "name": "Medium Tac Vest",
