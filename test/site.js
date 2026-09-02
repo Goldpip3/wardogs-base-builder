@@ -409,6 +409,29 @@ check(/wiki/i.test(ldName), "including the name people look for it under");
 check(!homeHtml.includes('og:site_name" content="WARDOGS Builder'),
   "and it is called WARDOGS everywhere, Builder included");
 
+/* The answer block. A search engine matches a page to a question, and these are the
+   questions in the words people ask them in. Every figure in them is computed from data/,
+   because a front page quoting a number the armory disagrees with is worse than one saying
+   nothing, and prose like this is exactly what gets typed once and left behind. */
+const faqOpen = '"@type":"FAQPage"';
+check(homeHtml.includes(faqOpen), "the front page answers the questions people type");
+const faqAt = homeHtml.lastIndexOf('<script type="application/ld+json">', homeHtml.indexOf(faqOpen));
+const faqRaw = homeHtml.slice(faqAt + '<script type="application/ld+json">'.length,
+  homeHtml.indexOf("</scr" + "ipt>", faqAt)).replace(/\u003c/g, "<");
+let faq = null;
+try { faq = JSON.parse(faqRaw); } catch (e) {}
+check(!!faq && faq.mainEntity.length >= 5, "and marks them up so a crawler reads the same ones");
+/* Both halves have to say the same thing. The visible answer and the marked up answer
+   coming apart is the one way this section can become a lie to a search engine while
+   looking right on screen. */
+const bothWays = (faq ? faq.mainEntity : []).every(q =>
+  homeHtml.includes(q.name) && homeHtml.includes(q.acceptedAnswer.text.slice(0, 40)));
+check(bothWays, "with the reader and the crawler given the same answers");
+/* Figures, not prose. A number typed into copy drifts away from the table it came from. */
+const pallets = catalog.logistics.suppliesPerPallet.toLocaleString();
+check(faq && faq.mainEntity.some(q => q.acceptedAnswer.text.includes(pallets)),
+  `and the figures computed from data, not typed (${pallets} per pallet)`);
+
 // ---------- the planner still ships intact ----------
 check(app.includes("btnShare") && app.includes("buildIndex") && app.length > 100000,
   "planner page is the full app");

@@ -248,6 +248,20 @@ section+section{border-top:1px solid var(--line)}
 @media(min-width:640px){.features{grid-template-columns:1fr 1fr}}
 @media(min-width:1000px){.features{grid-template-columns:repeat(3,1fr)}}
 
+/* --- questions and answers ---
+   One column rather than the two the features grid uses. A question and its answer are read
+   in order, and side by side they read as cards to be scanned instead. The question is set
+   at reading size rather than as display type: it is a sentence, and squared uppercase at
+   18px turns a sentence into a sign. */
+.qa{display:grid;grid-template-columns:1fr;margin-top:20px}
+.qa-item{border-top:1px solid var(--line2);padding:18px 0 20px;max-width:72ch}
+.qa-item h3{font-family:var(--ui);font-weight:600;font-size:16px;margin-bottom:7px;
+  text-transform:none;letter-spacing:0;color:var(--text)}
+.qa-item p{font-size:14px;color:var(--dim);line-height:1.6}
+.qa-item a{display:inline-block;margin-top:9px;font-weight:600;font-size:11px;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--dim2)}
+.qa-item a:hover{color:var(--yellow)}
+
 /* --- tables --- */
 table{width:100%;border-collapse:collapse;font-size:14px;margin:20px 0}
 th{text-align:left;font-weight:600;font-size:10px;letter-spacing:.16em;text-transform:uppercase;

@@ -28,7 +28,7 @@
    caveat about measurement reads as a warning about the contents. Do not move it back up. */
 module.exports = ctx => {
   const { catalog, run, page, write, withStats, designCard, ranked, FORWARD_SHARED,
-          ARMORY, BALLISTICS, COMMUNITY_SCRIPT } = ctx;
+          ARMORY, BALLISTICS, DAMAGE, COMMUNITY_SCRIPT, esc } = ctx;
 
 const nBuildables = catalog.buildables.length;
 const nPrices     = ARMORY.items.length;
@@ -36,6 +36,92 @@ const nWeapons    = BALLISTICS.weapons.length;
 const nUnfigured  = (BALLISTICS.unfiguredWeapons || []).length;
 const perPallet   = catalog.logistics.suppliesPerPallet.toLocaleString();
 const palletCash  = catalog.logistics.palletCash;
+
+/* ---------- the questions people actually type ----------
+   A search engine matches a page to a question, and the pages here answer questions nobody
+   phrases the way a page title does: somebody wants to know what a pallet holds, not to read
+   a logistics reference. These are those questions, in the words they get asked in, each one
+   answered in a sentence and each one linking to the page that carries the working.
+
+   Every figure is computed here from data/, like the rest of this page. A front page that
+   quotes a number the armory disagrees with is worse than one that says nothing, and this is
+   exactly the kind of copy that gets typed once and left behind.
+
+   The same list becomes the FAQPage block at the foot of the page, so the text a reader sees
+   and the text a crawler reads cannot come apart. */
+const pallet     = catalog.logistics;
+const fob        = catalog.fob;
+const dearest    = ARMORY.items.filter(i => i.cat === "vehicles" && i.price !== null)
+                     .sort((a, b) => b.price - a.price)[0];
+const tank       = ARMORY.items.find(i => i.name === "L2A6");
+const tankUnlock = ((ctx.ITEM_STATS[(tank || {}).name] || {}).unlock) || null;
+const l4         = t => Math.round((DAMAGE.scalings[t] || {})["4"] * 1000) / 10;
+
+/* The hardest a Level 4 vest can be hit, over every load in the sheet. Chest rather than
+   head, because a helmet is a different piece at a different tier and the question people
+   ask is about the vest. */
+const throughL4 = (function () {
+  let best = null;
+  Object.entries(DAMAGE.classes).forEach(function ([cls, loads]) {
+    Object.entries(loads).forEach(function ([load, row]) {
+      const scale = (DAMAGE.scalings[row.type] || {})["4"];
+      if (!scale || !row.zones || !row.zones.chest) return;
+      const got = row.zones.chest * scale;
+      if (!best || got > best.got) best = { cls: cls, load: load, got: got, bare: row.zones.chest };
+    });
+  });
+  return best;
+}());
+
+const FAQ = [
+  {
+    q: "How many build supplies does a pallet hold in WARDOGS?",
+    a: `A Build Supply Pallet holds ${pallet.suppliesPerPallet.toLocaleString()} supplies and costs $${pallet.palletCash}. A truck carries two, a helicopter one. Loose supplies are $10 each and are for topping up rather than stocking.`,
+    href: "/planner/", link: "Total a whole FOB in the planner",
+  },
+  {
+    q: "What does a FOB cost, and what does it come with?",
+    a: `$${fob.vendorPrice.toLocaleString()} at the vendor, and it lands with ${fob.startingSupplies.toLocaleString()} build supplies already inside, which is most of a pallet's worth before anything has been hauled in. It cannot be moved once it is down.`,
+    href: "/buildables/", link: "Every structure and what it costs",
+  },
+  {
+    q: "Which round still works against Level 4 armour?",
+    a: `Armour piercing. Against a Level 4 vest an AP round keeps ${l4("AP")}% of its damage, a full metal jacket keeps ${l4("FMJ")}%, and a hollow point keeps ${l4("HP")}%, which is nothing. Hollow points are for people wearing little or none.`,
+    href: "/ballistics/", link: "Every round against every tier",
+  },
+  {
+    q: "What hits a Level 4 vest hardest?",
+    a: `${throughL4.load} out of a ${throughL4.cls.toLowerCase()}: ${throughL4.bare.toFixed(1)} to a bare chest, ${throughL4.got.toFixed(1)} through Level 4, so ${Math.ceil(BALLISTICS.health / throughL4.got)} shots to the chest.`,
+    href: "/ballistics/", link: "Shots and time to kill by zone",
+  },
+  {
+    q: "What is the most expensive vehicle in WARDOGS?",
+    a: `The ${dearest.name} at $${dearest.price.toLocaleString()} from the vendor.${tankUnlock ? ` Price is not the gate, though: the ${tank.name} tank is $${tank.price.toLocaleString()} to buy and ${tankUnlock.role.toLowerCase()} level ${tankUnlock.level} plus $${tankUnlock.cash.toLocaleString()} to unlock in the first place.` : ""}`,
+    href: "/armory/", link: "Every vehicle, ground and air",
+  },
+];
+
+const faqSection = `
+<section><div class="wrap">
+  <span class="eyebrow">Asked and answered</span>
+  <h2 class="display">Questions people ask</h2>
+  <div class="qa">
+    ${FAQ.map(f => `<div class="qa-item">
+      <h3>${esc(f.q)}</h3>
+      <p>${esc(f.a)}</p>
+      <a href="${f.href}">${esc(f.link)}</a>
+    </div>`).join("")}
+  </div>
+</div></section>
+<script type="application/ld+json">${JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQ.map(f => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: { "@type": "Answer", text: f.a },
+  })),
+}).replace(/</g, "\u003c")}</script>`;
 
 // --- home ---
 write("index.html", page({
@@ -102,6 +188,8 @@ write("index.html", page({
       off it.</p></a>
   </div>
 </div></section>
+
+${faqSection}
 
 <section><div class="wrap">
   <span class="eyebrow">The planner</span>
