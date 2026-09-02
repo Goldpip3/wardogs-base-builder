@@ -2,5 +2,11 @@
   "_note": "Figures somebody read off the running game, item by item. This file beats every other source: data/armory-stats.json is a bulk pull from a fan database and data/ballistics.json carries what a solver could derive, and both are a best guess at what the build does. A line in here is somebody looking at it. Nothing is written here by a script that fetches; it is typed, one reading at a time, through tools/measure.js.",
   "_howToAdd": "node tools/measure.js \"<item name>\" storage <W>x<H>, or kg, stack, rounds, grid, rpm, class. The examples carry no numbers on purpose: a usage line that looks like a real measurement gets run, and what it writes outranks every other source on the site. That happened once. The tool refuses a name that is not in data/armory.json, a value in a shape nothing reads, and the figures from the old examples.",
   "_whatItDoes": "The loadout page reads a measured figure in preference to a pulled one and says which it is using. On the damage page, a weapon that is listed as unfigured becomes a full row the moment it has both a measured rpm and a class whose damage rows cover its calibre, so measuring one number is all it takes to bring a weapon in.",
-  "items": {}
+  "items": {
+    "Compound Bow": {
+      "class": "Bow",
+      "on": "2026-09-02",
+      "note": "The vendor's Equipment tab files it under BOWS, read off the Equipment Vendor screen"
+    }
+  }
 }

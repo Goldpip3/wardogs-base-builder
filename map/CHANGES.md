@@ -6,6 +6,16 @@ the code is right.
 
 Newest first. One entry per decision. Keep entries short.
 
+## 2026-09-02
+
+### The bow is a Bow, on the game's word
+
+The first reading off the running game: the Equipment Vendor screen files the Compound Bow
+under a BOWS tab, where the fan database had it under Equipment. `data/measured.json` now
+says `class: Bow`, which outranks the pull, and the class order in `tools/site/context.js`
+is keyed on Bow with Equipment kept as the fallback for an unmeasured pull. Every other
+primary in the eight vendor tabs matched the data already, so nothing else moved.
+
 ## 2026-09-01
 
 ### The bar is on the planner too, and pages turn instead of blinking

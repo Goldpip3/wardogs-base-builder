@@ -240,15 +240,16 @@ const MEASURED = JSON.parse(fs.readFileSync(path.join(ROOT, "data/measured.json"
    it, the damage ranking and the loadout shelf, and a second copy is how they would come to
    disagree about where the shotguns go.
 
-   The keys are the classes as the item database files them. CLASS_LABEL is what a chip says,
-   CLASS_SHORT what a crowded row says. The bow is filed under Equipment there and is a
-   primary weapon here, so it is shown as Bow: that is what to call it on a weapon shelf, and
-   the pulled value is untouched underneath. */
+   The keys are the classes as the item database files them, with one correction read off
+   the game: the database files the bow under Equipment, and the vendor screen has a BOWS tab
+   for it, so data/measured.json says Bow and that is the key here. Equipment stays mapped
+   so a fresh pull with no measurement still lands on the same shelf. CLASS_LABEL is what a
+   chip says, CLASS_SHORT what a crowded row says. */
 const CLASS_ORDER = ["Assault Rifle", "Submachine Gun", "Shotgun", "Light Machine Gun",
-  "Marksman Rifle", "Sniper Rifle", "Equipment", "Pistol", "Launcher"];
+  "Marksman Rifle", "Sniper Rifle", "Bow", "Equipment", "Pistol", "Launcher"];
 const CLASS_LABEL = {
   "Submachine Gun": "SMG", "Light Machine Gun": "LMG", "Sniper Rifle": "Sniper",
-  Equipment: "Bows",
+  Bow: "Bows", Equipment: "Bows",
 };
 const CLASS_SHORT = {
   "Assault Rifle": "AR", "Submachine Gun": "SMG", "Light Machine Gun": "LMG",

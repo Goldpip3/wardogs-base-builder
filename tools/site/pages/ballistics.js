@@ -45,7 +45,7 @@ module.exports = ctx => {
      would come to disagree about where the shotguns go. */
   const SHEET_CLASS = {
     SMG: "Submachine Gun", LMG: "Light Machine Gun", Marksman: "Marksman Rifle",
-    Sniper: "Sniper Rifle", Bow: "Equipment",
+    Sniper: "Sniper Rifle",
   };
   const classLabelOf = c => classLabel(SHEET_CLASS[c] || c);
   /* Twenty-two pixels of person for the strip that follows you down the page. Not the real
