@@ -441,7 +441,8 @@
         "level": 14
       },
       "on": "2026-09-02",
-      "note": "Medic ladder screen, level 14: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+      "note": "Vendor Items tab, Medical, 2026-09-02: card badge 3, which the owner confirmed is the stack per pack slot; card named by the owner",
+      "stack": 3
     },
     "Arsenal Backpack + 2 Slings": {
       "unlock": {
@@ -490,6 +491,11 @@
       },
       "on": "2026-09-02",
       "note": "Medic ladder screen, level 13, named on screen. Cost not read"
+    },
+    "Bandage": {
+      "stack": 5,
+      "on": "2026-09-02",
+      "note": "Vendor Items tab, Medical, 2026-09-02: card badge 5, which the owner confirmed is the stack per pack slot; card named by the owner"
     },
     "Binoculars": {
       "class": "Recon",
@@ -944,7 +950,8 @@
         "level": 9
       },
       "on": "2026-09-02",
-      "note": "Medic ladder screen, level 9: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+      "note": "Vendor Items tab, Medical, 2026-09-02: card badge 2, which the owner confirmed is the stack per pack slot; card named by the owner",
+      "stack": 2
     },
     "Infrared Range Finder": {
       "unlock": {
