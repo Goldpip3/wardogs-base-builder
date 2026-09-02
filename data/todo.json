@@ -4,9 +4,9 @@
   "confirmWhy": "Early access opens and the game can be read directly instead of inferred.",
   "confirm": [
     {
-      "what": "Weapon progression: which track and level unlocks each weapon, and the one-time cost",
-      "why": "Carried as unconfirmed. Gathered from public write-ups before launch and never verified in game. The track names are settled, the rows are not: read the buy screen for each weapon.",
-      "where": "data/progression.json"
+      "what": "Unlock cash for the items read off the Unlock screen",
+      "why": "All seven ladders were walked on 2026-09-02 and every card is recorded in data/measured.json with ladder and level, 226 records. The one-time cash to unlock was not on those screens, so the panel still shows the database figure where it has one. Read it off the buy screen, one item at a time.",
+      "where": "data/measured.json, unlock.cash"
     },
     {
       "what": "Which weapons are sidearms rather than primaries",
@@ -42,11 +42,6 @@
       "what": "The pulled item stats: weight, footprint, stack size, bag grids and unlock levels",
       "why": "data/armory-stats.json was read out of the MetaForge database on 2026-08-31, the same source the prices were typed from, and every price in the pull matched the catalogue, which is how the join was checked. It is still a transcription and not a measurement. The ones worth checking first are the ones the loadout page leans on: the bag grids, since the Field Backpack comes out 3x3 where one fan site says 6x2, and the stack sizes, since a frag grenade is listed as not stacking at all. Since 2026-08-31 there is a way in: node tools/measure.js \"Assault Backpack\" storage 4x5 writes a measured figure that beats the pull, and node tools/measure.js --list storage says which bags and rigs are still unmeasured.",
       "where": "data/armory-stats.json"
-    },
-    {
-      "what": "Whether the first ladder is called Assault or Infantry",
-      "why": "data/progression.json says Assault, confirmed by the owner on 2026-08-31 against a write-up that said Infantry. The MetaForge unlock data pulled into data/armory-stats.json calls that same ladder Infantry on every item. One of them is out of date rather than wrong, and the loadout shelves order by level so nothing depends on the name yet.",
-      "where": "data/progression.json, data/armory-stats.json"
     },
     {
       "what": "The PKM rate of fire",

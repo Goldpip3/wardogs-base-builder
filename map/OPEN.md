@@ -6,6 +6,18 @@ is about. If this file and a card disagree, the card is right.
 Last swept 2026-08-31, end of the session that fixed diagonal runs, group rotation, the
 toolbar and Ctrl+V.
 
+## The Unlock screens are read, 2026-09-02
+
+Early access opened and the owner walked all seven ladders: Assault, Medic, Recon, Support,
+Driver, Pilot and the Wardog Level. Every card is in `data/measured.json` as an `unlock`
+with ladder and level, 226 records, and `tools/measure.js` takes `Ladder/level/cash` or
+`starter`. The class ladders share one XP table to level 100 in `data/progression.json`;
+cassette tapes are logged there as `rewards` since the vendor does not sell them. Six items
+the database never had joined the catalogue with no price: M18 Smoke Grenade: White,
+Monocular, Claymore, Large Hammer, Medium Hammer, AT Mine, and the Ural. The UH-1Y is the
+Z20 Lakota now. **Still unread: the one-time cash for each unlock**, which the Unlock screen
+does not show; the panel falls back to the database figure where there is one.
+
 ## The community loop is open, and now has something in it
 
 Nothing queues. A submission publishes the moment it is made; three reports hide it, and

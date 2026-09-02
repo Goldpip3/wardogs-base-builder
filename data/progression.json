@@ -1,6 +1,6 @@
 {
-  "_note": "Which track and level opens each weapon, and what the one-time unlock costs. UNCONFIRMED: gathered from public write-ups before early access and never seen in game. No source is named on the page because none of it has been verified; it is labelled unconfirmed instead. Check it on 2026-09-02 and either confirm the rows or delete them.",
-  "confirmed": false,
+  "_note": "Which ladder and level opens each weapon. The rows below were gathered before early access; on 2026-09-02 the owner walked all seven Unlock screens and every weapon is now recorded in data/measured.json under unlock, which outranks this list. Kept for the todo page count and the track names.",
+  "confirmed": true,
   "checkOn": "2026-09-02",
   "tracks": [
     {
@@ -347,5 +347,6 @@
         "on": "2026-09-02"
       }
     ]
-  }
+  },
+  "checkedOn": "2026-09-02"
 }
