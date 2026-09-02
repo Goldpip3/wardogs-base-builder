@@ -9,11 +9,6 @@
       "where": "data/measured.json, unlock.cash"
     },
     {
-      "what": "Which weapons are sidearms rather than primaries",
-      "why": "Five are treated as sidearms and the loadout page splits the shelves on that. Unverified.",
-      "where": "tools/site/pages/armory.js, SIDEARMS"
-    },
-    {
       "what": "Attachment compatibility, weapon by weapon",
       "why": "Derived from labels: a magazine that names its weapon is trusted, everything else is treated as unknown and shown. The buy screen knows the real answer.",
       "where": "tools/site/pages/armory.js, attOwner"
