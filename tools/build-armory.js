@@ -286,6 +286,7 @@ Range Finder|$400
 Monocular|
 Sport Parachute|$1,000
 Wrench|$150
+Large Hammer|
 `,
   throwables: `
 C4 Charge|$250
@@ -299,6 +300,7 @@ M18 Signal Grenade: Landing Zone|$50
 M18 Signal Grenade: Supply Request|$50
 M18 Smoke Grenade: Black|$100
 M18 Smoke Grenade: White|
+AT Mine|
 Claymore|
 M67 Frag Grenade|$200
 Remote Detonator|$550

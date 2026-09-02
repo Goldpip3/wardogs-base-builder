@@ -1857,6 +1857,13 @@
    "icon": "repairtool-wrench-standard"
   },
   {
+   "name": "Large Hammer",
+   "cat": "equipment",
+   "price": null,
+   "per": 1,
+   "icon": "buildtool-hammer-large"
+  },
+  {
    "name": "C4 Charge",
    "cat": "throwables",
    "price": 250,
@@ -1932,6 +1939,13 @@
    "price": null,
    "per": 1,
    "icon": "smokegrenade-white"
+  },
+  {
+   "name": "AT Mine",
+   "cat": "throwables",
+   "price": null,
+   "per": 1,
+   "icon": "atmine"
   },
   {
    "name": "Claymore",

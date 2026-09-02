@@ -402,6 +402,14 @@
       "on": "2026-09-02",
       "note": "Assault ladder screen, level 21: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
+    "AT Mine": {
+      "unlock": {
+        "role": "Support",
+        "level": 25
+      },
+      "on": "2026-09-02",
+      "note": "Support ladder screen, level 25, named by the owner. Vendor price not read"
+    },
     "AX50 .50 Cal Muzzle Brake": {
       "unlock": {
         "role": "Recon",
@@ -890,6 +898,14 @@
       },
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 35: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Large Hammer": {
+      "unlock": {
+        "role": "Support",
+        "level": 7
+      },
+      "on": "2026-09-02",
+      "note": "Support ladder screen, level 7, named by the owner. Vendor price not read"
     },
     "Large Tac Vest": {
       "unlock": {
