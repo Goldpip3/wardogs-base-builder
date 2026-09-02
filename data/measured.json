@@ -875,7 +875,12 @@
     "Halligan Bar": {
       "class": "Tactical",
       "on": "2026-09-02",
-      "note": "Equipment Vendor, Specialist slot, Tactical tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0"
+      "note": "Backpack view, 2026-09-02: no fraction on the cell, which means it does not stack",
+      "grid": [
+        3,
+        1
+      ],
+      "stack": 1
     },
     "Havoc": {
       "unlock": {
@@ -969,7 +974,12 @@
     "Improvised Explosive Device": {
       "class": "Tactical",
       "on": "2026-09-02",
-      "note": "Equipment Vendor, Specialist slot, Tactical tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0"
+      "note": "Backpack view, 2026-09-02: cell reads 1/1",
+      "grid": [
+        1,
+        2
+      ],
+      "stack": 1
     },
     "Individual First Aid Kit": {
       "unlock": {
@@ -1541,8 +1551,13 @@
         "level": 2
       },
       "on": "2026-09-02",
-      "note": "Equipment Vendor, Specialist slot, Tactical tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0",
-      "class": "Tactical"
+      "note": "Backpack view, 2026-09-02: cell reads 1/1",
+      "class": "Tactical",
+      "grid": [
+        1,
+        1
+      ],
+      "stack": 1
     },
     "Rubberized Ergonomic Foregrip": {
       "unlock": {
