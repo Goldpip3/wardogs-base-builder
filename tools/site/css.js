@@ -28,6 +28,9 @@ module.exports = `
   --display:"Chakra Petch","Arial Narrow",system-ui,sans-serif;
   --ui:"Chakra Petch","Segoe UI",system-ui,-apple-system,sans-serif;
   --num:"Cascadia Mono",Consolas,ui-monospace,monospace;
+  /* How long a page takes to turn. The Codrops page transitions timings, as acqbench has
+     them: the scale pair, the sideways slide, and the pair that moves along the z axis. */
+  --pt-page:.7s;--pt-move:.6s;--pt-depth:.5s;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:var(--ui);font-size:16px;line-height:1.6;
@@ -88,32 +91,62 @@ nav.site a.cta:hover{background:var(--yellow);border-color:var(--yellow);color:v
    Every page here is a full document load, and a full document load blinks white and then
    redraws, which is the one thing that makes a set of static pages feel like a set of files
    rather than like an app. This is the browser's own cross document transition: the old
-   page turns away and the new one turns in behind it, about a quarter of a second, no
-   JavaScript and nothing to wait for.
+   page and the new one are photographed and the two pictures move together for most of a
+   second, with nothing to wait for.
 
-   It needs the opt in on both documents, so the planner carries the same block in
-   src/app-template.html. Browsers without it navigate exactly as they did before, which is
-   the whole reason this is done in CSS rather than by holding the click and animating.
+   It needs the opt in on both documents, so the planner carries the same block, lifted by
+   tools/site-header-css.js rather than copied. Browsers without it navigate exactly as they
+   did before, which is why the motion is CSS rather than a held click.
+
+   WHICH WAY THE PAGE TURNS SAYS WHICH WAY YOU WENT. The banner reads left to right, and
+   src/shared/page-turn.js puts one attribute on <html> before the first frame saying where
+   the reader travelled along it:
+     fwd   the old page shrinks and fades while the new one slides across it from the right
+     back  the mirror, from the left
+     in    onto a page with no place in the banner, or deeper into one: the old page shrinks
+           away and the new one scales up into place. Also the base, when nothing is known.
+     out   back off one of those: the old page grows past the camera, the new one settles
+           back from beyond it
+     same  the same page with a different query, which is a filter and not a journey
+   The four motions and their timings are the Codrops page transitions demo, the same ones
+   acqbench uses, and both pictures move at once: that is what lets the arriving page sweep
+   a full screen width across something rather than across empty ground.
 
    The header keeps its own name and no animation, so the banner sits still while the page
    turns under it. That is what makes it read as one app with a bar across the top rather
    than as two pages that happen to share a design. */
 @view-transition{navigation:auto}
-@keyframes wd-turn-out{to{opacity:0;transform:perspective(1400px) translateX(-2.5%) rotateY(-5deg)}}
-@keyframes wd-turn-in{from{opacity:0;transform:perspective(1400px) translateX(2.5%) rotateY(5deg)}}
-::view-transition-old(root){animation:wd-turn-out .2s cubic-bezier(.4,0,1,1) both;
+@keyframes wd-scale-down{to{opacity:0;transform:scale(.8)}}
+@keyframes wd-scale-up{from{opacity:0;transform:scale(.8)}}
+@keyframes wd-scale-down-up{to{opacity:0;transform:scale(1.2)}}
+@keyframes wd-scale-up-down{from{opacity:0;transform:scale(1.2)}}
+@keyframes wd-move-from-right{from{transform:translateX(100%)}}
+@keyframes wd-move-from-left{from{transform:translateX(-100%)}}
+/* A picture parked a screen to the right must not lengthen the document while it travels. */
+::view-transition{overflow:clip}
+/* The ground the two pictures move over. Without it the old page, shrinking and fading,
+   reveals the live new document underneath, and the arrival reads as bleeding through the
+   departure rather than as sliding across it. The pair is the size of the viewport. */
+::view-transition-image-pair(root){background:var(--bg)}
+::view-transition-old(root){animation:wd-scale-down var(--pt-page) ease both;
   mix-blend-mode:normal}
-::view-transition-new(root){animation:wd-turn-in .28s cubic-bezier(0,0,.2,1) both;
+::view-transition-new(root){animation:wd-scale-up var(--pt-page) ease both;
   mix-blend-mode:normal}
+:root[data-nav=fwd]::view-transition-new(root){animation:wd-move-from-right var(--pt-move) ease both}
+:root[data-nav=back]::view-transition-new(root){animation:wd-move-from-left var(--pt-move) ease both}
+:root[data-nav=out]::view-transition-old(root){animation:wd-scale-down-up var(--pt-depth) ease both}
+:root[data-nav=out]::view-transition-new(root){animation:wd-scale-up-down var(--pt-depth) ease both}
+:root[data-nav=same]::view-transition-old(root),
+:root[data-nav=same]::view-transition-new(root){animation:none}
 header.site{view-transition-name:wd-head}
 /* The banner is 92% opaque with a blur behind it, which is right on a page you scroll and
-   wrong for the quarter second the page is turning: the outgoing page slides sideways
-   underneath and you can see it through the bar, which reads as the banner flickering
-   rather than as the page moving. For the length of the turn it is solid. */
+   wrong for the moment the page is turning: the outgoing page moves underneath and you can
+   see it through the bar, which reads as the banner flickering rather than as the page
+   moving. For the length of the turn it is solid. */
 ::view-transition-old(wd-head),::view-transition-new(wd-head){animation:none;
   mix-blend-mode:normal;background:var(--bg)}
-/* A page that turns is decoration. Somebody who has asked for less of it gets the plain
-   crossfade the browser does on its own. */
+/* A page that turns is decoration. Somebody who has asked for less of it gets a cut; the
+   script leaves the attribute off under the same query, so no directional rule matches. */
 @media(prefers-reduced-motion:reduce){
   ::view-transition-old(root),::view-transition-new(root){animation:none}
 }

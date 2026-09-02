@@ -471,7 +471,7 @@ check(acctBar.includes("wardogsAcct.fromCache()") &&
    cross document transition only happens if both ends opt in, and two copies of the timings
    is how the two ends come to disagree about how long it lasts. */
 const tplSrc = fs.readFileSync(PROJ + "src/app-template.html", "utf8");
-check(!tplSrc.includes("@view-transition") && !tplSrc.includes("wd-turn"),
+check(!tplSrc.includes("@view-transition") && !/@keyframes\s+wd-/.test(tplSrc),
   "and the planner keeps no second copy of the page turn");
 check(app.includes(require(PROJ + "tools/site-header-css.js").trim()),
   "and the site's own rules for them, lifted rather than copied");
@@ -508,7 +508,69 @@ check(cssSrc.includes("header.site{view-transition-name:wd-head}") &&
   app.includes("header.site{view-transition-name:wd-head}"),
   "the banner has its own name on both, so it sits still while the page turns");
 check(/prefers-reduced-motion:\s*reduce\)\s*\{\s*\n?\s*::view-transition-old\(root\)/.test(cssSrc),
-  "somebody who asked for less motion gets the plain crossfade");
+  "somebody who asked for less motion gets no turn at all");
+
+/* Which way the page turns says which way you went. The stylesheet keys the four motions off
+   one attribute on <html>, and a shared script in the head sets it from where the reader
+   came from. Both halves are held here: the rules exist, the script is in the head on the
+   site and the planner, the planner's copy of the rules has its timings written in rather
+   than reaching for a token the planner does not declare, and the direction logic itself
+   runs below against a fake window. */
+const turnSrc = fs.readFileSync(PROJ + "src/shared/page-turn.js", "utf8");
+check(cssSrc.includes(":root[data-nav=fwd]::view-transition-new(root){animation:wd-move-from-right") &&
+  cssSrc.includes(":root[data-nav=back]::view-transition-new(root){animation:wd-move-from-left") &&
+  cssSrc.includes(":root[data-nav=out]::view-transition-old(root){animation:wd-scale-down-up"),
+  "the site turns one way going right along the banner, the other going left, and a third for a layer");
+check(cssSrc.includes("::view-transition-image-pair(root){background:var(--bg)}"),
+  "and the two pictures move over the page's own ground rather than over the live document");
+[["home", home], ["planner", app]].forEach(([name, html]) =>
+  check(html.indexOf(turnSrc.trim()) > 0 && html.indexOf(turnSrc.trim()) < html.indexOf("</head>"),
+    "the " + name + " carries the direction script, in the head, before the first frame"));
+check(app.includes("::view-transition-old(root){animation:wd-scale-down .7s ease both") &&
+  !app.includes("var(--pt-page)"),
+  "the planner's copy has the timings written in, since its :root never declares them");
+{
+  /* The script, run against a fake window so the direction function can be asked directly. */
+  const w = {};
+  const doc = { referrer: "", documentElement: { setAttribute() {} } };
+  new Function("window", "document", "location", turnSrc)(w, doc, { pathname: "/" });
+  const dir = w.wardogsTurn.direction;
+  check(dir("/planner/", "/artillery/") === "fwd" && dir("/", "/feedback/") === "fwd",
+    "rightwards along the banner is fwd");
+  check(dir("/artillery/", "/planner/") === "back" && dir("/feedback/", "/") === "back",
+    "leftwards along it is back");
+  check(dir("/designs/", "/designs/abc/") === "in" && dir("/designs/abc/", "/designs/") === "out",
+    "deeper into a page is in, back up out of it is out");
+  check(dir("/designs/abc/", "/planner/") === "back" && dir("/designs/abc/", "/armory/") === "fwd",
+    "and one design still sits where Designs sits, so leaving it sideways is sideways");
+  check(dir("/planner/", "/privacy/") === "in" && dir("/privacy/", "/planner/") === "out" &&
+    dir("/", "/buildables/") === "in" && dir("/buildables/", "/") === "out",
+    "a page with no place in the banner is a layer: in onto it, out off it");
+  check(dir("/designs/", "/designs/") === "same",
+    "the same page with a different query is not a journey");
+  check(w.wardogsTurn.rank("/privacy/") === null && w.wardogsTurn.rank("/index.html") === 0,
+    "the front page matches only itself rather than every path as a prefix");
+  /* The attribute lands where the stylesheet looks, from the Navigation API when there is
+     one and from the referrer when there is not, and not at all under reduced motion. */
+  const landed = (win, ref, loc) => {
+    let got = null;
+    new Function("window", "document", "location", turnSrc)(win,
+      { referrer: ref, documentElement: { setAttribute: (k, v) => { got = k + "=" + v; } } }, loc);
+    return got;
+  };
+  const here = { pathname: "/planner/", origin: "https://www.wardogsbuilder.com" };
+  const noMotion = { matchMedia: () => ({ matches: false }) };
+  check(landed({ ...noMotion, navigation: { activation: { from: { url: "https://www.wardogsbuilder.com/planner/" } } } },
+    "", { pathname: "/armory/", origin: "https://www.wardogsbuilder.com" }) === "data-nav=fwd",
+    "the attribute is set from navigation.activation");
+  check(landed(noMotion, "https://www.wardogsbuilder.com/armory/", here) === "data-nav=back",
+    "and from the referrer where there is no Navigation API");
+  check(landed(noMotion, "https://elsewhere.example/armory/", here) === null &&
+    landed(noMotion, "", here) === null,
+    "and not at all from another site or a typed address");
+  check(landed({ matchMedia: () => ({ matches: true }) }, "https://www.wardogsbuilder.com/armory/", here) === null,
+    "nor for somebody who asked for less motion");
+}
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

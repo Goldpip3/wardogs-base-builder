@@ -11,7 +11,7 @@
    nobody adds them later believing the site is covered. All of them need something in front of
    GitHub Pages that can set real headers: see map/processes/security.md. */
 module.exports = ctx => {
-  const { SITE, esc, adScript, adSlot, CSS, AUTH_SCRIPT, ACCT_BAR, VERIFY } = ctx;
+  const { SITE, esc, adScript, adSlot, CSS, AUTH_SCRIPT, ACCT_BAR, PAGE_TURN, VERIFY } = ctx;
   /* `head` exists for one thing: a meta refresh on a page that has moved. GitHub Pages
      cannot send a 301, so that tag is the only redirect a page here can perform. Keep it to
      that. Anything else wanting into <head> is asking for a per-page style or script, and
@@ -41,6 +41,9 @@ module.exports = ctx => {
 <meta name="twitter:image" content="${SITE}${ogImage}">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%2312140d'/><rect x='6' y='14' width='20' height='12' rx='2' fill='%23dcaa26'/><rect x='11' y='8' width='10' height='7' rx='2' fill='%2386ad55'/></svg>">
 <style>${CSS}</style>
+${/* Which way this page turns in, decided from where the reader came from. In the head and
+      straight after the stylesheet, because the attribute it sets has to be on <html> before
+      the browser draws the first frame of the turn. */""}${PAGE_TURN}
 ${/* What the site is called, for search engines that would otherwise guess from the domain
       and call it "wardogsbuilder". People look for a wiki, so the name it is also known by
       says so. Nothing here is a claim the pages do not make: same name, same description,

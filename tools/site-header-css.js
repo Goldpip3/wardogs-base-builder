@@ -91,13 +91,18 @@ function headerRules() {
 /* Every custom property the kept rules reach for, resolved from the site's :root, and then
    whatever those values reach for in turn. --y-600 is only ever named by another property,
    so a single pass would leave it undefined and the box would lose its border. */
-function tokensFor(rules) {
+function rootTokens() {
   const root = blocks(CSS).find(b => b.at === ":root");
   const declared = {};
-  root.body.replace(/(--[a-z0-9-]+)\s*:\s*([^;]+);/gi, (_, k, v) => {
-    declared[k] = v.trim().replace(/\s*\/\*[\s\S]*?\*\/\s*/g, " ").trim();
+  root.body.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(--[a-z0-9-]+)\s*:\s*([^;]+);/gi, (_, k, v) => {
+    declared[k] = v.trim();
     return "";
   });
+  return declared;
+}
+
+function tokensFor(rules) {
+  const declared = rootTokens();
 
   const need = new Set();
   const walk = text => {
@@ -129,7 +134,17 @@ function inherited() {
   };
 }
 
-const rules = headerRules();
+/* The transition rules are pseudo-elements on the root, not descendants of header.site, so
+   a token declared on the banner never reaches them: var(--pt-page) in the planner resolved
+   to nothing and the browser fell back to its own crossfade. The value is written into
+   those rules instead, from the same :root the banner's tokens come from. */
+function resolveInline(rules) {
+  const declared = rootTokens();
+  return rules.replace(/^(.*::view-transition.*)$/gm, line =>
+    line.replace(/var\((--[a-z0-9-]+)\)/gi, (m, k) => declared[k] || m));
+}
+
+const rules = resolveInline(headerRules());
 const inh = inherited();
 const out = "header.site{" + tokensFor(rules + inh.body + inh.links) +
   inh.body + "}\n" + rules + "\n" + inh.links + "\n";

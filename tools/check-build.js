@@ -274,7 +274,7 @@ check(!mojibake, "no mojibake from a codepage mismatch",
      website, and seven dead links across the top of a file somebody keeps on a disk is a
      worse tool than the one with no nav. The placeholder is the seam, so an unreplaced one
      counts as a failure the same way the ad placeholders do. */
-  check(!/<header class="site">|__SITENAV__|__SITECSS__/.test(offline),
+  check(!/<header class="site">|__SITENAV__|__SITECSS__|__SITEHEAD__/.test(offline),
     "the downloadable planner carries no site banner",
     "every link in it points at the website, and none of them work from a file");
   check(app.includes('<header class="site">') && !app.includes("__SITENAV__"),
@@ -290,6 +290,14 @@ check(!mojibake, "no mojibake from a codepage mismatch",
     "rebuild: the planner's copy is not what tools/site-header-css.js now produces");
   check(!offline.includes("__SITECSS__") && !offline.includes("header.site{"),
     "the download carries neither the banner nor its rules");
+
+  /* Which way the page turns is the same file on both sides too, and it has to be in the
+     head: an attribute set on <html> after the first frame restarts the turn part way. */
+  const pageTurn = fs.readFileSync(path.join(proj, "src/shared/page-turn.js"), "utf8").trim();
+  check(app.indexOf(pageTurn) > 0 && app.indexOf(pageTurn) < app.indexOf("</head>"),
+    "the hosted planner decides which way it turns in, from the site's own file, in the head");
+  check(!offline.includes("__SITEHEAD__") && !offline.includes("wardogsTurn"),
+    "the download does not: it never navigates anywhere");
 }
 
 /* -- 3c-ii. one nav, in one order, on every page including the planner --
@@ -312,6 +320,15 @@ check(!mojibake, "no mojibake from a codepage mismatch",
   check(withSelf.join(" ") === siteLinks.slice().sort().join(" "),
     "the planner's nav lists the same pages as the site's",
     "site: " + siteLinks.join(" ") + "  planner: " + withSelf.join(" "));
+
+  /* The page turn reads direction off a third copy of the order, in src/shared/page-turn.js,
+     because it runs in the head before the nav exists to be read. Held to the banner here:
+     the brand link first, then the seven, in the order the banner lists them. */
+  const turn = fs.readFileSync(path.join(proj, "src/shared/page-turn.js"), "utf8");
+  const order = JSON.parse((turn.match(/var ORDER = (\[[\s\S]*?\]);/) || [, "null"])[1]);
+  check(Array.isArray(order) && order.join(" ") === ["/"].concat(siteLinks).join(" "),
+    "the page turn's order is the banner's order",
+    "turn: " + (order || []).join(" ") + "  banner: / " + siteLinks.join(" "));
 }
 
 // -- 3d. regex escapes survived the template literals they were written in --

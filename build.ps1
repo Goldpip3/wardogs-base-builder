@@ -124,6 +124,9 @@ $navLinks = ($siteLinks | ForEach-Object {
 # at. Concatenated rather than interpolated: the file is full of $ and backticks and a
 # double-quoted PowerShell string would eat them.
 $acctBar = [IO.File]::ReadAllText("$proj\src\shared\acct-bar.js", $utf8)
+# Which way the page turns, the site's own file again, in the head because the attribute it
+# sets has to be on <html> before the first frame. The download gets none of it.
+$pageTurn = '<script>' + [IO.File]::ReadAllText("$proj\src\shared\page-turn.js", $utf8) + '</script>'
 $siteNav = '<header class="site"><div class="wrap">' +
   '<a href="/" class="brand leaveLink">WARDOGS</a>' +
   '<nav class="site">' + $navLinks + '<span id="acct" class="acct"></span></nav>' +
@@ -135,7 +138,7 @@ $headerCss = & node (Join-Path $proj "tools/site-header-css.js")
 if ($LASTEXITCODE -ne 0 -or -not $headerCss) { throw "site-header-css.js produced nothing - the planner would ship an unstyled banner." }
 $headerCss = $headerCss -join "`n"
 
-$offline = $out.Replace('/*__API__*/', '').Replace('/*__BUILD__*/', '').Replace('<!--__AD_HEAD__-->', '').Replace('<!--__AD_PANEL__-->', '').Replace('<!--__SITENAV__-->', '').Replace('/*__SITECSS__*/', '')
+$offline = $out.Replace('/*__API__*/', '').Replace('/*__BUILD__*/', '').Replace('<!--__AD_HEAD__-->', '').Replace('<!--__AD_PANEL__-->', '').Replace('<!--__SITENAV__-->', '').Replace('<!--__SITEHEAD__-->', '').Replace('/*__SITECSS__*/', '')
 [IO.File]::WriteAllText("$proj\WardogsBaseBuilder.html", $offline, $utf8)
 # Artifact variant (no HTML skeleton, the Artifact wrapper provides it)
 $art = $offline -replace '(?s)^.*?<title>', '<title>' -replace '</head>\s*<body>', '' -replace '</body>\s*</html>\s*$', ''
@@ -145,7 +148,7 @@ $art = $offline -replace '(?s)^.*?<title>', '<title>' -replace '</head>\s*<body>
 # afterwards by tools/build-site.js. GitHub Pages serves the whole docs/ folder.
 New-Item -ItemType Directory -Force "$proj\docs\planner" | Out-Null
 [IO.File]::WriteAllText("$proj\docs\planner\index.html",
-  $out.Replace('/*__API__*/', $apiBase).Replace('/*__BUILD__*/', $stamp).Replace('<!--__AD_HEAD__-->', $adHead).Replace('<!--__AD_PANEL__-->', $adPanel).Replace('<!--__SITENAV__-->', $siteNav).Replace('/*__SITECSS__*/', $headerCss), $utf8)
+  $out.Replace('/*__API__*/', $apiBase).Replace('/*__BUILD__*/', $stamp).Replace('<!--__AD_HEAD__-->', $adHead).Replace('<!--__AD_PANEL__-->', $adPanel).Replace('<!--__SITENAV__-->', $siteNav).Replace('<!--__SITEHEAD__-->', $pageTurn).Replace('/*__SITECSS__*/', $headerCss), $utf8)
 [IO.File]::WriteAllText("$proj\docs\build.txt", $stamp, $utf8)
 if (Test-Path "$proj\release\og-1200x630.png") { Copy-Item "$proj\release\og-1200x630.png" "$proj\docs\preview.png" -Force }
 # Custom domain. Leave EMPTY until the domain's DNS actually resolves — claiming a

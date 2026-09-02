@@ -134,8 +134,9 @@
 
   /* The page turn comes in with the block above, from the same stylesheet, because a cross
      document transition only happens if both ends opt in and two copies of the numbers is
-     how the two ends come to disagree about how long it lasts. It does nothing in the
-     download, which never navigates anywhere. */
+     how the two ends come to disagree about how long it lasts. Which way it turns is the
+     script at the SITEHEAD placeholder below, src/shared/page-turn.js, the site's own file.
+     Neither does anything in the download, which never navigates anywhere. */
 
   /* Top bar */
   #topbar {
@@ -394,6 +395,7 @@
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 0; }
   ::-webkit-scrollbar-track { background: transparent; }
 </style>
+<!--__SITEHEAD__-->
 <!--__AD_HEAD__-->
 </head>
 <body>

@@ -104,6 +104,10 @@ const SHARED_VIEW = fs.readFileSync(
    frame matters. build.ps1 inlines the same file into the planner. */
 const ACCT_BAR = "<scr" + "ipt>" +
   fs.readFileSync(path.join(ROOT, "src/shared/acct-bar.js"), "utf8") + "</scr" + "ipt>";
+/* Which way the page turns, in the head because it has to land before the first frame. See
+   the file. build.ps1 inlines the same file into the hosted planner. */
+const PAGE_TURN = "<scr" + "ipt>" +
+  fs.readFileSync(path.join(ROOT, "src/shared/page-turn.js"), "utf8") + "</scr" + "ipt>";
 const CREW_LABELS = JSON.stringify(
   (((ctx.catalog.crewSizes || {}).options) || []).reduce((m, o) => {
     m[o.id] = o.label;
@@ -869,5 +873,5 @@ if(m)location.replace("/planner/#d="+m[1]);})();
    re-sorts on the fetched scores. Baking a stale ranking into a cached page would be
    worse than starting from newest. */
 
-  return { AUTH_SCRIPT, ACCT_BAR, COMMUNITY_SCRIPT, voteWidget, FORWARD_SHARED };
+  return { AUTH_SCRIPT, ACCT_BAR, PAGE_TURN, COMMUNITY_SCRIPT, voteWidget, FORWARD_SHARED };
 };

@@ -168,28 +168,58 @@ nav.site a.cta:hover{background:var(--yellow);border-color:var(--yellow);color:v
    Every page here is a full document load, and a full document load blinks white and then
    redraws, which is the one thing that makes a set of static pages feel like a set of files
    rather than like an app. This is the browser's own cross document transition: the old
-   page turns away and the new one turns in behind it, about a quarter of a second, no
-   JavaScript and nothing to wait for.
+   page and the new one are photographed and the two pictures move together for most of a
+   second, with nothing to wait for.
 
-   It needs the opt in on both documents, so the planner carries the same block in
-   src/app-template.html. Browsers without it navigate exactly as they did before, which is
-   the whole reason this is done in CSS rather than by holding the click and animating.
+   It needs the opt in on both documents, so the planner carries the same block, lifted by
+   tools/site-header-css.js rather than copied. Browsers without it navigate exactly as they
+   did before, which is why the motion is CSS rather than a held click.
+
+   WHICH WAY THE PAGE TURNS SAYS WHICH WAY YOU WENT. The banner reads left to right, and
+   src/shared/page-turn.js puts one attribute on <html> before the first frame saying where
+   the reader travelled along it:
+     fwd   the old page shrinks and fades while the new one slides across it from the right
+     back  the mirror, from the left
+     in    onto a page with no place in the banner, or deeper into one: the old page shrinks
+           away and the new one scales up into place. Also the base, when nothing is known.
+     out   back off one of those: the old page grows past the camera, the new one settles
+           back from beyond it
+     same  the same page with a different query, which is a filter and not a journey
+   The four motions and their timings are the Codrops page transitions demo, the same ones
+   acqbench uses, and both pictures move at once: that is what lets the arriving page sweep
+   a full screen width across something rather than across empty ground.
 
    The header keeps its own name and no animation, so the banner sits still while the page
    turns under it. That is what makes it read as one app with a bar across the top rather
    than as two pages that happen to share a design. */
 @view-transition{navigation:auto}
-@keyframes wd-turn-out{to{opacity:0;transform:perspective(1400px) translateX(-2.5%) rotateY(-5deg)}}
-@keyframes wd-turn-in{from{opacity:0;transform:perspective(1400px) translateX(2.5%) rotateY(5deg)}}
-::view-transition-old(root){animation:wd-turn-out .2s cubic-bezier(.4,0,1,1) both;
+@keyframes wd-scale-down{to{opacity:0;transform:scale(.8)}}
+@keyframes wd-scale-up{from{opacity:0;transform:scale(.8)}}
+@keyframes wd-scale-down-up{to{opacity:0;transform:scale(1.2)}}
+@keyframes wd-scale-up-down{from{opacity:0;transform:scale(1.2)}}
+@keyframes wd-move-from-right{from{transform:translateX(100%)}}
+@keyframes wd-move-from-left{from{transform:translateX(-100%)}}
+/* A picture parked a screen to the right must not lengthen the document while it travels. */
+::view-transition{overflow:clip}
+/* The ground the two pictures move over. Without it the old page, shrinking and fading,
+   reveals the live new document underneath, and the arrival reads as bleeding through the
+   departure rather than as sliding across it. The pair is the size of the viewport. */
+::view-transition-image-pair(root){background:#0c0c0c}
+::view-transition-old(root){animation:wd-scale-down .7s ease both;
   mix-blend-mode:normal}
-::view-transition-new(root){animation:wd-turn-in .28s cubic-bezier(0,0,.2,1) both;
+::view-transition-new(root){animation:wd-scale-up .7s ease both;
   mix-blend-mode:normal}
+:root[data-nav=fwd]::view-transition-new(root){animation:wd-move-from-right .6s ease both}
+:root[data-nav=back]::view-transition-new(root){animation:wd-move-from-left .6s ease both}
+:root[data-nav=out]::view-transition-old(root){animation:wd-scale-down-up .5s ease both}
+:root[data-nav=out]::view-transition-new(root){animation:wd-scale-up-down .5s ease both}
+:root[data-nav=same]::view-transition-old(root),
+:root[data-nav=same]::view-transition-new(root){animation:none}
 header.site{view-transition-name:wd-head}
 /* The banner is 92% opaque with a blur behind it, which is right on a page you scroll and
-   wrong for the quarter second the page is turning: the outgoing page slides sideways
-   underneath and you can see it through the bar, which reads as the banner flickering
-   rather than as the page moving. For the length of the turn it is solid. */
+   wrong for the moment the page is turning: the outgoing page moves underneath and you can
+   see it through the bar, which reads as the banner flickering rather than as the page
+   moving. For the length of the turn it is solid. */
 ::view-transition-old(wd-head),::view-transition-new(wd-head){animation:none;
   mix-blend-mode:normal;background:var(--bg)}
 @media(prefers-reduced-motion:reduce){::view-transition-old(root),::view-transition-new(root){animation:none}}
@@ -225,8 +255,9 @@ header.site a:hover{color:var(--yellow)}
 
   /* The page turn comes in with the block above, from the same stylesheet, because a cross
      document transition only happens if both ends opt in and two copies of the numbers is
-     how the two ends come to disagree about how long it lasts. It does nothing in the
-     download, which never navigates anywhere. */
+     how the two ends come to disagree about how long it lasts. Which way it turns is the
+     script at the SITEHEAD placeholder below, src/shared/page-turn.js, the site's own file.
+     Neither does anything in the download, which never navigates anywhere. */
 
   /* Top bar */
   #topbar {
@@ -485,6 +516,90 @@ header.site a:hover{color:var(--yellow)}
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 0; }
   ::-webkit-scrollbar-track { background: transparent; }
 </style>
+<script>/* Which way the page turns.
+ *
+ * Pages here turn with the browser's own cross document view transition, in
+ * tools/site/css.js. Left to itself every turn is the same turn, so a move back along the
+ * banner looked exactly like a move forward along it, which is a small lie told on every
+ * click. The banner reads left to right, so a move rightwards along it has the new page
+ * slide in across the old one from the right, and a move leftwards is the mirror. A page
+ * with no place in the banner (privacy, buildables, one design) is not to either side of
+ * anything: it is a layer on top, so it scales up into place and scales back out on the way
+ * off. The four motions and their timings are the Codrops page transitions demo, the same
+ * ones acqbench uses.
+ *
+ * All the browser is told is one attribute on <html>. data-nav is fwd, back, in, out or
+ * same, and the stylesheet keys the animations off it. It has to be set before the first
+ * frame, which is why this runs in <head> rather than under the banner: the transition's
+ * pseudo-elements take their animation when the new page first renders, and an attribute
+ * set after that restarts the motion part way through.
+ *
+ * Where the reader came from is navigation.activation, which the browser fills in before
+ * any script in the new document runs, and the referrer in a browser without the Navigation
+ * API. Neither exists on a hard load or a typed address, and neither of those turns at all.
+ *
+ * ORDER is the banner's order, and test/site.js holds it to the links the banner actually
+ * ships. Inlined into every site page by tools/site/shell.js and into the hosted planner by
+ * build.ps1. The download gets none of it: it never navigates anywhere.
+ */
+(function () {
+  var ORDER = ["/", "/planner/", "/artillery/", "/designs/", "/armory/", "/ballistics/",
+    "/loadouts/", "/feedback/"];
+
+  /* Where a path sits along the banner, or null for a page with no place in it. Longest
+     prefix wins, so one design under /designs/ turns as Designs does. The front page is the
+     brand link at the far left and matches only itself: as a prefix it would match every
+     path there is. */
+  var rank = function (p) {
+    if (p === "/" || p === "/index.html") return 0;
+    var r = null, matched = 0;
+    for (var i = 1; i < ORDER.length; i++) {
+      if (p.indexOf(ORDER[i]) === 0 && ORDER[i].length > matched) {
+        r = i;
+        matched = ORDER[i].length;
+      }
+    }
+    return r;
+  };
+
+  /* fwd   rightwards along the banner
+     back  leftwards along it
+     in    onto a page with no place in the banner, or deeper into the one you are on
+     out   back off one of those
+     same  the same page with a different query: a filter, not a journey */
+  var direction = function (from, to) {
+    if (from === to) return "same";
+    var a = rank(from), b = rank(to);
+    if (a !== null && b !== null) {
+      if (b > a) return "fwd";
+      if (b < a) return "back";
+      return to.length > from.length ? "in" : "out";
+    }
+    if (b === null) return "in";
+    return "out";
+  };
+
+  window.wardogsTurn = { order: ORDER, rank: rank, direction: direction };
+
+  var from = null;
+  try {
+    var act = window.navigation && window.navigation.activation;
+    if (act && act.from && act.from.url) from = new URL(act.from.url).pathname;
+  } catch (e) {}
+  if (from === null) {
+    try {
+      var ref = document.referrer ? new URL(document.referrer) : null;
+      if (ref && ref.origin === location.origin) from = ref.pathname;
+    } catch (e) {}
+  }
+  if (from === null) return;
+  /* Somebody who asked for less motion gets none of the sideways ones either. The
+     stylesheet stills the base turn under the same query, and with no attribute set the
+     directional rules never match. */
+  try { if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return; } catch (e) {}
+  document.documentElement.setAttribute("data-nav", direction(from, location.pathname));
+})();
+</script>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7658713831499963" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -1614,7 +1729,7 @@ const CLOUD_API = "https://wardogs-votes.wardogsbuilder.workers.dev";
    but it is inlined into both builds so the two differ in what they can reach and never in
    what they contain. */
 const DESIGN_TAGS = [{"id":"map","label":"Where it works","hint":"At least one. Pick the map it is laid out for, or Any map if the ground does not matter.","required":true,"tags":[{"id":"map-bakurani","label":"Bakurani"},{"id":"map-ozeti","label":"Ozeti"},{"id":"map-any","label":"Any map","exclusive":true}]},{"id":"role","label":"What it is for","hint":"Optional, as many as fit. This is what somebody scrolling the list is actually choosing between.","required":false,"tags":[{"id":"anti-infantry","label":"Anti-infantry","hint":"Built to stop people on foot: cover, wire, firing positions."},{"id":"anti-vehicle","label":"Anti-vehicle","hint":"Stingray, hedgehogs, anything that turns armour away."},{"id":"anti-air","label":"Anti-air","hint":"Vanguard CIWS or Talon 9K-SAM covering the sky above it."},{"id":"artillery","label":"Artillery","hint":"Built around a mortar and its shelter."},{"id":"zone-control","label":"Zone control","hint":"Meant to be planted on the objective and held."},{"id":"recon","label":"Recon","hint":"Towers, radio, eyes on ground you do not hold."},{"id":"starter","label":"Starter","hint":"Cheap and quick, for the first build of a match."}]}];
-const BUILD_STAMP = "20260902-184720";
+const BUILD_STAMP = "20260902-185033";
 const LS_TOKEN = "wardogs.token";
 
 const LS_DESIGNS = "wardogs.designs";

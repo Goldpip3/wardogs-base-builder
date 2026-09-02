@@ -8,6 +8,28 @@ Newest first. One entry per decision. Keep entries short.
 
 ## 2026-09-02
 
+### The page turns the way you went
+
+Every turn was the same turn: a move back along the banner looked exactly like a move
+forward along it. It now does what acqbench does, from the same Codrops demo. Rightwards
+along the banner, the old page shrinks and fades while the new one slides across it from
+the right; leftwards is the mirror; a page with no place in the banner (privacy, buildables,
+one design) is a layer, so it scales up into place and scales back out on the way off.
+
+**One attribute, set before the first frame.** `src/shared/page-turn.js` reads where the
+reader came from off `navigation.activation`, or the referrer without it, ranks both ends
+along the banner and puts `data-nav` on `<html>`. It has to run in the head: the transition
+takes its animation on the first render, and an attribute set later restarts it part way.
+`tools/site/shell.js` inlines it after the stylesheet and `build.ps1` at a new `SITEHEAD`
+placeholder in the planner. The download gets neither.
+
+**The planner's copy has the timings written in.** The transition rules are pseudo-elements
+on the root, so a token scoped to `header.site` never reached them and `var(--pt-page)`
+resolved to nothing there. `tools/site-header-css.js` now substitutes the values into any
+lifted `::view-transition` rule. `test/site.js` fails if the planner ships an unresolved
+token, and `tools/check-build.js` holds the script's order to the banner's; both were seen
+to fail on the bug before being trusted.
+
 ### The bow is a Bow, on the game's word
 
 The first reading off the running game: the Equipment Vendor screen files the Compound Bow
