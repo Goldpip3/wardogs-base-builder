@@ -1277,12 +1277,13 @@
         "level": 24
       },
       "on": "2026-09-02",
-      "note": "Backpack view of the vendor Items tab, 2026-09-02: the Medical Bag fills a 2x2 block of the pack, said by the owner and visible in the screenshot",
+      "note": "Vendor Items tab, Medical, 2026-09-02: the card badge reads 1, and the owner confirmed the badge is the stack per pack slot",
       "class": "Medical",
       "grid": [
         2,
         2
-      ]
+      ],
+      "stack": 1
     },
     "Medium Hammer": {
       "unlock": {
