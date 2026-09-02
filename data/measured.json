@@ -265,9 +265,7 @@
         "level": 16
       },
       "on": "2026-09-02",
-      "note": "Read off the running game by the owner on 2026-09-02; the pull said 17.25",
-      "class": "Launcher",
-      "kg": 18.8
+      "class": "Launcher"
     },
     "9mm Armor Piercing (AP)": {
       "unlock": {

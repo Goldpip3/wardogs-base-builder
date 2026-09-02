@@ -1748,7 +1748,7 @@ const CLOUD_API = "https://wardogs-votes.wardogsbuilder.workers.dev";
    but it is inlined into both builds so the two differ in what they can reach and never in
    what they contain. */
 const DESIGN_TAGS = [{"id":"map","label":"Where it works","hint":"At least one. Pick the map it is laid out for, or Any map if the ground does not matter.","required":true,"tags":[{"id":"map-bakurani","label":"Bakurani"},{"id":"map-ozeti","label":"Ozeti"},{"id":"map-any","label":"Any map","exclusive":true}]},{"id":"role","label":"What it is for","hint":"Optional, as many as fit. This is what somebody scrolling the list is actually choosing between.","required":false,"tags":[{"id":"anti-infantry","label":"Anti-infantry","hint":"Built to stop people on foot: cover, wire, firing positions."},{"id":"anti-vehicle","label":"Anti-vehicle","hint":"Stingray, hedgehogs, anything that turns armour away."},{"id":"anti-air","label":"Anti-air","hint":"Vanguard CIWS or Talon 9K-SAM covering the sky above it."},{"id":"artillery","label":"Artillery","hint":"Built around a mortar and its shelter."},{"id":"zone-control","label":"Zone control","hint":"Meant to be planted on the objective and held."},{"id":"recon","label":"Recon","hint":"Towers, radio, eyes on ground you do not hold."},{"id":"starter","label":"Starter","hint":"Cheap and quick, for the first build of a match."}]}];
-const BUILD_STAMP = "20260902-234327";
+const BUILD_STAMP = "20260902-234833";
 const LS_TOKEN = "wardogs.token";
 
 const LS_DESIGNS = "wardogs.designs";
@@ -3394,8 +3394,16 @@ document.addEventListener('pointerlockchange', function () {
 document.getElementById('walkCanvas').addEventListener('mousedown', function () {
   if (walk.on && !document.pointerLockElement) this.requestPointerLock();
 });
+/* Pointer lock hands over movementX and movementY, and on Windows Chromium they are not
+   always the mouse: the first event after the lock carries the jump from wherever the
+   cursor was, and every so often one arrives hundreds of pixels long with nothing behind
+   it, which is the view snapping to the sky or the floor for no reason. A hand cannot move
+   the mouse 200 px in one 8 ms frame, so anything that size is discarded rather than
+   turned into a flick. */
+const WALK_LOOK_SPIKE = 200;
 document.addEventListener('mousemove', function (e) {
   if (!walk.on || document.pointerLockElement !== document.getElementById('walkCanvas')) return;
+  if (Math.abs(e.movementX) > WALK_LOOK_SPIKE || Math.abs(e.movementY) > WALK_LOOK_SPIKE) return;
   walk.yaw += e.movementX * 0.0026;
   walk.pitch -= e.movementY * 0.0026;
   const lim = Math.PI / 2 - 0.02;
