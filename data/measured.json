@@ -441,8 +441,12 @@
         "level": 14
       },
       "on": "2026-09-02",
-      "note": "Vendor Items tab, Medical, 2026-09-02: card badge 3, which the owner confirmed is the stack per pack slot; card named by the owner",
-      "stack": 3
+      "note": "Backpack view of the vendor Items tab, 2026-09-02: the cells the item fills, checked against CAP. 11/12 adding up",
+      "stack": 3,
+      "grid": [
+        1,
+        1
+      ]
     },
     "Arsenal Backpack + 2 Slings": {
       "unlock": {
@@ -495,7 +499,11 @@
     "Bandage": {
       "stack": 5,
       "on": "2026-09-02",
-      "note": "Vendor Items tab, Medical, 2026-09-02: card badge 5, which the owner confirmed is the stack per pack slot; card named by the owner"
+      "note": "Backpack view of the vendor Items tab, 2026-09-02: the cells the item fills, checked against CAP. 11/12 adding up",
+      "grid": [
+        1,
+        1
+      ]
     },
     "Binoculars": {
       "class": "Recon",
@@ -621,8 +629,13 @@
         "level": 11
       },
       "on": "2026-09-02",
-      "note": "Equipment Vendor, Specialist slot, Medical tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0",
-      "class": "Medical"
+      "note": "Backpack view of the vendor Items tab, 2026-09-02: the cells the item fills, checked against CAP. 11/12 adding up",
+      "class": "Medical",
+      "stack": 1,
+      "grid": [
+        2,
+        2
+      ]
     },
     "Dual Port Brake": {
       "unlock": {
@@ -647,6 +660,14 @@
       },
       "on": "2026-09-02",
       "note": "Medic ladder screen, level 26, named on screen. Cost not read"
+    },
+    "Emergency Resuscitator": {
+      "grid": [
+        1,
+        2
+      ],
+      "on": "2026-09-02",
+      "note": "Backpack view of the vendor Items tab, 2026-09-02: the cells the item fills, checked against CAP. 11/12 adding up"
     },
     "FAL": {
       "unlock": {
@@ -694,7 +715,11 @@
         "level": 2
       },
       "on": "2026-09-02",
-      "note": "Medic ladder screen, level 2: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+      "note": "Backpack view of the vendor Items tab, 2026-09-02: the cells the item fills, checked against CAP. 11/12 adding up",
+      "grid": [
+        1,
+        2
+      ]
     },
     "Flow-Through .308 Suppressor": {
       "unlock": {
@@ -950,8 +975,12 @@
         "level": 9
       },
       "on": "2026-09-02",
-      "note": "Vendor Items tab, Medical, 2026-09-02: card badge 2, which the owner confirmed is the stack per pack slot; card named by the owner",
-      "stack": 2
+      "note": "Backpack view of the vendor Items tab, 2026-09-02: the cells the item fills, checked against CAP. 11/12 adding up",
+      "stack": 2,
+      "grid": [
+        1,
+        1
+      ]
     },
     "Infrared Range Finder": {
       "unlock": {
@@ -1284,13 +1313,12 @@
         "level": 24
       },
       "on": "2026-09-02",
-      "note": "Vendor Items tab, Medical, 2026-09-02: the card badge reads 1, and the owner confirmed the badge is the stack per pack slot",
+      "note": "Backpack view of the vendor Items tab, 2026-09-02: the Medical Bag fills a 2x2 block of the pack, said by the owner and visible in the screenshot. Its stack is not read: the pack cell shows no fraction for it",
       "class": "Medical",
       "grid": [
         2,
         2
-      ],
-      "stack": 1
+      ]
     },
     "Medium Hammer": {
       "unlock": {
