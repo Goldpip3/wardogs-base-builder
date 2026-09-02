@@ -287,6 +287,7 @@ Monocular|
 Sport Parachute|$1,000
 Wrench|$150
 Large Hammer|
+Medium Hammer|
 `,
   throwables: `
 C4 Charge|$250
@@ -365,6 +366,7 @@ MH-6|$6,250
 SPH-2|$8,000
 UH-1Y|$7,400
 UH-1Y [Miniguns]|$8,000
+Ural|
 Ural Defender|$6,000
 Ural Defender [M249]|$6,750
 `,

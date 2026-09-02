@@ -1864,6 +1864,13 @@
    "icon": "buildtool-hammer-large"
   },
   {
+   "name": "Medium Hammer",
+   "cat": "equipment",
+   "price": null,
+   "per": 1,
+   "icon": "buildtool-hammer-medium"
+  },
+  {
    "name": "C4 Charge",
    "cat": "throwables",
    "price": 250,
@@ -2340,6 +2347,13 @@
    "price": 8000,
    "per": 1,
    "icon": "air-rotary-huey-mountedmachineguns"
+  },
+  {
+   "name": "Ural",
+   "cat": "vehicles",
+   "price": null,
+   "per": 1,
+   "icon": "land-wheeled-ural-default"
   },
   {
    "name": "Ural Defender",

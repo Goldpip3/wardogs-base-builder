@@ -603,6 +603,14 @@
       "on": "2026-09-02",
       "note": "Medic ladder screen, level 1, named on screen. Cost not read"
     },
+    "Dune Buggy": {
+      "unlock": {
+        "role": "Driver",
+        "level": 10
+      },
+      "on": "2026-09-02",
+      "note": "Driver ladder screen, level 10: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
     "Eclipse Flash Hider": {
       "unlock": {
         "role": "Medic",
@@ -843,6 +851,30 @@
       "on": "2026-09-02",
       "note": "Assault ladder screen, level 22: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
+    "Humvee": {
+      "unlock": {
+        "role": "Driver",
+        "level": 15
+      },
+      "on": "2026-09-02",
+      "note": "Driver ladder screen, level 15, named on screen. Cost not read"
+    },
+    "Humvee [M249]": {
+      "unlock": {
+        "role": "Driver",
+        "level": 25
+      },
+      "on": "2026-09-02",
+      "note": "Driver ladder screen, level 25, named on screen. Cost not read"
+    },
+    "Humvee [Minigun]": {
+      "unlock": {
+        "role": "Driver",
+        "level": 35
+      },
+      "on": "2026-09-02",
+      "note": "Driver ladder screen, level 35, named on screen. Cost not read"
+    },
     "Hybrid Grip Pod": {
       "unlock": {
         "role": "Support",
@@ -891,6 +923,22 @@
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 21, named on screen. Cost not read"
     },
+    "Kodiak [M249]": {
+      "unlock": {
+        "role": "Driver",
+        "level": 8
+      },
+      "on": "2026-09-02",
+      "note": "Driver ladder screen, level 8, named on screen. Cost not read"
+    },
+    "Kodiak [Pickup]": {
+      "unlock": {
+        "role": "Driver",
+        "level": 2
+      },
+      "on": "2026-09-02",
+      "note": "Driver ladder screen, level 2: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
     "L2A6": {
       "unlock": {
         "role": "Wardog",
@@ -898,6 +946,14 @@
       },
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 35: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Large Crate": {
+      "unlock": {
+        "role": "Driver",
+        "level": 20
+      },
+      "on": "2026-09-02",
+      "note": "Driver ladder screen, level 20, named on screen. Cost not read"
     },
     "Large Hammer": {
       "unlock": {
@@ -1162,6 +1218,14 @@
       },
       "on": "2026-09-02",
       "note": "Medic ladder screen, level 24: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Medium Hammer": {
+      "unlock": {
+        "role": "Support",
+        "level": 3
+      },
+      "on": "2026-09-02",
+      "note": "Support ladder screen, level 3, named by the owner. Vendor price not read"
     },
     "Medium Tac Vest": {
       "unlock": {
@@ -1657,6 +1721,31 @@
       },
       "on": "2026-09-02",
       "note": "Assault ladder screen, level 12: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Ural": {
+      "unlock": {
+        "role": "Driver",
+        "level": 4
+      },
+      "on": "2026-09-02",
+      "note": "Driver ladder screen, level 4: the card is labelled TRUCK, a ground vehicle. The database never listed the Ural",
+      "class": "Ground"
+    },
+    "Ural Defender": {
+      "unlock": {
+        "role": "Driver",
+        "level": 30
+      },
+      "on": "2026-09-02",
+      "note": "Driver ladder screen, level 30, named on screen. Cost not read"
+    },
+    "Ural Defender [M249]": {
+      "unlock": {
+        "role": "Driver",
+        "level": 40
+      },
+      "on": "2026-09-02",
+      "note": "Driver ladder screen, level 40, named on screen. Cost not read"
     },
     "Vektor Frenix-X Micro Reflex Sight": {
       "unlock": {

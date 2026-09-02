@@ -159,7 +159,18 @@ check(kitPage.includes('data-pcls="w|Assault Rifle"') && kitPage.includes('data-
   "the primary weapon shelf is cut into classes");
 check(kitPage.includes('id="w-grid" hidden data-split="Assault Rifle"'),
   "and opens on one of them rather than on all thirty-four");
-const statItems = require(ROOT + "/data/armory-stats.json").items;
+/* The pull, with anything read off the running game laid over it per field, the same
+   precedence tools/site/context.js applies: a vehicle the database never listed can still be
+   filed Ground or Air by somebody looking at its card. */
+const statItems = (() => {
+  const out = {};
+  for (const [n, v] of Object.entries(require(ROOT + "/data/armory-stats.json").items)) out[n] = { ...v };
+  for (const [n, v] of Object.entries(require(ROOT + "/data/measured.json").items)) {
+    out[n] = out[n] || {};
+    for (const [k, x] of Object.entries(v)) if (k !== "on" && k !== "note") out[n][k] = x;
+  }
+  return out;
+})();
 const weaponNames = require(ROOT + "/data/armory.json").items
   .filter(i => i.cat === "weapons").map(i => i.name);
 const unclassed = weaponNames.filter(n => !(statItems[n] || {}).class);
@@ -203,7 +214,7 @@ const noClass = vehicles.filter(v => !["Ground", "Air"].includes((statItems[v.na
 check(noClass.length === 0,
   `all ${vehicles.length} vehicles are filed ground or air by the source, not by their names`,
   noClass.map(v => v.name).join(", "));
-const air = vehicles.filter(v => statItems[v.name].class === "Air").length;
+const air = vehicles.filter(v => (statItems[v.name] || {}).class === "Air").length;
 check(armPage.includes('data-filter="vehicles" data-sub="Ground"') &&
   armPage.includes('data-filter="vehicles" data-sub="Air"'),
   "the rail hangs Ground and Air under Vehicles");
