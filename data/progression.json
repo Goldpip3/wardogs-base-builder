@@ -338,6 +338,13 @@
         "ladder": "pilot",
         "level": 28,
         "on": "2026-09-02"
+      },
+      {
+        "name": "HELIKOPTER - FAZLIJA",
+        "kind": "cassette",
+        "ladder": "pilot",
+        "level": 30,
+        "on": "2026-09-02"
       }
     ]
   }
