@@ -3,6 +3,54 @@
   "_howToAdd": "node tools/measure.js \"<item name>\" storage <W>x<H>, or kg, stack, rounds, grid, rpm, class, unlock. The examples carry no numbers on purpose: a usage line that looks like a real measurement gets run, and what it writes outranks every other source on the site. That happened once. The tool refuses a name that is not in data/armory.json, a value in a shape nothing reads, and the figures from the old examples.",
   "_whatItDoes": "The loadout page reads a measured figure in preference to a pulled one and says which it is using. On the damage page, a weapon that is listed as unfigured becomes a full row the moment it has both a measured rpm and a class whose damage rows cover its calibre, so measuring one number is all it takes to bring a weapon in.",
   "items": {
+    ".45 ACP Pistol Compensator": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 43
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 43: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "12g Rifled Slug": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 41
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 41: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "2.5x Combat Optic": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 26
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 26, named on screen. Cost not read"
+    },
+    "3x Tactical Prism Scope": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 31
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 31, named on screen. Cost not read"
+    },
+    "5.45mm Flesh Damage (HP)": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 16
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 16, named on screen. Cost not read"
+    },
+    "7.62mm Flesh Damage (HP)": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 11
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 11, named on screen. Cost not read"
+    },
     "AMP-9": {
       "unlock": {
         "starter": true
@@ -10,10 +58,50 @@
       "on": "2026-09-02",
       "note": "Owner read it off the buy screen: no ladder, level or cost"
     },
+    "Assault Backpack": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 32
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 32: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Compact T-2 Red Dot": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 4
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 4, named on screen. Cost not read"
+    },
     "Compound Bow": {
       "class": "Bow",
       "on": "2026-09-02",
       "note": "The vendor's Equipment tab files it under BOWS, read off the Equipment Vendor screen"
+    },
+    "Deagle": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 90
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 90: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Deagle 7 RND Magazine": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 90
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 90: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Field Backpack": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 12
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 12: the icon there is this item and the level matches the database pull, which supplies the name and cost"
     },
     "GGX 17": {
       "unlock": {
@@ -23,12 +111,236 @@
       "on": "2026-09-02",
       "note": "Unlock screen, Wardog Level 1 unlockable items: GGX 17 and its magazine. Cost not read"
     },
+    "GGX 17 RND Magazine": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 1
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 1, named on screen. Cost not read"
+    },
+    "GGX 18": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 70
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 70: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "GGX 33 RND Magazine": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 23
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 23: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "GGX 50 RND Drum Magazine": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 80
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 80: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Gunner Backpack + Sling": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 73
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 73: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "High Capacity Battery": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 45
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 45: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Judge": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 18
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 18: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Kobra Reflex": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 21
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 21, named on screen. Cost not read"
+    },
+    "L2A6": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 35
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 35: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Large Tac Vest": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 50
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 50: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Level 1 Armor": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 3
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 3: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Level 1 Helmet": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 3
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 3: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Level 2 Armor": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 30
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 30: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Level 2 Helmet": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 30
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 30: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Level 3 Armor": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 60
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 60: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Level 3 Helmet": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 60
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 60: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Level 4 Armor": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 100
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 100: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "M1911": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 40
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 40: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "M1911 10 RND Magazine": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 53
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 53: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "M1911 7 RND Magazine": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 40
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 40: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Medium Tac Vest": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 14
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 14: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Mini Angled Foregrip": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 38
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 38, named on screen. Cost not read"
+    },
+    "Operator Backpack": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 20
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 20: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "RK6 Tactical Foregrip": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 15
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 15: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Ruck Backpack": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 56
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 56, named on screen. Cost not read"
+    },
+    "SPH-2": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 55
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 55: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
     "Scout Rifle TD": {
       "unlock": {
         "starter": true
       },
       "on": "2026-09-02",
       "note": "Owner read it off the buy screen: no ladder, level or cost"
+    },
+    "Sport Parachute": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 36
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 36: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "TDG Vertical Foregrip": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 58
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 58: the icon there is this item and the level matches the database pull, which supplies the name and cost"
     }
   }
 }
