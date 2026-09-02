@@ -3,10 +3,24 @@
   "_howToAdd": "node tools/measure.js \"<item name>\" storage <W>x<H>, or kg, stack, rounds, grid, rpm, class, unlock. The examples carry no numbers on purpose: a usage line that looks like a real measurement gets run, and what it writes outranks every other source on the site. That happened once. The tool refuses a name that is not in data/armory.json, a value in a shape nothing reads, and the figures from the old examples.",
   "_whatItDoes": "The loadout page reads a measured figure in preference to a pulled one and says which it is using. On the damage page, a weapon that is listed as unfigured becomes a full row the moment it has both a measured rpm and a class whose damage rows cover its calibre, so measuring one number is all it takes to bring a weapon in.",
   "items": {
+    "AMP-9": {
+      "unlock": {
+        "starter": true
+      },
+      "on": "2026-09-02",
+      "note": "Owner read it off the buy screen: no ladder, level or cost"
+    },
     "Compound Bow": {
       "class": "Bow",
       "on": "2026-09-02",
       "note": "The vendor's Equipment tab files it under BOWS, read off the Equipment Vendor screen"
+    },
+    "Scout Rifle TD": {
+      "unlock": {
+        "starter": true
+      },
+      "on": "2026-09-02",
+      "note": "Owner read it off the buy screen: no ladder, level or cost"
     }
   }
 }

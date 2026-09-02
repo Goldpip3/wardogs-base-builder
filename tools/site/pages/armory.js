@@ -103,6 +103,7 @@ module.exports = ctx => {
      $500,000 and level 35, and the level is the part you cannot pay your way past. */
   const unlockText = function (name) {
     const u = statOf(name).unlock;
+    if (u && u.starter) return "Nothing: it is there from the first match";
     if (!u || !u.level) return "";
     return u.role + " level " + u.level + (u.cash ? ", " + money(u.cash) : "");
   };

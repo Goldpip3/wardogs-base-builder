@@ -64,7 +64,7 @@ const FIELDS = {
     read: "the damage page joins the measured damage table on it",
   },
   unlock: {
-    what: "what opens it, as Ladder/level/cash, such as Recon/12/50000. Cash 0 if it is free once the level is reached",
+    what: "what opens it, as Ladder/level/cash, such as Recon/12/50000. Cash 0 if it is free once the level is reached; the word starter if it is there from the first match",
     parse: v => unlock(v),
     read: "the armory panel says which ladder, which level and what it costs to unlock, and /todo/ counts what is still unconfirmed",
   },
@@ -74,6 +74,7 @@ const FIELDS = {
    game uses for the first ladder is itself one of the things being read. Level and cash
    are whole numbers; cash may be 0, since some things open free at their level. */
 function unlock(v) {
+  if (/^starter$/i.test(String(v).trim())) return { starter: true };
   const m = String(v).trim().match(/^([A-Za-z][A-Za-z ]*?)\s*[/ ]\s*(\d+)\s*[/ ]\s*\$?(\d[\d,]*)$/);
   if (!m) throw new Error("an unlock is Ladder/level/cash, such as Recon/12/50000");
   const level = Number(m[2]), cash = Number(m[3].replace(/,/g, ""));
@@ -204,6 +205,7 @@ doc.items[name] = entry;
 save(doc);
 
 const show = v => Array.isArray(v) ? v.join("x")
+  : v && v.starter ? "starter"
   : v && typeof v === "object" ? Object.values(v).join("/") : String(v);
 console.log(name + ": " + field + " " + show(value) +
   (had !== undefined ? " (was " + show(had) + ")" : "") + ", measured " + entry.on);
