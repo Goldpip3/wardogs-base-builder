@@ -63,7 +63,23 @@ const FIELDS = {
     parse: v => String(v).trim(),
     read: "the damage page joins the measured damage table on it",
   },
+  unlock: {
+    what: "what opens it, as Ladder/level/cash, such as Recon/12/50000. Cash 0 if it is free once the level is reached",
+    parse: v => unlock(v),
+    read: "the armory panel says which ladder, which level and what it costs to unlock, and /todo/ counts what is still unconfirmed",
+  },
 };
+
+/* The ladder is whatever word the buy screen uses, kept as typed, because which word the
+   game uses for the first ladder is itself one of the things being read. Level and cash
+   are whole numbers; cash may be 0, since some things open free at their level. */
+function unlock(v) {
+  const m = String(v).trim().match(/^([A-Za-z][A-Za-z ]*?)\s*[/ ]\s*(\d+)\s*[/ ]\s*\$?(\d[\d,]*)$/);
+  if (!m) throw new Error("an unlock is Ladder/level/cash, such as Recon/12/50000");
+  const level = Number(m[2]), cash = Number(m[3].replace(/,/g, ""));
+  if (!(level > 0)) throw new Error("the level has to be 1 or more");
+  return { role: m[1].trim(), level: level, cash: cash };
+}
 
 function grid(v) {
   const m = String(v).toLowerCase().match(/^(\d+)\s*[x*]\s*(\d+)$/);
@@ -119,7 +135,8 @@ if (flags.list) {
   console.log(have.length + " measured" + (field === "all" ? "" : " " + field) + ":");
   have.forEach(([n, v]) => {
     const shown = Object.keys(v).filter(k => k !== "on" && k !== "note")
-      .map(k => k + " " + (Array.isArray(v[k]) ? v[k].join("x") : v[k])).join(", ");
+      .map(k => k + " " + (Array.isArray(v[k]) ? v[k].join("x")
+        : v[k] && typeof v[k] === "object" ? Object.values(v[k]).join("/") : v[k])).join(", ");
     console.log("  " + n + ": " + shown + "  (" + v.on + ")");
   });
   if (field === "storage" || field === "all") {
@@ -186,7 +203,8 @@ if (flags.note) entry.note = flags.note;
 doc.items[name] = entry;
 save(doc);
 
-const show = v => Array.isArray(v) ? v.join("x") : String(v);
+const show = v => Array.isArray(v) ? v.join("x")
+  : v && typeof v === "object" ? Object.values(v).join("/") : String(v);
 console.log(name + ": " + field + " " + show(value) +
   (had !== undefined ? " (was " + show(had) + ")" : "") + ", measured " + entry.on);
 console.log("  " + FIELDS[field].read);

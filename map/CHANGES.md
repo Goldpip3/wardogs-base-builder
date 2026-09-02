@@ -474,27 +474,6 @@ Weight is unmeasured and says so. `tools/build-armory.js` takes `|3.4kg` after t
 **It refuses a total while any piece is unweighed**, because a light total and an unweighed
 rifle look the same on a readout.
 
-### Old designs take the current build zone
-
-Designs from before the zone went 100 to 200 kept 100, as does any share code with no zone.
-**100 was the default, not a choice**, so opening one takes the catalog figure. A zone typed
-in the panel is left alone. `test/saved-designs.js`.
-
-Also removed prose that commented on itself. Reference pages state the figure and stop.
-
-### 3D: a storey is a count, not a height
-
-`p.level` is how many pieces are stacked under one, not its height. A gun on a two block wall
-sat at z=1 inside a wall filling 0 to 2, so they interpenetrated. **No draw order is right
-about a pair that runs through another**, which is why it looked like a sort bug.
-`standHeights` derives real height from what a piece stands on. `test/elevation.js`.
-
-### 3D: turns 15 degrees, not 90
-
-All four quarter angles are square on, so a wall never showed length and face at once. Yaw
-steps 15 with ↺ ↻ buttons and Q/E. The exact sort still holds at any angle once the test asks
-the camera which end of an axis is far. Bar swaps Snap for the turn buttons in 3D.
-
 ### Three weapons had the wrong class
 
 Scout Rifle TD showed no damage. It was a marksman rifle in 5.56 and no marksman tab was
@@ -511,14 +490,6 @@ Also `renderCalc` wrote to `#flight` and `#cost` after they were removed, so it 
 `renderZones`, leaving a dashed hero over the previous weapon's numbers. Stages run through
 `stage()` now: one failing does not take the page down.
 
-### Nav is one centred group
-
-A `.nav-gap` span was `flex:1`, so it ate every spare pixel and opened a hole between
-Artillery and Designs. Gone. Seven links, 14px gaps, centred.
-
-**Nothing ranks the tools above the references now.** The boxes stopped doing it when every
-link got one. To make them lead again use order or a different treatment, not a gap.
-
 ### Designs carry tags and filter on them
 
 Two chip rows: where it works, what it is for. Same row means either, across rows means both.
@@ -531,11 +502,6 @@ Vocabulary lives in `data/community.json` only. `test/tags.js` holds both built 
 byte for byte and fails if a map in `data/artillery-maps.json` has no tag.
 
 Tags are asked at publish, not stored on the design: they do not travel in the share code.
-
-### Artillery map always draws spawns
-
-It was a toggle. A gun position is chosen against spawns, so hiding them helped nobody. Four
-toggles left.
 
 ### Damage is measured, not solved
 
@@ -779,6 +745,15 @@ Hence the rule about comparing live `build.txt` to local before believing a bug 
 
 Each one carries the file that pins it, and `git show` still has the full story.
 
+- **Old designs take the current build zone.** 100 was the default, not a choice, so a
+  design or share code with no zone opens on the catalog figure. `test/saved-designs.js`.
+- **3D: a storey is a count, not a height.** `p.level` is pieces stacked under one;
+  `standHeights` derives real height from what a piece stands on. `test/elevation.js`.
+- **3D turns 15 degrees, not 90**, with buttons and Q/E, so a wall shows length and face
+  at once. The exact sort holds at any angle.
+- **Nav is one centred group.** A `flex:1` gap span opened a hole between two links.
+  Nothing ranks the tools above the references now; use order, not a gap, to change that.
+- **Artillery map always draws spawns.** A gun position is chosen against them.
 - **Design cards are the same size.** Cards sized by their contents came out ragged. Rows
   stretch and the action row drops to the bottom; the last of it was an inline
   `style="margin-top:14px"` beating the stylesheet.
