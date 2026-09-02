@@ -1172,8 +1172,9 @@
         "level": 50
       },
       "on": "2026-09-02",
-      "note": "Card tooltip on the vendor Gear tab, 2026-09-02, which also says it gives no extra item storage",
-      "kg": 3.6
+      "note": "Card tooltip says all quickslots, 2026-09-02. The inventory screen shows item quickslots 4 through 0, seven in all, with 4 open and 5 to 0 locked with no vest on, so all means the six from 5 to 0",
+      "kg": 3.6,
+      "quick": 6
     },
     "Level 1 Armor": {
       "unlock": {
