@@ -425,7 +425,12 @@
         "level": 25
       },
       "on": "2026-09-02",
-      "note": "Support ladder screen, level 25, named by the owner. Vendor price not read"
+      "note": "Backpack view, 2026-09-02: no fraction on the cell, which means it does not stack",
+      "grid": [
+        2,
+        1
+      ],
+      "stack": 1
     },
     "AX50 .50 Cal Muzzle Brake": {
       "unlock": {
@@ -564,7 +569,12 @@
         "level": 22
       },
       "on": "2026-09-02",
-      "note": "Recon ladder screen, level 22, named on screen. Vendor price not read"
+      "note": "Backpack view, 2026-09-02: no fraction on the cell, which means it does not stack",
+      "grid": [
+        1,
+        2
+      ],
+      "stack": 1
     },
     "Compact T-2 Red Dot": {
       "unlock": {
