@@ -30,6 +30,11 @@ recorded. All carry a `sizeNote` saying so, and nothing in the catalog is
 `sizeConfirmed: false` any more. The mortar had been marked confirmed at 4x4; an owner's
 reading outranks whatever that was.
 
+**And every build cost.** The L81 Mortar is 91 build supplies, not 90; the Builder's Radio
+and the Drill Rig matched what was recorded. Each carries a `costNote`, and nothing in the
+catalog is `costConfirmed: false` any more, so the todo page has no guessed buildable left
+to list. The FOB is $2,500 at the vendor, confirmed the same day.
+
 ### Click the ground in 3D to stand there, and Space to get over a wall
 
 The walkthrough started you wherever the plan happened to be centred, which was as often

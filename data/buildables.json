@@ -97,7 +97,9 @@
     "radiusConfirmed": true,
     "radiusReading": "39 Hesco blocks from the FOB's middle cell to the edge of the zone, the same in every direction, read off the running game by the owner on 2026-09-02",
     "icon": "fob.webp",
-    "radiusNote": "The square the FOB lets you build inside, in cells, the whole side. Measured on 2026-09-02: from the middle cell of the 3x3 FOB, 39 single Hesco blocks fit between it and the edge in every direction, so the square is 39 + 1 + 39 = 79 cells across, centred on the FOB. The count is in radiusReading, kept so the arithmetic can be checked or redone. Before that it was 100, then 200 from 2026-08-31 as a better estimate, neither of them a reading. A design records its own zone, and one still recording 100 or 200 takes this figure when it is opened, since those were defaults rather than anybody's choice. A zone typed in the panel is kept."
+    "radiusNote": "The square the FOB lets you build inside, in cells, the whole side. Measured on 2026-09-02: from the middle cell of the 3x3 FOB, 39 single Hesco blocks fit between it and the edge in every direction, so the square is 39 + 1 + 39 = 79 cells across, centred on the FOB. The count is in radiusReading, kept so the arithmetic can be checked or redone. Before that it was 100, then 200 from 2026-08-31 as a better estimate, neither of them a reading. A design records its own zone, and one still recording 100 or 200 takes this figure when it is opened, since those were defaults rather than anybody's choice. A zone typed in the panel is kept.",
+    "priceConfirmed": true,
+    "priceNote": "The vendor price above was read off the running game by the owner on 2026-09-02 and matched what was recorded."
   },
   "buildables": [
     {
@@ -333,7 +335,7 @@
       "tier": "small",
       "page": 1,
       "cost": 13,
-      "costConfirmed": false,
+      "costConfirmed": true,
       "requiresFob": true,
       "footprint": {
         "w": 2,
@@ -346,7 +348,8 @@
       "tags": [
         "utility"
       ],
-      "sizeNote": "2x1, 1 tall, read off the running game by the owner on 2026-09-02. Matched what was recorded."
+      "sizeNote": "2x1, 1 tall, read off the running game by the owner on 2026-09-02. Matched what was recorded.",
+      "costNote": "13 build supplies, read off the running game by the owner on 2026-09-02. Matched what was recorded."
     },
     {
       "id": "loudspeaker",
@@ -447,8 +450,8 @@
       "name": "L81 Mortar",
       "tier": "large",
       "page": 3,
-      "cost": 90,
-      "costConfirmed": false,
+      "cost": 91,
+      "costConfirmed": true,
       "requiresFob": true,
       "footprint": {
         "w": 3,
@@ -463,7 +466,8 @@
         "needs-sky",
         "uses-ammo"
       ],
-      "sizeNote": "3x3, read off the running game by the owner on 2026-09-02. Was 4x4 from a pre-launch write-up."
+      "sizeNote": "3x3, read off the running game by the owner on 2026-09-02. Was 4x4 from a pre-launch write-up.",
+      "costNote": "91 build supplies, read off the running game by the owner on 2026-09-02. Was 90 from a pre-launch write-up."
     },
     {
       "id": "vanguard-ciws",
@@ -554,7 +558,7 @@
       "tier": "large",
       "page": 3,
       "cost": 1351,
-      "costConfirmed": false,
+      "costConfirmed": true,
       "requiresFob": true,
       "footprint": {
         "w": 3,
@@ -569,7 +573,8 @@
         "uses-fuel",
         "endgame"
       ],
-      "sizeNote": "3x3, 6 tall, read off the running game by the owner on 2026-09-02. Was 4x4 and 4 tall from a pre-launch write-up."
+      "sizeNote": "3x3, 6 tall, read off the running game by the owner on 2026-09-02. Was 4x4 and 4 tall from a pre-launch write-up.",
+      "costNote": "1351 build supplies, read off the running game by the owner on 2026-09-02. Matched what was recorded."
     }
   ],
   "mechanics": {
