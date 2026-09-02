@@ -652,31 +652,6 @@ planner knows your wallet. 495 icons come from the wardogs.zone wiki via
 attribute UA `display:none`. Filtered-out cards stayed visible while the script believed
 otherwise. Anything given a display must say what hidden means for it.
 
-### Damage page shows the gun
-
-Weapon art under the picker, weapon icon on every ranking row. All 28 weapons and 30 vendor
-round names joined first try off the armory slug.
-
-**`.rname` must not be a flex row.** That turned wrapped names into two columns. Icon is
-inline with a baseline nudge; the name column went 168px to 210px.
-
-### A generated file its generator no longer makes
-
-`data/armory.json` was committed with 323 icon slugs without the `build-armory.js` change
-behind them. That generator runs by hand and nothing compared the two, so the next run would
-have stripped every icon. `build.ps1` runs `build-armory.js --check`, which **refuses** on a
-mismatch. Refusing not overwriting is the point: overwriting is what hid it.
-
-### Map: black squares and a shudder
-
-A failed tile was marked dead for the session. The failure is almost never a missing file, it
-is the browser cancelling requests during a fast zoom. Retries three times, backing off.
-
-A square with no tile draws from a coarser one, so changing zoom goes soft instead of black.
-
-Every wheel event ran a full draw; they ask for a frame now. Zoom stepped a flat 1.2 per
-event, so a trackpad arrived as stacked 20 percent jumps. It scales by actual delta.
-
 ### Grouping angle comes off the page
 
 Spread is gone, and the dashed circle with it. It traced to one ungrounded source. No game
@@ -689,25 +664,6 @@ no check.
 
 `test/artillery.js` now checks the absence, in data and on the page. **The dial stays**:
 three sources publish mil tables and the gun takes a mil elevation.
-
-### Firing solution explains itself
-
-Every label opens an explanation on hover, tap or tab. The spread half is superseded.
-
-**The dial tip is written per arc.** More mils is less range on the mortar and high arc, more
-on the low arc. One rule for both misleads half the time.
-
-**Do not say a full circle is 6,400 mils.** True of the NATO mil, unchecked here: two sources
-read different scales and nobody has noted what the sight shows. Fire the gun first.
-
-### Planner says PLANNER, build zone is 200
-
-Zone went 100 to 200 on the owner's word, and stays `radiusConfirmed:false` because nobody
-has counted. That flag keeps range rings off the plan.
-
-Eight copies of `|| 100` became one `fobZone()`. **Two literals stay in the share encoders:**
-100 is the wire format default and `test/share-links.js` needs both encoders to emit identical
-bytes. Reading the catalog there ties the format to a value a player can edit.
 
 ### 3D view, six passes condensed
 
@@ -722,16 +678,6 @@ because suppressing the wrong side looks almost right. **Height is the job**, a 
 1.45 times ground scale against a 0.866 cell. **Colour is by material and the key cannot
 lie**, so role, colour, label and key list move together. **Writing is drawn last**, or a
 piece dropped nearby paints over its label.
-
-### Crew size: who the base is for
-
-Three buckets in `data/buildables.json` under `crewSizes`, read by planner and list. The
-planner refuses to submit without one.
-
-**It rides inside the share code**, so one answer survives link, save, export and reopen. The
-head of both formats is JSON, so old codes lack the key and old readers ignore a new one, and
-the alphabet is unchanged, which would have made it a worker deploy. Unknown values dropped.
-`test/crew.js`.
 
 ### Community list shows the base, one decoder both sides
 
@@ -767,6 +713,22 @@ Hence the rule about comparing live `build.txt` to local before believing a bug 
 
 Each one carries the file that pins it, and `git show` still has the full story.
 
+- **Crew size rides inside the share code.** Three buckets under `crewSizes`; the planner
+  refuses to submit without one. Old codes lack the key, old readers ignore it, and the
+  alphabet is unchanged, so no worker deploy. `test/crew.js`.
+- **Firing solution explains itself.** Every label opens an explanation. The dial tip is
+  written per arc, since more mils is less range on the high arc and more on the low. Do not
+  say a full circle is 6,400 mils: nobody has checked what the sight shows.
+- **Build zone is 200**, on the owner's word, still `radiusConfirmed:false`. Eight `|| 100`
+  became one `fobZone()`; two literals stay in the share encoders because 100 is the wire
+  default and `test/share-links.js` needs both encoders byte-identical.
+- **Damage page shows the gun.** Weapon art under the picker and an icon on every ranking
+  row, joined off the armory slug. `.rname` must not be a flex row: that split wrapped names.
+- **A generated file its generator no longer makes.** `build.ps1` runs `build-armory.js
+  --check` and refuses on a mismatch, since overwriting is what hid the last one.
+- **Map: black squares and a shudder.** A failed tile retries three times with backoff
+  instead of dying for the session, a missing tile draws from a coarser one, wheel events
+  ask for a frame, and zoom scales by the actual delta rather than a flat step.
 - **Old designs take the current build zone.** 100 was the default, not a choice, so a
   design or share code with no zone opens on the catalog figure. `test/saved-designs.js`.
 - **3D: a storey is a count, not a height.** `p.level` is pieces stacked under one;
