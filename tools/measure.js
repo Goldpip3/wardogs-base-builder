@@ -43,6 +43,11 @@ const FIELDS = {
     parse: v => whole(v),
     read: "the bag card names them beside the grid; they do not count as item cells",
   },
+  quick: {
+    what: "extra quick slots a rig unlocks, a count; a rig gives no item storage",
+    parse: v => whole(v),
+    read: "the rig card says how many quick slots it adds",
+  },
   grid: {
     what: "the room an item takes in a bag, as WxH",
     parse: v => grid(v),

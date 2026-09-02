@@ -634,6 +634,14 @@ module.exports = ctx => {
          It also puts a wrong figure where somebody can see it: the whole point of measuring
          these is that the pulled ones are suspect. */
       (function (st) {
+        /* A rig holds nothing. What it does is unlock quick slots, two, four or all of them,
+           read off the vendor cards on 2026-09-02, so that is what its card says. */
+        if (!st.storage && st.quick) {
+          const seenQ = st.measured && st.measured.quick;
+          return '<span class="vcard-sub"' + (seenQ ? ' data-measured="1"' : "") +
+            ' title="' + (seenQ ? "Read off the vendor card " + esc(seenQ) : "From the item database, not measured") +
+            '">+' + st.quick + " quick slots, no storage</span>";
+        }
         if (!st.storage) return "";
         /* A pack is not always one rectangle: the Assault Backpack is a 3x5 body with two
            1x3 side pockets, read off the game, and its 21 slots are all of them. */

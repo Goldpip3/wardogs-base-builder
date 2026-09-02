@@ -1170,7 +1170,8 @@
         "level": 50
       },
       "on": "2026-09-02",
-      "note": "Wardog Level screen, level 50: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+      "note": "Card tooltip on the vendor Gear tab, 2026-09-02, which also says it gives no extra item storage",
+      "kg": 3.6
     },
     "Level 1 Armor": {
       "unlock": {
@@ -1536,7 +1537,9 @@
         "level": 14
       },
       "on": "2026-09-02",
-      "note": "Wardog Level screen, level 14: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+      "note": "Card tooltip, 2026-09-02: unlocks quickslots 5 to 8",
+      "kg": 1.65,
+      "quick": 4
     },
     "Mini Angled Foregrip": {
       "unlock": {
@@ -1974,6 +1977,12 @@
         1
       ],
       "stack": 1
+    },
+    "Small Tac Vest": {
+      "kg": 0.82,
+      "on": "2026-09-02",
+      "note": "Card tooltip, 2026-09-02: unlocks quickslots 5 and 6",
+      "quick": 2
     },
     "Spectr 4x": {
       "unlock": {
