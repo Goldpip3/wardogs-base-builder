@@ -3,6 +3,38 @@
   "_howToAdd": "node tools/measure.js \"<item name>\" storage <W>x<H>, or kg, stack, rounds, grid, rpm, class, unlock. The examples carry no numbers on purpose: a usage line that looks like a real measurement gets run, and what it writes outranks every other source on the site. That happened once. The tool refuses a name that is not in data/armory.json, a value in a shape nothing reads, and the figures from the old examples.",
   "_whatItDoes": "The loadout page reads a measured figure in preference to a pulled one and says which it is using. On the damage page, a weapon that is listed as unfigured becomes a full row the moment it has both a measured rpm and a class whose damage rows cover its calibre, so measuring one number is all it takes to bring a weapon in.",
   "items": {
+    ".308 Win Armor Piercing (AP)": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 140
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 140, named by the owner clicking it. Cost not read"
+    },
+    ".308 Win Flesh Damage (HP)": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 65
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 65, named by the owner clicking it. Cost not read"
+    },
+    ".45 ACP Armor Piercing (AP)": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 120
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 120, named by the owner clicking it. Cost not read"
+    },
+    ".45 ACP Flesh Damage (HP)": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 48
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 48, named by the owner clicking it. Cost not read"
+    },
     ".45 ACP Pistol Compensator": {
       "unlock": {
         "role": "Wardog",
@@ -10,6 +42,22 @@
       },
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 43: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    ".45 Colt Armor Piercing (AP)": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 110
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 110, named by the owner clicking it. Cost not read"
+    },
+    ".45 Colt Flesh Damage (HP)": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 25
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 25, named by the owner clicking it. Cost not read"
     },
     "12g Rifled Slug": {
       "unlock": {
@@ -35,6 +83,22 @@
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 31, named on screen. Cost not read"
     },
+    "45 Degree Angled Foregrip": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 33
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 33, named by the owner clicking it. Cost not read"
+    },
+    "5.45mm Armor Piercing (AP)": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 93
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 93, named by the owner clicking it. Cost not read"
+    },
     "5.45mm Flesh Damage (HP)": {
       "unlock": {
         "role": "Wardog",
@@ -42,6 +106,46 @@
       },
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 16, named on screen. Cost not read"
+    },
+    "5.56mm Armor Piercing (AP)": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 85
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 85, named by the owner clicking it. Cost not read"
+    },
+    "5.56mm Flesh Damage (HP)": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 10
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 10, named by the owner clicking it. Cost not read"
+    },
+    "50AE Armor Piercing (AP)": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 130
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 130, named by the owner clicking it. Cost not read"
+    },
+    "50AE Flesh Damage (HP)": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 95
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 95, named by the owner clicking it. Cost not read"
+    },
+    "7.62mm Armor Piercing (AP)": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 63
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 63, named by the owner clicking it. Cost not read"
     },
     "7.62mm Flesh Damage (HP)": {
       "unlock": {
@@ -51,12 +155,52 @@
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 11, named on screen. Cost not read"
     },
+    "7.62x54mm Armor Piercing (AP)": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 83
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 83, named by the owner clicking it. Cost not read"
+    },
+    "7.62x54mm Flesh Damage (HP)": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 28
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 28, named by the owner clicking it. Cost not read"
+    },
+    "9mm Armor Piercing (AP)": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 75
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 75, named by the owner clicking it. Cost not read"
+    },
+    "9mm Flesh Damage (HP)": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 6
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 6, named by the owner clicking it. Cost not read"
+    },
     "AMP-9": {
       "unlock": {
         "starter": true
       },
       "on": "2026-09-02",
       "note": "Owner read it off the buy screen: no ladder, level or cost"
+    },
+    "Arsenal Backpack + 2 Slings": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 150
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 150, named by the owner clicking it. Cost not read"
     },
     "Assault Backpack": {
       "unlock": {
@@ -246,6 +390,14 @@
       },
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 100: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Level 4 Helmet": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 100
+      },
+      "on": "2026-09-02",
+      "note": "Wardog Level screen, level 100, named by the owner clicking it. Cost not read"
     },
     "M1911": {
       "unlock": {
