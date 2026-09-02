@@ -667,7 +667,8 @@
         2
       ],
       "on": "2026-09-02",
-      "note": "Backpack view of the vendor Items tab, 2026-09-02: the cells the item fills, checked against CAP. 11/12 adding up"
+      "note": "Backpack view of the vendor Items tab, 2026-09-02: the pack cell shows no fraction, which the owner confirmed means the item does not stack",
+      "stack": 1
     },
     "FAL": {
       "unlock": {
@@ -715,11 +716,12 @@
         "level": 2
       },
       "on": "2026-09-02",
-      "note": "Backpack view of the vendor Items tab, 2026-09-02: the cells the item fills, checked against CAP. 11/12 adding up",
+      "note": "Backpack view of the vendor Items tab, 2026-09-02: the pack cell shows no fraction, which the owner confirmed means the item does not stack",
       "grid": [
         1,
         2
-      ]
+      ],
+      "stack": 1
     },
     "Flow-Through .308 Suppressor": {
       "unlock": {
@@ -1313,12 +1315,13 @@
         "level": 24
       },
       "on": "2026-09-02",
-      "note": "Backpack view of the vendor Items tab, 2026-09-02: the Medical Bag fills a 2x2 block of the pack, said by the owner and visible in the screenshot. Its stack is not read: the pack cell shows no fraction for it",
+      "note": "Backpack view of the vendor Items tab, 2026-09-02: the pack cell shows no fraction, which the owner confirmed means the item does not stack",
       "class": "Medical",
       "grid": [
         2,
         2
-      ]
+      ],
+      "stack": 1
     },
     "Medium Hammer": {
       "unlock": {
