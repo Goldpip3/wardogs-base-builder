@@ -1794,6 +1794,14 @@
       },
       "on": "2026-09-02",
       "note": "Medic ladder screen, level 28: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Z20 Lakota": {
+      "unlock": {
+        "role": "Pilot",
+        "level": 10
+      },
+      "on": "2026-09-02",
+      "note": "Pilot ladder screen, level 10, named on screen. Cost not read"
     }
   }
 }

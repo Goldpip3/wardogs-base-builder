@@ -364,7 +364,7 @@ L2A6|$14,000
 M113 APC SV|
 MH-6|$6,250
 SPH-2|$8,000
-UH-1Y|$7,400
+Z20 Lakota|$7,400
 UH-1Y [Miniguns]|$8,000
 Ural|
 Ural Defender|$6,000

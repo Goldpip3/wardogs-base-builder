@@ -93,7 +93,7 @@ module.exports = ctx => {
   const vehClass = function (n) {
     const c = statOf(n).class;
     if (c === "Air" || c === "Ground") return c;
-    return /AH-6|MH-6|UH-1|Havoc/.test(n) ? "Air" : "Ground";
+    return /AH-6|MH-6|UH-1|Lakota|Havoc/.test(n) ? "Air" : "Ground";
   };
   const vehCount = function (kind) {
     return byCat("vehicles").filter(function (i) { return vehClass(i.name) === kind; }).length;
