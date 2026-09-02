@@ -1934,6 +1934,13 @@
    "icon": "smokegrenade-white"
   },
   {
+   "name": "Claymore",
+   "cat": "throwables",
+   "price": null,
+   "per": 1,
+   "icon": "claymore"
+  },
+  {
    "name": "M67 Frag Grenade",
    "cat": "throwables",
    "price": 200,

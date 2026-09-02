@@ -299,6 +299,7 @@ M18 Signal Grenade: Landing Zone|$50
 M18 Signal Grenade: Supply Request|$50
 M18 Smoke Grenade: Black|$100
 M18 Smoke Grenade: White|
+Claymore|
 M67 Frag Grenade|$200
 Remote Detonator|$550
 `,

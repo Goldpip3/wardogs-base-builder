@@ -474,6 +474,14 @@
       "on": "2026-09-02",
       "note": "Assault ladder screen, level 38: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
+    "Claymore": {
+      "unlock": {
+        "role": "Recon",
+        "level": 22
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 22, named on screen. Vendor price not read"
+    },
     "Compact T-2 Red Dot": {
       "unlock": {
         "role": "Wardog",
