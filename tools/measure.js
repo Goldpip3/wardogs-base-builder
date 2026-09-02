@@ -59,7 +59,7 @@ const FIELDS = {
     read: "the damage page turns shots to kill into time to kill, and can bring an unfigured weapon in",
   },
   class: {
-    what: "the damage class, one of the classes in data/damage.json",
+    what: "what the vendor files it under: a weapon's damage class from data/damage.json, or the Specialist tab for a specialist item (Launcher, Medical, Building, Recon, Vehicle, Tactical)",
     parse: v => String(v).trim(),
     read: "the damage page joins the measured damage table on it",
   },

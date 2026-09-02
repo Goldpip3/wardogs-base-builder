@@ -1871,6 +1871,20 @@
    "icon": "buildtool-hammer-medium"
   },
   {
+   "name": "Small Hammer",
+   "cat": "equipment",
+   "price": null,
+   "per": 1,
+   "icon": "buildtool-hammer-small"
+  },
+  {
+   "name": "Halligan Bar",
+   "cat": "equipment",
+   "price": null,
+   "per": 1,
+   "icon": "crowbar"
+  },
+  {
    "name": "C4 Charge",
    "cat": "throwables",
    "price": 250,

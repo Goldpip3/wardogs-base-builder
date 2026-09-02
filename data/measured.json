@@ -265,7 +265,8 @@
         "level": 16
       },
       "on": "2026-09-02",
-      "note": "Support ladder screen, level 16: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+      "note": "Equipment Vendor, Specialist slot, Launcher tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0",
+      "class": "Launcher"
     },
     "9mm Armor Piercing (AP)": {
       "unlock": {
@@ -490,6 +491,11 @@
       "on": "2026-09-02",
       "note": "Medic ladder screen, level 13, named on screen. Cost not read"
     },
+    "Binoculars": {
+      "class": "Recon",
+      "on": "2026-09-02",
+      "note": "Equipment Vendor, Specialist slot, Recon tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0"
+    },
     "Birdcage Flash Hider": {
       "unlock": {
         "role": "Assault",
@@ -609,7 +615,8 @@
         "level": 11
       },
       "on": "2026-09-02",
-      "note": "Medic ladder screen, level 11: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+      "note": "Equipment Vendor, Specialist slot, Medical tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0",
+      "class": "Medical"
     },
     "Dual Port Brake": {
       "unlock": {
@@ -706,6 +713,11 @@
       },
       "on": "2026-09-02",
       "note": "Recon ladder screen, level 43: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Fuel Can": {
+      "class": "Vehicle",
+      "on": "2026-09-02",
+      "note": "Equipment Vendor, Specialist slot, Vehicle tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0"
     },
     "Full Choke": {
       "unlock": {
@@ -827,6 +839,11 @@
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 73: the icon there is this item and the level matches the database pull, which supplies the name and cost"
     },
+    "Halligan Bar": {
+      "class": "Tactical",
+      "on": "2026-09-02",
+      "note": "Equipment Vendor, Specialist slot, Tactical tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0"
+    },
     "Havoc": {
       "unlock": {
         "role": "Pilot",
@@ -841,7 +858,8 @@
         "level": 28
       },
       "on": "2026-09-02",
-      "note": "Support ladder screen, level 28: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+      "note": "Equipment Vendor, Specialist slot, Vehicle tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0",
+      "class": "Vehicle"
     },
     "Hexagon 762 Suppressor": {
       "unlock": {
@@ -915,6 +933,11 @@
       "on": "2026-09-02",
       "note": "Support ladder screen, level 14: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
+    "Improvised Explosive Device": {
+      "class": "Tactical",
+      "on": "2026-09-02",
+      "note": "Equipment Vendor, Specialist slot, Tactical tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0"
+    },
     "Individual First Aid Kit": {
       "unlock": {
         "role": "Medic",
@@ -929,7 +952,8 @@
         "level": 32
       },
       "on": "2026-09-02",
-      "note": "Recon ladder screen, level 32: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+      "note": "Equipment Vendor, Specialist slot, Recon tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0",
+      "class": "Recon"
     },
     "Judge": {
       "unlock": {
@@ -993,7 +1017,8 @@
         "level": 7
       },
       "on": "2026-09-02",
-      "note": "Support ladder screen, level 7, named by the owner. Vendor price not read"
+      "note": "Equipment Vendor, Specialist slot, Building tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0",
+      "class": "Building"
     },
     "Large Tac Vest": {
       "unlock": {
@@ -1073,7 +1098,8 @@
         "level": 1
       },
       "on": "2026-09-02",
-      "note": "Support ladder screen, level 1: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+      "note": "Equipment Vendor, Specialist slot, Vehicle tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0",
+      "class": "Vehicle"
     },
     "M18 Smoke Grenade: Black": {
       "unlock": {
@@ -1177,7 +1203,8 @@
         "level": 20
       },
       "on": "2026-09-02",
-      "note": "Support ladder screen, level 20, named on screen. Cost not read"
+      "note": "Equipment Vendor, Specialist slot, Launcher tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0",
+      "class": "Launcher"
     },
     "MGL-40": {
       "unlock": {
@@ -1185,7 +1212,8 @@
         "level": 35
       },
       "on": "2026-09-02",
-      "note": "Support ladder screen, level 35, named on screen. Cost not read"
+      "note": "Equipment Vendor, Specialist slot, Launcher tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0",
+      "class": "Launcher"
     },
     "MK22": {
       "unlock": {
@@ -1249,7 +1277,8 @@
         "level": 24
       },
       "on": "2026-09-02",
-      "note": "Medic ladder screen, level 24: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+      "note": "Equipment Vendor, Specialist slot, Medical tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0",
+      "class": "Medical"
     },
     "Medium Hammer": {
       "unlock": {
@@ -1257,7 +1286,8 @@
         "level": 3
       },
       "on": "2026-09-02",
-      "note": "Support ladder screen, level 3, named by the owner. Vendor price not read"
+      "note": "Equipment Vendor, Specialist slot, Building tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0",
+      "class": "Building"
     },
     "Medium Tac Vest": {
       "unlock": {
@@ -1281,7 +1311,8 @@
         "level": 2
       },
       "on": "2026-09-02",
-      "note": "Recon ladder screen, level 2, named on screen. Cost not read"
+      "note": "Equipment Vendor, Specialist slot, Recon tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0",
+      "class": "Recon"
     },
     "Mosin Nagant": {
       "unlock": {
@@ -1441,7 +1472,8 @@
         "level": 5
       },
       "on": "2026-09-02",
-      "note": "Support ladder screen, level 5, named on screen. Cost not read"
+      "note": "Equipment Vendor, Specialist slot, Launcher tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0",
+      "class": "Launcher"
     },
     "RVG Vertical Foregrip": {
       "unlock": {
@@ -1457,7 +1489,8 @@
         "level": 8
       },
       "on": "2026-09-02",
-      "note": "Recon ladder screen, level 8: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+      "note": "Equipment Vendor, Specialist slot, Recon tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0",
+      "class": "Recon"
     },
     "Remote Detonator": {
       "unlock": {
@@ -1465,7 +1498,8 @@
         "level": 2
       },
       "on": "2026-09-02",
-      "note": "Support ladder screen, level 2: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+      "note": "Equipment Vendor, Specialist slot, Tactical tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0",
+      "class": "Tactical"
     },
     "Rubberized Ergonomic Foregrip": {
       "unlock": {
@@ -1650,6 +1684,11 @@
       "on": "2026-09-02",
       "note": "Pilot ladder screen, level 2: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
+    "Small Hammer": {
+      "class": "Building",
+      "on": "2026-09-02",
+      "note": "Equipment Vendor, Specialist slot, Building tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0"
+    },
     "Spectr 4x": {
       "unlock": {
         "role": "Support",
@@ -1794,6 +1833,11 @@
       },
       "on": "2026-09-02",
       "note": "Medic ladder screen, level 28: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Wrench": {
+      "class": "Vehicle",
+      "on": "2026-09-02",
+      "note": "Equipment Vendor, Specialist slot, Vehicle tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0"
     },
     "Z20 Lakota": {
       "unlock": {

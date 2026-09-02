@@ -288,6 +288,8 @@ Sport Parachute|$1,000
 Wrench|$150
 Large Hammer|
 Medium Hammer|
+Small Hammer|
+Halligan Bar|
 `,
   throwables: `
 C4 Charge|$250
