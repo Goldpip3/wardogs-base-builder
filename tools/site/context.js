@@ -30,6 +30,15 @@ const esc = s => String(s).replace(/[&<>"']/g, c =>
    With no publisher id configured nothing at all is emitted anywhere: no script tag, no
    slot, no reserved space. Fill in data/ads.json -> publisherId to switch it on. */
 const ADS = JSON.parse(fs.readFileSync(path.join(ROOT, "data/ads.json"), "utf8"));
+/* Ownership proofs for the search engines. Both are empty until the owner claims the site,
+   and an empty one emits no tag: see data/search.json for how to fill them. */
+const SEARCH = JSON.parse(fs.readFileSync(path.join(ROOT, "data/search.json"), "utf8"));
+const VERIFY = [
+  ["google-site-verification", (SEARCH.googleSiteVerification || "").trim()],
+  ["msvalidate.01", (SEARCH.bingSiteVerification || "").trim()],
+].filter(v => v[1])
+ .map(v => '<meta name="' + v[0] + '" content="' + esc(v[1]) + '">')
+ .join("\n");
 const adsOn = !!(ADS.publisherId || "").trim();
 const adScript = adsOn
   ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${esc(ADS.publisherId)}" crossorigin="anonymous"></script>`
@@ -422,7 +431,7 @@ const VOTE_API = (COMMUNITY.voteApi || "").replace(/\/$/, "");
 
   const CSS = require("./css");
   const ctx = {
-    fs, path, ROOT, DOCS, SITE, catalog, byId, esc,
+    fs, path, ROOT, DOCS, SITE, catalog, byId, esc, VERIFY,
     ADS, adsOn, adScript, adSlot,
     encodeDesign, P, run, ring, pit,
     COMMUNITY, BALLISTICS, ARMORY, ARMORY_STATS, MEASURED, ITEM_STATS, loadsFor,

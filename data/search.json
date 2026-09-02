@@ -1,0 +1,7 @@
+{
+  "_note": "What search engines need from the owner rather than from the pages. Empty until somebody pastes a real value in: an empty string emits no tag at all, which is the correct state for a site that has not been claimed yet, and is why this is a data file rather than a line in the markup.",
+  "_howToVerify": "In Google Search Console, add a URL prefix property for https://www.wardogsbuilder.com, choose the HTML tag method, and copy the value out of content=\"...\" into googleSiteVerification below. Rebuild and push. The tag then ships on every page, so it survives a rebuild and cannot be lost by editing one file in docs/. Google re-checks it periodically, so it stays in place rather than being removed once verified. A push takes about ten minutes to reach a browser, so verify after that, not before.",
+  "_alsoWorth": "Search Console is where the sitemap gets submitted, at https://www.wardogsbuilder.com/sitemap.xml, and where the site's own search terms show up. Bing has the same thing at Bing Webmaster Tools and imports a verified Google property directly, so it is one click after this.",
+  "googleSiteVerification": "",
+  "bingSiteVerification": ""
+}

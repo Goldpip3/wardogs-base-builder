@@ -11,7 +11,7 @@
    nobody adds them later believing the site is covered. All of them need something in front of
    GitHub Pages that can set real headers: see map/processes/security.md. */
 module.exports = ctx => {
-  const { SITE, esc, adScript, adSlot, CSS, AUTH_SCRIPT, ACCT_BAR } = ctx;
+  const { SITE, esc, adScript, adSlot, CSS, AUTH_SCRIPT, ACCT_BAR, VERIFY } = ctx;
   /* `head` exists for one thing: a meta refresh on a page that has moved. GitHub Pages
      cannot send a 301, so that tag is the only redirect a page here can perform. Keep it to
      that. Anything else wanting into <head> is asking for a per-page style or script, and
@@ -27,7 +27,10 @@ module.exports = ctx => {
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(desc)}">
 <link rel="canonical" href="${SITE}${canonical}">${noindex ? '\n<meta name="robots" content="noindex,nofollow">' : ""}${head ? "\n" + head : ""}
-<meta name="theme-color" content="#12140d">
+<meta name="theme-color" content="#12140d">${/* The ownership proofs, from data/search.json,
+   and nothing at all until somebody claims the site. On every page rather than only the
+   front one, because Google re-checks the tag and a property verified against a page that
+   later loses it goes back to unverified. */""}${VERIFY ? "\n" + VERIFY : ""}
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="WARDOGS">
 <meta property="og:title" content="${esc(title)}">
