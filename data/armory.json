@@ -1836,6 +1836,13 @@
    "icon": "rangefinder"
   },
   {
+   "name": "Monocular",
+   "cat": "equipment",
+   "price": null,
+   "per": 1,
+   "icon": "monocular"
+  },
+  {
    "name": "Sport Parachute",
    "cat": "equipment",
    "price": 1000,

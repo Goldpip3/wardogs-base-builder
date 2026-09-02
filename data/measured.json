@@ -59,6 +59,14 @@
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 25, named by the owner clicking it. Cost not read"
     },
+    ".50 Cal Heavy Suppressor": {
+      "unlock": {
+        "role": "Recon",
+        "level": 37
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 37: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
     "12g Rifled Slug": {
       "unlock": {
         "role": "Wardog",
@@ -98,6 +106,14 @@
       },
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 31, named on screen. Cost not read"
+    },
+    "3x-6x LPVO Short Dot": {
+      "unlock": {
+        "role": "Recon",
+        "level": 11
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 11: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
     "45 Degree Angled Foregrip": {
       "unlock": {
@@ -162,6 +178,30 @@
       },
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 95, named by the owner clicking it. Cost not read"
+    },
+    "6-10x Scope MOA": {
+      "unlock": {
+        "role": "Recon",
+        "level": 26
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 26, named on screen. Cost not read"
+    },
+    "6-10x Scope MRAD": {
+      "unlock": {
+        "role": "Recon",
+        "level": 18
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 18: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "6x Marksman Scope + Reflex": {
+      "unlock": {
+        "role": "Recon",
+        "level": 34
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 34: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
     "7.62mm Armor Piercing (AP)": {
       "unlock": {
@@ -298,6 +338,30 @@
       "on": "2026-09-02",
       "note": "Medic ladder screen, level 12: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
+    "AMR 50": {
+      "unlock": {
+        "role": "Recon",
+        "level": 35
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 35: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "AMR 50 10 RND Magazine": {
+      "unlock": {
+        "role": "Recon",
+        "level": 50
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 50, named on screen. Cost not read"
+    },
+    "AMR 50 5 RND Magazine": {
+      "unlock": {
+        "role": "Recon",
+        "level": 35
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 35: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
     "AR Multi-Caliber Suppressor": {
       "unlock": {
         "role": "Assault",
@@ -305,6 +369,14 @@
       },
       "on": "2026-09-02",
       "note": "Assault ladder screen, level 21: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "AX50 .50 Cal Muzzle Brake": {
+      "unlock": {
+        "role": "Recon",
+        "level": 48
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 48: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
     "Adrenaline Pen": {
       "unlock": {
@@ -330,6 +402,30 @@
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 32: the icon there is this item and the level matches the database pull, which supplies the name and cost"
     },
+    "BMR-308": {
+      "unlock": {
+        "role": "Recon",
+        "level": 30
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 30: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "BMR-308 Flash Hider": {
+      "unlock": {
+        "role": "Recon",
+        "level": 31
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 31: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "BMR-308 Suppressor": {
+      "unlock": {
+        "role": "Recon",
+        "level": 33
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 33, named on screen. Cost not read"
+    },
     "Ballista Brake": {
       "unlock": {
         "role": "Medic",
@@ -345,6 +441,14 @@
       },
       "on": "2026-09-02",
       "note": "Assault ladder screen, level 16: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Broadhead Arrow": {
+      "unlock": {
+        "role": "Recon",
+        "level": 17
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 17, named on screen. Cost not read"
     },
     "CQ-2x Prism Combat Scope": {
       "unlock": {
@@ -381,7 +485,35 @@
     "Compound Bow": {
       "class": "Bow",
       "on": "2026-09-02",
-      "note": "The vendor's Equipment tab files it under BOWS, read off the Equipment Vendor screen"
+      "note": "Recon ladder screen, level 17, named on screen. Cost not read",
+      "unlock": {
+        "role": "Recon",
+        "level": 17
+      }
+    },
+    "Constrictor Brake": {
+      "unlock": {
+        "role": "Recon",
+        "level": 23
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 23: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "DTK-1 Brake": {
+      "unlock": {
+        "role": "Recon",
+        "level": 6
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 6: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Deadeye Flash Hider": {
+      "unlock": {
+        "role": "Recon",
+        "level": 9
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 9: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
     "Deagle": {
       "unlock": {
@@ -431,6 +563,14 @@
       "on": "2026-09-02",
       "note": "Assault ladder screen, level 35, named on screen. Cost not read"
     },
+    "FAL 10 RND Magazine": {
+      "unlock": {
+        "role": "Recon",
+        "level": 30
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 30: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
     "FAL 20 RND Magazine": {
       "unlock": {
         "role": "Assault",
@@ -463,6 +603,14 @@
       "on": "2026-09-02",
       "note": "Medic ladder screen, level 2: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
+    "Flow-Through .308 Suppressor": {
+      "unlock": {
+        "role": "Recon",
+        "level": 40
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 40: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
     "Four Reticle Reflex": {
       "unlock": {
         "role": "Medic",
@@ -470,6 +618,14 @@
       },
       "on": "2026-09-02",
       "note": "Medic ladder screen, level 6: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Frontier 2.5x-10x Precision Scope": {
+      "unlock": {
+        "role": "Recon",
+        "level": 43
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 43: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
     "GGX 17": {
       "unlock": {
@@ -511,6 +667,14 @@
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 80: the icon there is this item and the level matches the database pull, which supplies the name and cost"
     },
+    "GOL Multi-Caliber Suppressor": {
+      "unlock": {
+        "role": "Recon",
+        "level": 45
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 45, named on screen. Cost not read"
+    },
     "Galil": {
       "unlock": {
         "role": "Assault",
@@ -527,6 +691,38 @@
       "on": "2026-09-02",
       "note": "Assault ladder screen, level 15: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
+    "Ghillie Body Suit": {
+      "unlock": {
+        "role": "Recon",
+        "level": 24
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 24, named on screen. Cost not read"
+    },
+    "Ghillie Body Suit (Dead)": {
+      "unlock": {
+        "role": "Recon",
+        "level": 27
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 27: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Ghillie Headwear": {
+      "unlock": {
+        "role": "Recon",
+        "level": 24
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 24, named on screen. Cost not read"
+    },
+    "Ghillie Headwear (Dead)": {
+      "unlock": {
+        "role": "Recon",
+        "level": 27
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 27: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
     "Ghost LITE Muzzle Brake": {
       "unlock": {
         "role": "Medic",
@@ -542,6 +738,14 @@
       },
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 73: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Hexagon 762 Suppressor": {
+      "unlock": {
+        "role": "Recon",
+        "level": 15
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 15: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
     "Hexagon Brake": {
       "unlock": {
@@ -574,6 +778,14 @@
       },
       "on": "2026-09-02",
       "note": "Medic ladder screen, level 9: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Infrared Range Finder": {
+      "unlock": {
+        "role": "Recon",
+        "level": 32
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 32: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
     "Judge": {
       "unlock": {
@@ -719,6 +931,30 @@
       "on": "2026-09-02",
       "note": "Assault ladder screen, level 20: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
+    "MK22": {
+      "unlock": {
+        "role": "Recon",
+        "level": 25
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 25: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "MK22 10 RND Magazine": {
+      "unlock": {
+        "role": "Recon",
+        "level": 39
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 39, named on screen. Cost not read"
+    },
+    "MK22 5 RND Magazine": {
+      "unlock": {
+        "role": "Recon",
+        "level": 25
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 25: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
     "MP5": {
       "unlock": {
         "role": "Medic",
@@ -774,6 +1010,22 @@
       },
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 38, named on screen. Cost not read"
+    },
+    "Monocular": {
+      "unlock": {
+        "role": "Recon",
+        "level": 2
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 2, named on screen. Cost not read"
+    },
+    "Mosin Nagant": {
+      "unlock": {
+        "role": "Recon",
+        "level": 10
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 10: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
     "OKP 7 Reflex": {
       "unlock": {
@@ -847,6 +1099,14 @@
       "on": "2026-09-02",
       "note": "Medic ladder screen, level 43: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
+    "Pro Tilt Bipod": {
+      "unlock": {
+        "role": "Recon",
+        "level": 46
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 46: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
     "QD-5 Suppressor": {
       "unlock": {
         "role": "Medic",
@@ -879,6 +1139,14 @@
       "on": "2026-09-02",
       "note": "Medic ladder screen, level 16: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
+    "Range Finder": {
+      "unlock": {
+        "role": "Recon",
+        "level": 8
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 8: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
     "Rubberized Ergonomic Foregrip": {
       "unlock": {
         "role": "Assault",
@@ -903,6 +1171,22 @@
       "on": "2026-09-02",
       "note": "Medic ladder screen, level 48, named on screen. Cost not read"
     },
+    "SKS": {
+      "unlock": {
+        "role": "Recon",
+        "level": 5
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 5: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "SKS Bipod": {
+      "unlock": {
+        "role": "Recon",
+        "level": 7
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 7, named on screen. Cost not read"
+    },
     "SPH-2": {
       "unlock": {
         "role": "Wardog",
@@ -910,6 +1194,14 @@
       },
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 55: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "SRVV Brake": {
+      "unlock": {
+        "role": "Recon",
+        "level": 20
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 20: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
     "STANAG 30 RND Magazine": {
       "unlock": {
@@ -927,6 +1219,78 @@
       "on": "2026-09-02",
       "note": "Assault ladder screen, level 30: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
+    "STRELIX Suppressor": {
+      "unlock": {
+        "role": "Recon",
+        "level": 3
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 3: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "SV98": {
+      "unlock": {
+        "role": "Recon",
+        "level": 19
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 19: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "SV98 10 RND Magazine": {
+      "unlock": {
+        "role": "Recon",
+        "level": 19
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 19: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "SV98 Bipod": {
+      "unlock": {
+        "role": "Recon",
+        "level": 21
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 21: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "SVD": {
+      "unlock": {
+        "role": "Recon",
+        "level": 12
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 12: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "SVD 10 RND Magazine": {
+      "unlock": {
+        "role": "Recon",
+        "level": 16
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 16: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "SVD 5 RND Magazine": {
+      "unlock": {
+        "role": "Recon",
+        "level": 12
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 12: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "SVD 7.62x54R Brake": {
+      "unlock": {
+        "role": "Recon",
+        "level": 13
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 13, named on screen. Cost not read"
+    },
+    "SVD Bipod": {
+      "unlock": {
+        "role": "Recon",
+        "level": 14
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 14: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
     "Scout Rifle TD": {
       "unlock": {
         "starter": true
@@ -941,6 +1305,14 @@
       },
       "on": "2026-09-02",
       "note": "Assault ladder screen, level 48, named on screen. Cost not read"
+    },
+    "Slicktap Brake": {
+      "unlock": {
+        "role": "Recon",
+        "level": 28
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 28: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
     "Spitfire 3X": {
       "unlock": {
@@ -1013,6 +1385,14 @@
       },
       "on": "2026-09-02",
       "note": "Assault ladder screen, level 19, named on screen. Cost not read"
+    },
+    "Three Port Brake": {
+      "unlock": {
+        "role": "Recon",
+        "level": 36
+      },
+      "on": "2026-09-02",
+      "note": "Recon ladder screen, level 36: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
     "TopComp Brake": {
       "unlock": {

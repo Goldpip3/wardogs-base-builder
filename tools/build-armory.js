@@ -283,6 +283,7 @@ Heavy Drill|$1,300
 Infrared Range Finder|$1,200
 Light Drill|$600
 Range Finder|$400
+Monocular|
 Sport Parachute|$1,000
 Wrench|$150
 `,
