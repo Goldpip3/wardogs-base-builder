@@ -3,7 +3,7 @@
    these template literals, and that whitespace is page content. */
 module.exports = ctx => {
   const { esc, ARMORY, ARMORY_STATS, ITEM_STATS, MEASURED, BALLISTICS,
-          classLabel, classRank, adSlot, page, write } = ctx;
+          classLabel, classRank, ladderLabel, adSlot, page, write } = ctx;
 
 /* ---------- armory, loadouts and vehicles ----------
    One transcribed vendor catalogue behind all three. The armory browses it, the loadout
@@ -104,8 +104,9 @@ module.exports = ctx => {
   const unlockText = function (name) {
     const u = statOf(name).unlock;
     if (u && u.starter) return "Nothing: it is there from the first match";
-    if (!u || !u.level) return "";
-    return u.role + " level " + u.level + (u.cash ? ", " + money(u.cash) : "");
+    if (!u || !u.role) return "";
+    return ladderLabel(u.role) + (u.level ? " level " + u.level : " ladder, level not read yet") +
+      (u.cash ? ", " + money(u.cash) : "");
   };
 
   /* The two weapon lists spell a calibre differently and only one of them is readable.
@@ -608,7 +609,7 @@ module.exports = ctx => {
       (function (u) {
         return u && u.level
           ? '<span class="vcard-lvl" title="' +
-            esc(u.role + " level " + u.level + (u.cash ? ", " + money(u.cash) + " to unlock" : "")) +
+            esc(ladderLabel(u.role) + " level " + u.level + (u.cash ? ", " + money(u.cash) + " to unlock" : "")) +
             '">Lv ' + u.level + "</span>"
           : "";
       }(statOf(it.name).unlock)) +

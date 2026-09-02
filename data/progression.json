@@ -29,10 +29,10 @@
     },
     {
       "id": "career",
-      "name": "Career"
+      "name": "Wardog Level"
     }
   ],
-  "trackNote": "Six class ladders plus the career level, which is the sum of the six. The first ladder is Assault: a write-up calling it Infantry is wrong, confirmed by the owner 2026-08-31.",
+  "trackNote": "Six class ladders plus the Wardog Level, which is the sum of the six. All seven names read off the game's Unlock screen on 2026-09-02: Assault, Medic, Recon, Support, Driver, Pilot and Wardog Level. Write-ups calling the first Infantry or the last Career are wrong.",
   "weapons": [
     {
       "name": "Bushmaster M17S",

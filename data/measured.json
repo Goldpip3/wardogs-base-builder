@@ -15,6 +15,14 @@
       "on": "2026-09-02",
       "note": "The vendor's Equipment tab files it under BOWS, read off the Equipment Vendor screen"
     },
+    "GGX 17": {
+      "unlock": {
+        "role": "Wardog",
+        "level": 1
+      },
+      "on": "2026-09-02",
+      "note": "Unlock screen, Wardog Level 1 unlockable items: GGX 17 and its magazine. Cost not read"
+    },
     "Scout Rifle TD": {
       "unlock": {
         "starter": true

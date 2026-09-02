@@ -271,10 +271,22 @@ for (const [name, seen] of Object.entries(MEASURED.items)) {
   const from = into.measured = {};
   for (const [k, v] of Object.entries(seen)) {
     if (k === "on" || k === "note") continue;
-    into[k] = v;
+    /* An unlock is three facts, ladder, level and cash, and the buy screen shows the
+       ladder before it shows what the level costs, so a reading may carry one or two of
+       them. The pulled figures fill in what was not read, except for a starter, where the
+       pull's level and cost are the thing being contradicted. */
+    if (k === "unlock" && v && !v.starter && into.unlock && typeof into.unlock === "object") {
+      into.unlock = { ...into.unlock, ...v };
+    } else into[k] = v;
     from[k] = seen.on;
   }
 }
+/* The ladders as the game's Unlock screen names them, read 2026-09-02: Assault, Medic,
+   Recon, Support, Driver, Pilot, and the overall Wardog Level. The item database says
+   Infantry for the first and Career for the last, so the pulled words are translated here
+   at display and left untouched in data/armory-stats.json. */
+const LADDER_LABEL = { Infantry: "Assault", Career: "Wardog" };
+const ladderLabel = r => LADDER_LABEL[r] || r;
 const DAMAGE = JSON.parse(fs.readFileSync(path.join(ROOT, "data/damage.json"), "utf8"));
 const ARTILLERY = JSON.parse(fs.readFileSync(path.join(ROOT, "data/artillery.json"), "utf8"));
 const ARTILLERY_MAPS = JSON.parse(fs.readFileSync(path.join(ROOT, "data/artillery-maps.json"), "utf8"));
@@ -436,7 +448,7 @@ const VOTE_API = (COMMUNITY.voteApi || "").replace(/\/$/, "");
     ADS, adsOn, adScript, adSlot,
     encodeDesign, P, run, ring, pit,
     COMMUNITY, BALLISTICS, ARMORY, ARMORY_STATS, MEASURED, ITEM_STATS, loadsFor,
-    CLASS_ORDER, classLabel, classShort, classRank, DAMAGE, ARTILLERY, ARTILLERY_MAPS, DESIGNS, stats,
+    CLASS_ORDER, classLabel, classShort, classRank, ladderLabel, DAMAGE, ARTILLERY, ARTILLERY_MAPS, DESIGNS, stats,
     CSS, write, written, sweepDesignPages,
     decodeShared, withStats, designCard, VOTE_API,
     TAG_GROUPS, TAG_BY_ID, tagPills,

@@ -64,7 +64,7 @@ const FIELDS = {
     read: "the damage page joins the measured damage table on it",
   },
   unlock: {
-    what: "what opens it, as Ladder/level/cash, such as Recon/12/50000. Cash 0 if it is free once the level is reached; the word starter if it is there from the first match",
+    what: "what opens it: Ladder, Ladder/level or Ladder/level/cash, such as Recon/12/50000, giving only what the screen showed. Cash 0 if it is free once the level is reached; the word starter if it is there from the first match",
     parse: v => unlock(v),
     read: "the armory panel says which ladder, which level and what it costs to unlock, and /todo/ counts what is still unconfirmed",
   },
@@ -75,11 +75,15 @@ const FIELDS = {
    are whole numbers; cash may be 0, since some things open free at their level. */
 function unlock(v) {
   if (/^starter$/i.test(String(v).trim())) return { starter: true };
-  const m = String(v).trim().match(/^([A-Za-z][A-Za-z ]*?)\s*[/ ]\s*(\d+)\s*[/ ]\s*\$?(\d[\d,]*)$/);
-  if (!m) throw new Error("an unlock is Ladder/level/cash, such as Recon/12/50000");
-  const level = Number(m[2]), cash = Number(m[3].replace(/,/g, ""));
-  if (!(level > 0)) throw new Error("the level has to be 1 or more");
-  return { role: m[1].trim(), level: level, cash: cash };
+  const m = String(v).trim().match(/^([A-Za-z][A-Za-z ]*?)(?:\s*\/\s*(\d+)(?:\s*\/\s*\$?(\d[\d,]*))?)?$/);
+  if (!m) throw new Error("an unlock is Ladder, Ladder/level or Ladder/level/cash, such as Recon/12/50000");
+  const out = { role: m[1].trim() };
+  if (m[2] !== undefined) {
+    out.level = Number(m[2]);
+    if (!(out.level > 0)) throw new Error("the level has to be 1 or more");
+  }
+  if (m[3] !== undefined) out.cash = Number(m[3].replace(/,/g, ""));
+  return out;
 }
 
 function grid(v) {
