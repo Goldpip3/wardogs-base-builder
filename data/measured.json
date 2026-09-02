@@ -1651,6 +1651,14 @@
       "on": "2026-09-02",
       "note": "Medic ladder screen, level 43: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
+    "Pouch": {
+      "storage": [
+        3,
+        2
+      ],
+      "on": "2026-09-02",
+      "note": "Vendor Gear tab with the Pouch equipped, 2026-09-02: the empty pack draws three cells across and two down, CAP. 0/6"
+    },
     "Pro Tilt Bipod": {
       "unlock": {
         "role": "Recon",
