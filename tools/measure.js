@@ -137,6 +137,7 @@ if (flags.list) {
   have.forEach(([n, v]) => {
     const shown = Object.keys(v).filter(k => k !== "on" && k !== "note")
       .map(k => k + " " + (Array.isArray(v[k]) ? v[k].join("x")
+        : v[k] && v[k].starter ? "starter"
         : v[k] && typeof v[k] === "object" ? Object.values(v[k]).join("/") : v[k])).join(", ");
     console.log("  " + n + ": " + shown + "  (" + v.on + ")");
   });
