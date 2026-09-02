@@ -550,6 +550,81 @@ check(!/emptyState"\)\.style\.display/.test(src.replace(lift("syncEmptyState"), 
   const empty = spawnAt([], [40, 40]);
   check(empty[0] === 0 && empty[1] === -6,
     "an empty plan has no view worth honouring, so that one is a fixed spot");
+
+  /* A click on the ground in the 3D view beats both, and is spent: the next walk from the
+     button goes back to the plan's centre rather than to a spot clicked an hour ago. */
+  vm.runInContext("walk.drop = [3, 4];", sandbox);
+  const clicked = spawnAt(base, [0, 0], [2]);
+  check(clicked[0] === 3 && clicked[1] === 4,
+    "a click on the ground in 3D beats the selection and the view");
+  check(vm.runInContext("walk.drop", sandbox) === null,
+    "and is used once");
+  check(vm.runInContext("Math.round(walk.yaw * 100) / 100", sandbox) !== 0,
+    "and faces you at the base rather than north");
+}
+
+/* Getting over a wall is a movement, not a snap.
+
+   A one block wall used to be no obstacle at all: walk at it and the feet went up a block in
+   one frame, which read as the floor lurching. The wall is solid now, and Space mantles you
+   over it in WALK_VAULT_T seconds. The target finder is the testable half: what Space would
+   take you over from here, or nothing. Facing matters, reach matters, the plan's own
+   VAULT_HEIGHT still matters, and a wall with something stacked on it is not offered.
+*/
+{
+  const constOf = n => {
+    const m = src.match(new RegExp("const " + n + " = [^;]+;"));
+    if (!m) throw new Error("could not lift const " + n);
+    return m[0];
+  };
+  vm.runInContext([constOf("WALK_VAULT_T"), constOf("WALK_VAULT_REACH"),
+                   constOf("WALK_VAULT_OVER"), lift("walkVaultTarget")].join("\n"), sandbox);
+  const wall = (top, extra) => Object.assign({ r: { cx: 0, cy: 2, w: 6, h: 1, rot: 0 }, base: 0, top: top }, extra || {});
+  const pushed = (z, solids) => vm.runInContext(
+    "walkPush(0, 1.6, " + JSON.stringify(solids) + ", " + z + ")", sandbox);
+  const low = pushed(0, [wall(1)]);
+  check(Math.abs(low[1] - 1.6) > 0.01 && low[1] < 1.6,
+    "a one block wall stops you on foot, it is not walked straight onto");
+  const onTop = pushed(1, [wall(1)]);
+  check(onTop[1] === 1.6,
+    "and is no obstacle to somebody already standing on it");
+
+  const target = (yaw, z, solids) => vm.runInContext(
+    "walkVaultTarget(0, 1.1, " + z + ", " + yaw + ", " + JSON.stringify(solids) + ")", sandbox);
+  const over = target(0, 0, [wall(1)]);
+  check(!!over && over.s.top === 1 && over.y > 1.5 && over.y < 2.5 &&
+    vm.runInContext("walkFloor(" + (over ? over.x : 0) + "," + (over ? over.y : 0) + ",1,[" +
+      JSON.stringify(wall(1)) + "])", sandbox) === 1,
+    "facing a one block wall from a hand's reach, Space lands you on top of it");
+  check(target(Math.PI, 0, [wall(1)]) === null,
+    "facing away from it, Space does nothing: the vault goes where you look");
+  check(target(0, 0, [wall(2)]) === null,
+    "a two block wall is beyond a vault, as the plan already says");
+  check(target(0, 0, [wall(1, { noClimb: true })]) === null,
+    "and a Bremer is never vaulted, however low");
+  check(vm.runInContext("walkVaultTarget(0, -1, 0, 0, [" + JSON.stringify(wall(1)) + "])", sandbox) === null,
+    "out of arm's reach there is nothing to vault, so walk closer");
+  check(target(0, 0, [wall(1), { r: { cx: 0, cy: 2, w: 6, h: 1, rot: 0 }, base: 1, top: 2 }]) === null,
+    "a wall with a piece stacked on it has no room on top, so it is not offered");
+  check(/const WALK_VAULT_T = [\d.]+;/.test(src) && /walk\.vault\) \{ walkVaultStep\(dt\)/.test(src),
+    "and the vault is played over time in the walk loop, not applied in one frame");
+  check(/k === ' '\) \{[^}]*walkVaultStart\(\)/.test(src),
+    "Space starts it");
+
+  /* The 3D view's ground click has to name the same point isoPt would draw there. */
+  vm.runInContext([
+    "var iso = { yaw: 0, zoom: 15, x: 3, y: -2 };",
+    "var canvas = { clientWidth: 900, clientHeight: 600 };",
+    constOf("ISO_K"), constOf("ISO_Z"), constOf("ISO_TILT"),
+    lift("isoSpin"), lift("isoUnspin"), lift("isoPt"), lift("isoGround"),
+  ].join("\n"), sandbox);
+  let worst = 0;
+  for (const yaw of [0, 15, 45, 120, 275]) for (const [x, y] of [[0, 0], [7.5, -3], [-12, 20]]) {
+    const back = vm.runInContext("iso.yaw = " + yaw + "; isoGround(...isoPt(" + x + "," + y + ",0))", sandbox);
+    worst = Math.max(worst, Math.abs(back[0] - x), Math.abs(back[1] - y));
+  }
+  check(worst < 1e-9,
+    "a click on the ground in 3D names the world point drawn under the pointer, at every turn");
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

@@ -466,7 +466,7 @@
   <div id="canvasWrap">
     <canvas id="canvas"></canvas>
     <canvas id="walkCanvas"></canvas>
-    <div id="walkHint">WASD to move, mouse to look, Shift to run. Esc frees the mouse.</div>
+    <div id="walkHint">WASD to move, mouse to look, Shift to run, Space to vault. Esc frees the mouse.</div>
     <div id="emptyState">
       <div class="es-title">Plan your FOB</div>
       <p>Start with the <b>FOB</b> at the top of the list. it sets the square you can build inside.
@@ -1482,6 +1482,7 @@ let placing = null;          // catalog id being placed
 let ghost = null;            // {cx, cy, rot}
 let selection = new Set();   // piece ids
 let hoverId = null;
+let isoHover = null;         // ground point under the pointer in the 3D view, where a click would stand you
 let undoStack = [], redoStack = [];
 let dragging = null;         // {mode:'pan'|'move'|'marquee'|'stamp', ...}
 let lastNudge = 0;           // coalesces held-arrow nudges into one undo step
@@ -1957,6 +1958,18 @@ function isoPt(x, y, z) {
     canvas.clientHeight / 2 + (rx + ry) * u * ISO_TILT - z * u * ISO_Z,
   ];
 }
+/* isoPt run backwards, for the ground only: the world point at z=0 under a screen point.
+   Screen x is (rx - ry) * ISO_K and screen y is (rx + ry) * ISO_TILT, so both come back out
+   of the pair, the same sum and difference the 3D pan already undoes. A point on the ground
+   is the one thing a screen point names unambiguously in this view; a height would need a
+   second click to say which. */
+function isoGround(px, py) {
+  const u = iso.zoom;
+  const a = (px - canvas.clientWidth / 2) / (ISO_K * u);
+  const b = (py - canvas.clientHeight / 2) / (ISO_TILT * u);
+  const [ux, uy] = isoUnspin((a + b) / 2, (b - a) / 2);
+  return [iso.x + ux, iso.y + uy];
+}
 
 /* How high off the ground a piece actually stands, in blocks.
  *
@@ -2287,6 +2300,23 @@ function draw3DNow() {
 
   lastDrawn = drawn;
 
+  /* Where a click would stand you. A figure the walker's own height, drawn at the ground
+     point under the pointer, so the 3D view says what a click does before it is clicked:
+     Google Maps drags a little person onto the road for the same reason. Only over open
+     ground: over a piece the click selects it, and the figure would promise otherwise. */
+  if (isoHover && !dragging) {
+    const [fx, fy] = isoPt(isoHover[0], isoHover[1], 0);
+    const u = iso.zoom, tall = (WALK_EYE + 0.1) * WALK_BLOCK * ISO_Z * u;
+    const r = Math.max(2.5, u * 0.16);
+    ctx.fillStyle = "rgba(0,0,0,.45)";
+    ctx.beginPath(); ctx.ellipse(fx, fy, r * 2.2, r * 1.1, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "#ffc61a"; ctx.lineCap = "round"; ctx.lineWidth = Math.max(2, r * 0.9);
+    ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(fx, fy - tall * 0.72); ctx.stroke();
+    ctx.fillStyle = "#ffc61a";
+    ctx.beginPath(); ctx.arc(fx, fy - tall * 0.86, r, 0, Math.PI * 2); ctx.fill();
+    ctx.lineCap = "butt";
+  }
+
   if (!design.pieces.length) {
     ctx.fillStyle = "#6b6b63";
     ctx.font = `${14 * uiScale}px Chakra Petch,system-ui,sans-serif`;
@@ -2367,6 +2397,7 @@ function paintViewButton() {
 }
 function set3D(on) {
   view3d = on;
+  isoHover = null; canvas.style.cursor = "";
   paintViewButton();
   document.getElementById("btnSnap").style.display = on ? "none" : "";
   if (on) fit3D();
@@ -2424,6 +2455,16 @@ const WALK_TALL = 1.8 / CELL_M;         // head height, for deciding what you fi
 const WALK_GRAV = 9.81 / CELL_M;        // so a fall off a tower takes the time it should
 const WALK_CLIMB = 1.6 / CELL_M;        // going up a climbable tower, 1.6 m/s
 
+/* Getting over a wall is a movement, not a teleport. A one block wall used to be no
+   obstacle at all: walk at it and the feet snapped a block up in one frame, which looked
+   like the floor lurching rather than like anybody climbing anything. It is solid now, and
+   Space mantles you over it, the way the game does. The mantle takes this long, is started
+   only within a hand's reach of the wall, and lands you this far past its near edge at most,
+   so a thin sandbag line lands you on it rather than across it. */
+const WALK_VAULT_T = 0.55;                // seconds, hands on to feet on top
+const WALK_VAULT_REACH = 0.5 / CELL_M;    // 50 cm past the shoulder is where a hand lands
+const WALK_VAULT_OVER = 2.5;              // cells forward it will look for the top of something
+
 /* How high you can get on foot is NOT a walk constant. It is VAULT_HEIGHT, the figure the
    plan already grades every wall against, and the whole point of this view is to be able
    to go and check what the plan claims. A second number here would let the panel call a
@@ -2431,7 +2472,9 @@ const WALK_CLIMB = 1.6 / CELL_M;        // going up a climbable tower, 1.6 m/s
    VAULT_HEIGHT is declared further down with the rest of the climb model, so it is read
    inside these functions rather than copied into a const up here. */
 const walk = { on: false, x: 0, y: 0, z: 0, vz: 0, yaw: 0, pitch: 0, keys: {}, gl: null,
-               last: 0, doors: {} };   // piece id to how far open, 0 to 1. Not part of the design:
+               last: 0, doors: {},
+               vault: null,   // the mantle in progress: from, to, and how far along
+               drop: null };  // where a click in the 3D view asked to stand   // piece id to how far open, 0 to 1. Not part of the design:
                               // a door left ajar is not a thing anyone meant to save, and
                               // the share format is already spread over four places.
 
@@ -2705,16 +2748,18 @@ function walkFloor(x, y, z, solids) {
    laid at an angle is the case this view exists to look at and a box drawn round it would
    stop you a foot short of everything.
 
-   z is the walker's feet. Something low enough to step onto is not an obstacle, and
-   neither is something high enough to walk under, so only the band between the two
-   pushes back. z defaults to the ground, which is what every caller that predates the
-   walker having a height meant. */
+   z is the walker's feet. Something already under them is not an obstacle, and neither
+   is something high enough to walk under, so only the band between the two pushes back.
+   A wall low enough to vault is in that band on purpose: it used to be walked straight
+   onto, with the feet snapping up a block in one frame, and now it stops you until Space
+   takes you over it. z defaults to the ground, which is what every caller that predates
+   the walker having a height meant. */
 function walkPush(nx, ny, solids, z) {
   z = z || 0;
   for (let pass = 0; pass < 3; pass++) {
     let hit = false;
     for (const s of solids) {
-      if (s.top <= z + walkReach(s)) continue;           // step or vault onto it
+      if (s.top <= z + 1e-6) continue;                   // already standing on it, or above it
       if (s.base >= z + WALK_TALL) continue;             // or duck under it
       const r = s.r, c = Math.cos(-r.rot), sn = Math.sin(-r.rot);
       const dx = nx - r.cx, dy = ny - r.cy;
@@ -2742,6 +2787,67 @@ function walkPush(nx, ny, solids, z) {
     if (!hit) break;
   }
   return [nx, ny];
+}
+
+/* What Space would take the walker over from here: the nearest thing ahead that is higher
+   than the feet, no higher than a vault, within a hand's reach, and with room to stand on
+   top. Returns where the feet land, or null when there is nothing to vault, in which case
+   Space does nothing: a hop for its own sake is not something a view for looking at a base
+   needs.
+
+   Ahead means along the way they are facing, marched a step at a time, and the landing is
+   just inside the near edge rather than the middle: a bunker four cells deep is a thing you
+   climb onto the edge of, not a thing you fly to the centre of. Standing room is checked by
+   pushing the landing point against everything at that height, so a wall with a piece
+   stacked on it is not offered. */
+function walkVaultTarget(x, y, z, yaw, solids) {
+  const fx = Math.sin(yaw), fy = Math.cos(yaw);
+  let best = null;
+  for (const s of solids) {
+    if (s.top <= z + 1e-6 || s.top > z + walkReach(s)) continue;
+    const dist = rectDist(s.r, x, y);
+    if (dist > WALK_R + WALK_VAULT_REACH) continue;
+    let tIn = -1, tOut = WALK_VAULT_OVER;
+    for (let t = 0; t <= WALK_VAULT_OVER; t += 0.05) {
+      const inside = rectDist(s.r, x + fx * t, y + fy * t) === 0;
+      if (tIn < 0 && inside) tIn = t;
+      else if (tIn >= 0 && !inside) { tOut = t; break; }
+    }
+    if (tIn < 0) continue;                                 // beside you, not ahead of you
+    const t = tIn + Math.min(WALK_R + 0.1, (tOut - tIn) / 2);
+    const lx = x + fx * t, ly = y + fy * t;
+    const room = walkPush(lx, ly, solids, s.top);
+    if (Math.hypot(room[0] - lx, room[1] - ly) > 1e-3) continue;   // something stands there
+    if (!best || dist < best.dist) best = { s: s, x: lx, y: ly, dist: dist };
+  }
+  return best;
+}
+
+/* Space. Only from the ground, or from the top of whatever the walker is standing on: a
+   vault started mid-fall would be a double jump. */
+function walkVaultStart() {
+  if (!walk.on || walk.vault || walk.vz !== 0) return;
+  const t = walkVaultTarget(walk.x, walk.y, walk.z, walk.yaw, walkSolids());
+  if (!t) return;
+  walk.vault = { t: 0, x0: walk.x, y0: walk.y, z0: walk.z, x1: t.x, y1: t.y, z1: t.s.top };
+}
+
+/* One frame of the mantle. The feet rise first and the body follows, the way a person gets
+   onto a wall, with a little lift over the edge so the arc reads as a climb rather than as
+   a slide up a ramp. Nothing else moves the walker until it ends: the keys are read again
+   from the top, and gravity has nothing to say about someone with their hands on a wall. */
+function walkVaultStep(dt) {
+  const v = walk.vault;
+  v.t += dt / WALK_VAULT_T;
+  const u = Math.min(1, v.t);
+  const rise = Math.min(1, u / 0.7);                       // up, over the first 70%
+  const ez = 1 - (1 - rise) * (1 - rise);
+  const go = Math.max(0, (u - 0.25) / 0.75);               // forward, over the last 75%
+  const ex = go * go * (3 - 2 * go);
+  walk.z = v.z0 + (v.z1 - v.z0) * ez + 0.15 * WALK_BLOCK * Math.sin(Math.PI * u);
+  walk.x = v.x0 + (v.x1 - v.x0) * ex;
+  walk.y = v.y0 + (v.y1 - v.y0) * ex;
+  if (u >= 1) { walk.x = v.x1; walk.y = v.y1; walk.z = v.z1; walk.vz = 0; walk.vault = null; }
 }
 
 /* Bounds of everything placed, in cells, the same way fit3D takes them. */
@@ -2845,6 +2951,7 @@ function walkStep(now) {
   const dt = Math.min(0.05, (now - walk.last) / 1000 || 0);
   walk.last = now;
   walkDoors(dt);
+  if (walk.vault) { walkVaultStep(dt); walkDraw(); requestAnimationFrame(walkStep); return; }
   const k = walk.keys;
   let pressing = false;
   let fwd = (k.w ? 1 : 0) - (k.s ? 1 : 0), side = (k.d ? 1 : 0) - (k.a ? 1 : 0);
@@ -2875,7 +2982,11 @@ function walkStep(now) {
  *
  * `view.x, view.y` is the world point under the middle of the plan, so panning the plan is
  * already the control for this and no button has to be found for it. Selecting a piece beats
- * it, because selecting something and asking to walk is about as explicit as it gets.
+ * it, because selecting something and asking to walk is about as explicit as it gets, and a
+ * click on the ground in the 3D view beats both, because pointing at a spot is more explicit
+ * still. That one faces you at the base, since you have just chosen where to stand and the
+ * base is what you came to look at; the others keep facing north, which is what the plan
+ * calls up.
  *
  * Then push out of whatever the spot turned out to be inside, so choosing the middle of a
  * bunker leaves you beside it rather than sealed under its roof, and stand on whatever is
@@ -2883,7 +2994,16 @@ function walkStep(now) {
  */
 function walkSpawn() {
   const sel = design.pieces.filter(p => selection.has(p.id));
-  if (sel.length) {
+  walk.yaw = 0;
+  if (walk.drop) {
+    walk.x = walk.drop[0]; walk.y = walk.drop[1];
+    walk.drop = null;
+    if (design.pieces.length) {
+      const b = walkBounds();
+      const cx = (b.minX + b.maxX) / 2 - walk.x, cy = (b.minY + b.maxY) / 2 - walk.y;
+      if (Math.hypot(cx, cy) > 0.5) walk.yaw = Math.atan2(cx, cy);
+    }
+  } else if (sel.length) {
     walk.x = sel.reduce((t, p) => t + p.x, 0) / sel.length;
     walk.y = sel.reduce((t, p) => t + p.y, 0) / sel.length;
   } else if (design.pieces.length) {
@@ -2891,12 +3011,15 @@ function walkSpawn() {
   } else {
     walk.x = 0; walk.y = -6;
   }
-  walk.yaw = 0; walk.pitch = 0;
-  walk.z = 0; walk.vz = 0;
+  walk.pitch = 0;
+  walk.z = 0; walk.vz = 0; walk.vault = null;
+  /* Stand on it first, then push clear at that height: a low wall is solid at ground level
+     now, so pushing first would always step you off the wall you chose to stand on. */
   const solids = walkSolids();
-  const out = walkPush(walk.x, walk.y, solids, 0);
-  walk.x = out[0]; walk.y = out[1];
   walk.z = walkFloor(walk.x, walk.y, 0, solids);
+  const out = walkPush(walk.x, walk.y, solids, walk.z);
+  walk.x = out[0]; walk.y = out[1];
+  walk.z = walkFloor(walk.x, walk.y, walk.z, solids);
 }
 
 function setWalk(on) {
@@ -2910,9 +3033,11 @@ function setWalk(on) {
     if (!walkGL()) { walk.on = false; cv.style.display = "none";
       document.getElementById("canvas").style.display = ""; alert("This browser has no WebGL, so the walkthrough cannot run."); return; }
     walk.doors = {};        // every entry shut again on the way in
+    const dropped = !!walk.drop;
     walkResize(); walkSpawn();
-    flashStatus(selection.size ? "Standing at the selection"
-                              : "Standing where the plan was centred");
+    flashStatus(dropped ? "Standing where you clicked" :
+                selection.size ? "Standing at the selection"
+                               : "Standing where the plan was centred");
     walk.last = performance.now();
     requestAnimationFrame(walkStep);
     cv.requestPointerLock && cv.requestPointerLock();
@@ -2949,6 +3074,9 @@ window.addEventListener('keydown', function (e) {
   const k = e.key.toLowerCase();
   if (k === 'w' || k === 'a' || k === 's' || k === 'd') { walk.keys[k] = true; e.preventDefault(); e.stopPropagation(); }
   else if (k === 'shift') walk.keys.shift = true;
+  /* Space is the plan's pan key, so it is stopped here too, or letting go of it would leave
+     the plan's cursor a hand. Held, it repeats; the vault ignores a repeat. */
+  else if (k === ' ') { e.preventDefault(); e.stopPropagation(); if (!e.repeat) walkVaultStart(); }
 }, true);
 window.addEventListener('keyup', function (e) {
   if (!walk.on) return;
@@ -4196,6 +4324,15 @@ canvas.addEventListener("mousemove", e => {
       const [ux, uy] = isoUnspin(rx, ry);
       iso.x = dragging.vx - ux; iso.y = dragging.vy - uy;
       draw();
+      return;
+    }
+    /* The figure follows the pointer over open ground and steps aside over a piece, where
+       a click selects rather than stands. */
+    const over = pick3D(e.offsetX, e.offsetY);
+    const next = over ? null : isoGround(e.offsetX, e.offsetY);
+    canvas.style.cursor = over ? "pointer" : "none";
+    if (!!next !== !!isoHover || (next && (next[0] !== isoHover[0] || next[1] !== isoHover[1]))) {
+      isoHover = next; draw();
     }
     return;
   }
@@ -4245,8 +4382,18 @@ window.addEventListener("mouseup", e => {
       if (hit) {
         if (e.shiftKey) selection.has(hit.id) ? selection.delete(hit.id) : selection.add(hit.id);
         else selection = new Set([hit.id]);
-      } else if (!e.shiftKey) selection.clear();
-      afterChange(false);
+        afterChange(false);
+      } else {
+        /* A click on the ground stands you there. Right-click still clears the selection,
+           which is what a click on nothing used to do; standing somewhere is the more useful
+           answer to pointing at a spot, and it is what a little figure under the pointer
+           has been promising. */
+        dragging = null;
+        walk.drop = isoGround(e.clientX - r.left, e.clientY - r.top);
+        isoHover = null; canvas.style.cursor = "";
+        setWalk(true); paintViewButton();
+        return;
+      }
     }
     dragging = null;
     return;
@@ -4272,6 +4419,9 @@ window.addEventListener("mouseup", e => {
   }
   if (dragging.mode === "move" && dragging.moved) saveCurrent();
   dragging = null; updateRightPanel(); draw();
+});
+canvas.addEventListener("mouseleave", () => {
+  if (isoHover) { isoHover = null; draw(); }
 });
 canvas.addEventListener("dblclick", e => {
   if (placing) return;
@@ -4443,14 +4593,16 @@ function updateHint() {
   const el = document.getElementById("hint");
   if (walk.on) {
     el.innerHTML = "Standing in it. <b>W A S D</b> to move &middot; mouse to look &middot; <b>Shift</b> to run &middot; " +
+      "<b>Space</b> vaults the wall you are facing &middot; " +
       "<b>Esc</b> frees the mouse, clicking takes it back &middot; <b>3</b> returns to the plan. " +
-      "<b>You start where the plan was centred</b>, or on whatever you had selected, so pan " +
-      "there first. Doors open as you walk up. Vault a block, climb a Loudspeaker, and " +
+      "<b>You start where you clicked in 3D</b>, at the selection, or where the plan was " +
+      "centred. Doors open as you walk up. Vault a block, climb a Loudspeaker, and " +
       "nothing gets you over a Bremer.";
     return;
   }
   if (view3d) {
-    el.innerHTML = "Looking at it in 3D. Drag to move · wheel to zoom · <b>Q</b> and <b>E</b> or the " +
+    el.innerHTML = "Looking at it in 3D. <b>Click the ground to stand there</b> and walk around · " +
+      "drag to move · wheel to zoom · <b>Q</b> and <b>E</b> or the " +
       "<b>↺ ↻</b> buttons turn it 15° at a time · click a piece to select it · " +
       "<b>3</b> or the button to go back to the plan, which is where you build.";
     return;

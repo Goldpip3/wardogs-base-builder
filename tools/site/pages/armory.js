@@ -869,12 +869,10 @@ module.exports = ctx => {
             '<p class="vend-head">Items<span class="vend-hint">Set how many of each you carry</span></p>' +
             [["throwables", "Throwables"], ["medical", "Medical"], ["equipment", "Equipment"]]
               .map(function (g) {
-                /* A specialist item is picked into its slot, not counted into the bag, so it
-                   is not offered twice. Whether a spare can ride in the pack as well is not
-                   known yet. */
-                const list = byCat(g[0]).filter(function (i) {
-                  return i.price !== null && !isSpecialist(i.name);
-                });
+                /* Specialist items stay on these shelves as well as in their slot: the game
+                   lets a spare ride in the pack if it fits, a second Medical Bag at 2x2 for
+                   instance, read off the vendor on 2026-09-02. */
+                const list = byCat(g[0]).filter(function (i) { return i.price !== null; });
                 if (!list.length) return "";
                 return '<p class="vitem-group">' + esc(g[1]) +
                   "<span>" + list.length + "</span></p>" +

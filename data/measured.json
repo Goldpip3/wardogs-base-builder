@@ -1277,8 +1277,12 @@
         "level": 24
       },
       "on": "2026-09-02",
-      "note": "Equipment Vendor, Specialist slot, Medical tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0",
-      "class": "Medical"
+      "note": "Backpack view of the vendor Items tab, 2026-09-02: the Medical Bag fills a 2x2 block of the pack, said by the owner and visible in the screenshot",
+      "class": "Medical",
+      "grid": [
+        2,
+        2
+      ]
     },
     "Medium Hammer": {
       "unlock": {
