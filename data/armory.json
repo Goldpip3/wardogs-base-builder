@@ -1920,6 +1920,13 @@
    "icon": "smokegrenade-black"
   },
   {
+   "name": "M18 Smoke Grenade: White",
+   "cat": "throwables",
+   "price": null,
+   "per": 1,
+   "icon": "smokegrenade-white"
+  },
+  {
    "name": "M67 Frag Grenade",
    "cat": "throwables",
    "price": 200,

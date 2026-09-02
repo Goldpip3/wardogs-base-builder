@@ -679,6 +679,14 @@
       "on": "2026-09-02",
       "note": "Medic ladder screen, level 21: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
+    "M18 Smoke Grenade: White": {
+      "unlock": {
+        "role": "Medic",
+        "level": 5
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 5, named on screen. Vendor price not read"
+    },
     "M1911": {
       "unlock": {
         "role": "Wardog",
