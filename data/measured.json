@@ -522,7 +522,12 @@
     "Binoculars": {
       "class": "Recon",
       "on": "2026-09-02",
-      "note": "Equipment Vendor, Specialist slot, Recon tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0"
+      "note": "Backpack view, 2026-09-02: the cell shows no fraction or reads 1/1, so one per slot",
+      "grid": [
+        2,
+        2
+      ],
+      "stack": 1
     },
     "Birdcage Flash Hider": {
       "unlock": {
@@ -783,7 +788,12 @@
     "Fuel Can": {
       "class": "Vehicle",
       "on": "2026-09-02",
-      "note": "Equipment Vendor, Specialist slot, Vehicle tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0"
+      "note": "Backpack view, 2026-09-02: the cell shows no fraction or reads 1/1, so one per slot",
+      "grid": [
+        2,
+        2
+      ],
+      "stack": 1
     },
     "Fuel Supplies": {
       "grid": [
@@ -938,8 +948,13 @@
         "level": 28
       },
       "on": "2026-09-02",
-      "note": "Equipment Vendor, Specialist slot, Vehicle tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0",
-      "class": "Vehicle"
+      "note": "Backpack view, 2026-09-02: the cell shows no fraction or reads 1/1, so one per slot",
+      "class": "Vehicle",
+      "grid": [
+        3,
+        2
+      ],
+      "stack": 1
     },
     "Hexagon 762 Suppressor": {
       "unlock": {
@@ -1042,8 +1057,13 @@
         "level": 32
       },
       "on": "2026-09-02",
-      "note": "Equipment Vendor, Specialist slot, Recon tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0",
-      "class": "Recon"
+      "note": "Backpack view, 2026-09-02: the cell shows no fraction or reads 1/1, so one per slot",
+      "class": "Recon",
+      "grid": [
+        2,
+        2
+      ],
+      "stack": 1
     },
     "Judge": {
       "unlock": {
@@ -1193,8 +1213,13 @@
         "level": 1
       },
       "on": "2026-09-02",
-      "note": "Equipment Vendor, Specialist slot, Vehicle tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0",
-      "class": "Vehicle"
+      "note": "Backpack view, 2026-09-02: the cell shows no fraction or reads 1/1, so one per slot",
+      "class": "Vehicle",
+      "grid": [
+        2,
+        2
+      ],
+      "stack": 1
     },
     "M18 Signal Grenade: Alert": {
       "grid": [
@@ -1498,8 +1523,13 @@
         "level": 2
       },
       "on": "2026-09-02",
-      "note": "Equipment Vendor, Specialist slot, Recon tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0",
-      "class": "Recon"
+      "note": "Backpack view, 2026-09-02: the cell shows no fraction or reads 1/1, so one per slot",
+      "class": "Recon",
+      "grid": [
+        1,
+        2
+      ],
+      "stack": 1
     },
     "Mosin Nagant": {
       "unlock": {
@@ -1676,8 +1706,13 @@
         "level": 8
       },
       "on": "2026-09-02",
-      "note": "Equipment Vendor, Specialist slot, Recon tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0",
-      "class": "Recon"
+      "note": "Backpack view, 2026-09-02: the cell shows no fraction or reads 1/1, so one per slot",
+      "class": "Recon",
+      "grid": [
+        1,
+        2
+      ],
+      "stack": 1
     },
     "Remote Detonator": {
       "unlock": {
@@ -2034,7 +2069,12 @@
     "Wrench": {
       "class": "Vehicle",
       "on": "2026-09-02",
-      "note": "Equipment Vendor, Specialist slot, Vehicle tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0"
+      "note": "Backpack view, 2026-09-02: the cell shows no fraction or reads 1/1, so one per slot",
+      "grid": [
+        1,
+        1
+      ],
+      "stack": 1
     },
     "Z20 Lakota": {
       "unlock": {
