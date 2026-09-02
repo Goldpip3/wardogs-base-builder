@@ -453,6 +453,15 @@
         1
       ]
     },
+    "Ammo Supplies": {
+      "grid": [
+        1,
+        1
+      ],
+      "on": "2026-09-02",
+      "note": "Backpack view, 2026-09-02: cell reads 50/50 or 1/50",
+      "stack": 50
+    },
     "Arsenal Backpack + 2 Slings": {
       "unlock": {
         "role": "Wardog",
@@ -530,6 +539,15 @@
       },
       "on": "2026-09-02",
       "note": "Recon ladder screen, level 17, named on screen. Cost not read"
+    },
+    "Build Supplies": {
+      "grid": [
+        1,
+        1
+      ],
+      "on": "2026-09-02",
+      "note": "Backpack view, 2026-09-02: cell reads 50/50 or 1/50",
+      "stack": 50
     },
     "C4 Charge": {
       "unlock": {
@@ -766,6 +784,15 @@
       "class": "Vehicle",
       "on": "2026-09-02",
       "note": "Equipment Vendor, Specialist slot, Vehicle tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0"
+    },
+    "Fuel Supplies": {
+      "grid": [
+        1,
+        1
+      ],
+      "on": "2026-09-02",
+      "note": "Backpack view, 2026-09-02: cell reads 50/50 or 1/50",
+      "stack": 50
     },
     "Full Choke": {
       "unlock": {
@@ -1205,6 +1232,24 @@
       "note": "Backpack view, 2026-09-02: cell reads 1/2 or 2/2",
       "stack": 2
     },
+    "M18 Signal Grenade: Landing Zone": {
+      "grid": [
+        1,
+        1
+      ],
+      "on": "2026-09-02",
+      "note": "Backpack view, 2026-09-02: cell reads 2/2 or 1/2",
+      "stack": 2
+    },
+    "M18 Signal Grenade: Supply Request": {
+      "grid": [
+        1,
+        1
+      ],
+      "on": "2026-09-02",
+      "note": "Backpack view, 2026-09-02: cell reads 2/2 or 1/2",
+      "stack": 2
+    },
     "M18 Smoke Grenade: Black": {
       "unlock": {
         "role": "Medic",
@@ -1393,6 +1438,15 @@
       },
       "on": "2026-09-02",
       "note": "Medic ladder screen, level 45, named on screen. Cost not read"
+    },
+    "Mechanical Supplies": {
+      "grid": [
+        1,
+        1
+      ],
+      "on": "2026-09-02",
+      "note": "Backpack view, 2026-09-02: cell reads 50/50 or 1/50",
+      "stack": 50
     },
     "Medical Bag": {
       "unlock": {
