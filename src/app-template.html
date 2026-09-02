@@ -2277,8 +2277,16 @@ document.addEventListener('pointerlockchange', function () {
 document.getElementById('walkCanvas').addEventListener('mousedown', function () {
   if (walk.on && !document.pointerLockElement) this.requestPointerLock();
 });
+/* Pointer lock hands over movementX and movementY, and on Windows Chromium they are not
+   always the mouse: the first event after the lock carries the jump from wherever the
+   cursor was, and every so often one arrives hundreds of pixels long with nothing behind
+   it, which is the view snapping to the sky or the floor for no reason. A hand cannot move
+   the mouse 200 px in one 8 ms frame, so anything that size is discarded rather than
+   turned into a flick. */
+const WALK_LOOK_SPIKE = 200;
 document.addEventListener('mousemove', function (e) {
   if (!walk.on || document.pointerLockElement !== document.getElementById('walkCanvas')) return;
+  if (Math.abs(e.movementX) > WALK_LOOK_SPIKE || Math.abs(e.movementY) > WALK_LOOK_SPIKE) return;
   walk.yaw += e.movementX * 0.0026;
   walk.pitch -= e.movementY * 0.0026;
   const lim = Math.PI / 2 - 0.02;
