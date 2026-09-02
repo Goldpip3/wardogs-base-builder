@@ -580,14 +580,6 @@ Boxes were sized by their labels, 96 to 114px. All 100px now.
 That surfaced an older bug: **at 1000px the page scrolled sideways by 220px.** The header
 only stacked below 760px. Nav takes its own row below 1180px and wraps rather than overflows.
 
-### Owner is a Discord id, not a name
-
-`/todo/` compared a lowercased display name to a baked-in string, so a rename got you in.
-`/me` answers `owner:true` for `OWNER_DISCORD_ID` and the page asks.
-
-**It authorises nothing.** A Discord id is public, so it decides what a page offers to show,
-never what `/admin` does, which still wants `ADMIN_TOKEN`. `test/worker.mjs` pins both.
-
 ### Armory holds vehicles, and every item opens
 
 Clicking an item opens a panel with full-size art and whatever is known, joined from
@@ -639,19 +631,6 @@ Three more of the same shape, a check that looks right and is not:
 
 Admin token is compared byte for byte. A corrupt KV record costs that record, not the route.
 
-### Not everything worth hardening is in the code
-
-Static files on GitHub Pages cannot set response headers. So no CSP, no HSTS, no hotlink rule,
-no rate limit, and no amount of editing the generator makes one. `shell.js` sets `referrer`,
-which a meta tag does carry, and nothing else.
-
-The 132 MB under `docs/game-icons/` and `docs/maps/tiles/` is the game's art, held so the
-project does not hotlink. Every address is enumerable from data in the page. `robots.txt`
-asks training crawlers out; that is a request, not a control.
-
-Raising the ceiling needs Cloudflare proxying the domain, not just holding DNS. Dashboard
-work, written up in [security](processes/security.md), not done.
-
 ### Nothing is chosen from a dropdown, and the loadout page is the vendor
 
 Ten dropdowns with no pictures became the in-game equipment vendor, checked against beta
@@ -671,19 +650,6 @@ planner knows your wallet. 495 icons come from the wardogs.zone wiki via
 attribute UA `display:none`. Filtered-out cards stayed visible while the script believed
 otherwise. Anything given a display must say what hidden means for it.
 
-### Grouping angle comes off the page
-
-Spread is gone, and the dashed circle with it. It traced to one ungrounded source. No game
-shows a player an MOA figure.
-
-**The check that guarded it was the worst kind.** It proved spread reproduces four published
-figures from the MOA alone, which it does, because the site publishing both did the same
-multiplication. A check on arithmetic that reads like a check on a measurement is worse than
-no check.
-
-`test/artillery.js` now checks the absence, in data and on the page. **The dial stays**:
-three sources publish mil tables and the gun takes a mil elevation.
-
 ### 3D view, six passes condensed
 
 All pinned in `test/elevation.js`. `git log` has the reasoning.
@@ -698,40 +664,27 @@ because suppressing the wrong side looks almost right. **Height is the job**, a 
 lie**, so role, colour, label and key list move together. **Writing is drawn last**, or a
 piece dropped nearby paints over its label.
 
-### Community list shows the base, one decoder both sides
-
-Every card carries an overhead picture of its layout, colour and footprint only.
-
-**The two encoders of the share format had already drifted apart once unnoticed**, so no
-second decoder was written. `src/shared/design-view.js` is the only one. `build.ps1` inlines
-it into the planner, `client-scripts.js` into the pages. The planner's private copy is
-deleted, not left unused.
-
-Pictures paint when a card is about to be seen. A code that will not decode leaves no picture.
-`test/thumbnails.js`.
-
-### Your own work is yours to take back
-
-Everything published on arrival and only the admin could unpublish. `POST /withdraw` lets the
-submitting account remove its own design. Ownership comes from `by`, recorded since `/submit`
-existed; a submission without `by` stays with the admin.
-
-`/designs` was returning stored records as-is, putting `by` in a public list. The worker
-answers a `mine` flag from the caller's token and deletes `by`.
-
-Deleting left comments behind under an unreachable slug. `removeDesign` takes record, votes
-and comments, and both paths go through it. `test/worker.mjs`.
-
-### The update chip can hand back the old build
-
-Pages serves the planner with `max-age=600`, so `location.reload()` can answer from cache and
-return the same build. It refetches with cache "reload", on focus and every five minutes.
-Hence the rule about comparing live `build.txt` to local before believing a bug report.
-
 ### Older entries, condensed
 
 Each one carries the file that pins it, and `git show` still has the full story.
 
+- **Owner is a Discord id, not a name.** `/me` answers `owner:true` for `OWNER_DISCORD_ID`;
+  it decides what a page shows, never what `/admin` does, which still wants `ADMIN_TOKEN`.
+- **Not everything worth hardening is in the code.** Pages cannot set response headers, so no
+  CSP, HSTS or rate limit exists; the 132 MB of game art is held to avoid hotlinking and is
+  enumerable. Raising the ceiling means Cloudflare proxying the domain, see
+  [security](processes/security.md).
+- **Grouping angle comes off the page.** Spread traced to one ungrounded source, and the
+  check guarding it only proved that site's own multiplication. `test/artillery.js` checks
+  the absence; the mil dial stays because three sources publish mil tables.
+- **Community cards carry a picture of the base, from one decoder.** The two share-format
+  encoders had drifted once, so `src/shared/design-view.js` is the only decoder, inlined into
+  the planner by `build.ps1` and into the pages by `client-scripts.js`. `test/thumbnails.js`.
+- **Your own work is yours to take back.** `POST /withdraw` lets the submitting account
+  remove its design; `by` is never returned publicly, and `removeDesign` takes record, votes
+  and comments together. `test/worker.mjs`.
+- **The update chip refetches with cache "reload"**, on focus and every five minutes,
+  because Pages serves `max-age=600` and a plain reload can hand back the old build.
 - **Crew size rides inside the share code.** Three buckets under `crewSizes`; the planner
   refuses to submit without one. Old codes lack the key, old readers ignore it, and the
   alphabet is unchanged, so no worker deploy. `test/crew.js`.
