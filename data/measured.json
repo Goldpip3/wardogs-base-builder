@@ -1802,6 +1802,14 @@
       },
       "on": "2026-09-02",
       "note": "Pilot ladder screen, level 10, named on screen. Cost not read"
+    },
+    "Z20 Lakota [Miniguns]": {
+      "unlock": {
+        "role": "Pilot",
+        "level": 25
+      },
+      "on": "2026-09-02",
+      "note": "Pilot ladder screen, level 25, named by the owner. Cost not read"
     }
   }
 }

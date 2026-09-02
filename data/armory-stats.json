@@ -4078,14 +4078,6 @@
         "SVD"
       ]
     },
-    "UH-1Y [Miniguns]": {
-      "class": "Air",
-      "unlock": {
-        "role": "Pilot",
-        "level": 25,
-        "cash": 75000
-      }
-    },
     "Ural Defender": {
       "class": "Ground",
       "unlock": {
@@ -4148,6 +4140,14 @@
         "cash": 50000
       }
     },
+    "Z20 Lakota [Miniguns]": {
+      "class": "Air",
+      "unlock": {
+        "role": "Pilot",
+        "level": 25,
+        "cash": 75000
+      }
+    },
     "Zenit Handguard": {
       "grid": [
         1,
@@ -4165,6 +4165,12 @@
       "to": "Z20 Lakota",
       "on": "2026-09-02",
       "why": "The game renamed the helicopter; the Pilot level 10 card reads Z20 LAKOTA and the owner confirmed it is the same aircraft. The pull's figures are kept under the new key."
+    },
+    {
+      "from": "UH-1Y [Miniguns]",
+      "to": "Z20 Lakota [Miniguns]",
+      "on": "2026-09-02",
+      "why": "Same rename as the base aircraft; the Pilot level 25 card reads Z20 Lakota [Miniguns], named by the owner."
     }
   ]
 }
