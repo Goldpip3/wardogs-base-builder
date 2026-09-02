@@ -292,7 +292,8 @@ const ladderLabel = r => LADDER_LABEL[r] || r;
    with nothing for a level nobody has looked at rather than a figure off a curve. */
 const PROGRESSION = JSON.parse(fs.readFileSync(path.join(ROOT, "data/progression.json"), "utf8"));
 const xpFor = (role, level) => {
-  const ladder = (PROGRESSION.ladderXp || {})[String(ladderLabel(role)).toLowerCase()];
+  if (ladderLabel(role) === "Wardog") return undefined;
+  const ladder = (PROGRESSION.ladderXp || {}).classLadders;
   return ladder ? ladder[String(level)] : undefined;
 };
 const DAMAGE = JSON.parse(fs.readFileSync(path.join(ROOT, "data/damage.json"), "utf8"));

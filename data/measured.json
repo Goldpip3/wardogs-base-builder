@@ -258,6 +258,46 @@
       "on": "2026-09-02",
       "note": "Owner read it off the buy screen: no ladder, level or cost"
     },
+    "AMP-9 15 RND Magazine": {
+      "unlock": {
+        "role": "Medic",
+        "level": 3
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 3: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "AMP-9 30 RND Magazine": {
+      "unlock": {
+        "role": "Medic",
+        "level": 10
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 10: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "AMP-9 50 RND Drum Magazine": {
+      "unlock": {
+        "role": "Medic",
+        "level": 20
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 20, named on screen. Cost not read"
+    },
+    "AMP-9 9x19 Suppressor": {
+      "unlock": {
+        "role": "Medic",
+        "level": 30
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 30: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "AMP-9 Tactical Flash Hider": {
+      "unlock": {
+        "role": "Medic",
+        "level": 12
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 12: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
     "AR Multi-Caliber Suppressor": {
       "unlock": {
         "role": "Assault",
@@ -265,6 +305,14 @@
       },
       "on": "2026-09-02",
       "note": "Assault ladder screen, level 21: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Adrenaline Pen": {
+      "unlock": {
+        "role": "Medic",
+        "level": 14
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 14: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
     "Arsenal Backpack + 2 Slings": {
       "unlock": {
@@ -281,6 +329,14 @@
       },
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 32: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Ballista Brake": {
+      "unlock": {
+        "role": "Medic",
+        "level": 13
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 13, named on screen. Cost not read"
     },
     "Birdcage Flash Hider": {
       "unlock": {
@@ -343,6 +399,30 @@
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 90: the icon there is this item and the level matches the database pull, which supplies the name and cost"
     },
+    "Defibrillator": {
+      "unlock": {
+        "role": "Medic",
+        "level": 11
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 11: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Dual Port Brake": {
+      "unlock": {
+        "role": "Medic",
+        "level": 1
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 1, named on screen. Cost not read"
+    },
+    "Eclipse Flash Hider": {
+      "unlock": {
+        "role": "Medic",
+        "level": 26
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 26, named on screen. Cost not read"
+    },
     "FAL": {
       "unlock": {
         "role": "Assault",
@@ -374,6 +454,22 @@
       },
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 12: the icon there is this item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Field Resuscitator": {
+      "unlock": {
+        "role": "Medic",
+        "level": 2
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 2: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Four Reticle Reflex": {
+      "unlock": {
+        "role": "Medic",
+        "level": 6
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 6: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
     "GGX 17": {
       "unlock": {
@@ -431,6 +527,14 @@
       "on": "2026-09-02",
       "note": "Assault ladder screen, level 15: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
+    "Ghost LITE Muzzle Brake": {
+      "unlock": {
+        "role": "Medic",
+        "level": 36
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 36: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
     "Gunner Backpack + Sling": {
       "unlock": {
         "role": "Wardog",
@@ -462,6 +566,14 @@
       },
       "on": "2026-09-02",
       "note": "Assault ladder screen, level 22: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Individual First Aid Kit": {
+      "unlock": {
+        "role": "Medic",
+        "level": 9
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 9: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
     "Judge": {
       "unlock": {
@@ -559,6 +671,14 @@
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 100, named by the owner clicking it. Cost not read"
     },
+    "M18 Smoke Grenade: Black": {
+      "unlock": {
+        "role": "Medic",
+        "level": 21
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 21: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
     "M1911": {
       "unlock": {
         "role": "Wardog",
@@ -590,6 +710,46 @@
       },
       "on": "2026-09-02",
       "note": "Assault ladder screen, level 20: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "MP5": {
+      "unlock": {
+        "role": "Medic",
+        "level": 15
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 15: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "MP5 20 RND Magazine": {
+      "unlock": {
+        "role": "Medic",
+        "level": 15
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 15: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "MP5 30 RND Magazine": {
+      "unlock": {
+        "role": "Medic",
+        "level": 25
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 25, named on screen. Cost not read"
+    },
+    "MP5 50 RND Drum Magazine": {
+      "unlock": {
+        "role": "Medic",
+        "level": 45
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 45, named on screen. Cost not read"
+    },
+    "Medical Bag": {
+      "unlock": {
+        "role": "Medic",
+        "level": 24
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 24: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     },
     "Medium Tac Vest": {
       "unlock": {
@@ -631,6 +791,62 @@
       "on": "2026-09-02",
       "note": "Assault ladder screen, level 27, named on screen. Cost not read"
     },
+    "PP-19 50 RND Vityaz Drum Magazine": {
+      "unlock": {
+        "role": "Medic",
+        "level": 33
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 33: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "PP-19 Vityaz": {
+      "unlock": {
+        "role": "Medic",
+        "level": 4
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 4: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "PP-19 Vityaz 10 RND Magazine": {
+      "unlock": {
+        "role": "Medic",
+        "level": 7
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 7, named on screen. Cost not read"
+    },
+    "PP-19 Vityaz 30 RND Magazine": {
+      "unlock": {
+        "role": "Medic",
+        "level": 4
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 4: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "PP-19 Vityaz Flash Hider": {
+      "unlock": {
+        "role": "Medic",
+        "level": 22
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 22: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "PP-19-01 Vityaz 9x19 Suppressor": {
+      "unlock": {
+        "role": "Medic",
+        "level": 43
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 43: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "QD-5 Suppressor": {
+      "unlock": {
+        "role": "Medic",
+        "level": 18
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 18: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
     "RC-556 Suppressor": {
       "unlock": {
         "role": "Assault",
@@ -647,6 +863,14 @@
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 15: the icon there is this item and the level matches the database pull, which supplies the name and cost"
     },
+    "RVG Vertical Foregrip": {
+      "unlock": {
+        "role": "Medic",
+        "level": 16
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 16: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
     "Rubberized Ergonomic Foregrip": {
       "unlock": {
         "role": "Assault",
@@ -662,6 +886,14 @@
       },
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 56, named on screen. Cost not read"
+    },
+    "SG Multi-Caliber Suppressor": {
+      "unlock": {
+        "role": "Medic",
+        "level": 48
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 48, named on screen. Cost not read"
     },
     "SPH-2": {
       "unlock": {
@@ -718,6 +950,46 @@
       "on": "2026-09-02",
       "note": "Wardog Level screen, level 36: the icon there is this item and the level matches the database pull, which supplies the name and cost"
     },
+    "Super-45": {
+      "unlock": {
+        "role": "Medic",
+        "level": 35
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 35, named on screen. Cost not read"
+    },
+    "Super-45 13 RND Magazine": {
+      "unlock": {
+        "role": "Medic",
+        "level": 35
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 35, named on screen. Cost not read"
+    },
+    "Super-45 30 RND Magazine": {
+      "unlock": {
+        "role": "Medic",
+        "level": 38
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 38, named on screen. Cost not read"
+    },
+    "Super-45 40 RND Drum Magazine": {
+      "unlock": {
+        "role": "Medic",
+        "level": 50
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 50: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Super-45 Flash Hider": {
+      "unlock": {
+        "role": "Medic",
+        "level": 40
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 40: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
     "TDG Vertical Foregrip": {
       "unlock": {
         "role": "Wardog",
@@ -749,6 +1021,14 @@
       },
       "on": "2026-09-02",
       "note": "Assault ladder screen, level 12: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
+    },
+    "Vektor Frenix-X Micro Reflex Sight": {
+      "unlock": {
+        "role": "Medic",
+        "level": 28
+      },
+      "on": "2026-09-02",
+      "note": "Medic ladder screen, level 28: the icon there is this kind of item and the level matches the database pull, which supplies the name and cost"
     }
   }
 }
