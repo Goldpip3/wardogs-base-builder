@@ -161,9 +161,9 @@
       "why": "Explosive, so it is blast damage rather than a hit zone." }
   ],
 
+  "rangeFalloff": "None. On the owner's word on 2026-09-02, damage does not drop with distance in this game. Rounds do drop, and that is flight, not damage, so a figure on this page holds at whatever range the round lands. This used to be listed as the biggest hole on the site, on the reading that damage clearly fell off in the published tables; it was other factors.",
   "unsolved": [
     "What flesh damage actually does to flesh. Every armour figure for HP is published and this page uses them, but no source gives its damage against an unarmoured zone, so the calculator treats it as equal to standard there. That is almost certainly wrong: the vendor charges nearly twice as much for it, and a round that was strictly worse everywhere would not sell. Read every unarmoured HP figure on this page as a floor rather than a value.",
-    "Range falloff. Damage clearly drops with distance and slower rounds drop faster, but no published table separates falloff from the other factors, so every damage figure here is point blank. Flight time is shown because muzzle velocity is published. Damage at range is not shown, because it is not.",
     "Zone multipliers outside the torso are measured off the 5.56 assault rifle profile. The head, neck and limb ratios hold across four weapons; the torso ratio does not, and varies by up to a fifth. Non-torso figures for heavier calibres are indicative until launch."
   ]
 }

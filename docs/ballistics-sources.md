@@ -107,11 +107,11 @@ against $4.00 for standard, and a round that was strictly worse everywhere would
 The page says so in three places, the number is described as a floor rather than a value,
 and it stays that way until somebody shoots an unarmoured target with it and counts.
 
-**Range falloff.** Damage drops with distance and slower rounds drop faster, which is
-visible in the published tables but never separated out from everything else happening in
-them. There is no honest way to fit a curve to it yet, so every figure on the site is point
-blank and says so. No range slider, because a range slider that guessed would be worse than
-no range slider.
+**Range falloff.** There is none. On the owner's word on 2026-09-02, damage does not drop
+with distance in this game; rounds drop, damage does not. This was written up as the biggest
+hole on the site, on the reading that damage visibly fell off in the published tables. It
+was other factors. So every figure on the site holds at whatever range the round lands, and
+there is still no range slider, because there is nothing for one to change.
 
 **Torso zone multipliers.** Hit zones ought to be a property of the body, so the ratio
 between two zones should be identical whatever is shooting. For head, neck and limbs it is:

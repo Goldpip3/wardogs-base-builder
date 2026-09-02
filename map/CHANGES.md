@@ -8,6 +8,16 @@ Newest first. One entry per decision. Keep entries short.
 
 ## 2026-09-02
 
+### Range falloff is not a thing, and the damage page stops apologising for it
+
+The damage page called itself point blank and named range falloff the biggest hole on the
+site, on the reading that damage visibly fell off in the published tables. On the owner's
+word on 2026-09-02, it does not: rounds drop with distance, damage does not. So the lede
+says a figure holds at whatever range the round lands, the "missing on purpose" list is two
+items rather than three, and `data/ballistics.json` carries the fact as `rangeFalloff`
+next to what is still unsolved. `docs/ballistics-sources.md`, the README, the map and the
+todo list all said the old thing and now say this one.
+
 ### The build zone is measured: 39 blocks out from the FOB, and four emplacements resized
 
 The owner read it off the running game: from the middle cell of the 3x3 FOB, 39 single Hesco
@@ -532,41 +542,6 @@ recorded in `sheetDisagrees` and listed in OPEN.
 The join to `data/ballistics.json` has no foreign key. Check 3d2 pins the count: a rename
 lands nothing and draws every zone as a dash, which still builds and looks deliberate.
 
-### Your designs sit under the community's
-
-`/designs/` carries both lists. One renderer draws both and `/account/` uses it too; a second
-copy would drift. `test/site.js` compares the script blocks.
-
-Publishing clears the cached `/designs` reply before redraw, or the list gains the design
-while the card under it still offers to send it.
-
-Public list loads twelve at a time. **Show more** is the real control; scroll only presses it
-early, so a browser with no IntersectionObserver keeps the tail.
-
-### Nav is one row of one size
-
-Boxes were sized by their labels, 96 to 114px. All 100px now.
-
-That surfaced an older bug: **at 1000px the page scrolled sideways by 220px.** The header
-only stacked below 760px. Nav takes its own row below 1180px and wraps rather than overflows.
-
-### Armory holds vehicles, and every item opens
-
-Clicking an item opens a panel with full-size art and whatever is known, joined from
-`data/ballistics.json`. The items nothing is published for say so rather than showing empty
-rows, and `tools/check-build.js` asserts every join by count. Its torso damage is still the
-superseded solved figure, listed in OPEN.
-
-Three not to undo. **Stored armour is what armour takes; the panel prints what gets
-through**, and printing `blocks` straight says a hollow point is best against an L4 vest.
-**The two weapon lists spell calibres differently**, an id (`556`) against a label
-(`7.62x51mm`), so the panel resolves ids and passes labels through. And **`/vehicles/` is a
-meta refresh to `/armory/`, not a deletion**, because Pages cannot send a 301 and a deleted
-page is a permanent 404 for anyone holding the link.
-
-`<dialog>` is native for the backdrop and the focus trap. Its `close` event never fires in
-the browser this was built against, so `shut()` restores focus directly.
-
 ### Buildables uses the armory rail and serves icons as files
 
 `.cat-bar` and `.cat-count` were in the markup with **no CSS at all**, so the controls stacked
@@ -638,6 +613,18 @@ piece dropped nearby paints over its label.
 
 Each one carries the file that pins it, and `git show` still has the full story.
 
+- **Every armory item opens a panel**, joined from `data/ballistics.json` and asserted by
+  count in `tools/check-build.js`. Three not to undo: stored armour is what armour takes
+  and the panel prints what gets through; the two weapon lists spell calibres differently
+  (an id against a label), so the panel resolves ids; `/vehicles/` is a meta refresh to
+  `/armory/`, not a deletion, because Pages cannot send a 301. The `<dialog>` close event
+  never fires in the browser this was built against, so `shut()` restores focus itself.
+- **Your designs sit under the community's on `/designs/`**, drawn by the one renderer
+  `/account/` also uses; `test/site.js` compares the script blocks. Publishing clears the
+  cached reply before redraw. The public list loads twelve at a time behind a real Show
+  more button, which scroll only presses early.
+- **Nav boxes are all 100px**, and the header takes its own row below 1180px and wraps,
+  which fixed a 220px sideways scroll at 1000px.
 - **Map zoom stops at the fit, and the coarse tile fallback is read-only.** `clampCam` holds
   the artillery map at the fit; the fallback used to request every missing ancestor, which
   was the request storm the retry logic exists to survive. Cache capped at 360, never the

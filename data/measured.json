@@ -265,8 +265,9 @@
         "level": 16
       },
       "on": "2026-09-02",
-      "note": "Equipment Vendor, Specialist slot, Launcher tab, read off the firing range vendor on 2026-09-02. Price not read: the range sells everything for $0",
-      "class": "Launcher"
+      "note": "Read off the running game by the owner on 2026-09-02; the pull said 17.25",
+      "class": "Launcher",
+      "kg": 18.8
     },
     "9mm Armor Piercing (AP)": {
       "unlock": {
@@ -635,11 +636,12 @@
     "Compound Bow": {
       "class": "Bow",
       "on": "2026-09-02",
-      "note": "Recon ladder screen, level 17, named on screen. Cost not read",
+      "note": "Read off the running game by the owner on 2026-09-02; the pull said 1.3",
       "unlock": {
         "role": "Recon",
         "level": 17
-      }
+      },
+      "kg": 1.5
     },
     "Constrictor Brake": {
       "unlock": {

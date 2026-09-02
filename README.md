@@ -118,5 +118,5 @@ then checks the result against two figures published elsewhere and reproduces al
 published shots-to-kill numbers. If that stops passing, the build stops.
 
 Where a number could not be worked out honestly it is left out and said so, on the page.
-Range falloff and the torso hit-zone multiplier are the two open ones, written up in
-`docs/ballistics-sources.md`.
+The torso hit-zone multiplier is the open one, written up in `docs/ballistics-sources.md`.
+Range falloff is not one: damage does not drop with distance in this game.

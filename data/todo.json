@@ -14,11 +14,6 @@
       "where": "tools/site/pages/armory.js, attOwner"
     },
     {
-      "what": "Buildable footprints still marked with a question mark",
-      "why": "Estimated off beta footage. Place one and read the grid.",
-      "where": "data/buildables.json, sizeConfirmed"
-    },
-    {
       "what": "Damage figures for the weapons with none",
       "why": "No published shots-to-kill row to solve from.",
       "where": "data/ballistics.json, unfiguredWeapons"
@@ -27,11 +22,6 @@
       "what": "The open artillery questions",
       "why": "Each one names what would close it. All of them need somebody with the game open.",
       "where": "data/artillery.json, open"
-    },
-    {
-      "what": "Range falloff",
-      "why": "Every damage figure on the site is point blank, because nobody has published enough to work out the curve honestly. This is the single biggest gap.",
-      "where": "the damage page states it in the lede"
     },
     {
       "what": "The pulled item stats: weight, footprint, stack size, bag grids and unlock levels",

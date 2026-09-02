@@ -137,7 +137,7 @@ the tools exist so that it is a data job rather than a rebuild.
 
 | Area | What changes | Where |
 |---|---|---|
-| ballistics | three holes, all listed on the page: what flesh damage does to bare flesh, range falloff, and the torso zone multiplier | `docs/ballistics-sources.md`, [derived-data](objects/data/derived-data.md) |
+| ballistics | two holes, both listed on the page: what flesh damage does to bare flesh, and the torso zone multiplier. Range falloff was a third until 2026-09-02, when the owner said there is none in this game | `docs/ballistics-sources.md`, [derived-data](objects/data/derived-data.md) |
 | armory | 38 of 331 items have no confirmed price | `tools/build-armory.js` |
 | artillery | the contested mortar range settles with one shot | `data/artillery.json` |
 | buildables | costs and sizes marked `costConfirmed: false` / `sizeConfirmed: false` | `data/buildables.json` |

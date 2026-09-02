@@ -304,10 +304,10 @@ module.exports = ctx => {
       '<p class="lede">What a round does, where it lands, and what the man in front of you' +
       " is wearing. Set it up once and the ranking underneath re-sorts every weapon in the" +
       " game to match.</p>" +
-      '<p class="lede sub">Point blank, because range falloff is the one thing nobody has' +
-      " measured enough of to work out honestly. Everything else on this page is a figure" +
-      " somebody shot in game and wrote down, and what has not been shot yet is listed as a" +
-      " gap rather than filled in.</p>" +
+      '<p class="lede sub">Damage does not fall off with range in this game, so a figure here' +
+      " holds at whatever distance the round lands; rounds drop, damage does not. Everything" +
+      " on this page is a figure somebody shot in game and wrote down, and what has not been" +
+      " shot yet is listed as a gap rather than filled in.</p>" +
 
       /* ---------- the calculator ---------- */
       /* The shelf sits inside this wrapper and on top of the calculator rather than after
@@ -535,7 +535,7 @@ module.exports = ctx => {
 
       '<div class="empty" style="margin-top:52px;text-align:left">' +
         '<span class="wip">Not solved yet</span>' +
-        "<h3>Three things on this page are missing on purpose</h3>" +
+        "<h3>Two things on this page are missing on purpose</h3>" +
         '<ul style="max-width:64ch">' +
         B.unsolved.map(u => "<li>" + esc(u) + "</li>").join("") + "</ul>" +
         '<p class="fine" style="margin:14px 0 0">Health is 100. Damage figures are measured' +
