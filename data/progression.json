@@ -286,5 +286,24 @@
       "99": 3392000,
       "100": 3483250
     }
+  },
+  "rewards": {
+    "_note": "Ladder rewards that are not vendor items and so have no row in data/armory.json: cassette tapes for the vehicle radio so far. Each one was read off the Unlock screen card by the owner, spelled as the card spells it. Ladder ids match tracks above.",
+    "items": [
+      {
+        "name": "H4ZARD - GIGILOW",
+        "kind": "cassette",
+        "ladder": "driver",
+        "level": 5,
+        "on": "2026-09-02"
+      },
+      {
+        "name": "GAINTS (REMIX) - THE QUESMISTS",
+        "kind": "cassette",
+        "ladder": "driver",
+        "level": 13,
+        "on": "2026-09-02"
+      }
+    ]
   }
 }
