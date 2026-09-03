@@ -51,10 +51,6 @@ const palletCash  = catalog.logistics.palletCash;
    and the text a crawler reads cannot come apart. */
 const pallet     = catalog.logistics;
 const fob        = catalog.fob;
-const dearest    = ARMORY.items.filter(i => i.cat === "vehicles" && i.price !== null)
-                     .sort((a, b) => b.price - a.price)[0];
-const tank       = ARMORY.items.find(i => i.name === "L2A6");
-const tankUnlock = ((ctx.ITEM_STATS[(tank || {}).name] || {}).unlock) || null;
 const l4         = t => Math.round((DAMAGE.scalings[t] || {})["4"] * 1000) / 10;
 
 /* The hardest a Level 4 vest can be hit, over every load in the sheet. Chest rather than
@@ -90,14 +86,14 @@ const FAQ = [
     href: "/ballistics/", link: "Every round against every tier",
   },
   {
+    q: "How big is the FOB build zone in WARDOGS?",
+    a: `A square ${fob.buildRadiusUnits} Hesco blocks on a side, centred on the FOB. Everything you build has to sit inside it, and the planner marks anything that does not.`,
+    href: "/planner/", link: "Lay a base out inside it",
+  },
+  {
     q: "What hits a Level 4 vest hardest?",
     a: `${throughL4.load} out of a ${throughL4.cls.toLowerCase()}: ${throughL4.bare.toFixed(1)} to a bare chest, ${throughL4.got.toFixed(1)} through Level 4, so ${Math.ceil(BALLISTICS.health / throughL4.got)} shots to the chest.`,
     href: "/ballistics/", link: "Shots and time to kill by zone",
-  },
-  {
-    q: "What is the most expensive vehicle in WARDOGS?",
-    a: `The ${dearest.name} at $${dearest.price.toLocaleString()} from the vendor.${tankUnlock ? ` Price is not the gate, though: the ${tank.name} tank is $${tank.price.toLocaleString()} to buy and ${tankUnlock.role.toLowerCase()} level ${tankUnlock.level} plus $${tankUnlock.cash.toLocaleString()} to unlock in the first place.` : ""}`,
-    href: "/armory/", link: "Every vehicle, ground and air",
   },
 ];
 
