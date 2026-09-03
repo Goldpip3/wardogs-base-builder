@@ -2973,6 +2973,23 @@ function walkRise(dt, pressing) {
   }
 }
 
+/* Leaning on something, as opposed to brushing past it. The step asked for ran from (x, y)
+   to (nx, ny); the push let it get to (ox, oy). Sliding along a face at a shallow angle
+   keeps nearly all of the step, since only the component into the face is taken away, so
+   that is not pressing. Walking into a face loses most of it, and that is. The line is
+   drawn at losing three fifths, which a 15 degree brush never reaches and a 45 degree
+   approach does not either: you have to mean it. */
+const WALK_PRESS = 0.6;
+function walkBlocked(x, y, nx, ny, ox, oy) {
+  const wantX = nx - x, wantY = ny - y;
+  const want = Math.sqrt(wantX * wantX + wantY * wantY);
+  if (want < 1e-9) return false;
+  const gotX = ox - x, gotY = oy - y;
+  /* how much of the intended step survived, measured along the intended direction */
+  const along = (gotX * wantX + gotY * wantY) / want;
+  return along < want * (1 - WALK_PRESS);
+}
+
 function walkStep(now) {
   if (!walk.on) return;
   const dt = Math.min(0.05, (now - walk.last) / 1000 || 0);
@@ -2991,8 +3008,13 @@ function walkStep(now) {
     let ny = walk.y + (cy * fwd - sy * side) * speed;
     const out = walkPush(nx, ny, walkSolids(), walk.z);
     /* Stopped short of where they asked to go, so they are leaning on something. That is
-       what turns a climbable piece into a ladder, and only while they keep pushing. */
-    pressing = Math.abs(out[0] - nx) > 1e-6 || Math.abs(out[1] - ny) > 1e-6;
+       what turns a climbable piece into a ladder, and only while they keep pushing.
+
+       Pushing, not brushing. Any contact at all used to count, so walking past a
+       loudspeaker at a shallow angle climbed it at ladder speed, walked off the top and
+       fell, and the view flicked up and down for no reason anybody could see. Sliding
+       along a face loses a few percent of the step; leaning into one loses most of it. */
+    pressing = walkBlocked(walk.x, walk.y, nx, ny, out[0], out[1]);
     walk.x = out[0]; walk.y = out[1];
   }
   walkRise(dt, pressing);

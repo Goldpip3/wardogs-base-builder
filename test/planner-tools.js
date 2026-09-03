@@ -634,5 +634,28 @@ check(!/emptyState"\)\.style\.display/.test(src.replace(lift("syncEmptyState"), 
     "a click on the ground in 3D names the world point drawn under the pointer, at every turn");
 }
 
+// ---------- pressing on a wall, as opposed to brushing past it ----------
+/* Walking past a loudspeaker at a shallow angle used to climb it: any contact at all
+   counted as pressing, the climbable piece became a ladder, and the walker rode up five
+   blocks, walked off the top and fell, which read as the view flicking up and down at
+   random. Pressing now means losing most of the step to the push. */
+{
+  vm.runInContext(lift("walkBlocked") + "\nvar WALK_PRESS = " +
+    src.match(/const WALK_PRESS = ([0-9.]+);/)[1] + ";", sandbox);
+  const brush = deg => {
+    const a = deg * Math.PI / 180, s = 0.1;
+    // a wall along the x axis takes away the y component of the step and nothing else
+    return vm.runInContext("walkBlocked(0, 0, " + (Math.cos(a) * s) + ", " + (Math.sin(a) * s) +
+      ", " + (Math.cos(a) * s) + ", 0)", sandbox);
+  };
+  check(brush(15) === false, "brushing a wall at 15 degrees is not pressing on it");
+  check(brush(45) === false, "nor is coming at it at 45");
+  check(brush(75) === true && brush(90) === true, "leaning into it at 75 or 90 degrees is");
+  check(vm.runInContext("walkBlocked(1, 1, 1, 1, 1, 1)", sandbox) === false,
+    "standing still presses on nothing");
+  check(/pressing = walkBlocked\(walk\.x, walk\.y, nx, ny, out\[0\], out\[1\]\)/.test(src),
+    "and the walker uses that rule");
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
