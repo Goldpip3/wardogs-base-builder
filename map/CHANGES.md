@@ -22,8 +22,9 @@ todo list all said the old thing and now say this one.
 
 The owner read it off the running game: from the middle cell of the 3x3 FOB, 39 single Hesco
 blocks fit between it and the edge of the build zone in every direction. So the square is
-39 + 1 + 39 = 79 cells across, and `buildRadiusUnits` in `data/buildables.json` says so
-with `radiusConfirmed: true`. **The raw count is kept beside the figure** as
+39 + 1 + 39 = 79 cells across. **Later the same day the owner recounted and got 80**, which is
+what `buildRadiusUnits` in `data/buildables.json` now says with `radiusConfirmed: true`; 79
+joined the former figures a saved design is moved off. **The raw count is kept beside the figure** as
 `radiusReading`, so the arithmetic can be checked or redone. The first write-up of this
 reading took "Hesco walls" to mean the 4-wide Quad and recorded 312; it was single blocks.
 Both former defaults, 100 and then 200, were estimates, so a design still recording either

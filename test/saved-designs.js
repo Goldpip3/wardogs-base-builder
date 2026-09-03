@@ -100,10 +100,10 @@ const names = () => Object.keys(designs()).sort();
 {
   const fob = JSON.parse(fs.readFileSync(ROOT + "/data/buildables.json", "utf8")).fob;
   const zoneNow = fob.buildRadiusUnits;
-  check(zoneNow === 39 + 1 + 39 && fob.radiusConfirmed === true,
-    "the catalog's FOB build zone is 79 cells square, measured: 39 blocks out from the middle cell");
-  check(typeof fob.radiusReading === "string" && /39 Hesco blocks/.test(fob.radiusReading),
-    "and the raw reading is kept beside the converted figure");
+  check(zoneNow === 80 && fob.radiusConfirmed === true,
+    "the catalog's FOB build zone is 80 cells square, counted by the owner");
+  check(typeof fob.radiusReading === "string" && /80 cells/.test(fob.radiusReading),
+    "and the raw reading is kept beside the figure");
 
   const openZones = pieces => {
     run(`openDesign({ name:"z", pieces:${JSON.stringify(pieces)}, nextId:9 }, "z")`);

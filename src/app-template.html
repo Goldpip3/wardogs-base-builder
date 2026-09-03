@@ -661,7 +661,8 @@ function fobZone(p) {
    Anything recording a number that was never a default was typed in the panel and is
    kept. */
 const LEGACY_FOB_ZONE = 100;               // the wire format's own default, see packDesign
-const FORMER_FOB_ZONES = [100, 200];       // every default a saved design might still carry
+const FORMER_FOB_ZONES = [100, 200, 79];   // every default a saved design might still carry:
+                                           // 79 was a count the owner redid as 80 the same day
 function adopted(d) {
   for (const p of (d && d.pieces) || [])
     if (p.type === "__fob__" && (!p.zone || FORMER_FOB_ZONES.includes(p.zone)))
